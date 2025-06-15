@@ -11,8 +11,15 @@ endif()
 
 project ("Engine")
 
+#添加源文件
+file(GLOB_RECURSE SOURCES "src/*.cpp")
+#添加头文件
+file(GLOB_RECURSE HEADERS "include/*.h")
+#设置include目录
+include_directories("include")
+
 # 将源代码添加到此项目的可执行文件。
-add_executable (Engine "Engine.cpp" "Engine.h")
+add_executable (Engine ${SOURCES} ${HEADERS})
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Engine PROPERTY CXX_STANDARD 20)
