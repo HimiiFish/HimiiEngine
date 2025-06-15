@@ -1,4 +1,4 @@
-﻿{
+{
     "version": 3,
     "configurePresets": [
         {
@@ -9,7 +9,8 @@
             "installDir": "${sourceDir}/out/install/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "cl.exe",
-                "CMAKE_CXX_COMPILER": "cl.exe"
+                "CMAKE_CXX_COMPILER": "cl.exe",
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../vcpkg/scripts/buildsystems/vcpkg.cmake"
             },
             "condition": {
                 "type": "equals",
@@ -56,6 +57,75 @@
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
             }
+        },
+        {
+            "name": "linux-base",
+            "hidden": true,
+            "generator": "Ninja",
+            "binaryDir": "${sourceDir}/out/build/${presetName}",
+            "installDir": "${sourceDir}/out/install/${presetName}",
+            "cacheVariables": {
+                "CMAKE_TOOLCHAIN_FILE": "${sourceDir}/../vcpkg/scripts/buildsystems/vcpkg.cmake"
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "linux-debug",
+            "displayName": "Linux Debug",
+            "inherits": "linux-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug"
+            }
+        },
+        {
+            "name": "linux-release",
+            "displayName": "Linux Release",
+            "inherits": "linux-base",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Release"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "x64-debug-build",
+            "displayName": "Build x64 Debug",
+            "configurePreset": "x64-debug",
+            "description": "Build the x64 Debug configuration."
+        },
+        {
+            "name": "x64-release-build",
+            "displayName": "Build x64 Release",
+            "configurePreset": "x64-release",
+            "description": "Build the x64 Release configuration."
+        },
+        {
+            "name": "x86-debug-build",
+            "displayName": "Build x86 Debug",
+            "configurePreset": "x86-debug",
+            "description": "Build the x86 Debug configuration."
+        },
+        {
+            "name": "x86-release-build",
+            "displayName": "Build x86 Release",
+            "configurePreset": "x86-release",
+            "description": "Build the x86 Release configuration."
+        },
+        {
+            "name": "linux-debug-build",
+            "displayName": "Build Linux Debug",
+            "configurePreset": "linux-debug",
+            "description": "Build the Linux Debug configuration."
+        },
+        {
+            "name": "linux-release-build",
+            "displayName": "Build Linux Release",
+            "configurePreset": "linux-release",
+            "description": "Build the Linux Release configuration."
         }
     ]
 }
