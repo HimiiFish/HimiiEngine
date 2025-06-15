@@ -44,6 +44,9 @@ cmake_install.cmake
 compile_commands.json
 CTestTestfile.cmake
 Makefile
+# CMake build files
+cmake-build-debug/
+cmake-build-release/
 
 # Build directory
 build/
