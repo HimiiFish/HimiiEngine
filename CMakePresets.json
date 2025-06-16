@@ -4,7 +4,7 @@
         {
             "name": "windows-base",
             "hidden": true,
-            "generator": "Ninja",
+            "generator": "Visual Studio 17 2022",
             "binaryDir": "${sourceDir}/build/${presetName}",
             "installDir": "${sourceDir}/install/${presetName}",
             "cacheVariables": {
@@ -23,7 +23,7 @@
             "inherits": "windows-base",
             "architecture": {
                 "value": "x64",
-                "strategy": "external"
+                "strategy": "set"
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug"
@@ -35,7 +35,7 @@
             "inherits": "windows-base",
             "architecture": {
                 "value": "x64",
-                "strategy": "external"
+                "strategy": "set"
             },
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Release"
