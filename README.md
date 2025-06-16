@@ -13,7 +13,7 @@ This a **2D GameEngine**
 
 > 关于vcpkg：一个C++的包管理工具，类似Python的pip，C#的nuget，用来管理C++项目的依赖库。
 
-2. 运行`vcpkg/bootstrap-vcpkg.exe`下载`vcpkg.exe`（会下载到`vcpkg/`目录下）
+2. 运行`vcpkg/bootstrap-vcpkg.bat`下载`vcpkg.exe`（会下载到`vcpkg/`目录下）
 
 3. 使用`vcpkg.exe`安装依赖项
 打开终端，切换到`vcpkg/`目录，运行`.\vcpkg.exe install`即可
