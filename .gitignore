@@ -114,3 +114,4 @@ Generated Files/
 *.log
 *~
 *.swp
+vcpkg_installed/
