@@ -11,6 +11,8 @@ endif()
 
 project ("Engine")
 
+# 查找SDL3库
+set(SDL3_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/share/sdl3")
 find_package(SDL3 REQUIRED CONFIG)
 
 
