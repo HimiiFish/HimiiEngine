@@ -14,7 +14,7 @@ project ("Engine")
 # 查找SDL3库
 set(SDL3_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/share/sdl3")
 find_package(SDL3 REQUIRED CONFIG)
-
+find_package(glad CONFIG REQUIRED)
 
 #添加源文件
 file(GLOB_RECURSE SOURCES "src/*.cpp")
@@ -28,8 +28,9 @@ add_executable (Engine ${SOURCES} ${HEADERS})
 
 target_include_directories(Engine PUBLIC include)
 
-target_link_libraries(Engine PRIVATE SDL3::SDL3)
-target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
+target_link_libraries(Engine PRIVATE SDL3::SDL3 glad::glad opengl32)
+##target_link_libraries(Engine PRIVATE SDL3::SDL3)
+##target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Engine PROPERTY CXX_STANDARD 17)
