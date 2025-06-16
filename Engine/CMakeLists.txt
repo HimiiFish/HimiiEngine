@@ -29,6 +29,7 @@ add_executable (Engine ${SOURCES} ${HEADERS})
 target_include_directories(Engine PUBLIC include)
 
 target_link_libraries(Engine PRIVATE SDL3::SDL3)
+target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Engine PROPERTY CXX_STANDARD 17)

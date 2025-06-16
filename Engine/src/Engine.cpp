@@ -1,31 +1,45 @@
-﻿#include "Engine.h" // 假设您有一个 Engine.h，如果不需要可以移除
+﻿#include "Engine.h"
 #include <SDL3/SDL.h>
-#include <SDL3/SDL_main.h> // 对于某些平台和 main 函数的正确定义是推荐的
+#include <SDL3/SDL_main.h>
+#include <SDL3/SDL_opengl.h>
 #include <iostream>
 
-// 屏幕尺寸常量
 const int SCREEN_WIDTH = 800;
 const int SCREEN_HEIGHT = 600;
+
+void RenderTriangle()
+{
+    std::cout << "Rendering triangle..." << std::endl;
+
+    // 定义三角形的顶点
+    glBegin(GL_TRIANGLES);
+    glColor3f(1.0f, 0.0f, 0.0f); // 红色
+    glVertex2f(-0.5f, -0.5f);    // 左下角
+    glColor3f(0.0f, 1.0f, 0.0f); // 绿色
+    glVertex2f(0.5f, -0.5f);     // 右下角
+    glColor3f(0.0f, 0.0f, 1.0f); // 蓝色
+    glVertex2f(0.0f, 0.5f);      // 顶部
+    glEnd();
+
+    // 刷新缓冲区
+    glFlush();
+}
 
 int main(int argc, char *argv[])
 {
     SDL_Window *window = nullptr;
-    SDL_Renderer *renderer = nullptr;
 
-    // 初始化 SDL 视频子系统
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
     {
         std::cerr << "SDL_Init Error: " << SDL_GetError() << std::endl;
         return 1;
     }
 
-    // 创建窗口
-    window = SDL_CreateWindow("SDL3 Window",       // 窗口标题
-                              SCREEN_WIDTH,        // 窗口宽度
-                              SCREEN_HEIGHT,       // 窗口高度
-                              SDL_WINDOW_RESIZABLE // 窗口标志，例如可调整大小
-    );
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
+    window = SDL_CreateWindow("OpenGL Triangle", SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
     if (!window)
     {
         std::cerr << "SDL_CreateWindow Error: " << SDL_GetError() << std::endl;
@@ -33,49 +47,39 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // 创建渲染器
-    renderer = SDL_CreateRenderer(window, nullptr);
-    if (!renderer)
+    SDL_GLContext glContext = SDL_GL_CreateContext(window);
+    if (!glContext)
     {
-        std::cerr << "SDL_CreateRenderer Error: " << SDL_GetError() << std::endl;
+        std::cerr << "SDL_GL_CreateContext Error: " << SDL_GetError() << std::endl;
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 1;
     }
+  std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+    glViewport(0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
+    glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 
     bool quit = false;
     SDL_Event event;
 
-    // 主事件循环
     while (!quit)
     {
-        // 处理事件队列
+        // 清除屏幕
+        glClear(GL_COLOR_BUFFER_BIT);
+        RenderTriangle();
+        SDL_GL_SwapWindow(window);
         while (SDL_PollEvent(&event))
         {
             if (event.type == SDL_EVENT_QUIT)
             {
                 quit = true;
             }
-            // 您可以在这里添加其他事件处理，例如键盘、鼠标输入
         }
-
-        // 清除屏幕 (例如，设置为蓝色)
-        SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // R, G, B, A
-        SDL_RenderClear(renderer);
-
-        // 在这里进行绘制操作
-        // 例如: SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-        // SDL_RenderLine(renderer, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT);
-
-        // 更新屏幕
-        SDL_RenderPresent(renderer);
     }
 
-    // 清理资源
-    SDL_DestroyRenderer(renderer);
+    SDL_GL_DestroyContext(glContext);
     SDL_DestroyWindow(window);
     SDL_Quit();
 
-    std::cout << "SDL3 Application exited cleanly." << std::endl;
     return 0;
 }
