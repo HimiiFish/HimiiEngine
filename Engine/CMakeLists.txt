@@ -14,22 +14,21 @@ project ("Engine")
 # 查找SDL3库
 set(SDL3_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/share/sdl3")
 find_package(SDL3 REQUIRED CONFIG)
+find_package(glad REQUIRED CONFIG)
+find_package(OpenGL REQUIRED)
 
 
 #添加源文件
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 #添加头文件
 file(GLOB_RECURSE HEADERS "include/*.h")
-#设置include目录
-include_directories("include")
 
 # 将源代码添加到此项目的可执行文件。
 add_executable (Engine ${SOURCES} ${HEADERS})
 
 target_include_directories(Engine PUBLIC include)
 
-target_link_libraries(Engine PRIVATE SDL3::SDL3)
-target_link_libraries(${PROJECT_NAME} PRIVATE opengl32)
+target_link_libraries(Engine PRIVATE SDL3::SDL3 OpenGL::GL)
 
 if (CMAKE_VERSION VERSION_GREATER 3.12)
   set_property(TARGET Engine PROPERTY CXX_STANDARD 17)
