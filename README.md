@@ -7,20 +7,123 @@
 
 This a **2D GameEngine**
 
-## 环境部署（Windows）
-
-1. 拉取仓库（注意包含子模块**vcpkg**）
-
-> 关于vcpkg：一个C++的包管理工具，类似Python的pip，C#的nuget，用来管理C++项目的依赖库。
-
-2. 运行`vcpkg/bootstrap-vcpkg.bat`下载`vcpkg.exe`（会下载到`vcpkg/`目录下）
-
-3. 使用`vcpkg.exe`安装依赖项
-打开终端，切换到`vcpkg/`目录，运行`.\vcpkg.exe install`即可
-> 该过程会根据`vcpkg.json`配置的依赖安装'，依赖存放位置为`vcpkg_installed/`
-
-4. 重载构建cmake
-
 > [!IMPORTANT]
 > 本项目遵循 [**MIT License**](https://github.com/HimiiFish/HimiiEngine/blob/main/LICENSE)
+
+## HimiiEngine 构建指南
+
+本项目提供了跨平台的Python构建脚本 `build.py`，支持Windows和Linux平台。
+
+## 前置要求
+
+### Windows
+- CMake 3.8 或更高版本
+- Visual Studio 2022 (或更新版本)
+- Python 3.6 或更高版本
+- vcpkg (已包含在项目中)
+
+### Linux
+- CMake 3.8 或更高版本
+- Ninja 构建系统
+- GCC 或 Clang 编译器 (支持C++17)
+- Python 3.6 或更高版本
+- vcpkg (已包含在项目中)
+
+## 使用方法
+
+### 基本构建命令
+
+```bash
+# Debug 构建
+python build.py debug
+
+# Release 构建
+python build.py release
+```
+
+### 高级选项
+
+```bash
+# 清理构建目录后重新构建
+python build.py debug --clean
+
+# 构建完成后自动运行程序
+python build.py release --run
+
+# 同时使用清理和自动运行
+python build.py debug --clean --run
+
+# 仅清理构建目录（不构建）
+python build.py debug --clean-only
+```
+
+### 命令行参数说明
+
+- `build_type`: 构建类型，可选 `debug` 或 `release`
+- `--clean, -c`: 构建前清理构建目录
+- `--run, -r`: 构建完成后自动运行生成的程序
+- `--clean-only`: 仅清理构建目录，不进行构建
+- `--help, -h`: 显示帮助信息
+
+## 构建输出
+
+构建生成的文件位于：
+
+- Windows: `build/x64-debug/` 或 `build/x64-release/`
+- Linux: `build/linux-debug/` 或 `build/linux-release/`
+
+可执行文件位于以下位置：
+
+- Windows: `Engine/Debug/` 或 `Engine/Release/` 子目录中，文件名为 `Engine.exe`
+- Linux: `Engine/` 目录中，文件名为 `Engine`
+
+### Windows平台可执行文件位置说明
+
+在Windows平台上，Visual Studio生成器会根据构建类型将可执行文件放在不同的子目录中：
+
+- **Debug构建**: 可执行文件位于 `build/x64-debug/Engine/Debug/` 目录
+- **Release构建**: 可执行文件位于 `build/x64-release/Engine/Release/` 目录
+
+这是Visual Studio的默认行为，构建脚本会自动查找正确的目录。
+
+## 故障排除
+
+### 常见问题
+
+1. **CMake未找到**
+   - 确保CMake已安装并添加到系统PATH中
+
+2. **Visual Studio未找到** (Windows)
+   - 确保安装了Visual Studio 2022或更新版本
+   - 确保安装了C++开发工具
+
+3. **Ninja未找到** (Linux)
+   - Ubuntu/Debian: `sudo apt install ninja-build`
+   - CentOS/RHEL: `sudo yum install ninja-build`
+   - Arch: `sudo pacman -S ninja`
+
+4. **vcpkg依赖问题**
+   - 确保vcpkg目录存在于项目根目录
+   - 检查vcpkg是否已正确初始化
+
+### 手动构建（备选方案）
+
+如果Python脚本出现问题，可以使用传统的CMake命令：
+
+#### Windows
+```bash
+# 配置
+cmake --preset x64-debug
+
+# 构建
+cmake --build --preset build-x64-debug-win
+```
+
+#### Linux
+```bash
+# 配置
+cmake --preset linux-debug
+
+# 构建
+cmake --build --preset build-linux-debug
 
