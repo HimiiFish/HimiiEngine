@@ -15,6 +15,9 @@ project ("Engine")
 set(SDL3_DIR "${CMAKE_SOURCE_DIR}/vcpkg_installed/x64-windows/share/sdl3")
 find_package(SDL3 REQUIRED CONFIG)
 find_package(glad CONFIG REQUIRED)
+# 显式指定使用新OpenGL架构
+cmake_policy(SET CMP0072 NEW)
+set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 
 #添加源文件
