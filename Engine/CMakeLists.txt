@@ -21,7 +21,7 @@ set(OpenGL_GL_PREFERENCE GLVND)
 find_package(OpenGL REQUIRED)
 
 #添加源文件
-file(GLOB_RECURSE SOURCES "src/*.cpp")
+file(GLOB_RECURSE SOURCES "src/Core/*.cpp")
 #添加头文件
 file(GLOB_RECURSE HEADERS "include/*.h")
 # 将源代码添加到此项目的可执行文件。
