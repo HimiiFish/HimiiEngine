@@ -5,5 +5,5 @@
 //---------入口点-----------
 #include "Core/EntryPoint.h"
 
-
+namespace Engine = Core;
 // TODO: 在此处引用程序需要的其他标头。

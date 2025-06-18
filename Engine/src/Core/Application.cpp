@@ -96,7 +96,7 @@ namespace Core
             if (SDL_Init(SDL_INIT_VIDEO) < 0)
             {
                 std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
-                return 1;
+                return;
             }
 
             // 设置 OpenGL 属性
@@ -109,7 +109,7 @@ namespace Core
             {
                 std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
                 SDL_Quit();
-                return 1;
+                return;
             }
 
             SDL_GLContext glContext = SDL_GL_CreateContext(window);
@@ -118,7 +118,7 @@ namespace Core
                 std::cerr << "OpenGL context creation failed: " << SDL_GetError() << std::endl;
                 SDL_DestroyWindow(window);
                 SDL_Quit();
-                return 1;
+                return;
             }
 
             if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
@@ -127,7 +127,7 @@ namespace Core
                 // SDL_GL_DeleteContext(glContext);
                 SDL_DestroyWindow(window);
                 SDL_Quit();
-                return 1;
+                return;
             }
 
             // OpenGL 初始化
