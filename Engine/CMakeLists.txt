@@ -25,7 +25,7 @@ file(GLOB_RECURSE SOURCES "src/Core/*.cpp")
 #添加头文件
 file(GLOB_RECURSE HEADERS "include/*.h")
 # 将源代码添加到此项目的可执行文件。
-add_executable (Engine ${SOURCES} ${HEADERS})
+add_executable (Engine ${SOURCES} ${HEADERS} "src/Core/Application.h")
 
 
 target_link_libraries(Engine PRIVATE SDL3::SDL3 OpenGL::GL glad::glad )

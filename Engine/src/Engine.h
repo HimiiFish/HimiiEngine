@@ -1,8 +1,9 @@
-﻿// Engine.h: 标准系统包含文件的包含文件
-// 或项目特定的包含文件。
+﻿#pragma once
+// Engine.h: 引擎的核心头文件。
+#include "Core/Application.h"
 
-#pragma once
+//---------入口点-----------
+#include "Core/EntryPoint.h"
 
-#include <iostream>
 
 // TODO: 在此处引用程序需要的其他标头。
