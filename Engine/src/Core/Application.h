@@ -8,7 +8,6 @@ namespace Core
         Application();
         virtual ~Application();
 
-        void Initialize();
         // 启动应用程序
         void Run();
 

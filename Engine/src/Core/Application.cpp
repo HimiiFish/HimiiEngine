@@ -167,15 +167,16 @@ namespace Core
             // 设置清屏颜色
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
-            // 主循环
-            bool running = true;
             SDL_Event event;
-            while (running)
+            while (m_Running)
             {
                 while (SDL_PollEvent(&event))
                 {
                     if (event.type == SDL_EVENT_QUIT)
-                        running = false;
+                    {
+                        m_Running = false;
+                    }
+                        
                 }
 
                 glClear(GL_COLOR_BUFFER_BIT);

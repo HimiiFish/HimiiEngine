@@ -1,12 +1,14 @@
 #pragma once
+#include <iostream>
 
+using namespace std;
 int main(int argc, char *argv[])
 {
     // 创建应用程序实例
     auto *app = Core::CreateApplication();
-
+    cout << "Application created successfully." << endl;
     // 初始化应用程序
-    app->Initialize();
+    //app->Initialize();
 
     // 运行应用程序
     app->Run();
