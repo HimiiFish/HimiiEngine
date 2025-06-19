@@ -59,6 +59,13 @@ jobs:
       run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
       shell: bash
 
+    - name: Install dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ninja-build build-essential
+      shell: bash
+
     - name: Set Compilers for Linux
       if: runner.os == 'Linux'
       # On Linux, the CC and CXX environment variables set in the matrix
