@@ -41,6 +41,3 @@ endif()
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
 target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad)
-
-set_property(TARGET Engine PROPERTY CXX_STANDARD 17)
-set_property(TARGET Engine PROPERTY CXX_STANDARD_REQUIRED ON)
