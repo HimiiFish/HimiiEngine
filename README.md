@@ -17,13 +17,13 @@ This a **2D GameEngine**
 ## 前置要求
 
 ### Windows
-- CMake 3.8 或更高版本
+- CMake 3.12 或更高版本
 - Visual Studio 2022 (或更新版本)
 - Python 3.6 或更高版本
 - vcpkg (已包含在项目中)
 
 ### Linux
-- CMake 3.8 或更高版本
+- CMake 3.12 或更高版本
 - Ninja 构建系统
 - GCC 或 Clang 编译器 (支持C++17)
 - Python 3.6 或更高版本

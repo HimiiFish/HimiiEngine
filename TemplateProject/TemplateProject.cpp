@@ -4,12 +4,12 @@ class TemplateProject : public Engine::Application {
 public:
     TemplateProject()
     {
-        // ³õÊ¼»¯´úÂë
+        // åˆå§‹åŒ–ä»£ç 
     }
 
     virtual ~TemplateProject()
     {
-        // ÇåÀí´úÂë
+        // æ¸…ç†ä»£ç 
     }
 };
 

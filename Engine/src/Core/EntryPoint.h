@@ -4,16 +4,16 @@
 using namespace std;
 int main(int argc, char *argv[])
 {
-    // ´´½¨Ó¦ÓÃ³ÌĞòÊµÀı
+    // åˆ›å»ºåº”ç”¨ç¨‹åºå®ä¾‹
     auto *app = Core::CreateApplication();
     cout << "Application created successfully." << endl;
-    // ³õÊ¼»¯Ó¦ÓÃ³ÌĞò
+    // åˆå§‹åŒ–åº”ç”¨ç¨‹åº
     //app->Initialize();
 
-    // ÔËĞĞÓ¦ÓÃ³ÌĞò
+    // è¿è¡Œåº”ç”¨ç¨‹åº
     app->Run();
 
-    // ÇåÀí×ÊÔ´
+    // æ¸…ç†èµ„æº
     delete app;
 
     return 0;

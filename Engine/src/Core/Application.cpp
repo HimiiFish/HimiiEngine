@@ -5,7 +5,7 @@
 #include <vector>
 #include "glad/glad.h"
 
-// ¶¥µã×ÅÉ«Æ÷Ô´Âë
+// é¡¶ç‚¹ç€è‰²å™¨æºç 
 const char *vertexShaderSource = R"(#version 330 core
 layout(location = 0) in vec2 aPos;
 layout(location = 1) in vec3 aColor;
@@ -19,7 +19,7 @@ void main()
 }
 )";
 
-// Æ¬¶Î×ÅÉ«Æ÷Ô´Âë
+// ç‰‡æ®µç€è‰²å™¨æºç 
 const char *fragmentShaderSource = R"(#version 330 core
 in vec3 vertexColor;
 out vec4 FragColor;
@@ -44,14 +44,14 @@ namespace Core
         s_Instance = nullptr;
     }
 
-        // ±àÒë×ÅÉ«Æ÷²¢´´½¨³ÌĞò
+        // ç¼–è¯‘ç€è‰²å™¨å¹¶åˆ›å»ºç¨‹åº
     GLuint CompileShader(GLenum type, const char *source)
     {
         GLuint shader = glCreateShader(type);
         glShaderSource(shader, 1, &source, nullptr);
         glCompileShader(shader);
 
-        // ¼ì²é´íÎó
+        // æ£€æŸ¥é”™è¯¯
         GLint success;
         glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success)
@@ -73,7 +73,7 @@ namespace Core
         glAttachShader(program, fragmentShader);
         glLinkProgram(program);
 
-        // ¼ì²éÁ´½Ó´íÎó
+        // æ£€æŸ¥é“¾æ¥é”™è¯¯
         GLint success;
         glGetProgramiv(program, GL_LINK_STATUS, &success);
         if (!success)
@@ -92,14 +92,14 @@ namespace Core
     {
         while (m_Running)
         {
-            // ³õÊ¼»¯ SDL
+            // åˆå§‹åŒ– SDL
             if (SDL_Init(SDL_INIT_VIDEO) < 0)
             {
                 std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
                 return;
             }
 
-            // ÉèÖÃ OpenGL ÊôĞÔ
+            // è®¾ç½® OpenGL å±æ€§
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
             SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -130,10 +130,10 @@ namespace Core
                 return;
             }
 
-            // OpenGL ³õÊ¼»¯
+            // OpenGL åˆå§‹åŒ–
             // std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
 
-            // ¶¥µãÊı¾İ£ºÎ»ÖÃ(x, y) + ÑÕÉ«(r, g, b)
+            // é¡¶ç‚¹æ•°æ®ï¼šä½ç½®(x, y) + é¢œè‰²(r, g, b)
             float vertices[] = {
                     // positions     // colors
                     -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // left - red
@@ -141,30 +141,30 @@ namespace Core
                     0.0f,  0.5f,  0.0f, 0.0f, 1.0f  // top - blue
             };
 
-            // ´´½¨ VAO¡¢VBO
+            // åˆ›å»º VAOã€VBO
             GLuint VAO, VBO;
             glGenVertexArrays(1, &VAO);
             glGenBuffers(1, &VBO);
 
-            // °ó¶¨ VAO
+            // ç»‘å®š VAO
             glBindVertexArray(VAO);
 
-            // °ó¶¨ VBO ²¢´«Êı¾İ
+            // ç»‘å®š VBO å¹¶ä¼ æ•°æ®
             glBindBuffer(GL_ARRAY_BUFFER, VBO);
             glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-            // ¶¥µãÎ»ÖÃÊôĞÔ
+            // é¡¶ç‚¹ä½ç½®å±æ€§
             glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
             glEnableVertexAttribArray(0);
 
-            // ÑÕÉ«ÊôĞÔ
+            // é¢œè‰²å±æ€§
             glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
             glEnableVertexAttribArray(1);
 
-            // ´´½¨ shader ³ÌĞò
+            // åˆ›å»º shader ç¨‹åº
             GLuint shaderProgram = CreateShaderProgram();
 
-            // ÉèÖÃÇåÆÁÑÕÉ«
+            // è®¾ç½®æ¸…å±é¢œè‰²
             glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
 
             SDL_Event event;
@@ -188,7 +188,7 @@ namespace Core
                 SDL_GL_SwapWindow(window);
             }
 
-            // ÇåÀí
+            // æ¸…ç†
             glDeleteVertexArrays(1, &VAO);
             glDeleteBuffers(1, &VBO);
             glDeleteProgram(shaderProgram);

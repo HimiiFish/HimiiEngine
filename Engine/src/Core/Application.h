@@ -8,7 +8,7 @@ namespace Core
         Application();
         virtual ~Application();
 
-        // 启动应用程序
+        // 鍚姩搴旂敤绋嬪簭
         void Run();
 
         inline static Application &Get()
