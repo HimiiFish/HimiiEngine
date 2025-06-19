@@ -59,6 +59,19 @@ jobs:
       run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
       shell: bash
 
+    - name: Cache vcpkg dependencies
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.workspace }}/vcpkg_installed
+          ${{ github.workspace }}/build/vcpkg_installed
+          ${{ github.workspace }}/vcpkg/buildtrees
+          ${{ github.workspace }}/vcpkg/packages
+          ${{ github.workspace }}/vcpkg/downloads
+        key: ${{ runner.os }}-${{ matrix.preset }}-${{ hashFiles('**/vcpkg.json') }}
+        restore-keys: |
+          ${{ runner.os }}-${{ matrix.preset }}-
+
     - name: Install dependencies (Linux)
       if: runner.os == 'Linux'
       run: |
