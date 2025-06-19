@@ -1,7 +1,9 @@
 ﻿#pragma once
 #include <iostream>
-
 using namespace std;
+
+extern Core::Application *Core::CreateApplication();
+
 int main(int argc, char *argv[])
 {
     // 创建应用程序实例
