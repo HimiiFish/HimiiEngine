@@ -28,6 +28,7 @@ This a **2D GameEngine**
 - GCC 或 Clang 编译器 (支持C++17)
 - Python 3.6 或更高版本
 - vcpkg (已包含在项目中)
+- 安装 autoconf automake libtool libltdl-dev libgl1-mesa-dev libglu1-mesa-dev
 
 ## 使用方法
 
