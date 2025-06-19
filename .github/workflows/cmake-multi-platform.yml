@@ -63,7 +63,7 @@ jobs:
       if: runner.os == 'Linux'
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build build-essential autoconf automake libtool libltdl-dev
+        sudo apt-get install -y ninja-build build-essential autoconf automake libtool libltdl-dev libgl1-mesa-dev libglu1-mesa-dev
       shell: bash
 
     - name: Set Compilers for Linux
