@@ -22,18 +22,16 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 # 多配置生成器（例如 Visual Studio）使用这些特定于配置的路径
 foreach(config ${CMAKE_CONFIGURATION_TYPES})
     string(TOUPPER ${config} config_upper)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/lib/${config})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/bin/${config})
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/bin/${config})
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/lib)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/bin)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/bin)
 endforeach()
 
 # 确保 Visual Studio 的输出目录存在，以避免链接器错误
 if(MSVC)
     file(MAKE_DIRECTORY
-        ${CMAKE_BINARY_DIR}/bin/Debug
-        ${CMAKE_BINARY_DIR}/bin/Release
-        ${CMAKE_BINARY_DIR}/lib/Debug
-        ${CMAKE_BINARY_DIR}/lib/Release
+        ${CMAKE_BINARY_DIR}/bin
+        ${CMAKE_BINARY_DIR}/lib
     )
 endif()
 

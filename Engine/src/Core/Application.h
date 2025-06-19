@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 namespace Core
 {
@@ -8,7 +8,6 @@ namespace Core
         Application();
         virtual ~Application();
 
-        // 启动应用程序
         void Run();
 
         inline static Application &Get()

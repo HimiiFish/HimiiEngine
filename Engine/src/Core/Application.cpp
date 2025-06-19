@@ -1,4 +1,4 @@
-#include "Application.h"
+﻿#include "Application.h"
 #include <SDL3/SDL.h>
 #include <iostream>
 #include <string>
@@ -32,19 +32,7 @@ void main()
 
 namespace Core
 {
-    Application *Application::s_Instance = nullptr;
-
-    Application::Application()
-    {
-        s_Instance = this;
-    }
-
-    Application::~Application()
-    {
-        s_Instance = nullptr;
-    }
-
-        // 编译着色器并创建程序
+    // 编译着色器并创建程序
     GLuint CompileShader(GLenum type, const char *source)
     {
         GLuint shader = glCreateShader(type);
@@ -86,6 +74,18 @@ namespace Core
         glDeleteShader(vertexShader);
         glDeleteShader(fragmentShader);
         return program;
+    }
+
+    Application *Application::s_Instance = nullptr;
+
+    Application::Application()
+    {
+        s_Instance = this;
+    }
+
+    Application::~Application()
+    {
+        s_Instance = nullptr;
     }
 
     void Application::Run()
