@@ -66,6 +66,11 @@ jobs:
         sudo apt-get install -y ninja-build build-essential
       shell: bash
 
+    - name: Install Python dependencies (Linux)
+      if: runner.os == 'Linux'
+      run: pip install jinja2
+      shell: bash
+
     - name: Set Compilers for Linux
       if: runner.os == 'Linux'
       # On Linux, the CC and CXX environment variables set in the matrix
