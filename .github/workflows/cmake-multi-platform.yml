@@ -1,0 +1,75 @@
+name: CMake CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    # The CMake configure and build presets simplify the build process
+    # and ensure that the CI build is consistent with the local build.
+    # For more information on CMake presets, see: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
+    
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      # Ensure that all jobs run to completion even if one fails.
+      fail-fast: false
+
+      # Define the build matrix for different OS and compiler combinations.
+      matrix:
+        include:
+          # Windows build using Visual Studio (compiler is handled by the preset)
+          - os: windows-latest
+            preset: x64-release
+            build_preset: build-x64-release-win
+
+          # Linux build using GCC
+          - os: ubuntu-latest
+            preset: linux-release
+            build_preset: build-linux-release
+            env:
+              CC: gcc
+              CXX: g++
+
+          # Linux build using Clang
+          - os: ubuntu-latest
+            preset: linux-release
+            build_preset: build-linux-release
+            env:
+              CC: clang
+              CXX: clang++
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # vcpkg is included in the repo, so we need to bootstrap it to make it available.
+    - name: Bootstrap vcpkg (Windows)
+      if: runner.os == 'Windows'
+      run: ${{ github.workspace }}\vcpkg\bootstrap-vcpkg.bat
+      shell: cmd
+
+    - name: Bootstrap vcpkg (Linux)
+      if: runner.os == 'Linux'
+      run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
+      shell: bash
+
+    - name: Set Compilers for Linux
+      if: runner.os == 'Linux'
+      # On Linux, the CC and CXX environment variables set in the matrix
+      # will be used to select the correct compiler.
+      run: |
+        echo "CC=${{ matrix.env.CC }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.env.CXX }}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Configure CMake
+      # Use the preset to configure the build.
+      run: cmake --preset ${{ matrix.preset }}
+
+    - name: Build
+      # Use the build preset to build the project.
+      run: cmake --build --preset ${{ matrix.build_preset }}
