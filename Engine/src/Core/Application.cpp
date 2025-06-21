@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "glad/glad.h"
+#include <glad/gl.h>
 
 // 顶点着色器源码
 const char *vertexShaderSource = R"(#version 330 core
@@ -121,7 +121,7 @@ namespace Core
                 return;
             }
 
-            if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+            if (!gladLoadGL(SDL_GL_GetProcAddress))
             {
                 std::cerr << "Failed to initialize GLAD!" << std::endl;
                 // SDL_GL_DeleteContext(glContext);
