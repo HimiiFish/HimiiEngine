@@ -1,9 +1,8 @@
 ﻿#include "Application.h"
 #include <SDL3/SDL.h>
-#include <iostream>
-#include <string>
-#include <vector>
+#include "Hepch.h"
 #include "glad/glad.h"
+#include "Log.h"
 
 // 顶点着色器源码
 const char *vertexShaderSource = R"(#version 330 core
@@ -92,6 +91,7 @@ namespace Core
     {
         while (m_Running)
         {
+           
             // 初始化 SDL
             if (SDL_Init(SDL_INIT_VIDEO) < 0)
             {

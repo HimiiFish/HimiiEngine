@@ -18,6 +18,6 @@ namespace Core
 
 }
 
-#define LOG_INFO(msg)::Core::Log::Print(LogLevel::Info, msg, __FILE__, __FUNCTION__, __LINE__)
-#define LOG_WARNING(msg)::Core::Log::Print(LogLevel::Warning, msg, __FILE__, __FUNCTION__, __LINE__)
-#define LOG_ERROR(msg)::Core::Log::Print(LogLevel::Error, msg, __FILE__, __FUNCTION__, __LINE__)
+#define LOG_INFO(msg) ::Core::Log::Print(::Core::LogLevel::Info, msg, __FILE__, __FUNCTION__, __LINE__)
+#define LOG_WARNING(msg) ::Core::Log::Print(::Core::LogLevel::Warning, msg, __FILE__, __FUNCTION__, __LINE__)
+#define LOG_ERROR(msg) ::Core::Log::Print(::Core::LogLevel::Error, msg, __FILE__, __FUNCTION__, __LINE__)

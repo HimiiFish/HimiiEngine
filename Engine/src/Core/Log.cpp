@@ -59,9 +59,21 @@ namespace Core
     }
 
 
+    std::string GetFileName(const char *fullPath)
+    {
+        std::string pathStr(fullPath);
+        size_t lastSlash = pathStr.find_last_of("/\\");
+        if (lastSlash != std::string::npos)
+        {
+            return pathStr.substr(lastSlash + 1);
+        }
+        return pathStr;
+    }
+
+
     void Log::Init(bool toFile, const std::string &filePath)
     {
-        std::cout << "Log system initialized." << std::endl;
+
         logToFile = toFile;
         logFilePath = filePath;
         if (logToFile)
@@ -74,8 +86,9 @@ namespace Core
     void Log::Print(LogLevel level, const std::string &message, const char *file, const char *function, int line)
     {
         std::ostringstream oss;
+        std::string fileName = GetFileName(file);
         oss << GetTimestamp() << " [" << LevelToString(level) << "] "
-            << "[" << file << ":" << line << " " << function << "] " << message;
+            << "[" << fileName << ":" << line << " " << function << "] " << message;
 
         std::string fullMsg = oss.str();
 
