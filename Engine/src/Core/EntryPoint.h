@@ -1,14 +1,15 @@
 ﻿#pragma once
-#include <iostream>
-using namespace std;
+#include "Log.h"
 
 extern Core::Application *Core::CreateApplication();
 
 int main(int argc, char *argv[])
 {
+    Core::Log::Init();
+    LOG_INFO("Application starting...");
     // 创建应用程序实例
     auto *app = Core::CreateApplication();
-    cout << "Application created successfully." << endl;
+   
     // 初始化应用程序
     //app->Initialize();
 

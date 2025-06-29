@@ -176,7 +176,7 @@ namespace Core
                     {
                         m_Running = false;
                     }
-                        
+   
                 }
 
                 glClear(GL_COLOR_BUFFER_BIT);
