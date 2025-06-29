@@ -24,6 +24,12 @@ namespace Core
                 return "WARN";
             case LogLevel::Error:
                 return "ERROR";
+            case LogLevel::Core_Info:
+                return "CORE_INFO";
+            case LogLevel::Core_Warning:
+                return "CORE_WARNING";
+            case LogLevel::Core_Error:
+                return "CORE_ERROR";
             default:
                 return "UNKNOWN";
         }
@@ -38,6 +44,12 @@ namespace Core
             case LogLevel::Warning:
                 return "\033[33m"; // Yellow
             case LogLevel::Error:
+                return "\033[31m"; // Red
+            case LogLevel::Core_Info:
+                return "\033[32m"; // Green
+            case LogLevel::Core_Warning:
+                return "\033[33m"; // Yellow
+            case LogLevel::Core_Error:
                 return "\033[31m"; // Red
             default:
                 return "\033[0m";
