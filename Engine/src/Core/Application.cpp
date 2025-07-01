@@ -3,6 +3,7 @@
 #include "Hepch.h"
 #include "glad/glad.h"
 #include "Log.h"
+#include "LayerStack.h"
 
 // 顶点着色器源码
 const char *vertexShaderSource = R"(#version 330 core
@@ -86,116 +87,145 @@ namespace Core
     {
         s_Instance = nullptr;
     }
+    void Application::PushLayer(Layer *layer)
+    {
+        m_LayerStack.PushLayer(layer);
+        layer->OnAttach();
+    }
 
+    void Application::PushOverlay(Layer *overlay)
+    {
+        m_LayerStack.PushOverlay(overlay);
+        overlay->OnAttach();
+    }
+
+    void Application::OnEvent(Event &e)
+    {
+        EventDispatcher dispatcher(e);
+        //dispatcher.Dispatch<WindowCloseEvent>(HZ_BIND_EVENT_FN(Application::OnWindowClose));
+
+        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+        {
+            /*(*--it)->OnEvent(e);
+            if (e.Handled)
+                break;*/
+        }
+    }
     void Application::Run()
     {
-        while (m_Running)
+        // 初始化 SDL
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
-           
-            // 初始化 SDL
-            if (SDL_Init(SDL_INIT_VIDEO) < 0)
-            {
-                std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
-                return;
-            }
+            std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
+            return;
+        }
 
-            // 设置 OpenGL 属性
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
-            SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+        // 设置 OpenGL 属性
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+        SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-            SDL_Window *window = SDL_CreateWindow("OpenGL Triangle", 800, 600, SDL_WINDOW_OPENGL);
-            if (!window)
-            {
-                std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
-                SDL_Quit();
-                return;
-            }
+        SDL_Window *window = SDL_CreateWindow("OpenGL Triangle", 800, 600, SDL_WINDOW_OPENGL);
+        if (!window)
+        {
+            std::cerr << "Window creation failed: " << SDL_GetError() << std::endl;
+            SDL_Quit();
+            return;
+        }
 
-            SDL_GLContext glContext = SDL_GL_CreateContext(window);
-            if (!glContext)
-            {
-                std::cerr << "OpenGL context creation failed: " << SDL_GetError() << std::endl;
-                SDL_DestroyWindow(window);
-                SDL_Quit();
-                return;
-            }
-
-            if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
-            {
-                std::cerr << "Failed to initialize GLAD!" << std::endl;
-                // SDL_GL_DeleteContext(glContext);
-                SDL_DestroyWindow(window);
-                SDL_Quit();
-                return;
-            }
-
-            // OpenGL 初始化
-            // std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
-
-            // 顶点数据：位置(x, y) + 颜色(r, g, b)
-            float vertices[] = {
-                    // positions     // colors
-                    -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // left - red
-                    0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // right - green
-                    0.0f,  0.5f,  0.0f, 0.0f, 1.0f  // top - blue
-            };
-
-            // 创建 VAO、VBO
-            GLuint VAO, VBO;
-            glGenVertexArrays(1, &VAO);
-            glGenBuffers(1, &VBO);
-
-            // 绑定 VAO
-            glBindVertexArray(VAO);
-
-            // 绑定 VBO 并传数据
-            glBindBuffer(GL_ARRAY_BUFFER, VBO);
-            glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-            // 顶点位置属性
-            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
-            glEnableVertexAttribArray(0);
-
-            // 颜色属性
-            glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
-            glEnableVertexAttribArray(1);
-
-            // 创建 shader 程序
-            GLuint shaderProgram = CreateShaderProgram();
-
-            // 设置清屏颜色
-            glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
-
-            SDL_Event event;
-            while (m_Running)
-            {
-                while (SDL_PollEvent(&event))
-                {
-                    if (event.type == SDL_EVENT_QUIT)
-                    {
-                        m_Running = false;
-                    }
-   
-                }
-
-                glClear(GL_COLOR_BUFFER_BIT);
-
-                glUseProgram(shaderProgram);
-                glBindVertexArray(VAO);
-                glDrawArrays(GL_TRIANGLES, 0, 3);
-
-                SDL_GL_SwapWindow(window);
-            }
-
-            // 清理
-            glDeleteVertexArrays(1, &VAO);
-            glDeleteBuffers(1, &VBO);
-            glDeleteProgram(shaderProgram);
-
+        SDL_GLContext glContext = SDL_GL_CreateContext(window);
+        if (!glContext)
+        {
+            std::cerr << "OpenGL context creation failed: " << SDL_GetError() << std::endl;
             SDL_DestroyWindow(window);
             SDL_Quit();
+            return;
         }
+
+        if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+        {
+            std::cerr << "Failed to initialize GLAD!" << std::endl;
+            // SDL_GL_DeleteContext(glContext);
+            SDL_DestroyWindow(window);
+            SDL_Quit();
+            return;
+        }
+
+        // OpenGL 初始化
+        // std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
+        // 顶点数据：位置(x, y) + 颜色(r, g, b)
+        float vertices[] = {
+                // positions     // colors
+                -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // left - red
+                0.5f,  -0.5f, 0.0f, 1.0f, 0.0f, // right - green
+                0.0f,  0.5f,  0.0f, 0.0f, 1.0f  // top - blue
+        };
+
+        // 创建 VAO、VBO
+        GLuint VAO, VBO;
+        glGenVertexArrays(1, &VAO);
+        glGenBuffers(1, &VBO);
+
+        // 绑定 VAO
+        glBindVertexArray(VAO);
+
+        // 绑定 VBO 并传数据
+        glBindBuffer(GL_ARRAY_BUFFER, VBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        // 顶点位置属性
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(0);
+
+        // 颜色属性
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
+        glEnableVertexAttribArray(1);
+
+        // 创建 shader 程序
+        GLuint shaderProgram = CreateShaderProgram();
+
+        // 设置清屏颜色
+        glClearColor(0.2f, 0.2f, 0.2f, 1.0f);
+
+        SDL_Event event;
+        // 初始化完毕后进入主循环
+        while (m_Running)
+        {
+            SDL_Event event;
+            while (SDL_PollEvent(&event))
+            {
+                if (event.type == SDL_EVENT_QUIT)
+                {
+                    m_Running = false;
+                }
+
+                // 可以派发事件系统，比如：
+                // Event e = ConvertSDLEvent(event);
+                // m_LayerStack.OnEvent(e);
+            }
+
+            // 渲染指令
+            glClear(GL_COLOR_BUFFER_BIT);
+
+            glUseProgram(shaderProgram);
+            glBindVertexArray(VAO);
+            glDrawArrays(GL_TRIANGLES, 0, 3);
+
+            SDL_GL_SwapWindow(window);
+
+            for (Layer *layer: m_LayerStack)
+                layer->OnUpdate();
+        }
+
+        // 退出主循环后统一清理资源
+        glDeleteVertexArrays(1, &VAO);
+        glDeleteBuffers(1, &VBO);
+        glDeleteProgram(shaderProgram);
+
+        SDL_DestroyWindow(window);
+        SDL_Quit();
+
     }
 
 } // namespace Core

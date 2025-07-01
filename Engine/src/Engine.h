@@ -4,6 +4,7 @@
 //#include "Core/Input.h"
 #include "Core/Log.h"
 #include "Core/Layer.h"
+#include "Core/LayerStack.h"
 
 //---------入口点-----------
 #include "Core/EntryPoint.h"

@@ -1,4 +1,7 @@
 ﻿#pragma once
+#include "Events/Event.h"
+#include "Layer.h"
+#include "LayerStack.h"
 
 namespace Core
 {
@@ -9,11 +12,16 @@ namespace Core
         virtual ~Application();
 
         void Run();
+        void OnEvent(Event &e);
 
+        void PushLayer(Layer *layer);
+        void PushOverlay(Layer *layer);
         inline static Application &Get()
         {
             return *s_Instance;
         }
+
+        LayerStack m_LayerStack;
 
     private:
 

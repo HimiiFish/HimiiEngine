@@ -1,10 +1,11 @@
 #pragma once
+#include "Events/Event.h"
 
 namespace Core
 {
     class Layer {
     public:
-        Layer(const std::string &name = "Layer");
+        Layer(const std::string& name = "Layer");
         virtual ~Layer();
 
         virtual void OnAttach()
@@ -22,12 +23,12 @@ namespace Core
         {
         }
 
-        inline const std::string& GetName() const
+        inline const std::string &GetName() const
         {
             return m_DebugName;
         }
 
     private:
-        const char *m_DebugName;
+        std::string m_DebugName;
     };
 } // namespace Core
