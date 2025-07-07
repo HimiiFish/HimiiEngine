@@ -35,6 +35,11 @@ if(MSVC)
     )
 endif()
 
+# 在DEBUG模式下启用HIMII_DEBUG宏
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_definitions(-DHIMII_DEBUG)
+endif ()
+
 # 添加子项目
 add_subdirectory(Engine)
 add_subdirectory(TemplateProject)

@@ -29,7 +29,8 @@ namespace Himii
         sinks.push_back(console_sink);
 
         // 文件输出（如果需要）
-        if (toFile) {
+        if (toFile)
+        {
             auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filePath, true);
             file_sink->set_pattern("[%T] [%n] [%l] %v");
             sinks.push_back(file_sink);
@@ -66,6 +67,7 @@ namespace Himii
         }
     }
 
+
     void Log::Print(LogLevel level, const std::string &message, const char *file, const char *function, int line)
     {
         std::string fileName = GetFileName(file);
@@ -82,5 +84,48 @@ namespace Himii
         {
             s_ClientLogger->log(spdLevel, fullMessage);
         }
+    }
+
+    void Log::Assert(bool condition, const std::string &message, const char *file, const char *function, int line)
+    {
+        if (!condition)
+        {
+            HandleAssertFailure(message, file, function, line);
+        }
+    }
+
+    void Log::HandleAssertFailure(const std::string &message, const char *file, const char *function, int line)
+    {
+        std::string fileName = GetFileName(file);
+        std::string assertMessage = fmt::format("断言失败: {} [{}:{} in {}]", message, fileName, line, function);
+
+        // 使用错误级别记录断言失败
+        if (s_CoreLogger)
+        {
+            s_CoreLogger->critical(assertMessage);
+        }
+        else
+        {
+            // 如果日志系统未初始化，直接输出到控制台
+            std::cerr << "[CRITICAL] " << assertMessage << std::endl;
+        }
+
+        // 刷新所有日志
+        if (s_CoreLogger)
+            s_CoreLogger->flush();
+        if (s_ClientLogger)
+            s_ClientLogger->flush();
+
+        // 在调试模式下触发断点
+#ifdef HIMII_DEBUG
+#ifdef _WIN32
+        __debugbreak();
+#else
+        __builtin_trap();
+#endif
+#endif
+
+        // 终止程序
+        std::abort();
     }
 }
