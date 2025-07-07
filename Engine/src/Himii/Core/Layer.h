@@ -1,7 +1,7 @@
 #pragma once
-#include "Events/Event.h"
+#include "Himii/Events/Event.h"
 
-namespace Core
+namespace Himii
 {
     class Layer {
     public:

@@ -2,13 +2,13 @@
 #include "Layer.h"
 #include <vector>
 
-namespace Core
+namespace Himii
 {
     class LayerStack {
     public:
         LayerStack();
         ~LayerStack();
-
+        //
         void PushLayer(Layer *layer);
         void PushOverlay(Layer *overlay);
         void PopLayer(Layer *layer);

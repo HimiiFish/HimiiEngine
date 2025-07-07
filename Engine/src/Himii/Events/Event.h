@@ -1,8 +1,8 @@
 #pragma once
 #include "Hepch.h"
-#include "Core/Core.h"
+#include "Himii/Core/Core.h"
 
-namespace Core
+namespace Himii
 {
     enum class EventType {
         None = 0,

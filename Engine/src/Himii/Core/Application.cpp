@@ -30,7 +30,7 @@ void main()
 }
 )";
 
-namespace Core
+namespace Himii
 {
     // 编译着色器并创建程序
     GLuint CompileShader(GLenum type, const char *source)
@@ -193,16 +193,11 @@ namespace Core
         while (m_Running)
         {
             SDL_Event event;
-            while (SDL_PollEvent(&event))
+            SDL_PollEvent(&event);
+            if (event.type == SDL_EVENT_QUIT)
             {
-                if (event.type == SDL_EVENT_QUIT)
-                {
-                    m_Running = false;
-                }
-
-                // 可以派发事件系统，比如：
-                // Event e = ConvertSDLEvent(event);
-                // m_LayerStack.OnEvent(e);
+                m_Running = false;
+                LOG_CORE_WARNING("window is close!");
             }
 
             // 渲染指令

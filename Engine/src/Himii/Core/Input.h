@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include "Hepch.h"
 
-namespace Core
+namespace Himii
 {
     class Input {
     public:

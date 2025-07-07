@@ -1,7 +1,7 @@
 #pragma once
 #include "Event.h"
 
-namespace Core
+namespace Himii
 {
 
     class KeyEvent : public Event {

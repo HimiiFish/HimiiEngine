@@ -1,7 +1,7 @@
 #include "Log.h"
 #include "Hepch.h"
 
-namespace Core
+namespace Himii
 {
     bool logToFile = false;
     std::string logFilePath = "log.txt";

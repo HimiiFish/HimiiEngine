@@ -1,9 +1,9 @@
 ﻿#pragma once
-#include "Events/Event.h"
+#include "Himii/Events/Event.h"
 #include "Layer.h"
 #include "LayerStack.h"
 
-namespace Core
+namespace Himii
 {
     class Application 
     {
