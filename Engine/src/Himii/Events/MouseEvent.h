@@ -14,6 +14,7 @@ namespace Himii
         {
             return m_MouseX;
         }
+
         float GetY() const
         {
             return m_MouseY;
@@ -39,6 +40,7 @@ namespace Himii
         MouseButtonEvent(int button) : m_Button(button)
         {
         }
+
         int m_Button;
     };
 
@@ -58,6 +60,29 @@ namespace Himii
         }
 
         EVENT_CLASS_TYPE(MouseButtonReleased)
+    };
+
+    class MouseScrolledEvent : public Event {
+    public:
+        MouseScrolledEvent(float xOffset, float yOffset) : m_XOffset(xOffset), m_YOffset(yOffset)
+        {
+        }
+
+        float GetXOffset() const
+        {
+            return m_XOffset;
+        }
+
+        float GetYOffset() const
+        {
+            return m_YOffset;
+        }
+
+        EVENT_CLASS_TYPE(MouseScrolled)
+        EVENT_CLASS_CATEGORY(EventCategoryInput | EventCategoryMouse)
+
+    private:
+        float m_XOffset, m_YOffset;
     };
 
 } // namespace Core

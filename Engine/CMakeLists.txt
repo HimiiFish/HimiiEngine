@@ -20,6 +20,11 @@ find_package(OpenGL REQUIRED)
 if(NOT OpenGL_FOUND)
     message(FATAL_ERROR "OpenGL not found. Please ensure it is installed via vcpkg.")
 endif ()
+find_package(spdlog CONFIG REQUIRED)
+if(NOT spdlog_FOUND)
+    message(FATAL_ERROR "spdlog not found. Please ensure it is installed via vcpkg.")
+endif ()
+
 # 设置OpenGL的首选项
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -40,4 +45,4 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad)
+target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad spdlog::spdlog)

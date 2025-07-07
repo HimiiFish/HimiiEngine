@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Events/Event.h"
+#include "Himii/Events/Event.h"
 #include <sstream>
 #include "Log.h"
 
@@ -19,7 +19,7 @@ namespace Himii
         }
     };
     /// <summary>
-    /// 所有窗口类的基类，提供基础的接口API方法
+    /// 鎵�鏈夌獥鍙ｇ被鐨勫熀绫伙紝鎻愪緵鍩虹鐨勬帴鍙PI鏂规硶
     /// </summary>
     class Window {
     public:

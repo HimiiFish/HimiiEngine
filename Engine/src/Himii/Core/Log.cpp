@@ -1,75 +1,12 @@
 #include "Log.h"
-#include "Hepch.h"
+#include <spdlog/sinks/stdout_color_sinks.h>
+#include <spdlog/sinks/basic_file_sink.h>
+#include <vector>
 
 namespace Himii
 {
-    bool logToFile = false;
-    std::string logFilePath = "log.txt";
-
-    std::string GetTimestamp()
-    {
-        std::time_t now = std::time(nullptr);
-        char buf[20];
-        std::strftime(buf, sizeof(buf), "%H:%M:%S", std::localtime(&now));
-        return std::string("[") + buf + "]";
-    }
-
-    std::string LevelToString(LogLevel level)
-    {
-        switch (level)
-        {
-            case LogLevel::Info:
-                return "INFO";
-            case LogLevel::Warning:
-                return "WARN";
-            case LogLevel::Error:
-                return "ERROR";
-            case LogLevel::Core_Info:
-                return "CORE_INFO";
-            case LogLevel::Core_Warning:
-                return "CORE_WARNING";
-            case LogLevel::Core_Error:
-                return "CORE_ERROR";
-            default:
-                return "UNKNOWN";
-        }
-    }
-
-    std::string GetColorCode(LogLevel level)
-    {
-        switch (level)
-        {
-            case LogLevel::Info:
-                return "\033[32m"; // Green
-            case LogLevel::Warning:
-                return "\033[33m"; // Yellow
-            case LogLevel::Error:
-                return "\033[31m"; // Red
-            case LogLevel::Core_Info:
-                return "\033[32m"; // Green
-            case LogLevel::Core_Warning:
-                return "\033[33m"; // Yellow
-            case LogLevel::Core_Error:
-                return "\033[31m"; // Red
-            default:
-                return "\033[0m";
-        }
-    }
-
-    void OutputToConsole(LogLevel level, const std::string &fullMsg)
-    {
-        std::cout << GetColorCode(level) << fullMsg << "\033[0m" << std::endl;
-    }
-
-    void OutputToFile(const std::string &fullMsg)
-    {
-        std::ofstream ofs(logFilePath, std::ios::app);
-        if (ofs)
-        {
-            ofs << fullMsg << std::endl;
-        }
-    }
-
+    std::shared_ptr<spdlog::logger> Log::s_CoreLogger;
+    std::shared_ptr<spdlog::logger> Log::s_ClientLogger;
 
     std::string GetFileName(const char *fullPath)
     {
@@ -82,30 +19,68 @@ namespace Himii
         return pathStr;
     }
 
-
     void Log::Init(bool toFile, const std::string &filePath)
     {
+        std::vector<spdlog::sink_ptr> sinks;
 
-        logToFile = toFile;
-        logFilePath = filePath;
-        if (logToFile)
+        // 控制台输出
+        auto console_sink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
+        console_sink->set_pattern("%^[%T] [%n] [%l] %v%$");
+        sinks.push_back(console_sink);
+
+        // 文件输出（如果需要）
+        if (toFile) {
+            auto file_sink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(filePath, true);
+            file_sink->set_pattern("[%T] [%n] [%l] %v");
+            sinks.push_back(file_sink);
+        }
+
+        // 创建loggers
+        s_CoreLogger = std::make_shared<spdlog::logger>("CORE", sinks.begin(), sinks.end());
+        s_ClientLogger = std::make_shared<spdlog::logger>("APP", sinks.begin(), sinks.end());
+
+        // 设置日志级别
+        s_CoreLogger->set_level(spdlog::level::trace);
+        s_ClientLogger->set_level(spdlog::level::trace);
+
+        // 注册loggers
+        spdlog::register_logger(s_CoreLogger);
+        spdlog::register_logger(s_ClientLogger);
+    }
+
+    spdlog::level::level_enum Log::ConvertLogLevel(LogLevel level)
+    {
+        switch (level)
         {
-            std::ofstream ofs(logFilePath, std::ios::trunc);
-            ofs << "==== Log Start ====\n";
+            case LogLevel::Info:
+            case LogLevel::Core_Info:
+                return spdlog::level::info;
+            case LogLevel::Warning:
+            case LogLevel::Core_Warning:
+                return spdlog::level::warn;
+            case LogLevel::Error:
+            case LogLevel::Core_Error:
+                return spdlog::level::err;
+            default:
+                return spdlog::level::info;
         }
     }
 
     void Log::Print(LogLevel level, const std::string &message, const char *file, const char *function, int line)
     {
-        std::ostringstream oss;
         std::string fileName = GetFileName(file);
-        oss << GetTimestamp() << " [" << LevelToString(level) << "] "
-            << "[" << fileName << ":" << line << " " << function << "] " << message;
+        std::string fullMessage = fmt::format("[{}:{} {}] {}", fileName, line, function, message);
 
-        std::string fullMsg = oss.str();
+        spdlog::level::level_enum spdLevel = ConvertLogLevel(level);
 
-        OutputToConsole(level, fullMsg);
-        if (logToFile)
-            OutputToFile(fullMsg);
+        // 选择合适的logger
+        if (level == LogLevel::Core_Info || level == LogLevel::Core_Warning || level == LogLevel::Core_Error)
+        {
+            s_CoreLogger->log(spdLevel, fullMessage);
+        }
+        else
+        {
+            s_ClientLogger->log(spdLevel, fullMessage);
+        }
     }
-} // namespace Core
+}
