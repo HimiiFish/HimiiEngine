@@ -31,8 +31,7 @@ file(GLOB_RECURSE HEADERS "src/.h")
 
 # 添加源文件和头文件到Engine库
 # 不需指定SHARED或STATIC，因为CMake会根据BUILD_SHARED_LIBS变量自动处理
-add_library(Engine ${SOURCES} ${HEADERS}
-        include/Base/Singleton.h "src/Core/Events/Event.h" "src/Core/Events/ApplicationEvent.h" "src/Core/Core.h" "src/Core/Events/KeyEvent.h" "src/Core/Events/MouseEvent.h" "src/Core/LayerStack.h" "src/Core/LayerStack.cpp" "src/Core/Layer.cpp" "src/Core/Window.h" "src/Core/Window.cpp")
+add_library(Engine ${SOURCES} ${HEADERS})
 
 # 在Windows上，如果使用共享库，启用导出所有符号
 if(WIN32 AND BUILD_SHARED_LIBS)
