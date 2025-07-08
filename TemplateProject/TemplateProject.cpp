@@ -1,7 +1,7 @@
 ﻿#include "Engine.h"
 #include <iostream>
 
-class ExampleLayer : public Himii::Layer
+class ExampleLayer : public Engine::Layer
 {
 public:
     ExampleLayer() : Layer("ExampleLayer")
@@ -23,7 +23,7 @@ public:
 
 };
 
-class TemplateProject : public Himii::Application {
+class TemplateProject : public Engine::Application {
 public:
     TemplateProject()
     {
@@ -37,7 +37,7 @@ public:
     }
 };
 
-Himii::Application *Himii::CreateApplication()
+Engine::Application *Engine::CreateApplication()
 {
     return new TemplateProject();
 }

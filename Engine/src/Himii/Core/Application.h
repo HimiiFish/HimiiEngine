@@ -2,8 +2,9 @@
 #include "Himii/Events/Event.h"
 #include "Layer.h"
 #include "LayerStack.h"
+#include "Window.h"s
 
-namespace Himii
+namespace Engine
 {
     class Application 
     {
@@ -26,6 +27,8 @@ namespace Himii
     private:
 
         bool m_Running = true;
+
+        static Window *m_Window;
 
         static Application *s_Instance;
     };

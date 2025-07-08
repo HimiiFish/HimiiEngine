@@ -20,24 +20,26 @@ find_package(OpenGL REQUIRED)
 if(NOT OpenGL_FOUND)
     message(FATAL_ERROR "OpenGL not found. Please ensure it is installed via vcpkg.")
 endif ()
-find_package(spdlog CONFIG REQUIRED)
-if(NOT spdlog_FOUND)
-    message(FATAL_ERROR "spdlog not found. Please ensure it is installed via vcpkg.")
-endif ()
-
 # 设置OpenGL的首选项
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE GLVND)
 
-# 源文件为src目录下的所有.cpp文件
-file(GLOB_RECURSE SOURCES "src/*.cpp")
-# 头文件为src目录下的所有.h文件
-file(GLOB_RECURSE HEADERS "src/.h")
+set(SOURCE_DIR "${CMAKE_SOURCE_DIR}/Engine")
 
-# 添加源文件和头文件到Engine库
-# 不需指定SHARED或STATIC，因为CMake会根据BUILD_SHARED_LIBS变量自动处理
-add_library(Engine ${SOURCES} ${HEADERS})
+# 递归查找 Engine 下所有 .cpp 和 .h 文件
+file(GLOB_RECURSE ALL_SOURCE_FILES "${SOURCE_DIR}/src/Himii/**/*.cpp" "${SOURCE_DIR}/src/Platform/*.cpp")
+file(GLOB_RECURSE ALL_HEADER_FILES "${SOURCE_DIR}/src/Himii/**/*.h" "${SOURCE_DIR}/src/Include/*.h" "${SOURCE_DIR}/Platform/*.h")
 
+# 添加 Engine 库
+add_library(Engine STATIC ${ALL_SOURCE_FILES} ${ALL_HEADER_FILES})
+
+# 设置包含目录
+target_include_directories(Engine PUBLIC
+    ${CMAKE_SOURCE_DIR}/Engine/include
+    ${CMAKE_SOURCE_DIR}/Engine/Himii/Core
+    ${CMAKE_SOURCE_DIR}/Engine/Himii/Events
+    ${CMAKE_SOURCE_DIR}/Engine/Platform
+)
 # 在Windows上，如果使用共享库，启用导出所有符号
 if(WIN32 AND BUILD_SHARED_LIBS)
     set_property(TARGET Engine PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON)
@@ -45,4 +47,4 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad spdlog::spdlog)
+target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad)

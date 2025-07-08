@@ -1,7 +1,7 @@
 #include "Layer.h"
 #include "Hepch.h"
 
-namespace Himii
+namespace Engine
 {
     Layer::Layer(const std::string &debugName) : m_DebugName(debugName)
     {

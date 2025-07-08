@@ -2,7 +2,7 @@
 #include "Hepch.h"
 #include "Himii/Core/Core.h"
 
-namespace Himii
+namespace Engine
 {
     enum class EventType {
         None = 0,

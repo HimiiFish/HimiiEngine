@@ -3,7 +3,7 @@
 
 #define PLATFORM_WINDOWS
 
-namespace Himii
+namespace Engine
 {
     template<typename T>
     using Scope = std::unique_ptr<T>;

@@ -1,7 +1,7 @@
 #pragma once
 #include "Event.h"
 
-namespace Himii
+namespace Engine
 {
 
     class WindowCloseEvent : public Event {

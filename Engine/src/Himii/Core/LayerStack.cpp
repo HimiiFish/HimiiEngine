@@ -1,7 +1,7 @@
 #include "LayerStack.h"
 #include "Hepch.h"
 
-namespace Himii
+namespace Engine
 {
     LayerStack::LayerStack()
     {
