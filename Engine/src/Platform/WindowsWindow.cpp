@@ -77,6 +77,8 @@ namespace Himii
 
         //销毁 SDL_PropertiesID
         SDL_DestroyProperties(creatProps);
+        callback
+        
     }
 
     void WindowsWindow::Shutdown()
