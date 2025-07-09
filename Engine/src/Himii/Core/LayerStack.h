@@ -2,7 +2,7 @@
 #include "Layer.h"
 #include <vector>
 
-namespace Engine
+namespace Himii
 {
     class LayerStack {
     public:

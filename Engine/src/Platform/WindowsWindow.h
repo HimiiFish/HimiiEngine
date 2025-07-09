@@ -1,50 +1,37 @@
 #pragma once
 #include "Himii/Core/Window.h"
-#include "SDL3/SDL.h"
+#include <SDL3/SDL.h>
 
-namespace Engine
-{
-    class WindowsWindow : public Window {
-    public:
-        WindowsWindow(const WindowProps &props);
-        virtual ~WindowsWindow();
+namespace Himii {
 
-        void OnUpdate() override;
+class WindowsWindow : public Window {
+public:
+    WindowsWindow(const WindowProps& props);
+    virtual ~WindowsWindow();
 
-        unsigned int GetWidth() const override
-        {
-            return m_Data.Width;
-        }
-        unsigned int GetHeight() const override
-        {
-            return m_Data.Height;
-        }
+    void Update() override;
+    uint32_t GetWidth() const override;
+    uint32_t GetHeight() const override;
+    void SetEventCallback(const EventCallbackFn &callback) override;
+    void SetVSync(bool enabled) override;
+    bool IsVSync() const override;
+    void * GetNativeWindow() const override;
 
-        void SetEventCallback(const EventCallbackFn &callback) override
-        {
-            m_Data.EventCallback = callback;
-        }
-        void SetVSync(bool enabled) override;
-        bool IsVSync() const override;
+private:
+    virtual void Init(const WindowProps& props);
+    virtual void Shutdown();
 
-        virtual void *GetNativeWindow() const
-        {
-            return m_Window;
-        }
-    private:
-        virtual void Init(const WindowProps &props);
-        virtual void Shutdown();
-    private:
-        SDL_Window *m_Window;
+    SDL_Window* m_Window;
+    SDL_GLContext m_Context;
 
-        struct WindowData 
-        {
-            const char* Title;
-            unsigned int Width, Height;
-            bool VSync;
-
-            EventCallbackFn EventCallback;
-        };
-        WindowData m_Data;
+    struct WindowData {
+        std::string Title;
+        uint32_t Width, Height;
+        bool VSync;
+        EventCallbackFn EventCallback;
     };
-} // namespace Himii
+
+    WindowData m_Data;
+};
+
+}

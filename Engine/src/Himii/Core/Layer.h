@@ -1,7 +1,7 @@
 #pragma once
 #include "Himii/Events/Event.h"
 
-namespace Engine
+namespace Himii
 {
     class Layer {
     public:

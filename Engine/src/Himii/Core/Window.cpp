@@ -2,7 +2,7 @@
 #include "Hepch.h"
 #include "Platform/WindowsWindow.h"
 
-namespace Engine
+namespace Himii
 {
     std::unique_ptr<Window> Window::Create(const WindowProps &props)
     {

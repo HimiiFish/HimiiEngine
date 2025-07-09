@@ -5,15 +5,15 @@
 #include "Log.h"
 
 
-namespace Engine
+namespace Himii
 {
     struct WindowProps 
     {
-        const char* Title;
+        std::string Title;
         uint32_t Width;
         uint32_t Height;
 
-        WindowProps(const char* title = "Himii Engine", uint32_t width = 1600, uint32_t height = 900) :
+        WindowProps(const std::string &title = "Himii Engine", uint32_t width = 1600, uint32_t height = 900) :
             Title(title), Width(width), Height(height)
         {
         }
@@ -27,7 +27,7 @@ namespace Engine
 
         virtual ~Window()=default;
 
-        virtual void OnUpdate() = 0;
+        virtual void Update() = 0;
 
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
@@ -40,5 +40,6 @@ namespace Engine
 
         static Scope<Window> Create(const WindowProps &props = WindowProps());
 
+    private:
     };
 }

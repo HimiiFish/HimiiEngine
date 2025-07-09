@@ -30,7 +30,7 @@ void main()
 }
 )";
 
-namespace Engine
+namespace Himii
 {
     // 编译着色器并创建程序
     GLuint CompileShader(GLenum type, const char *source)
@@ -150,6 +150,10 @@ namespace Engine
             SDL_Quit();
             return;
         }
+
+        // OpenGL 初始化
+        // std::cout << "OpenGL Version: " << glGetString(GL_VERSION) << std::endl;
+
         // 顶点数据：位置(x, y) + 颜色(r, g, b)
         float vertices[] = {
                 // positions     // colors
