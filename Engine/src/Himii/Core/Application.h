@@ -2,6 +2,7 @@
 #include "Himii/Events/Event.h"
 #include "Layer.h"
 #include "LayerStack.h"
+#include "Himii/Core/Window.h"
 
 namespace Himii
 {
@@ -24,8 +25,10 @@ namespace Himii
         LayerStack m_LayerStack;
 
     private:
+        bool OnWindowClosed(WindowCloseEvent& e);
 
         bool m_Running = true;
+        Scope<Window> m_Window;
 
         static Application *s_Instance;
     };

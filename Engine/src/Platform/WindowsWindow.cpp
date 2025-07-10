@@ -25,40 +25,43 @@ namespace Himii
 
     void WindowsWindow::Init(const WindowProps &props)
     {
-
         SDL_PropertiesID creatProps = SDL_CreateProperties();
-
+        if (SDL_Init(SDL_INIT_VIDEO) < 0)
+        {
+            //std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
+            LOG_CORE_ERROR_F("SDL_Init failed: {0}", SDL_GetError());
+            return;
+        }
         //设置标题
         m_Data.Title = props.Title;
-        SDL_SetStringProperty(creatProps, SDL_PROP_WINDOW_CREATE_TITLE_STRING, m_Data.Title.c_str());
+        //SDL_SetStringProperty(creatProps, SDL_PROP_WINDOW_CREATE_TITLE_STRING, m_Data.Title.c_str());
         //设置宽度和高度
         m_Data.Width = props.Width;
-        SDL_SetNumberProperty(creatProps,SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, m_Data.Width);
+        //SDL_SetNumberProperty(creatProps,SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, m_Data.Width);
         m_Data.Height = props.Height;
-        SDL_SetNumberProperty(creatProps, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, m_Data.Height);
+        //SDL_SetNumberProperty(creatProps, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, m_Data.Height);
         //设置vsync
         m_Data.VSync = true; // 默认开启VSync
         //设置窗口标志
-        SDL_SetNumberProperty(creatProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER,
-                              SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+        //SDL_SetNumberProperty(creatProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER,
+                              //SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-        LOG_CORE_INFO("Creating window)");
-
-        if (!s_SDLInitialized)
+        LOG_CORE_INFO_F("Creating window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
+        /*if (!s_SDLInitialized)
         {
             int success = SDL_Init(SDL_INIT_VIDEO);
-            assert(success == 0);
+            LOG_CORE_ERROR_F("SDL_Init result: {0}", success);
             s_SDLInitialized = true;
-        }
-
+        }*/
         // Set OpenGL attributes
-        SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
+        /*SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 5);
         SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
         SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
+        SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);*/
 
-        m_Window = SDL_CreateWindowWithProperties(creatProps);
+        m_Window = SDL_CreateWindow(m_Data.Title.c_str(), m_Data.Width,
+                                    m_Data.Height, SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
         assert(m_Window);
 
@@ -70,14 +73,19 @@ namespace Himii
         // Initialize GLAD
         int gladStatus = gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
         assert(gladStatus);
-
-
+        SDL_Renderer *renderer = SDL_CreateRenderer(m_Window, nullptr);
+        if (!renderer)
+        {
+            SDL_Log("Create renderer failed: %s", SDL_GetError());
+            return;
+        }
+        SDL_SetRenderDrawColor(renderer, 80, 18, 16, 255);
+        SDL_RenderClear(renderer);
+        SDL_RenderPresent(renderer);
         // Set VSync
         SetVSync(m_Data.VSync);
 
-        //销毁 SDL_PropertiesID
-        SDL_DestroyProperties(creatProps);
-        callback
+        //设置窗口回调
         
     }
 
@@ -93,72 +101,46 @@ namespace Himii
             SDL_DestroyWindow(m_Window);
             m_Window = nullptr;
         }
+        SDL_DestroyWindow(m_Window);
     }
 
     void WindowsWindow::Update()
     {
+        //LOG_CORE_INFO_F(" Updating window{0}({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
         SDL_Event event;
-        while (SDL_PollEvent(&event))
+        SDL_PollEvent(&event);
+        switch (event.type)
         {
-            switch (event.type)
+            case SDL_EVENT_WINDOW_RESIZED:
             {
-                case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
-                {
-                    WindowCloseEvent closeEvent;
-                    m_Data.EventCallback(closeEvent);
-                    break;
-                }
-                case SDL_EVENT_WINDOW_RESIZED:
-                {
-                    m_Data.Width = event.window.data1;
-                    m_Data.Height = event.window.data2;
-                    WindowResizeEvent resizeEvent(m_Data.Width, m_Data.Height);
-                    m_Data.EventCallback(resizeEvent);
-                    break;
-                }
-                case SDL_EVENT_KEY_DOWN:
-                {
-                    KeyPressedEvent keyEvent(event.key.scancode);
-                    m_Data.EventCallback(keyEvent);
-                    break;
-                }
-                case SDL_EVENT_KEY_UP:
-                {
-                    KeyReleasedEvent keyEvent(event.key.scancode);
-                    m_Data.EventCallback(keyEvent);
-                    break;
-                }
-                case SDL_EVENT_MOUSE_BUTTON_DOWN:
-                {
-                    MouseButtonPressedEvent mouseEvent(event.button.button);
-                    m_Data.EventCallback(mouseEvent);
-                    break;
-                }
-                case SDL_EVENT_MOUSE_BUTTON_UP:
-                {
-                    MouseButtonReleasedEvent mouseEvent(event.button.button);
-                    m_Data.EventCallback(mouseEvent);
-                    break;
-                }
-                case SDL_EVENT_MOUSE_MOTION:
-                {
-                    MouseMovedEvent mouseEvent((float)event.motion.x, (float)event.motion.y);
-                    m_Data.EventCallback(mouseEvent);
-                    break;
-                }
-                case SDL_EVENT_MOUSE_WHEEL:
-                {
-                    MouseScrolledEvent scrollEvent((float)event.wheel.x, (float)event.wheel.y);
-                    m_Data.EventCallback(scrollEvent);
-                    break;
-                }
-                default:
-                    LOG_CORE_WARNING("Unhandled event type {0}");
-                    break;
+                m_Data.Width = event.window.data1;
+                m_Data.Height = event.window.data2;
+                WindowResizeEvent resizeEvent(m_Data.Width, m_Data.Height);
+                m_Data.EventCallback(resizeEvent);
+                break;
             }
+            case SDL_EVENT_QUIT:
+            {
+                WindowCloseEvent closeEvent;
+                m_Data.EventCallback(closeEvent);
+                break;
+            }
+            case SDL_EVENT_KEY_DOWN:
+            {
+                KeyPressedEvent keyPressedEvent(event.key.scancode);
+                m_Data.EventCallback(keyPressedEvent);
+                break;
+            }
+            default:
+                break;
+        }
+        if (event.type == SDL_EVENT_QUIT)
+        {
+            WindowCloseEvent closeEvent;
+            m_Data.EventCallback(closeEvent);
         }
 
-        SDL_GL_SwapWindow(m_Window);
+
     }
 
     uint32_t WindowsWindow::GetWidth() const

@@ -68,7 +68,7 @@ namespace Himii
         template<typename T, typename F>
         bool Dispatch(const F &func)
         {
-            if (m_Event.GetType() == T::StaticType())
+            if (m_Event.GetEventType() == T::GetStaticType())
             {
                 m_Event.Handled |= func(static_cast<T &>(m_Event));
                 return true;
@@ -79,4 +79,8 @@ namespace Himii
     private:
         Event &m_Event;
     };
+    inline std::ostream &operator<<(std::ostream &os, const Event &e)
+    {
+        return os << e.ToString();
+    }
 } // namespace Core

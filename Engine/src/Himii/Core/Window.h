@@ -1,6 +1,9 @@
 #pragma once
 
 #include "Himii/Events/Event.h"
+#include "Himii/Events/ApplicationEvent.h"
+#include "Himii/Events/KeyEvent.h"
+#include "Himii/Events/MouseEvent.h"
 #include <sstream>
 #include "Log.h"
 
