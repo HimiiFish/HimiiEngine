@@ -12,10 +12,12 @@ namespace Himii
         ImGuiLayer();
         ~ImGuiLayer()=default;
 
-        virtual void OnAttach() override;
-        virtual void OnDetach() override;
-        virtual void OnEvent() override;
+         void OnAttach();
+         void OnDetach();
+         void OnUpdate();
+         void OnEvent(Event& event);
 
     private:
+         float m_Time = 0.0f;
     };
 }

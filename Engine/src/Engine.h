@@ -5,6 +5,10 @@
 #include "Himii/Core/Log.h"
 #include "Himii/Core/Layer.h"
 #include "Himii/Core/LayerStack.h"
+#include "Himii/Core/Window.h"
+#include "Himii/Core/Assert.h"
+#include "Himii/ImGui/ImGuiLayer.h"
+#include "Himii/Core/Core.h"
 
 //---------入口点-----------
 #include "Himii/Core/EntryPoint.h"

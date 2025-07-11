@@ -5,7 +5,7 @@
 #include "Himii/Events/ApplicationEvent.h"
 #include "Himii/Events/KeyEvent.h"
 #include "Himii/Events/MouseEvent.h"
-#include "Himii/Core/Log.h"
+#include "Himii/Core/Assert.h"
 #include <glad/glad.h>
 
 namespace Himii
@@ -29,7 +29,7 @@ namespace Himii
         if (SDL_Init(SDL_INIT_VIDEO) < 0)
         {
             //std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
-            LOG_CORE_ERROR_F("SDL_Init failed: {0}", SDL_GetError());
+            LOG_CORE_ERROR("SDL_Init failed: {0}", SDL_GetError());
             return;
         }
         //设置标题
@@ -46,7 +46,7 @@ namespace Himii
         //SDL_SetNumberProperty(creatProps, SDL_PROP_WINDOW_CREATE_FLAGS_NUMBER,
                               //SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
 
-        LOG_CORE_INFO_F("Creating window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
+        LOG_CORE_INFO("Creating window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
         /*if (!s_SDLInitialized)
         {
             int success = SDL_Init(SDL_INIT_VIDEO);
@@ -72,7 +72,7 @@ namespace Himii
 
         // Initialize GLAD
         int gladStatus = gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress);
-        assert(gladStatus);
+
         SDL_Renderer *renderer = SDL_CreateRenderer(m_Window, nullptr);
         if (!renderer)
         {
