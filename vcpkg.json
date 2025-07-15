@@ -4,7 +4,9 @@
   "dependencies": [
     "sdl3",
     "glad",
+    "glfw3",
     "spdlog",
+    "glm",
     "imgui"
   ]
 }

@@ -36,7 +36,7 @@ file(GLOB_RECURSE HEADERS "src/.h")
 
 # 添加源文件和头文件到Engine库
 # 不需指定SHARED或STATIC，因为CMake会根据BUILD_SHARED_LIBS变量自动处理
-add_library(Engine ${SOURCES} ${HEADERS})
+add_library(Engine ${SOURCES} ${HEADERS} "src/Platform/Windows/WindowsInput.cpp")
 #add_library(Engine ${SOURCES} ${HEADERS} "src/Himii/Core/Assert.h")
 
 # 在Windows上，如果使用共享库，启用导出所有符号
