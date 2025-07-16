@@ -16,13 +16,11 @@ namespace Himii
         AppRender,
         KeyPressed,
         KeyReleased,
+        KeyTyped,
         MouseButtonPressed,
         MouseButtonReleased,
         MouseMoved,
-        MouseScrolled,
-        GamepadButtonPressed,
-        GamepadButtonReleased,
-        GamepadAxisMoved
+        MouseScrolled
     };
 
     enum EventCategory {

@@ -6,7 +6,7 @@ extern Himii::Application *Himii::CreateApplication();
 int main(int argc, char *argv[])
 {
     Himii::Log::Init();
-    LOG_CORE_INFO("Application starting...");
+    HIMII_CORE_INFO("Application starting...");
     /*LOG_WARNING("This is a warning message.");
     LOG_ERROR("This is an error message.");*/
     // 创建应用程序实例

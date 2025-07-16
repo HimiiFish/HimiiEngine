@@ -101,12 +101,23 @@ namespace Himii
         overlay->OnAttach();
     }
 
+    void Application::Close()
+    {
+        m_Running = false;
+    }
+
     void Application::OnEvent(Event &e)
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
 
-        LOG_CORE_INFO_F("Event: {0}", e.ToString());    
+        for (auto it = m_LayerStack.begin(); it != m_LayerStack.end(); ++it)
+        {
+            if (e.Handled)
+                break;
+            (*it)->OnEvent(&e);
+        }
+        HIMII_CORE_INFO_F("Event: {0}", e.ToString());
     }
 
     bool Application::OnWindowClosed(WindowCloseEvent &e)
@@ -119,6 +130,8 @@ namespace Himii
     {
         while (m_Running)
         {
+            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
             m_Window->Update();
         }
     }

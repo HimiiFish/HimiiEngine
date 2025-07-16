@@ -1,5 +1,11 @@
 #pragma once
 #include "Himii/Core/Window.h"
+#include "Himii/Events/ApplicationEvent.h"
+#include "Himii/Events/KeyEvent.h"
+#include "Himii/Events/MouseEvent.h"
+
+#include "glad/glad.h"
+#include "GLFW/glfw3.h"
 
 #include <SDL3/SDL.h>
 
@@ -23,13 +29,13 @@ private:
     virtual void Shutdown();
 
 private:
-    SDL_Window* m_Window;
-    SDL_GLContext m_Context;
+    GLFWwindow* m_Window;
 
     struct WindowData {
         std::string Title;
         uint32_t Width, Height;
         bool VSync;
+
         EventCallbackFn EventCallback;
     };
 
