@@ -54,13 +54,8 @@ namespace Himii
             return;
         }
         glfwMakeContextCurrent(m_Window);
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
-        {
-            HIMII_CORE_ERROR("Failed to initialize GLAD");
-            glfwDestroyWindow(m_Window);
-            glfwTerminate();
-            return;
-        }
+        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        HIMII_CORE_ASSERT_F(status, "Failed to initialize GLAD");
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetVSync(true);

@@ -54,4 +54,4 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad spdlog::spdlog glfw)
+target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad spdlog::spdlog glfw imgui::imgui)
