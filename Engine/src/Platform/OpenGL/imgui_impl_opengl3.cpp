@@ -114,11 +114,14 @@
 #define _CRT_SECURE_NO_WARNINGS
 #endif
 
+#include "Windows.h"
 #include "imgui.h"
+#include "glad/glad.h"
 #ifndef IMGUI_DISABLE
 #include "imgui_impl_opengl3.h"
 #include <stdio.h>
 #include <stdint.h>     // intptr_t
+#include "SDL3/SDL.h"
 #if defined(__APPLE__)
 #include <TargetConditionals.h>
 #endif
@@ -222,37 +225,37 @@
 #endif
 
 // OpenGL Data
-//struct ImGui_ImplOpenGL3_Data
-//{
-//    GLuint          GlVersion;               // Extracted at runtime using GL_MAJOR_VERSION, GL_MINOR_VERSION queries (e.g. 320 for GL 3.2)
-//    char            GlslVersionString[32];   // Specified by user or detected based on compile time GL settings.
-//    bool            GlProfileIsES2;
-//    bool            GlProfileIsES3;
-//    bool            GlProfileIsCompat;
-//    GLint           GlProfileMask;
-//    GLuint          FontTexture;
-//    GLuint          ShaderHandle;
-//    GLint           AttribLocationTex;       // Uniforms location
-//    GLint           AttribLocationProjMtx;
-//    GLuint          AttribLocationVtxPos;    // Vertex attributes location
-//    GLuint          AttribLocationVtxUV;
-//    GLuint          AttribLocationVtxColor;
-//    unsigned int    VboHandle, ElementsHandle;
-//    GLsizeiptr      VertexBufferSize;
-//    GLsizeiptr      IndexBufferSize;
-//    bool            HasPolygonMode;
-//    bool            HasClipOrigin;
-//    bool            UseBufferSubData;
-//
-//    ImGui_ImplOpenGL3_Data() { memset((void*)this, 0, sizeof(*this)); }
-//};
+struct ImGui_ImplOpenGL3_Data
+{
+    GLuint          GlVersion;               // Extracted at runtime using GL_MAJOR_VERSION, GL_MINOR_VERSION queries (e.g. 320 for GL 3.2)
+    char            GlslVersionString[32];   // Specified by user or detected based on compile time GL settings.
+    bool            GlProfileIsES2;
+    bool            GlProfileIsES3;
+    bool            GlProfileIsCompat;
+    GLint           GlProfileMask;
+    GLuint          FontTexture;
+    GLuint          ShaderHandle;
+    GLint           AttribLocationTex;       // Uniforms location
+    GLint           AttribLocationProjMtx;
+    GLuint          AttribLocationVtxPos;    // Vertex attributes location
+    GLuint          AttribLocationVtxUV;
+    GLuint          AttribLocationVtxColor;
+    unsigned int    VboHandle, ElementsHandle;
+    GLsizeiptr      VertexBufferSize;
+    GLsizeiptr      IndexBufferSize;
+    bool            HasPolygonMode;
+    bool            HasClipOrigin;
+    bool            UseBufferSubData;
 
-// Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
-// It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
-//static ImGui_ImplOpenGL3_Data* ImGui_ImplOpenGL3_GetBackendData()
-//{
-//    return ImGui::GetCurrentContext() ? (ImGui_ImplOpenGL3_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
-//}
+    ImGui_ImplOpenGL3_Data() { memset((void*)this, 0, sizeof(*this)); }
+};
+
+ //Backend data stored in io.BackendRendererUserData to allow support for multiple Dear ImGui contexts
+ //It is STRONGLY preferred that you use docking branch with multi-viewports (== single Dear ImGui context + multiple windows) instead of multiple Dear ImGui contexts.
+static ImGui_ImplOpenGL3_Data* ImGui_ImplOpenGL3_GetBackendData()
+{
+    return ImGui::GetCurrentContext() ? (ImGui_ImplOpenGL3_Data*)ImGui::GetIO().BackendRendererUserData : nullptr;
+}
 
 // OpenGL vertex attribute state (for ES 1.0 and ES 2.0 only)
 #ifndef IMGUI_IMPL_OPENGL_USE_VERTEX_ARRAY
@@ -305,7 +308,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
         return false;
 
     // Setup backend capabilities flags
-    //ImGui_ImplOpenGL3_Data* bd = IM_NEW(ImGui_ImplOpenGL3_Data)();
+    ImGui_ImplOpenGL3_Data* bd = IM_NEW(ImGui_ImplOpenGL3_Data)();
     io.BackendRendererUserData = (void*)bd;
     io.BackendRendererName = "imgui_impl_opengl3";
 
@@ -981,5 +984,3 @@ void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
 #if defined(__clang__)
 #pragma clang diagnostic pop
 #endif
-
-#endif // #ifndef IMGUI_DISABLE

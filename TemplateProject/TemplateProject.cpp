@@ -10,6 +10,10 @@ public:
 
     virtual void OnUpdate() override
     {
+        if (Himii::Input::IsKeyPressed(Himii::Key::Space))
+        {
+            HIMII_INFO("Space key is pressed!");
+        }
     }
 
     virtual void OnEvent(void *event) override
@@ -25,6 +29,7 @@ public:
     {
         // 初始化代码
         PushLayer(new ExampleLayer());
+        PushLayer(new Himii::ImGuiLayer());
     }
 
     virtual ~TemplateProject()

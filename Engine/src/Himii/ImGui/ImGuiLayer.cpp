@@ -60,14 +60,16 @@ namespace Himii
 
    void ImGuiLayer::OnAttach()
     {
+       HIMII_CORE_INFO("ImGuiLayer::OnAttach()");
         ImGui::CreateContext();
         /* 使用深色主题 */
         ImGui::StyleColorsClassic();
 
         ImGuiIO &io = ImGui::GetIO();
 
-        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors;
-        io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.BackendFlags |= ImGuiBackendFlags_HasMouseCursors; // Enable ImGui mouse cursors
+        io.BackendFlags |= ImGuiBackendFlags_HasSetMousePos;  // Enable SetMousePos backend function
 
         ImGui_ImplOpenGL3_Init("#version 410");
     }
@@ -80,10 +82,19 @@ namespace Himii
 
    void ImGuiLayer::OnUpdate()
     {
+       ImGuiIO &io = ImGui::GetIO();
+        Application &app = Application::Get();
+       io.DisplaySize = ImVec2(app.GetWindow().GetWidth(), app.GetWindow().GetHeight());
+
+       float time = (float)glfwGetTime();
+       io.DeltaTime = time - m_Time;
+       m_Time = time;
+
        ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
 
         static bool show = true;
+        ImGui::ShowDemoWindow(&show);
 
         ImGui::Render();
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());

@@ -111,13 +111,13 @@ namespace Himii
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
 
-        for (auto it = m_LayerStack.begin(); it != m_LayerStack.end(); ++it)
+        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
         {
             if (e.Handled)
                 break;
-            (*it)->OnEvent(&e);
-        }
-        HIMII_CORE_INFO_F("Event: {0}", e.ToString());
+            (*--it)->OnEvent(&e);
+        }/*
+        HIMII_CORE_INFO_F("Event: {0}", e.ToString());*/
     }
 
     bool Application::OnWindowClosed(WindowCloseEvent &e)
@@ -130,6 +130,10 @@ namespace Himii
     {
         while (m_Running)
         {
+            for (Layer *layer: m_LayerStack)
+            {
+                layer->OnUpdate();
+            }
             glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT);
             m_Window->Update();
