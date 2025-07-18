@@ -42,10 +42,10 @@ namespace Himii
             int sucess = glfwInit();
             HIMII_CORE_ASSERT(sucess, "Failed to initialize GLFW");
             glfwSetErrorCallback(GLFWErrorCallback);
-            ++s_GLFWWindwCount;
         }
 
         m_Window = glfwCreateWindow((int)props.Width, props.Height, m_Data.Title.c_str(), nullptr, nullptr);
+        ++s_GLFWWindwCount;
 
         if (!m_Window)
         {

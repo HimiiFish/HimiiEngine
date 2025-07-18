@@ -75,7 +75,7 @@ namespace Himii
         glDeleteShader(fragmentShader);
         return program;
     }
-#define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
+
     Application *Application::s_Instance = nullptr;
 
     Application::Application()
@@ -116,8 +116,7 @@ namespace Himii
             if (e.Handled)
                 break;
             (*--it)->OnEvent(&e);
-        }/*
-        HIMII_CORE_INFO_F("Event: {0}", e.ToString());*/
+        }
     }
 
     bool Application::OnWindowClosed(WindowCloseEvent &e)
@@ -134,8 +133,6 @@ namespace Himii
             {
                 layer->OnUpdate();
             }
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            glClear(GL_COLOR_BUFFER_BIT);
             m_Window->Update();
         }
     }
