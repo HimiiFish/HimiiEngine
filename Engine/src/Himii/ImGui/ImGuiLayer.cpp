@@ -1,4 +1,4 @@
-#include "ImGuiLayer.h"
+﻿#include "ImGuiLayer.h"
 #include "imgui_internal.h"
 #include "Himii/Core/Application.h"
 #include "Himii/Core/Core.h"
@@ -53,7 +53,7 @@ namespace Himii
                     return (ImGuiKey)(ImGuiKey_A + (key - 'a'));
                 break;
         }
-        return ImGuiKey_None; // δ֪��
+        return ImGuiKey_None; // 未知键
     }
 
     ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer")
@@ -71,12 +71,18 @@ namespace Himii
        GLFWwindow *window = static_cast<GLFWwindow *>(app.GetWindow().GetNativeWindow());
 
         (void)io;
-        /* ʹ����ɫ���� */
+        /* 使用深色主题 */
         ImGui::StyleColorsDark();
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+
+        const char *font_path = "../TemplateProject/assets/msyh.ttc"; // 请替换为你的字体实际路径和文件名
+        float font_size = 14.0f;
+
+        io.Fonts->AddFontFromFileTTF(font_path,font_size);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF(font_path, font_size,nullptr,io.Fonts->GetGlyphRangesChineseFull());
 
         ImGuiStyle &style = ImGui::GetStyle();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -173,7 +179,6 @@ namespace Himii
     {
        static bool show = true;
         ImGui::ShowDemoWindow(&show);
-
-        ImGui::Text("Himii Engine - ImGui Layer");
+       ImGui::Text("你好");
     }
 }
