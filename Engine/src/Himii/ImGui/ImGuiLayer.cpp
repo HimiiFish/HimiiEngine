@@ -103,6 +103,8 @@ namespace Himii
        ImGui_ImplOpenGL3_NewFrame();
         ImGui::NewFrame();
 
+        ImGui::ShowDemoWindow();
+
         ImGui::Begin("Demo Window");
         ImGui::Text("Hello, world!");
         ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
