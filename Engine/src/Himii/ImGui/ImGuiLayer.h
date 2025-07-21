@@ -12,22 +12,22 @@ namespace Himii
         ImGuiLayer();
         ~ImGuiLayer()=default;
 
-         void OnAttach();
-         void OnDetach();
-         void OnUpdate();
-         void OnEvent(Event& event);
+         virtual void OnAttach() override;
+         virtual void OnDetach() override;
+         virtual void OnImGuiRender() override;
+         virtual void OnEvent(Event& e) override;
 
-     private:
-         bool OnMouseButtonPressed(MouseButtonPressedEvent &event);
-         bool OnMouseButtonReleased(MouseButtonReleasedEvent &event);
-         bool OnMouseMoved(MouseMovedEvent &event);
-         bool OnMouseScrolled(MouseScrolledEvent &event);
-         bool OnKeyPressed(KeyPressedEvent &event);
-         bool OnKeyReleased(KeyReleasedEvent &event);
-         //bool OnKeyTypedEvent(KeyTypedEvent &event);
-         bool OnWindowResizeEvent(WindowResizeEvent &event);
+         void Begin();
+         void End();
+
+         void BlockEvents(bool block)
+         {
+             m_BlockEvents = block;
+         }
+         void SetDarkThemeColors();
+         uint32_t GetActiveWidgetID() const;
 
     private:
-         float m_Time = 0.0f;
+         bool m_BlockEvents = true;
     };
 }

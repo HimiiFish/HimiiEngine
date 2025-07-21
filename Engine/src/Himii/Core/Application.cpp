@@ -1,6 +1,7 @@
 ﻿#include "Application.h"
 #include <SDL3/SDL.h>
 #include "Hepch.h"
+#include "Input.h"
 #include "glad/glad.h"
 #include "Log.h"
 #include "LayerStack.h"
@@ -83,12 +84,16 @@ namespace Himii
         s_Instance = this;
         m_Window = Window::Create();
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
+        m_ImGuiLayer = new ImGuiLayer();
+        PushOverlay(m_ImGuiLayer);
     }
 
     Application::~Application()
     {
         s_Instance = nullptr;
     }
+
     void Application::PushLayer(Layer *layer)
     {
         m_LayerStack.PushLayer(layer);
@@ -115,7 +120,7 @@ namespace Himii
         {
             if (e.Handled)
                 break;
-            (*--it)->OnEvent(&e);
+            (*--it)->OnEvent(e);
         }
     }
 
@@ -135,6 +140,13 @@ namespace Himii
             {
                 layer->OnUpdate();
             }
+            m_ImGuiLayer->Begin();
+            for (Layer *layer: m_LayerStack)
+            {
+                layer->OnImGuiRender();
+            }
+            m_ImGuiLayer->End();
+
             m_Window->Update();
         }
     }

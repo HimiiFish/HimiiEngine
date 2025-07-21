@@ -49,7 +49,7 @@ namespace Himii
 
         LayerStack m_LayerStack;
         Scope<Window> m_Window;
-        //ImGuiLayer *m_ImGuiLayer;
+       ImGuiLayer *m_ImGuiLayer;
 
         static Application *s_Instance;
     };

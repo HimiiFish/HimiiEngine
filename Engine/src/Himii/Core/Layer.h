@@ -19,7 +19,12 @@ namespace Himii
         virtual void OnUpdate()
         {
         }
-        virtual void OnEvent(void *event)
+
+        virtual void OnImGuiRender()
+        {
+        }
+
+        virtual void OnEvent(Event& event)
         {
         }
 

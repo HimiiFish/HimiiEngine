@@ -1,12 +1,11 @@
 {
   "name": "himiengine-project",
   "version-string": "0.1.0",
-  "dependencies": [
-    "sdl3",
-    "glad",
-    "glfw3",
-    "spdlog",
-    "glm",
-    "imgui"
-  ]
+    "dependencies": [
+        "sdl3",
+        "glad",
+        "glfw3",
+        "spdlog",
+        "glm"
+    ]
 }

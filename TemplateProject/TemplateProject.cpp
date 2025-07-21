@@ -16,9 +16,18 @@ public:
         }
     }
 
-    virtual void OnEvent(void *event) override
+    virtual void OnEvent(Himii::Event& event ) override
     {
         // 事件处理代码
+        if (event.GetEventType() == Himii::EventType::KeyPressed)
+        {
+            Himii::KeyPressedEvent &keyEvent = static_cast<Himii::KeyPressedEvent &>(event);
+            if (keyEvent.GetKeyCode() == Himii::Key::Tab)
+            {
+                HIMII_INFO_F("Tab key pressed");
+            }
+            HIMII_INFO_F("Key Pressed: {0}", (char)keyEvent.GetKeyCode());
+        }
     }
 
 };
@@ -29,7 +38,6 @@ public:
     {
         // 初始化代码
         PushLayer(new ExampleLayer());
-        PushLayer(new Himii::ImGuiLayer());
     }
 
     virtual ~TemplateProject()
