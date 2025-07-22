@@ -1,8 +1,8 @@
 ﻿#include "ImGuiLayer.h"
-#include "imgui_internal.h"
+#include "GLFW/glfw3.h"
 #include "Himii/Core/Application.h"
 #include "Himii/Core/Core.h"
-#include "GLFW/glfw3.h"
+#include "imgui_internal.h"
 
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -60,29 +60,30 @@ namespace Himii
     {
     }
 
-   void ImGuiLayer::OnAttach()
+    void ImGuiLayer::OnAttach()
     {
-       HIMII_CORE_INFO("ImGuiLayer::OnAttach()");
+        HIMII_CORE_INFO("ImGuiLayer::OnAttach()");
 
         ImGui::CreateContext();
 
-       ImGuiIO &io = ImGui::GetIO();
+        ImGuiIO &io = ImGui::GetIO();
         Application &app = Application::Get();
-       GLFWwindow *window = static_cast<GLFWwindow *>(app.GetWindow().GetNativeWindow());
+        GLFWwindow *window = static_cast<GLFWwindow *>(app.GetWindow().GetNativeWindow());
 
         (void)io;
         /* 使用深色主题 */
         ImGui::StyleColorsDark();
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;     // Enable Docking
+        io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
         const char *font_path = "../TemplateProject/assets/msyh.ttc"; // 请替换为你的字体实际路径和文件名
         float font_size = 14.0f;
 
-        io.Fonts->AddFontFromFileTTF(font_path,font_size);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF(font_path, font_size,nullptr,io.Fonts->GetGlyphRangesChineseFull());
+        io.Fonts->AddFontFromFileTTF(font_path, font_size);
+        io.FontDefault =
+                io.Fonts->AddFontFromFileTTF(font_path, font_size, nullptr, io.Fonts->GetGlyphRangesChineseFull());
 
         ImGuiStyle &style = ImGui::GetStyle();
         if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
@@ -96,30 +97,30 @@ namespace Himii
         ImGui_ImplOpenGL3_Init("#version 410");
     }
 
-   void ImGuiLayer::OnDetach()
+    void ImGuiLayer::OnDetach()
     {
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }
-   void ImGuiLayer::OnEvent(Event& e)
-   {
-       if (m_BlockEvents)
-       {
-           ImGuiIO &io = ImGui::GetIO();
-           e.Handled |= e.IsInCategroy(EventCategoryMouse) & io.WantCaptureMouse;
-           e.Handled |= e.IsInCategroy(EventCategoryKeyboard) & io.WantCaptureKeyboard;
-       }
+    void ImGuiLayer::OnEvent(Event &e)
+    {
+        if (m_BlockEvents)
+        {
+            ImGuiIO &io = ImGui::GetIO();
+            e.Handled |= e.IsInCategroy(EventCategoryMouse) & io.WantCaptureMouse;
+            e.Handled |= e.IsInCategroy(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+        }
     }
 
-   void ImGuiLayer::Begin()
+    void ImGuiLayer::Begin()
     {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
     }
 
-   void ImGuiLayer::End()
+    void ImGuiLayer::End()
     {
         ImGuiIO &io = ImGui::GetIO();
         Application &app = Application::Get();
@@ -137,7 +138,7 @@ namespace Himii
         }
     }
 
-   void ImGuiLayer::SetDarkThemeColors()
+    void ImGuiLayer::SetDarkThemeColors()
     {
         auto &colors = ImGui::GetStyle().Colors;
         colors[ImGuiCol_WindowBg] = ImVec4{0.1f, 0.105f, 0.11f, 1.0f};
@@ -170,15 +171,12 @@ namespace Himii
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
     }
 
-   uint32_t ImGuiLayer::GetActiveWidgetID() const
+    uint32_t ImGuiLayer::GetActiveWidgetID() const
     {
-       return GImGui->ActiveId;
+        return GImGui->ActiveId;
     }
 
-   void ImGuiLayer::OnImGuiRender()
+    void ImGuiLayer::OnImGuiRender()
     {
-       static bool show = true;
-        ImGui::ShowDemoWindow(&show);
-       ImGui::Text("你好");
     }
-}
+} // namespace Himii

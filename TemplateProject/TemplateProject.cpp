@@ -1,4 +1,5 @@
 ﻿#include "Engine.h"
+#include "imgui.h"
 #include <iostream>
 
 class ExampleLayer : public Himii::Layer
@@ -13,6 +14,14 @@ public:
         if (Himii::Input::IsKeyPressed(Himii::Key::Space))
         {
             HIMII_INFO("Space key is pressed!");
+        }
+    }
+    virtual void OnImGuiRender() override
+    {
+        ImGui::Text("Hello, this is an example layer!");
+        if (ImGui::Button("Click Me"))
+        {
+            HIMII_INFO("Button clicked!");
         }
     }
 

@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # 如果未指定构建类型，则默认为构建动态库
 # ON -> 构建动态库
 # OFF -> 构建静态库
-option(BUILD_SHARED_LIBS "Build shared libraries" ON)
+option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
 # 为所有目标设置输出目录
 # 单配置生成器（例如 Makefiles）使用这些通用路径

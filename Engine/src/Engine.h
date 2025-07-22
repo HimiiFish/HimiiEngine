@@ -6,7 +6,6 @@
 #include "Himii/Core/Layer.h"
 #include "Himii/Core/LayerStack.h"
 #include "Himii/Core/Window.h"
-//#include "Himii/Core/Assert.h"
 #include "Himii/ImGui/ImGuiLayer.h"
 #include "Himii/Core/Core.h"
 

@@ -37,7 +37,7 @@ set(OpenGL_GL_PREFERENCE GLVND)
 file(GLOB_RECURSE SOURCES "src/*.cpp")
 
 # 头文件为src目录下的所有.h文件
-file(GLOB_RECURSE HEADERS "src/.h")
+file(GLOB_RECURSE HEADERS "src/*.h")
 
 
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/imgui")
