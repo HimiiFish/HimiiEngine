@@ -6,7 +6,7 @@
 #include "LayerStack.h"
 
 // 顶点着色器源码
-const char *vertexShaderSource = R"(#version 330 core
+const char *vertexShaderSource = R"(#version 410 core
 layout(location = 0) in vec2 aPos;
 layout(location = 1) in vec3 aColor;
 
@@ -20,7 +20,7 @@ void main()
 )";
 
 // 片段着色器源码
-const char *fragmentShaderSource = R"(#version 330 core
+const char *fragmentShaderSource = R"(#version 410 core
 in vec3 vertexColor;
 out vec4 FragColor;
 
@@ -91,9 +91,6 @@ namespace Himii
         glGenVertexArrays(1, &m_VertexArray);
         glBindVertexArray(m_VertexArray);
 
-        glGenBuffers(1, &m_VertexBuffer);
-        glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
-
         float vertices[]=
         {
             // 位置          // 颜色
@@ -101,6 +98,8 @@ namespace Himii
              0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // 右下角绿色
              0.0f,  0.5f, 0.0f, 0.0f, 1.0f  // 顶部蓝色
         };
+        m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
+
         glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
         glEnableVertexAttribArray(0); // 位置属性
@@ -108,11 +107,8 @@ namespace Himii
         glEnableVertexAttribArray(1); // 颜色属性
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
 
-        glGenBuffers(1, &m_IndexBuffer);
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
-
         unsigned int indices[] = {0, 1, 2}; // 三角形的索引
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+        m_IndexBuffer.reset(IndexBuffer::Create(indices, 3));
 
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
@@ -170,7 +166,7 @@ namespace Himii
 
             glBindVertexArray(m_VertexArray);
             glUseProgram(CreateShaderProgram());
-            glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+            glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, 0);
 
             for (Layer *layer: m_LayerStack)
             {
