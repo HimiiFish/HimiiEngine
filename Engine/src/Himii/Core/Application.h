@@ -40,7 +40,7 @@ namespace Himii
         //bool OnWindowResize(WindowResizeEvent &e);
     private:
         //bool OnWindowClosed(WindowCloseEvent& e);
-
+        unsigned int m_VertexArray, m_VertexBuffer, m_IndexBuffer;
     private:
         bool m_Running = true;
         bool m_Minimized = false;

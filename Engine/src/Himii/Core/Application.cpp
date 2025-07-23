@@ -1,5 +1,4 @@
 ﻿#include "Application.h"
-#include <SDL3/SDL.h>
 #include "Hepch.h"
 #include "Input.h"
 #include "glad/glad.h"
@@ -87,6 +86,38 @@ namespace Himii
 
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
+
+        //test opengl
+        glGenVertexArrays(1, &m_VertexArray);
+        glBindVertexArray(m_VertexArray);
+
+        glGenBuffers(1, &m_VertexBuffer);
+        glBindBuffer(GL_ARRAY_BUFFER, m_VertexBuffer);
+
+        float vertices[]=
+        {
+            // 位置          // 颜色
+            -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // 左下角红色
+             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // 右下角绿色
+             0.0f,  0.5f, 0.0f, 0.0f, 1.0f  // 顶部蓝色
+        };
+        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+        glEnableVertexAttribArray(0); // 位置属性
+        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+        glEnableVertexAttribArray(1); // 颜色属性
+        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
+
+        glGenBuffers(1, &m_IndexBuffer);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_IndexBuffer);
+
+        unsigned int indices[] = {0, 1, 2}; // 三角形的索引
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        glBindVertexArray(0);
+        // 创建着色器程序
+        GLuint shaderProgram = CreateShaderProgram();
     }
 
     Application::~Application()
@@ -134,8 +165,13 @@ namespace Himii
     {
         while (m_Running)
         {
-            glClearColor(0.2f, 0.19f, 0.2f, 1.0f);
+            glClearColor(0.1f, 0.12f, 0.16f, 1.0f);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+
+            glBindVertexArray(m_VertexArray);
+            glUseProgram(CreateShaderProgram());
+            glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
+
             for (Layer *layer: m_LayerStack)
             {
                 layer->OnUpdate();

@@ -1,8 +1,7 @@
 ﻿#include "WindowsWindow.h"
 #include <cassert>
+#include "Platform/OpenGL/OpenGLContext.h"
 
-#include <glad/glad.h>
-#include "GLFW/glfw3.h"
 #include "Himii/Events/ApplicationEvent.h"
 #include "Himii/Events/KeyEvent.h"
 #include "Himii/Events/MouseEvent.h"
@@ -47,15 +46,15 @@ namespace Himii
         m_Window = glfwCreateWindow((int)props.Width, props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         ++s_GLFWWindwCount;
 
+        m_Context = CreateScope<OpenGLContext>(m_Window);
+        m_Context->Init();
+
         if (!m_Window)
         {
             HIMII_CORE_ERROR("Failed to create GLFW window");
             glfwTerminate();
             return;
         }
-        glfwMakeContextCurrent(m_Window);
-        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
-        HIMII_CORE_ASSERT_F(status, "Failed to initialize GLAD");
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetVSync(true);
@@ -167,7 +166,7 @@ namespace Himii
 
     void WindowsWindow::Update()
     {
-        glfwSwapBuffers(m_Window);
+        m_Context->SwapBuffers();
         glfwPollEvents();
     }
 

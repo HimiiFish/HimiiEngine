@@ -63,9 +63,6 @@ set(IMGUI_BACKENDS
 set(ENGINE_ALL_SOURCES
     ${SOURCES}
     ${HEADERS}
-    "src/Platform/Windows/WindowsInput.cpp"
-    "src/Himii/Core/KeyCodes.h"
-    "src/Himii/Core/MouseCodes.h"
     ${IMGUI_SOURCES}
     ${IMGUI_BACKENDS}
 )

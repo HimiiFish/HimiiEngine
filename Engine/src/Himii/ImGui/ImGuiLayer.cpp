@@ -178,5 +178,6 @@ namespace Himii
 
     void ImGuiLayer::OnImGuiRender()
     {
+        ImGui::ShowDemoWindow();
     }
 } // namespace Himii

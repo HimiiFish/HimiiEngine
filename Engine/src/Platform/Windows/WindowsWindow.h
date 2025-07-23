@@ -1,13 +1,7 @@
 #pragma once
 #include "Himii/Core/Window.h"
-#include "Himii/Events/ApplicationEvent.h"
-#include "Himii/Events/KeyEvent.h"
-#include "Himii/Events/MouseEvent.h"
-
-#include "glad/glad.h"
+#include "Himii/Renderer/GraphicsContext.h"
 #include "GLFW/glfw3.h"
-
-#include <SDL3/SDL.h>
 
 namespace Himii {
 
@@ -30,6 +24,7 @@ private:
 
 private:
     GLFWwindow* m_Window;
+    Scope<GraphicsContext> m_Context;
 
     struct WindowData {
         std::string Title;
