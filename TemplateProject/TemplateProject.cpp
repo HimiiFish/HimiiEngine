@@ -18,8 +18,8 @@ public:
     }
     virtual void OnImGuiRender() override
     {
-        ImGui::Text("Hello, this is an example layer!");
-        if (ImGui::Button("Click Me"))
+        ImGui::Text("测试窗口");
+        if (ImGui::Button("点击"))
         {
             HIMII_INFO("Button clicked!");
         }

@@ -34,6 +34,37 @@ namespace Himii
 {
     Application *Application::s_Instance = nullptr;
 
+    static GLenum ShaderDataTypeToOpenGLBaseType(ShaderDataType type)
+    {
+        switch (type)
+        {
+            case Himii::ShaderDataType::Float:
+                return GL_FLOAT;
+            case Himii::ShaderDataType::Float2:
+                return GL_FLOAT;
+            case Himii::ShaderDataType::Float3:
+                return GL_FLOAT;
+            case Himii::ShaderDataType::Float4:
+                return GL_FLOAT;
+            case Himii::ShaderDataType::Mat3:
+                return GL_FLOAT;
+            case Himii::ShaderDataType::Mat4:
+                return GL_FLOAT;
+            case Himii::ShaderDataType::Int:
+                return GL_INT;
+            case Himii::ShaderDataType::Int2:
+                return GL_INT;
+            case Himii::ShaderDataType::Int3:
+                return GL_INT;
+            case Himii::ShaderDataType::Int4:
+                return GL_INT;
+            case Himii::ShaderDataType::Bool:
+                return GL_INT;
+        }
+        HIMII_CORE_ASSERT(false, "Unknonw ShaderDataType");
+        return 0;
+    }
+
     Application::Application()
     {
         s_Instance = this;
@@ -56,10 +87,23 @@ namespace Himii
         };
         m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
-        glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+        BufferLayout layout = {
+            {ShaderDataType::Float2, "aPos",false},
+            {ShaderDataType::Float3, "aColor",false}
+        };
 
-        glEnableVertexAttribArray(0); // 位置属性
-        glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)0);
+        uint32_t index = 0;
+        for (const auto& element : layout)
+        {
+            glEnableVertexAttribArray(index); // 位置属性
+            glVertexAttribPointer(index, element.GetCompomentCount(), 
+                ShaderDataTypeToOpenGLBaseType(element.Type),
+                element.Normalized? GL_TRUE:GL_FALSE, 
+                layout.GetStride(), 
+                (const void *)element.Offset);
+            index++;
+        }
+
         glEnableVertexAttribArray(1); // 颜色属性
         glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
 
