@@ -4,7 +4,7 @@
 #include "LayerStack.h"
 #include "Himii/Core/Window.h"
 #include "Himii/ImGui/ImGuiLayer.h"
-
+#include "Himii/Renderer/Shader.h"
 #include "Himii/Renderer/Buffer.h"
 
 namespace Himii
@@ -45,6 +45,7 @@ namespace Himii
         unsigned int m_VertexArray;
         Scope<VertexBuffer> m_VertexBuffer;
         Scope<IndexBuffer> m_IndexBuffer;
+        Scope<Shader> m_Shader;
     private:
         bool m_Running = true;
         bool m_Minimized = false;

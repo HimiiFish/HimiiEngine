@@ -32,50 +32,6 @@ void main()
 
 namespace Himii
 {
-    // 编译着色器并创建程序
-    GLuint CompileShader(GLenum type, const char *source)
-    {
-        GLuint shader = glCreateShader(type);
-        glShaderSource(shader, 1, &source, nullptr);
-        glCompileShader(shader);
-
-        // 检查错误
-        GLint success;
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            char log[512];
-            glGetShaderInfoLog(shader, 512, nullptr, log);
-            std::cerr << "Shader Compile Error:\n" << log << std::endl;
-        }
-        return shader;
-    }
-
-    GLuint CreateShaderProgram()
-    {
-        GLuint vertexShader = CompileShader(GL_VERTEX_SHADER, vertexShaderSource);
-        GLuint fragmentShader = CompileShader(GL_FRAGMENT_SHADER, fragmentShaderSource);
-
-        GLuint program = glCreateProgram();
-        glAttachShader(program, vertexShader);
-        glAttachShader(program, fragmentShader);
-        glLinkProgram(program);
-
-        // 检查链接错误
-        GLint success;
-        glGetProgramiv(program, GL_LINK_STATUS, &success);
-        if (!success)
-        {
-            char log[512];
-            glGetProgramInfoLog(program, 512, nullptr, log);
-            std::cerr << "Shader Link Error:\n" << log << std::endl;
-        }
-
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-        return program;
-    }
-
     Application *Application::s_Instance = nullptr;
 
     Application::Application()
@@ -113,7 +69,7 @@ namespace Himii
         glBindBuffer(GL_ARRAY_BUFFER, 0);
         glBindVertexArray(0);
         // 创建着色器程序
-        GLuint shaderProgram = CreateShaderProgram();
+        m_Shader.reset(new Shader(vertexShaderSource, fragmentShaderSource));
     }
 
     Application::~Application()
@@ -165,7 +121,7 @@ namespace Himii
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
             glBindVertexArray(m_VertexArray);
-            glUseProgram(CreateShaderProgram());
+            m_Shader->Bind();
             glDrawElements(GL_TRIANGLES, m_IndexBuffer->GetCount(), GL_UNSIGNED_INT, 0);
 
             for (Layer *layer: m_LayerStack)
