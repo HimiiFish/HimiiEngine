@@ -20,7 +20,7 @@ namespace Himii
             s_RendererAPI->DrawIndexed(vertexArray);
         }
     private:
-        static Scope<RendererAPI> s_RendererAPI;
+        inline static Scope<RendererAPI> s_RendererAPI = RendererAPI::Create();
     };
 
 } // namespace Himii
