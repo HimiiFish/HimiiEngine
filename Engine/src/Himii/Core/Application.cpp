@@ -81,37 +81,34 @@ namespace Himii
         float vertices[]=
         {
             // 位置          // 颜色
-            -0.5f, -0.5f, 1.0f, 0.0f, 0.0f, // 左下角红色
-             0.5f, -0.5f, 0.0f, 1.0f, 0.0f, // 右下角绿色
-             0.0f,  0.5f, 0.0f, 0.0f, 1.0f  // 顶部蓝色
+            -0.5f, -0.5f, 1.0f, 0.5f, 0.0f, // 左下角红色
+             0.5f, -0.5f, 0.0f, 1.0f, 0.5f, // 右下角绿色
+             0.0f,  0.5f, 0.5f, 0.0f, 1.0f  // 顶部蓝色
         };
         m_VertexBuffer.reset(VertexBuffer::Create(vertices, sizeof(vertices)));
 
         BufferLayout layout = {
-            {ShaderDataType::Float2, "aPos",false},
-            {ShaderDataType::Float3, "aColor",false}
+            {ShaderDataType::Float2, "aPos"},
+            {ShaderDataType::Float3, "aColor"}
         };
-
+        m_VertexBuffer->SetLayout(layout);
         uint32_t index = 0;
         for (const auto& element : layout)
         {
             glEnableVertexAttribArray(index); // 位置属性
-            glVertexAttribPointer(index, element.GetCompomentCount(), 
+            glVertexAttribPointer(index, 
+                element.GetCompomentCount(), 
                 ShaderDataTypeToOpenGLBaseType(element.Type),
                 element.Normalized? GL_TRUE:GL_FALSE, 
                 layout.GetStride(), 
                 (const void *)element.Offset);
             index++;
         }
-
-        glEnableVertexAttribArray(1); // 颜色属性
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void *)(2 * sizeof(float)));
-
         unsigned int indices[] = {0, 1, 2}; // 三角形的索引
         m_IndexBuffer.reset(IndexBuffer::Create(indices, 3));
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-        glBindVertexArray(0);
+        //glBindBuffer(GL_ARRAY_BUFFER, 0);
+        //glBindVertexArray(0);
         // 创建着色器程序
         m_Shader.reset(new Shader(vertexShaderSource, fragmentShaderSource));
     }

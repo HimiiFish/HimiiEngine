@@ -8,12 +8,10 @@ namespace Himii
         None=0,Float,Float2,Float3,Float4,Mat3,Mat4,Int,Int2,Int3,Int4,Bool
     };
 
-    static uint32_t shaderDataTypeSize(ShaderDataType type)
+    static uint32_t ShaderDataTypeSize(ShaderDataType type)
     {
         switch (type)
         {
-            case Himii::ShaderDataType::None:
-                return 0;
             case Himii::ShaderDataType::Float:
                 return 4;
             case Himii::ShaderDataType::Float2:
@@ -48,13 +46,13 @@ namespace Himii
         std::string Name;
         ShaderDataType Type;
         uint32_t Offset;
-        uint32_t Size;
+        size_t Size;
         bool Normalized;
 
-        BufferElement() {};
+        BufferElement()=default;
 
         BufferElement(ShaderDataType type, const std::string &name,bool bormalized=false ) :
-            Name(name), Type(type), Size(shaderDataTypeSize(type)), Offset(0), Normalized(false)
+            Name(name), Type(type), Size(ShaderDataTypeSize(type)), Offset(0), Normalized(false)
         {
         }
 
@@ -71,9 +69,9 @@ namespace Himii
                 case ShaderDataType::Float4:
                     return 4;
                 case ShaderDataType::Mat3:
-                    return 3*3; // 3* float3
+                    return 3; // 3* float3
                 case ShaderDataType::Mat4:
-                    return 4*4; // 4* float4
+                    return 4; // 4* float4
                 case ShaderDataType::Int:
                     return 1;
                 case ShaderDataType::Int2:
@@ -95,7 +93,7 @@ namespace Himii
     {
         public:
         BufferLayout() {};
-        BufferLayout(const std::initializer_list<BufferElement>& element) : m_Elements(element)
+        BufferLayout(std::initializer_list<BufferElement> element) : m_Elements(element)
         {
             CalculateOffsetsAndStride();
         }
@@ -122,7 +120,6 @@ namespace Himii
         {
             uint32_t offset = 0;
             m_Stride = 0;
-            m_Elements.clear();
             for (auto &element: m_Elements)
             {
                 element.Offset = offset;
@@ -143,8 +140,9 @@ namespace Himii
         virtual void Bind() const = 0;
         virtual void Unbind() const = 0;
 
-        virtual void SetLayout(const BufferLayout &layout) = 0;
+        
         virtual const BufferLayout &GetLayout() const = 0;
+        virtual void SetLayout(const BufferLayout &layout) = 0;
 
         static VertexBuffer *Create(float *vertices, uint32_t size);
 
