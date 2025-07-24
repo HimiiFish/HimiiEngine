@@ -8,18 +8,18 @@ namespace Himii
     {
         switch (Renderer::GetAPI())
         {
-            case RendererAPI::None:
+            case RendererAPI::API::None:
                 HIMII_CORE_ASSERT_F(false, "RendererAPI::None is currently not supported!");
                 return nullptr;
-            case RendererAPI::OpenGL:
+            case RendererAPI::API::OpenGL:
                 return new OpenGLVertexArray();
-            case RendererAPI::Vulkan:
+            case RendererAPI::API::Vulkan:
                 HIMII_CORE_ASSERT_F(false, "RendererAPI::Vulkan is currently not supported!");
                 return nullptr;
-            case RendererAPI::DirectX12:
+            case RendererAPI::API::DirectX12:
                 HIMII_CORE_ASSERT_F(false, "RendererAPI::DirectX12 is currently not supported!");
                 return nullptr;
-            case RendererAPI::Metal:
+            case RendererAPI::API::Metal:
                 HIMII_CORE_ASSERT_F(false, "RendererAPI::Metal is currently not supported!");
                 return nullptr;
         }

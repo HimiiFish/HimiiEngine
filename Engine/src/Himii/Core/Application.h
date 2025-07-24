@@ -44,10 +44,6 @@ namespace Himii
         //bool OnWindowResize(WindowResizeEvent &e);
     private:
         //bool OnWindowClosed(WindowCloseEvent& e);
-        Ref<Shader> m_Shader;
-        Ref<VertexArray> m_VertexArray;
-
-        Ref<VertexArray> m_SquareVA;
         
     private:
         bool m_Running = true;

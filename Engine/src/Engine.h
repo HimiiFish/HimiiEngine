@@ -8,11 +8,24 @@
 #include "Himii/Core/Window.h"
 #include "Himii/ImGui/ImGuiLayer.h"
 #include "Himii/Core/Core.h"
-
 #include "Himii/Core/KeyCodes.h"
 #include "Himii/Core/MouseCodes.h"
 
-//---------入口点-----------
-#include "Himii/Core/EntryPoint.h"
+//---------Renderer相关-----------
+#include "Himii/Renderer/Renderer.h"
+#include "Himii/Renderer/RenderCommand.h"
+#include "Himii/Renderer/Buffer.h"
+#include "Himii/Renderer/VertexArray.h"
+#include "Himii/Renderer/Shader.h"
+#include "Himii/Renderer/GraphicsContext.h"
+#include "Himii/Renderer/RendererAPI.h"
 
 // TODO: 在此处引用程序需要的其他标头。
+//---------平台相关-----------
+#include "Platform/Windows/WindowsWindow.h"
+#include "Platform/OpenGL/OpenGLBuffer.h"
+#include "Platform/OpenGL/OpenGLContext.h"
+#include "Platform/OpenGL/OpenGLVertexArray.h"
+#include "Platform/OpenGL/OpenGLRendererAPI.h"
+
+//---------其他-----------
