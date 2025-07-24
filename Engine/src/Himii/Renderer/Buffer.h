@@ -114,6 +114,13 @@ namespace Himii
         std::vector<BufferElement>::iterator end()
         {
             return m_Elements.end();
+        }  std::vector<BufferElement>::const_iterator begin() const
+        {
+            return m_Elements.begin();
+        }
+        std::vector<BufferElement>::const_iterator end() const
+        {
+            return m_Elements.end();
         }
     private:
         void CalculateOffsetsAndStride()

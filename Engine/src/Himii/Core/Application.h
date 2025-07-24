@@ -4,8 +4,10 @@
 #include "LayerStack.h"
 #include "Himii/Core/Window.h"
 #include "Himii/ImGui/ImGuiLayer.h"
+
 #include "Himii/Renderer/Shader.h"
 #include "Himii/Renderer/Buffer.h"
+#include "Himii/Renderer/VertexArray.h"
 
 namespace Himii
 {
@@ -42,10 +44,11 @@ namespace Himii
         //bool OnWindowResize(WindowResizeEvent &e);
     private:
         //bool OnWindowClosed(WindowCloseEvent& e);
-        unsigned int m_VertexArray;
-        Scope<VertexBuffer> m_VertexBuffer;
-        Scope<IndexBuffer> m_IndexBuffer;
-        Scope<Shader> m_Shader;
+        Ref<Shader> m_Shader;
+        Ref<VertexArray> m_VertexArray;
+
+        Ref<VertexArray> m_SquareVA;
+        
     private:
         bool m_Running = true;
         bool m_Minimized = false;
