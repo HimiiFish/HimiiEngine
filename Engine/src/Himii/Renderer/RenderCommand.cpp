@@ -3,5 +3,5 @@
 
 namespace Himii
 {
-    
+    Scope<RendererAPI> RenderCommand::s_RendererAPI = RendererAPI::Create();
 }
