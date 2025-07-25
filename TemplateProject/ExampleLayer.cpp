@@ -7,11 +7,13 @@ const char *vertexShaderSource = R"(#version 410 core
 layout(location = 0) in vec2 aPos;
 layout(location = 1) in vec3 aColor;
 
+uniform mat4 u_ViewProjection; // 视图投影矩阵
+
 out vec3 vertexColor;
 
 void main()
 {
-    gl_Position = vec4(aPos, 0.0, 1.0);
+    gl_Position = u_ViewProjection* vec4(aPos, 0.0, 1.0);
     vertexColor = aColor;
 }
 )";
@@ -27,7 +29,7 @@ void main()
 }
 )";
 
-ExampleLayer::ExampleLayer() : Layer("ExampleLayer")
+ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) // 设置正交相机的视口
 {
     // Renderer
     m_VertexArray.reset(Himii::VertexArray::Create());
@@ -97,12 +99,19 @@ void ExampleLayer::OnUpdate()
     Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
     Himii::RenderCommand::Clear();
 
-    Himii::Renderer::BeginScene();
+    if (Himii::Input::IsKeyPressed(Himii::Key::A))
+    {
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.01f, 0.0f, 0.0f));
+    }
+    if (Himii::Input::IsKeyPressed(Himii::Key::D))
+    {
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-0.01f, 0.0f, 0.0f));
+    }
 
-    m_Shader->Bind();
-    Himii::Renderer::Submit(m_VertexArray);
+    Himii::Renderer::BeginScene(m_Camera);
 
-    Himii::Renderer::Submit(m_SquareVA);
+    Himii::Renderer::Submit(m_Shader,m_VertexArray);
+    Himii::Renderer::Submit(m_Shader,m_SquareVA);
 
     Himii::Renderer::EndScene();
 }

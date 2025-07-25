@@ -17,4 +17,6 @@ private:
     Himii::Ref<Himii::Shader> m_Shader;
     Himii::Ref<Himii::VertexArray> m_VertexArray;
     Himii::Ref<Himii::VertexArray> m_SquareVA;
+
+    Himii::OrthographicCamera m_Camera;
 };

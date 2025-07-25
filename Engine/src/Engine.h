@@ -19,6 +19,7 @@
 #include "Himii/Renderer/Shader.h"
 #include "Himii/Renderer/GraphicsContext.h"
 #include "Himii/Renderer/RendererAPI.h"
+#include "Himii/Renderer/OrthographicCamera.h"
 
 // TODO: 在此处引用程序需要的其他标头。
 //---------平台相关-----------

@@ -3,11 +3,12 @@
 #include "LayerStack.h"
 #include "Log.h"
 #include "Himii/Renderer/Renderer.h"
+
 namespace Himii
 {
     Application *Application::s_Instance = nullptr;
 
-    Application::Application()
+    Application::Application() 
     {
         s_Instance = this;
         m_Window = Window::Create();

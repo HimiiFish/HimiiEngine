@@ -44,7 +44,6 @@ namespace Himii
         //bool OnWindowResize(WindowResizeEvent &e);
     private:
         //bool OnWindowClosed(WindowCloseEvent& e);
-        
     private:
         bool m_Running = true;
         bool m_Minimized = false;
