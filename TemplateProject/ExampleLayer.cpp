@@ -2,18 +2,21 @@
 #include "imgui.h"
 #include "ExampleLayer.h"
 
+#include "glm/gtc/matrix_transform.hpp"
+
 // 顶点着色器源码
 const char *vertexShaderSource = R"(#version 410 core
 layout(location = 0) in vec2 aPos;
 layout(location = 1) in vec3 aColor;
 
 uniform mat4 u_ViewProjection; // 视图投影矩阵
+uniform mat4 u_Transform; // 变换矩阵
 
 out vec3 vertexColor;
 
 void main()
 {
-    gl_Position = u_ViewProjection* vec4(aPos, 0.0, 1.0);
+    gl_Position = u_ViewProjection*u_Transform* vec4(aPos, 0.0, 1.0);
     vertexColor = aColor;
 }
 )";
@@ -101,17 +104,35 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
 
     if (Himii::Input::IsKeyPressed(Himii::Key::A))
     {
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-1.0f*ts, 0.0f, 0.0f));
+    }
+    else if (Himii::Input::IsKeyPressed(Himii::Key::D))
+    {
         m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(1.0f*ts, 0.0f, 0.0f));
     }
-    if (Himii::Input::IsKeyPressed(Himii::Key::D))
+    if (Himii::Input::IsKeyPressed(Himii::Key::W))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-1.0f*ts, 0.0f, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, -1.0f * ts, 0.0f));
+    }
+    else if (Himii::Input::IsKeyPressed(Himii::Key::S))
+    {
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, 1.0f * ts, 0.0f));
     }
 
     Himii::Renderer::BeginScene(m_Camera);
 
+    static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+    
+    for (int x = 0; x < 10; ++x)
+    {
+        for (int y = 0; y < 10; y++)
+        {
+            glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f),pos)*scale;
+            Himii::Renderer::Submit(m_Shader, m_SquareVA, transform);
+        }
+    }
     Himii::Renderer::Submit(m_Shader,m_VertexArray);
-    Himii::Renderer::Submit(m_Shader,m_SquareVA);
 
     Himii::Renderer::EndScene();
 }
