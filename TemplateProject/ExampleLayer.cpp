@@ -3,6 +3,7 @@
 #include "ExampleLayer.h"
 
 #include "glm/gtc/matrix_transform.hpp"
+#include <glm/gtc/type_ptr.hpp>
 
 // 顶点着色器源码
 const char *vertexShaderSource = R"(#version 410 core
@@ -26,17 +27,22 @@ const char *fragmentShaderSource = R"(#version 410 core
 in vec3 vertexColor;
 out vec4 FragColor;
 
+uniform vec4 u_Color; // 颜色
+
 void main()
 {
-    FragColor = vec4(vertexColor, 1.0);
+    FragColor = u_Color;
 }
 )";
 
-ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) // 设置正交相机的视口
+ExampleLayer::ExampleLayer() :
+    Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) // 设置正交相机的视口
 {
     // Renderer
     m_VertexArray.reset(Himii::VertexArray::Create());
    
+    m_SquareColor1 = glm::vec4(0.2f, 0.3f, 0.8f, 1.0f);
+    m_SquareColor2 = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
     float vertices[] = {
             // 位置          // 颜色
             -1.0f, -0.5f, 1.0f, 0.5f, 0.0f, // 左下角红色
@@ -112,23 +118,34 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
     }
     if (Himii::Input::IsKeyPressed(Himii::Key::W))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, -1.0f * ts, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, 1.0f * ts, 0.0f));
     }
     else if (Himii::Input::IsKeyPressed(Himii::Key::S))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, 1.0f * ts, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, -1.0f * ts, 0.0f));
     }
 
     Himii::Renderer::BeginScene(m_Camera);
 
     static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
+
     
+
     for (int x = 0; x < 10; ++x)
     {
         for (int y = 0; y < 10; y++)
         {
             glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
             glm::mat4 transform = glm::translate(glm::mat4(1.0f),pos)*scale;
+            if ((x +y)% 2 == 0)
+            {
+                m_Shader->UploadUniformFloat4("u_Color", m_SquareColor1);
+            }
+            else
+            {
+                m_Shader->UploadUniformFloat4("u_Color", m_SquareColor2);
+            }
+
             Himii::Renderer::Submit(m_Shader, m_SquareVA, transform);
         }
     }
@@ -139,11 +156,20 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
 
 void ExampleLayer::OnImGuiRender()
 {
-    ImGui::Text("测试窗口");
+    ImGui::Begin("Settings");
+    ImGui::ColorEdit3("Square Color1", glm::value_ptr(m_SquareColor1));
+    ImGui::ColorEdit3("Square Color2", glm::value_ptr(m_SquareColor2));
+    ImGui::Text("交换颜色");
     if (ImGui::Button("点击"))
     {
-        HIMII_INFO("Button clicked!");
+        glm::vec4 bridge;
+        bridge = m_SquareColor1;
+        m_SquareColor1 = m_SquareColor2;
+        m_SquareColor2 = bridge;
     }
+    ImGui::End();
+    
+
 }
 
 void ExampleLayer::OnEvent(Himii::Event &event)

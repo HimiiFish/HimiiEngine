@@ -19,4 +19,7 @@ private:
     Himii::Ref<Himii::VertexArray> m_SquareVA;
 
     Himii::OrthographicCamera m_Camera;
+
+    glm::vec4 m_SquareColor1;
+    glm::vec4 m_SquareColor2;
 };
