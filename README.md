@@ -5,7 +5,7 @@
 [![编程语言](https://img.shields.io/badge/编程语言-C++_17-blue.svg?style=for-the-badge)](#)
 [![构建工具](https://img.shields.io/badge/构建工具-Cmake_>=3.8-green.svg?style=for-the-badge)](#)
 
-This a **2D GameEngine**
+It is a modern game engine designed to build high-performance rendering, multi-threaded operation, and based on the ESC framework
 
 > [!IMPORTANT]
 > 本项目遵循 [**MIT License**](https://github.com/HimiiFish/HimiiEngine/blob/main/LICENSE)
