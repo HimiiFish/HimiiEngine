@@ -89,7 +89,7 @@ void ExampleLayer::OnDetach()
 {
 }
 
-void ExampleLayer::OnUpdate()
+void ExampleLayer::OnUpdate(Himii::Timestep ts)
 {
     if (Himii::Input::IsKeyPressed(Himii::Key::Space))
     {
@@ -101,11 +101,11 @@ void ExampleLayer::OnUpdate()
 
     if (Himii::Input::IsKeyPressed(Himii::Key::A))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.01f, 0.0f, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(1.0f*ts, 0.0f, 0.0f));
     }
     if (Himii::Input::IsKeyPressed(Himii::Key::D))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-0.01f, 0.0f, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-1.0f*ts, 0.0f, 0.0f));
     }
 
     Himii::Renderer::BeginScene(m_Camera);

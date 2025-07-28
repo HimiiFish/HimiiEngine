@@ -1,5 +1,6 @@
 #pragma once
 #include "Himii/Events/Event.h"
+#include "Himii/Core/Timestep.h"
 
 namespace Himii
 {
@@ -16,7 +17,7 @@ namespace Himii
         {
         }
         
-        virtual void OnUpdate()
+        virtual void OnUpdate(Timestep ts)
         {
         }
 

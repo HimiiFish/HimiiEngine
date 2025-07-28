@@ -4,7 +4,7 @@
 #include "LayerStack.h"
 #include "Himii/Core/Window.h"
 #include "Himii/ImGui/ImGuiLayer.h"
-
+#include "Himii/Core/Timestep.h"
 #include "Himii/Renderer/Shader.h"
 #include "Himii/Renderer/Buffer.h"
 #include "Himii/Renderer/VertexArray.h"
@@ -47,13 +47,13 @@ namespace Himii
     private:
         bool m_Running = true;
         bool m_Minimized = false;
-
         float m_LastFrameTime = 0.0f;
 
         LayerStack m_LayerStack;
         Scope<Window> m_Window;
-       ImGuiLayer *m_ImGuiLayer;
+        ImGuiLayer *m_ImGuiLayer;
 
+    private:
         static Application *s_Instance;
     };
     Application* CreateApplication();

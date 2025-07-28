@@ -10,6 +10,7 @@
 #include "Himii/Core/Core.h"
 #include "Himii/Core/KeyCodes.h"
 #include "Himii/Core/MouseCodes.h"
+#include "Himii/Core/Timestep.h"
 
 //---------Renderer相关-----------
 #include "Himii/Renderer/Renderer.h"
