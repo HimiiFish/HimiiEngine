@@ -1,4 +1,5 @@
 ﻿#pragma once
+#include "Himii/Core/Application.h"
 #include "Log.h"
 
 extern Himii::Application *Himii::CreateApplication();
@@ -7,8 +8,7 @@ int main(int argc, char *argv[])
 {
     Himii::Log::Init();
     HIMII_CORE_INFO("Application starting...");
-    /*LOG_WARNING("This is a warning message.");
-    LOG_ERROR("This is an error message.");*/
+    //LOG_WARNING("This is a warning message.");
     // 创建应用程序实例
     auto *app = Himii::CreateApplication();
    

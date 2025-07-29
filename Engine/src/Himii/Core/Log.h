@@ -3,6 +3,7 @@
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
+#include "Himii/Core/Core.h"
 
 namespace Himii
 {
@@ -44,9 +45,9 @@ namespace Himii
         }
 
     private:
-        static std::shared_ptr<spdlog::logger> s_CoreLogger;
+        static Ref<spdlog::logger> s_CoreLogger;
 
-        static std::shared_ptr<spdlog::logger> s_ClientLogger;
+        static Ref<spdlog::logger> s_ClientLogger;
 
         static spdlog::level::level_enum ConvertLogLevel(LogLevel level);
 

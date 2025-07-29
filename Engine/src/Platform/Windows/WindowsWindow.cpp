@@ -1,5 +1,6 @@
 ﻿#include "WindowsWindow.h"
-#include <cassert>
+#include "Hepch.h"
+#include "Himii/Core/Input.h"
 #include "Platform/OpenGL/OpenGLContext.h"
 
 #include "Himii/Events/ApplicationEvent.h"
@@ -8,7 +9,6 @@
 
 namespace Himii
 {
-
     static uint8_t s_GLFWWindwCount = 0;
 
     static void GLFWErrorCallback(int error, const char *description)
@@ -169,22 +169,6 @@ namespace Himii
         m_Context->SwapBuffers();
         glfwPollEvents();
     }
-
-    uint32_t WindowsWindow::GetWidth() const
-    {
-        return m_Data.Width;
-    }
-
-    uint32_t WindowsWindow::GetHeight() const
-    {
-        return m_Data.Height;
-    }
-
-    void WindowsWindow::SetEventCallback(const EventCallbackFn &callback)
-    {
-        m_Data.EventCallback = callback;
-    }
-
     void WindowsWindow::SetVSync(bool enabled)
     {
         if (enabled)
@@ -201,11 +185,6 @@ namespace Himii
     bool WindowsWindow::IsVSync() const
     {
         return m_Data.VSync;
-    }
-
-    void *WindowsWindow::GetNativeWindow() const
-    {
-        return m_Window;
     }
 
 } // namespace Himii

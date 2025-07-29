@@ -6,14 +6,14 @@
 
 namespace Himii
 {
-    bool Input::IsKeyPressed(int key)
+    bool Input::IsKeyPressed(const KeyCode key)
     {
         auto *window = static_cast<GLFWwindow *>(Application::Get().GetWindow().GetNativeWindow());
         int state = glfwGetKey(window, key);
         return state == GLFW_PRESS || state == GLFW_REPEAT;
     }
 
-    bool Input::IsMouseButtonPressed(int button)
+    bool Input::IsMouseButtonPressed(const MouseCode button)
     {
         auto *window = static_cast<GLFWwindow *>(Application::Get().GetWindow().GetNativeWindow());
         int state = glfwGetMouseButton(window, button);

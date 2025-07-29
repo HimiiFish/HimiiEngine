@@ -7,7 +7,7 @@ namespace Himii
     class Layer {
     public:
         Layer(const std::string& name = "Layer");
-        virtual ~Layer();
+        virtual ~Layer()=default;
 
         virtual void OnAttach()
         {
@@ -29,7 +29,7 @@ namespace Himii
         {
         }
 
-        inline const std::string &GetName() const
+        const std::string &GetName() const
         {
             return m_DebugName;
         }

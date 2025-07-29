@@ -4,7 +4,7 @@
 
 namespace Himii
 {
-    std::unique_ptr<Window> Window::Create(const WindowProps &props)
+    Scope<Window> Window::Create(const WindowProps &props)
     {
         return CreateScope<WindowsWindow>(props);
     }

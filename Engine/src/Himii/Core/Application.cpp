@@ -1,6 +1,5 @@
 ﻿#include "Hepch.h"
-#include "Application.h"
-#include "LayerStack.h"
+#include "Himii/Core/Application.h"
 #include "Log.h"
 #include "Himii/Renderer/Renderer.h"
 #include <GLFW/glfw3.h>
@@ -14,6 +13,7 @@ namespace Himii
         s_Instance = this;
         m_Window = Window::Create();
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
+
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
     }
@@ -44,12 +44,13 @@ namespace Himii
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
+        //dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
-        for (auto it = m_LayerStack.end(); it != m_LayerStack.begin();)
+        for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend();++it)
         {
             if (e.Handled)
                 break;
-            (*--it)->OnEvent(e);
+            (*it)->OnEvent(e);
         }
     }
 
@@ -58,6 +59,20 @@ namespace Himii
         m_Running = false;
         return true;
     }
+
+    /*bool Application::OnWindowResize(WindowResizeEvent& e)
+    {
+        if (e.GetWidth() == 0 || e.GetHeight() == 0)
+        {
+            m_Minimized = true;
+            return false;
+        }
+
+        m_Minimized = false;
+        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+
+        return false;
+    }*/
 
     void Application::Run()
     {
