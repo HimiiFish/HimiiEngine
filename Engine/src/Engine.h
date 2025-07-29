@@ -29,5 +29,6 @@
 #include "Platform/OpenGL/OpenGLContext.h"
 #include "Platform/OpenGL/OpenGLVertexArray.h"
 #include "Platform/OpenGL/OpenGLRendererAPI.h"
+#include "Platform/OpenGl/OpenGLShader.h"
 
 //---------其他-----------

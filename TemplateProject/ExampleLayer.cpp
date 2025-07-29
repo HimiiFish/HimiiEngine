@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "ExampleLayer.h"
 
+
 #include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
 
@@ -87,7 +88,7 @@ ExampleLayer::ExampleLayer() :
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
     // glBindVertexArray(0);
     //  创建着色器程序
-    m_Shader.reset(new Himii::Shader(vertexShaderSource, fragmentShaderSource));
+    m_Shader=Himii::Shader::Create(vertexShaderSource, fragmentShaderSource);
 }
 
 void ExampleLayer::OnAttach()
@@ -129,8 +130,6 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
 
     static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
-    
-
     for (int x = 0; x < 10; ++x)
     {
         for (int y = 0; y < 10; y++)
@@ -139,11 +138,11 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
             glm::mat4 transform = glm::translate(glm::mat4(1.0f),pos)*scale;
             if ((x +y)% 2 == 0)
             {
-                m_Shader->UploadUniformFloat4("u_Color", m_SquareColor1);
+                m_Shader->SetFloat4("u_Color", m_SquareColor1);
             }
             else
             {
-                m_Shader->UploadUniformFloat4("u_Color", m_SquareColor2);
+                m_Shader->SetFloat4("u_Color", m_SquareColor2);
             }
 
             Himii::Renderer::Submit(m_Shader, m_SquareVA, transform);
@@ -168,8 +167,6 @@ void ExampleLayer::OnImGuiRender()
         m_SquareColor2 = bridge;
     }
     ImGui::End();
-    
-
 }
 
 void ExampleLayer::OnEvent(Himii::Event &event)

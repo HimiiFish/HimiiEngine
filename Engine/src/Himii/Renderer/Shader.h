@@ -1,21 +1,27 @@
 #pragma once
 #include "string"
+#include "Himii/Core/Core.h"
 #include "glm/glm.hpp"
 
 namespace Himii
 {
     class Shader {
     public:
-        Shader(const std::string &vertexSource, const std::string &fragmentSource);
-        ~Shader();
+        virtual ~Shader() =default;
 
-        void Bind() const;
-        void Unbind() const;
+        virtual void Bind() const=0;
+        virtual void Unbind() const=0;
 
-        void UploadUniformFloat4(const std::string& name,const glm::vec4& values);
-        void UploadUniformMat4(const std::string& name,const glm::mat4& matrix);
+        virtual void SetInt(const std::string &name, int value) = 0;
+        virtual void SetIntArray(const std::string &name, int* values,uint32_t count) = 0;
+        virtual void SetFloat(const std::string &name, float value) = 0;
+        virtual void SetFloat2(const std::string &name, const glm::vec2& value) = 0;
+        virtual void SetFloat3(const std::string &name, const glm::vec3& value) = 0;
+        virtual void SetFloat4(const std::string &name, const glm::vec4& value) = 0;
+        virtual void SetMat4(const std::string &name, const glm::mat4 &value) = 0;
 
-    private:
-        uint32_t m_RendererID;
+        virtual const std::string &GetName() const = 0;
+
+        static Ref<Shader> Create(const std::string &vertexSrc, const std::string &fragmentSrc);
     };
 } // namespace Himii
