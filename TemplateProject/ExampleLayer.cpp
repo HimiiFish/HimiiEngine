@@ -71,8 +71,8 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9
     // Renderer
     m_VertexArray.reset(Himii::VertexArray::Create());
 
-    m_SquareColor1 = glm::vec4(0.2f, 0.3f, 0.8f, 1.0f);
-    m_SquareColor2 = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
+    m_SquareColor1 = glm::vec4(0.29f, 0.41f, 0.6f, 1.0f);
+    m_SquareColor2 = glm::vec4(0.6f, 0.28f, 0.29f, 1.0f);
     float vertices[] = {
             // 位置          // 颜色
             -1.0f, -0.5f, 1.0f, 0.5f, 0.0f, // 左下角红色
@@ -188,7 +188,11 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
     }
     m_Texture->Bind();
 
-    Himii::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.0f,1.6f,1.0f)));
+    Himii::Renderer::Submit(m_Shader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
+
+    Himii::Renderer::Submit(m_TextureShader, m_SquareVA,
+                            glm::translate(glm::mat4(1.0f), glm::vec3(-0.25f, 0.0f, 0.0f)) *
+                                    glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.6f, 1.0f)));
     // Himii::Renderer::Submit(m_Shader,m_VertexArray);
 
     Himii::Renderer::EndScene();

@@ -6,6 +6,11 @@ namespace Himii
 {
     Scope<Renderer::SceneData> Renderer::m_SceneData = CreateScope<Renderer::SceneData>();
 
+    void Renderer::Init()
+    {
+        RenderCommand::Init();
+    }
+
     void Renderer::BeginScene(OrthographicCamera& camera)
     {
         m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
