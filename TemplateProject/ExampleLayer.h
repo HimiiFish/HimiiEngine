@@ -15,8 +15,11 @@ public:
 
 private:
     Himii::Ref<Himii::Shader> m_Shader;
+    Himii::Ref<Himii::Shader> m_TextureShader;
     Himii::Ref<Himii::VertexArray> m_VertexArray;
     Himii::Ref<Himii::VertexArray> m_SquareVA;
+
+    Himii::Ref<Himii::Texture2D> m_Texture;
 
     Himii::OrthographicCamera m_Camera;
 

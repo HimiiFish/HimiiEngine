@@ -21,14 +21,6 @@
 #include "Himii/Renderer/GraphicsContext.h"
 #include "Himii/Renderer/RendererAPI.h"
 #include "Himii/Renderer/OrthographicCamera.h"
-
-// TODO: 在此处引用程序需要的其他标头。
-//---------平台相关-----------
-#include "Platform/Windows/WindowsWindow.h"
-#include "Platform/OpenGL/OpenGLBuffer.h"
-#include "Platform/OpenGL/OpenGLContext.h"
-#include "Platform/OpenGL/OpenGLVertexArray.h"
-#include "Platform/OpenGL/OpenGLRendererAPI.h"
-#include "Platform/OpenGl/OpenGLShader.h"
+#include "Himii/Renderer/Texture.h"
 
 //---------其他-----------

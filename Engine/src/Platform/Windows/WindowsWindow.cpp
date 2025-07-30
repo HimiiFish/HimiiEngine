@@ -13,7 +13,7 @@ namespace Himii
 
     static void GLFWErrorCallback(int error, const char *description)
     {
-        HIMII_CORE_ERROR_F("GLFW Error ({0}): {1}", error, description);
+        HIMII_CORE_ERROR("GLFW Error ({0}): {1}", error, description);
     }
 
     WindowsWindow::WindowsWindow(const WindowProps &props)
@@ -33,7 +33,7 @@ namespace Himii
         m_Data.Width = props.Width;
         m_Data.Height = props.Height;
 
-        HIMII_CORE_INFO_F("Creating window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
+        HIMII_CORE_INFO("Creating window {0} ({1}, {2})", m_Data.Title, m_Data.Width, m_Data.Height);
 
         if (s_GLFWWindwCount==0)
         {

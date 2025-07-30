@@ -1,32 +1,32 @@
-﻿#include "Engine.h"
+﻿#include "ExampleLayer.h"
+#include "Engine.h"
 #include "imgui.h"
-#include "ExampleLayer.h"
 
 
-#include "glm/gtc/matrix_transform.hpp"
 #include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/matrix_transform.hpp"
 
 // 顶点着色器源码
 const char *vertexShaderSource = R"(#version 410 core
-layout(location = 0) in vec2 aPos;
-layout(location = 1) in vec3 aColor;
+layout(location = 0) in vec3 a_Position;
 
 uniform mat4 u_ViewProjection; // 视图投影矩阵
 uniform mat4 u_Transform; // 变换矩阵
 
-out vec3 vertexColor;
+out vec3 v_Position;
 
 void main()
 {
-    gl_Position = u_ViewProjection*u_Transform* vec4(aPos, 0.0, 1.0);
-    vertexColor = aColor;
+    v_Position=a_Position;
+    gl_Position = u_ViewProjection*u_Transform* vec4(a_Position, 1.0);
 }
 )";
 
 // 片段着色器源码
 const char *fragmentShaderSource = R"(#version 410 core
-in vec3 vertexColor;
-out vec4 FragColor;
+
+layout(location=0) out vec4 FragColor;
+in vec3 v_Position;
 
 uniform vec4 u_Color; // 颜色
 
@@ -35,13 +35,42 @@ void main()
     FragColor = u_Color;
 }
 )";
+//------------------------------------------------------//
+std::string textureShaderVertexSrc = R"(#version 410 core
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TexCoord;
 
-ExampleLayer::ExampleLayer() :
-    Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) // 设置正交相机的视口
+uniform mat4 u_ViewProjection; // 视图投影矩阵
+uniform mat4 u_Transform; // 变换矩阵
+
+out vec2 v_TexCoord;
+
+void main()
+{
+    v_TexCoord=a_TexCoord;
+    gl_Position = u_ViewProjection*u_Transform* vec4(a_Position, 1.0);
+}
+)";
+
+// 片段着色器源码
+std::string textureShaderFragmentSrc = R"(#version 410 core
+
+layout(location=0) out vec4 FragColor;
+in vec2 v_TexCoord;
+
+uniform sampler2D u_Texture; // 颜色
+
+void main()
+{
+    FragColor = texture(u_Texture,v_TexCoord);
+}
+)";
+
+ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) // 设置正交相机的视口
 {
     // Renderer
     m_VertexArray.reset(Himii::VertexArray::Create());
-   
+
     m_SquareColor1 = glm::vec4(0.2f, 0.3f, 0.8f, 1.0f);
     m_SquareColor2 = glm::vec4(0.8f, 0.3f, 0.2f, 1.0f);
     float vertices[] = {
@@ -53,7 +82,8 @@ ExampleLayer::ExampleLayer() :
     std::shared_ptr<Himii::VertexBuffer> m_VertexBuffer;
     m_VertexBuffer.reset(Himii::VertexBuffer::Create(vertices, sizeof(vertices)));
 
-    Himii::BufferLayout layout = {{Himii::ShaderDataType::Float2, "aPos"}, {Himii::ShaderDataType::Float3, "aColor"}};
+    Himii::BufferLayout layout = {{Himii::ShaderDataType::Float3, "a_Position"},
+                                  {Himii::ShaderDataType::Float2, "a_TexCoord"}};
     m_VertexBuffer->SetLayout(layout);
     m_VertexArray->AddVertexBuffer(m_VertexBuffer);
 
@@ -66,17 +96,19 @@ ExampleLayer::ExampleLayer() :
 
     float squareVertices[] = {
             // 位置          // 颜色
-            0.0f, -0.5f, 1.0f,  0.75f, 0.5f,  // 左下角红色
-            1.0f, -0.5f, 0.75f, 0.5f,  0.25f, // 右下角绿色
-            1.0f, 0.5f,  0.5f,  0.25f, 1.0f,  // 右上角蓝色
-            0.0f, 0.5f,  0.25f, 0.75f, 0.5f   // 左上角白色
+            0.0f, -0.5f, 0.0f, 0.0f, 0.0f, // 左下角红色
+            1.0f, -0.5f, 0.0f, 1.0f, 0.0f, // 右下角绿色
+            1.0f, 0.5f,  0.0f, 1.0f, 1.0f, // 右上角蓝色
+            0.0f, 0.5f,  0.0f, 0.0f, 1.0f  // 左上角白色
     };
     // 创建顶点缓冲区
     std::shared_ptr<Himii::VertexBuffer> squareVB;
     squareVB.reset(Himii::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 
-    Himii::BufferLayout squareLayout = {{Himii::ShaderDataType::Float2, "aPos"},
-                                        {Himii::ShaderDataType::Float3, "aColor"}};
+    Himii::BufferLayout squareLayout = {
+            {Himii::ShaderDataType::Float3, "a_Position"},
+            {Himii::ShaderDataType::Float2, "a_TexCoord"}
+    };
     squareVB->SetLayout(squareLayout);
     m_SquareVA->AddVertexBuffer(squareVB);
     // 设置索引缓冲区
@@ -88,7 +120,13 @@ ExampleLayer::ExampleLayer() :
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
     // glBindVertexArray(0);
     //  创建着色器程序
-    m_Shader=Himii::Shader::Create(vertexShaderSource, fragmentShaderSource);
+    m_Shader = Himii::Shader::Create(vertexShaderSource, fragmentShaderSource);
+    m_TextureShader = Himii::Shader::Create(textureShaderVertexSrc, textureShaderFragmentSrc);
+
+    m_Texture=Himii::Texture2D::Create("assets/textures/blocks.png");
+
+    m_TextureShader->Bind();
+    m_TextureShader->SetInt("u_Texture", 0);
 }
 
 void ExampleLayer::OnAttach()
@@ -111,11 +149,11 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
 
     if (Himii::Input::IsKeyPressed(Himii::Key::A))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-1.0f*ts, 0.0f, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-1.0f * ts, 0.0f, 0.0f));
     }
     else if (Himii::Input::IsKeyPressed(Himii::Key::D))
     {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(1.0f*ts, 0.0f, 0.0f));
+        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(1.0f * ts, 0.0f, 0.0f));
     }
     if (Himii::Input::IsKeyPressed(Himii::Key::W))
     {
@@ -135,8 +173,8 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
         for (int y = 0; y < 10; y++)
         {
             glm::vec3 pos(x * 0.11f, y * 0.11f, 0.0f);
-            glm::mat4 transform = glm::translate(glm::mat4(1.0f),pos)*scale;
-            if ((x +y)% 2 == 0)
+            glm::mat4 transform = glm::translate(glm::mat4(1.0f), pos) * scale;
+            if ((x + y) % 2 == 0)
             {
                 m_Shader->SetFloat4("u_Color", m_SquareColor1);
             }
@@ -148,7 +186,10 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
             Himii::Renderer::Submit(m_Shader, m_SquareVA, transform);
         }
     }
-    Himii::Renderer::Submit(m_Shader,m_VertexArray);
+    m_Texture->Bind();
+
+    Himii::Renderer::Submit(m_TextureShader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.0f,1.6f,1.0f)));
+    // Himii::Renderer::Submit(m_Shader,m_VertexArray);
 
     Himii::Renderer::EndScene();
 }
@@ -177,8 +218,8 @@ void ExampleLayer::OnEvent(Himii::Event &event)
         Himii::KeyPressedEvent &keyEvent = static_cast<Himii::KeyPressedEvent &>(event);
         if (keyEvent.GetKeyCode() == Himii::Key::Tab)
         {
-            HIMII_INFO_F("Tab key pressed");
+            HIMII_INFO("Tab key pressed");
         }
-        HIMII_INFO_F("Key Pressed: {0}", (char)keyEvent.GetKeyCode());
+        HIMII_INFO("Key Pressed: {0}", (char)keyEvent.GetKeyCode());
     }
 }

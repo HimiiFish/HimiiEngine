@@ -57,26 +57,19 @@ namespace Himii
 } // namespace Himii
 
 // Core
-#define HIMII_CORE_INFO(msg) ::Himii::Log::Print(::Himii::LogLevel::Core_Info, msg, __FILE__, __FUNCTION__, __LINE__)
-#define HIMII_CORE_INFO_F(fmt, ...)                                                                                      \
+#define HIMII_CORE_INFO(fmt, ...)                                                                                      \
     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Info, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#define HIMII_CORE_WARNING(msg)                                                                                          \
-    ::Himii::Log::Print(::Himii::LogLevel::Core_Warning, msg, __FILE__, __FUNCTION__, __LINE__)
-#define HIMII_CORE_WARNING_F(fmt, ...)                                                                                   \
+#define HIMII_CORE_WARNING(fmt, ...)                                                                                   \
     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Warning, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#define HIMII_CORE_ERROR(msg) ::Himii::Log::Print(::Himii::LogLevel::Core_Error, msg, __FILE__, __FUNCTION__, __LINE__)
-#define HIMII_CORE_ERROR_F(fmt, ...)                                                                                     \
+#define HIMII_CORE_ERROR(fmt, ...)                                                                                     \
     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Error, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 
 // Client
-#define HIMII_INFO(msg) Himii::Log::Print(::Himii::LogLevel::Info, msg, __FILE__, __FUNCTION__, __LINE__)
-#define HIMII_INFO_F(fmt, ...)                                                                                           \
+#define HIMII_INFO(fmt, ...)                                                                                           \
     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Info, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#define HIMII_WARNING(msg) ::Himii::Log::Print(::Himii::LogLevel::Warning, msg, __FILE__, __FUNCTION__, __LINE__)
-#define HIMII_WARNING_F(fmt, ...)                                                                                        \
+#define HIMII_WARNING(fmt, ...)                                                                                        \
     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Warning, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
-#define HIMII_ERROR(msg) ::Himii::Log::Print(::Himii::LogLevel::Error, msg, __FILE__, __FUNCTION__, __LINE__)
-#define HIMII_ERROR_F(fmt, ...)                                                                                          \
+#define HIMII_ERROR(fmt, ...)                                                                                          \
     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Error, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 
 #ifdef HIMII_DEBUG
@@ -123,10 +116,8 @@ namespace Himii
     }                                                                                                                  \
     while (0)
 #else
-#define HIMII_ASSERT(condition, msg) ((void)0)
-#define HIMII_ASSERT_F(condition, fmt, ...) ((void)0)
-#define HIMII_CORE_ASSERT(condition, msg) ((void)0)
-#define HIMII_CORE_ASSERT_F(condition, fmt, ...) ((void)0)
+#define HIMII_ASSERT(condition, fmt, ...) ((void)0)
+#define HIMII_CORE_ASSERT(condition, fmt, ...) ((void)0)
 #endif
 
 #define HIMII_VERIFY(condition, msg)                                                                                   \

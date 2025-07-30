@@ -1,10 +1,11 @@
-#include "Himii/Renderer/VertexArray.h"
+#include "Hepch.h"
+#include "Himii/Renderer/Texture.h"
 #include "Himii/Renderer/Renderer.h"
-#include "Platform/OpenGL/OpenGLVertexArray.h"
+#include "Platform/OpenGL/OpenGLTexture.h"
 
 namespace Himii
 {
-    VertexArray* VertexArray::Create()
+    Ref<Texture2D> Texture2D::Create(const std::string& path)
     {
         switch (Renderer::GetAPI())
         {
@@ -12,7 +13,7 @@ namespace Himii
                 HIMII_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
                 return nullptr;
             case RendererAPI::API::OpenGL:
-                return new OpenGLVertexArray();
+                return CreateRef<OpenGLTexture>(path);
             case RendererAPI::API::Vulkan:
                 HIMII_CORE_ASSERT(false, "RendererAPI::Vulkan is currently not supported!");
                 return nullptr;
