@@ -1,6 +1,5 @@
 ﻿#include "Hepch.h"
 #include "Himii/Core/Application.h"
-#include "Log.h"
 #include "Himii/Renderer/Renderer.h"
 #include <GLFW/glfw3.h>
 

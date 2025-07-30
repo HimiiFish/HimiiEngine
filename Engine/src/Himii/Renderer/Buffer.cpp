@@ -1,7 +1,6 @@
 #include "Hepch.h"
 #include "Buffer.h"
 #include "Renderer.h"
-#include "Himii/Core/Log.h"
 #include "Platform/OpenGL/OpenGLBuffer.h"
 
 namespace Himii

@@ -5,9 +5,6 @@
 #include "Himii/Events/KeyEvent.h"
 #include "Himii/Events/MouseEvent.h"
 #include <sstream>
-#include "Log.h"
-#include "Himii/Core/Core.h"
-#include "Himii/Events/Event.h"
 
 namespace Himii
 {

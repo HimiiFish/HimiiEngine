@@ -1,7 +1,6 @@
 ﻿#include "ImGuiLayer.h"
 #include "GLFW/glfw3.h"
 #include "Himii/Core/Application.h"
-#include "Himii/Core/Core.h"
 #include "imgui_internal.h"
 
 #include "imgui.h"
