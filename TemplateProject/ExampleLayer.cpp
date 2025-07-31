@@ -90,8 +90,8 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9
     // glBindBuffer(GL_ARRAY_BUFFER, 0);
     // glBindVertexArray(0);
     //  创建着色器程序
-    m_Shader = Himii::Shader::Create(vertexShaderSource, fragmentShaderSource);
-    m_TextureShader = Himii::Shader::Create("assets/shaders/Texture.glsl");
+    m_Shader = Himii::Shader::Create("squareShader", vertexShaderSource, fragmentShaderSource);
+    auto m_TextureShader = m_ShaderLibrary.Load("assets/shaders/Texture.glsl");
 
     m_Texture=Himii::Texture2D::Create("assets/textures/blocks.png");
 
@@ -160,7 +160,7 @@ void ExampleLayer::OnUpdate(Himii::Timestep ts)
 
     Himii::Renderer::Submit(m_Shader, m_SquareVA, glm::scale(glm::mat4(1.0f), glm::vec3(1.5f)));
 
-    Himii::Renderer::Submit(m_TextureShader, m_SquareVA,
+    Himii::Renderer::Submit(m_ShaderLibrary.Get("Texture"), m_SquareVA,
                             glm::translate(glm::mat4(1.0f), glm::vec3(-0.25f, 0.0f, 0.0f)) *
                                     glm::scale(glm::mat4(1.0f), glm::vec3(1.0f, 1.6f, 1.0f)));
     // Himii::Renderer::Submit(m_Shader,m_VertexArray);

@@ -2,15 +2,15 @@
 #include "glm/glm.hpp"
 #include "string"
 #include "Himii/Renderer/Shader.h"
+#include "glad/glad.h"
 
-typedef unsigned int GLenum;
 namespace Himii
 {
     class OpenGLShader :public Shader
     {
     public:
         OpenGLShader(const std::string &filepath);
-        OpenGLShader(const std::string &vertexSource, const std::string &fragmentSource);
+        OpenGLShader(const std::string& name, const std::string &vertexSource, const std::string &fragmentSource);
         virtual ~OpenGLShader();
 
         virtual void Bind() const override;

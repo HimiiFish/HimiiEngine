@@ -14,8 +14,8 @@ public:
     virtual void OnEvent(Himii::Event &event) override;
 
 private:
+    Himii::ShaderLibrary m_ShaderLibrary;
     Himii::Ref<Himii::Shader> m_Shader;
-    Himii::Ref<Himii::Shader> m_TextureShader;
     Himii::Ref<Himii::VertexArray> m_VertexArray;
     Himii::Ref<Himii::VertexArray> m_SquareVA;
 

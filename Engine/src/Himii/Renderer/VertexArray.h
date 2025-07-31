@@ -1,6 +1,4 @@
 #pragma once
-#include "Himii/Core/Log.h"
-#include "Himii/Core/Core.h"
 #include "Himii/Renderer/Buffer.h"
 
 namespace Himii

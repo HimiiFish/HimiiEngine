@@ -1,3 +1,4 @@
+#include "Hepch.h"
 #include "Himii/Renderer/VertexArray.h"
 #include "Himii/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLVertexArray.h"

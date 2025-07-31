@@ -1,5 +1,5 @@
-#include "Platform/OpenGL/OpenGLVertexArray.h"
 #include "Hepch.h"
+#include "Platform/OpenGL/OpenGLVertexArray.h"
 #include "glad/glad.h"
 
 namespace Himii

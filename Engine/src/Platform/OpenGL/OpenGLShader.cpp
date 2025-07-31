@@ -1,15 +1,15 @@
 #include "Hepch.h"
 #include "Platform/OpenGL/OpenGLShader.h"
-#include "glad/glad.h"
-#include "glm/gtc/type_ptr.hpp"
 #include "fstream"
+#include "glm/gtc/type_ptr.hpp"
 
 namespace Himii
 {
-    static GLenum ShaderTypeFromString(const std::string& type)
+    static GLenum ShaderTypeFromString(const std::string &type)
     {
-        if (type == " vertex")return GL_VERTEX_SHADER;
-        if (type == " fragment" || type == "pixel")
+        if (type == "vertex")
+            return GL_VERTEX_SHADER;
+        if (type == "fragment" || type == "pixel")
             return GL_FRAGMENT_SHADER;
 
         HIMII_CORE_ASSERT(false, "Unknown shader type!");
@@ -21,10 +21,21 @@ namespace Himii
         std::string shaderSource = ReadFile(filepath);
         auto shaderSources = PreProcess(shaderSource);
         Compile(shaderSources);
+
+        // Extract Name from filepath
+        auto lastSlash = filepath.find_last_of("/\\");
+        lastSlash = lastSlash == std::string::npos ? 0 : lastSlash + 1;
+        auto lastDot = filepath.rfind('.');
+        auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
+        m_Name = filepath.substr(lastSlash, count);
     }
-    OpenGLShader::OpenGLShader(const std::string &vertexSource, const std::string &fragmentSource)
+    OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource,
+                               const std::string &fragmentSource) : m_Name(name)
     {
-       
+        std::unordered_map<GLenum, std::string> sources;
+        sources[GL_VERTEX_SHADER] = vertexSource;
+        sources[GL_FRAGMENT_SHADER] = fragmentSource;
+        Compile(sources);
     }
 
     OpenGLShader::~OpenGLShader()
@@ -35,11 +46,12 @@ namespace Himii
     std::string OpenGLShader::ReadFile(const std::string &filepath)
     {
         std::string result;
-        std::ifstream in(filepath, std::ios::in, std::ios::binary);
+        std::ifstream in(filepath, std::ios::in|std::ios::binary);
         if (in)
         {
             in.seekg(0, std::ios::end);
             result.resize(in.tellg());
+            in.seekg(0, std::ios::beg);
             in.read(&result[0], result.size());
             in.close();
         }
@@ -70,9 +82,8 @@ namespace Himii
             HIMII_CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
             pos = source.find(typeToken, nextLinePos); // Start of next shader type declaration line
 
-            shaderSources[ShaderTypeFromString(type)] = (pos == std::string::npos)
-                                                                       ? source.substr(nextLinePos)
-                                                                       : source.substr(nextLinePos, pos - nextLinePos);
+            shaderSources[ShaderTypeFromString(type)] =
+                    source.substr(nextLinePos, pos - (nextLinePos == std::string::npos?source.size()-1:nextLinePos));
         }
 
         return shaderSources;
@@ -81,9 +92,11 @@ namespace Himii
     void OpenGLShader::Compile(std::unordered_map<GLenum, std::string> &shaderSources)
     {
         GLint program = glCreateProgram();
-        std::vector<GLenum> glShaderIDs(shaderSources.size());
+        HIMII_CORE_ASSERT(shaderSources.size() <= 2, "We only support 2 shaders for now");
+        std::array<GLenum, 2> glShaderIDs;
+        int glShaderIDIndex = 0;
 
-        for (auto& kv : shaderSources)
+        for (auto &kv: shaderSources)
         {
             GLenum type = kv.first;
             std::string &source = kv.second;
@@ -91,16 +104,16 @@ namespace Himii
             GLuint shader = glCreateShader(type);
             // 设置着色器源码
             const GLchar *SourceCStr = source.c_str();
-            glShaderSource(shader, 1, &SourceCStr, nullptr);
+            glShaderSource(shader, 1, &SourceCStr, 0);
             // 编译着色器
             glCompileShader(shader);
             // 检查编译错误
-            int success;
+            int success=0;
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (!success)
+            if (success==GL_FALSE)
             {
                 GLint maxLength = 0;
-                glGetShaderiv(shader,GL_INFO_LOG_LENGTH,&maxLength);
+                glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
 
                 std::vector<GLchar> infoLog(maxLength);
                 glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
@@ -109,18 +122,39 @@ namespace Himii
 
                 HIMII_CORE_ERROR("{0}", infoLog.data());
                 HIMII_CORE_ASSERT(false, "Shader compilation failure!");
-                return;
+                break;
             }
             glAttachShader(program, shader);
-            glShaderIDs.push_back(shader);
+            glShaderIDs[glShaderIDIndex++]=shader;
         }
 
         m_RendererID = program;
-        // 创建程序并链接着色器
-        glLinkProgram(m_RendererID);
-        //// 删除着色器对象，因为它们已经被链接到程序中
-        //glDeleteShader(vertexShader);
-        //glDeleteShader(fragmentShader);
+        glLinkProgram(program);
+
+        GLint isLinked = 0;
+        glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
+        if (isLinked == GL_FALSE)
+        {
+            GLint maxLength = 0;
+            glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
+
+            std::vector<GLchar> infoLog(maxLength);
+            glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+
+            glDeleteProgram(program);
+            for (auto id: glShaderIDs)
+            {
+                glDeleteShader(id);
+            }
+            HIMII_CORE_ERROR("{0}", infoLog.data());
+            HIMII_CORE_ASSERT(false, "Shader link failure!");
+            return;
+        }
+
+        for (auto id: glShaderIDs)
+        {
+            glDetachShader(program, id);
+        }
     }
 
     void OpenGLShader::Bind() const
@@ -216,6 +250,5 @@ namespace Himii
         glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
     }
 
-    
 
 } // namespace Himii
