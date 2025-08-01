@@ -21,6 +21,7 @@
 #include "Himii/Renderer/GraphicsContext.h"
 #include "Himii/Renderer/RendererAPI.h"
 #include "Himii/Renderer/OrthographicCamera.h"
+#include "Himii/Renderer/OrthographicCameraController.h"
 #include "Himii/Renderer/Texture.h"
 
 //---------其他-----------

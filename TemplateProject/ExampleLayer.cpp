@@ -36,7 +36,7 @@ void main()
 }
 )";
 
-ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) // 设置正交相机的视口
+ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f/720.0f) // 设置正交相机的视口
 {
     // Renderer
     m_VertexArray.reset(Himii::VertexArray::Create());
@@ -109,32 +109,12 @@ void ExampleLayer::OnDetach()
 
 void ExampleLayer::OnUpdate(Himii::Timestep ts)
 {
-    if (Himii::Input::IsKeyPressed(Himii::Key::Space))
-    {
-        HIMII_INFO("Space key is pressed!");
-    }
+    m_CameraController.OnUpdate(ts);
 
     Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
     Himii::RenderCommand::Clear();
 
-    if (Himii::Input::IsKeyPressed(Himii::Key::A))
-    {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(-1.0f * ts, 0.0f, 0.0f));
-    }
-    else if (Himii::Input::IsKeyPressed(Himii::Key::D))
-    {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(1.0f * ts, 0.0f, 0.0f));
-    }
-    if (Himii::Input::IsKeyPressed(Himii::Key::W))
-    {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, 1.0f * ts, 0.0f));
-    }
-    else if (Himii::Input::IsKeyPressed(Himii::Key::S))
-    {
-        m_Camera.SetPosition(m_Camera.GetPosition() + glm::vec3(0.0f, -1.0f * ts, 0.0f));
-    }
-
-    Himii::Renderer::BeginScene(m_Camera);
+    Himii::Renderer::BeginScene(m_CameraController.GetCamera());
 
     static glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::vec3(0.1f));
 
@@ -186,14 +166,5 @@ void ExampleLayer::OnImGuiRender()
 
 void ExampleLayer::OnEvent(Himii::Event &event)
 {
-    // 事件处理代码
-    if (event.GetEventType() == Himii::EventType::KeyPressed)
-    {
-        Himii::KeyPressedEvent &keyEvent = static_cast<Himii::KeyPressedEvent &>(event);
-        if (keyEvent.GetKeyCode() == Himii::Key::Tab)
-        {
-            HIMII_INFO("Tab key pressed");
-        }
-        HIMII_INFO("Key Pressed: {0}", (char)keyEvent.GetKeyCode());
-    }
+    m_CameraController.OnEvent(event);
 }

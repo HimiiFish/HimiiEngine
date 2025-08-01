@@ -21,7 +21,7 @@ private:
 
     Himii::Ref<Himii::Texture2D> m_Texture;
 
-    Himii::OrthographicCamera m_Camera;
+    Himii::OrthographicCameraController m_CameraController;
 
     glm::vec4 m_SquareColor1;
     glm::vec4 m_SquareColor2;
