@@ -8,10 +8,6 @@ if (POLICY CMP0141)
 endif()
 
 # 查找依赖
-find_package(SDL3 REQUIRED CONFIG)
-if(NOT SDL3_FOUND)
-    message(FATAL_ERROR "SDL3 not found. Please ensure it is installed via vcpkg.")
-endif()
 find_package(glad CONFIG REQUIRED)
 if(NOT glad_FOUND)
     message(FATAL_ERROR "glad not found. Please ensure it is installed via vcpkg.")
@@ -78,4 +74,4 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
-target_link_libraries(Engine PUBLIC SDL3::SDL3 OpenGL::GL glad::glad spdlog::spdlog glfw)
+target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw)
