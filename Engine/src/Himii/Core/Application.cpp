@@ -44,7 +44,7 @@ namespace Himii
     {
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
-        //dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
         for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend();++it)
         {
@@ -60,7 +60,7 @@ namespace Himii
         return true;
     }
 
-    /*bool Application::OnWindowResize(WindowResizeEvent& e)
+    bool Application::OnWindowResize(WindowResizeEvent& e)
     {
         if (e.GetWidth() == 0 || e.GetHeight() == 0)
         {
@@ -72,7 +72,7 @@ namespace Himii
         Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
 
         return false;
-    }*/
+    }
 
     void Application::Run()
     {
@@ -82,17 +82,20 @@ namespace Himii
             Timestep timestep = time - m_LastFrameTime;
             m_LastFrameTime = time;
 
-            //Layer Update
-            for (Layer *layer: m_LayerStack)
+            if (!m_Minimized)
             {
-                layer->OnUpdate(timestep);
+                // Layer Update
+                for (Layer *layer: m_LayerStack)
+                {
+                    layer->OnUpdate(timestep);
+                }
+                m_ImGuiLayer->Begin();
+                for (Layer *layer: m_LayerStack)
+                {
+                    layer->OnImGuiRender();
+                }
+                m_ImGuiLayer->End();
             }
-            m_ImGuiLayer->Begin();
-            for (Layer *layer: m_LayerStack)
-            {
-                layer->OnImGuiRender();
-            }
-            m_ImGuiLayer->End();
 
             //Window Update
             m_Window->Update();
