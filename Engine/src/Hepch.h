@@ -13,3 +13,6 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+
+#include "Himii/Core/Core.h"
+#include "Himii/Core/Log.h"

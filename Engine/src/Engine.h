@@ -14,6 +14,7 @@
 
 //---------Renderer相关-----------
 #include "Himii/Renderer/Renderer.h"
+#include "Himii/Renderer/Renderer2D.h"
 #include "Himii/Renderer/RenderCommand.h"
 #include "Himii/Renderer/Buffer.h"
 #include "Himii/Renderer/VertexArray.h"
