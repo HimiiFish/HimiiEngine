@@ -5,7 +5,7 @@
 
 namespace Himii
 {
-    VertexArray* VertexArray::Create()
+    Ref<VertexArray> VertexArray::Create()
     {
         switch (Renderer::GetAPI())
         {
@@ -13,7 +13,7 @@ namespace Himii
                 HIMII_CORE_ASSERT(false, "RendererAPI::None is currently not supported!");
                 return nullptr;
             case RendererAPI::API::OpenGL:
-                return new OpenGLVertexArray();
+                return CreateRef<OpenGLVertexArray>();
             case RendererAPI::API::Vulkan:
                 HIMII_CORE_ASSERT(false, "RendererAPI::Vulkan is currently not supported!");
                 return nullptr;

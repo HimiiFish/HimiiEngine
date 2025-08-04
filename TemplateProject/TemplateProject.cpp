@@ -1,6 +1,7 @@
 ﻿#include "Engine.h"
 #include "Himii/Core/EntryPoint.h"
 #include "ExampleLayer.h"
+#include "Example2D.h"
 #include <iostream>
 
 
@@ -9,7 +10,8 @@ public:
     TemplateProject()
     {
         // 初始化代码
-        PushLayer(new ExampleLayer());
+        //PushLayer(new ExampleLayer());
+        PushLayer(new Example2D);
     }
 
     virtual ~TemplateProject()

@@ -1,4 +1,5 @@
 ﻿#include "Hepch.h"
+#include "Himii/Core/Log.h"
 #include "WindowsWindow.h"
 #include "Himii/Core/Input.h"
 #include "Platform/OpenGL/OpenGLContext.h"

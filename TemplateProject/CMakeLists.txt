@@ -1,6 +1,16 @@
 project(TemplateProject)
 
-add_executable(TemplateProject TemplateProject.cpp "ExampleLayer.cpp" "ExampleLayer.h")
+file(GLOB_RECURSE SOURCES "./*.cpp")
+
+# 头文件为src目录下的所有.h文件
+file(GLOB_RECURSE HEADERS "./*.h")
+
+set(ALL_SOURCES
+    ${SOURCES}
+    ${HEADERS}
+)
+
+add_executable(TemplateProject ${ALL_SOURCES})
 
 # Link against the Engine library
 target_link_libraries(TemplateProject PRIVATE Engine)

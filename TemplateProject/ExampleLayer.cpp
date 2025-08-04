@@ -39,7 +39,7 @@ void main()
 ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f/720.0f) // 设置正交相机的视口
 {
     // Renderer
-    m_VertexArray.reset(Himii::VertexArray::Create());
+    m_VertexArray=(Himii::VertexArray::Create());
 
     m_SquareColor1 = glm::vec4(0.29f, 0.41f, 0.6f, 1.0f);
     m_SquareColor2 = glm::vec4(0.6f, 0.28f, 0.29f, 1.0f);
@@ -62,7 +62,7 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f
     m_IndexBuffer.reset(Himii::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
     m_VertexArray->SetIndexBuffer(m_IndexBuffer);
 
-    m_SquareVA.reset(Himii::VertexArray::Create());
+    m_SquareVA=(Himii::VertexArray::Create());
 
     float squareVertices[] = {
             // 位置          // 颜色

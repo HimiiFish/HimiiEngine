@@ -1,4 +1,5 @@
 #include "Hepch.h"
+#include "Himii/Core/Log.h"
 #include "Platform/OpenGL/OpenGLTexture.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"

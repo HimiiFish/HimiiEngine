@@ -1,4 +1,5 @@
 #include "Hepch.h"
+#include "Himii/Core/Log.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 #include "fstream"
 #include "glm/gtc/type_ptr.hpp"
