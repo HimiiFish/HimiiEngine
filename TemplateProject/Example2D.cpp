@@ -14,6 +14,9 @@ void Example2D::OnAttach()
     HIMII_PROFILE_FUNCTION();
 
     m_BlockTexture = Himii::Texture2D::Create("assets/textures/grass.png");
+    m_Terrain = Himii::CreateRef<Terrain>();
+
+    m_Terrain->GenerateTerrain();
 }
 void Example2D::OnDetach()
 {
@@ -39,13 +42,20 @@ void Example2D::OnUpdate(Himii::Timestep ts)
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-        Himii::Renderer2D::DrawQuad({0.0, 0.0f}, {0.2f, 0.2f}, {0.15f, 0.78f, 0.45f, 1.0f});
-        for (int i = 0; i < 5; i++)
+       for (int y = 0; y < m_Terrain->getHeight(); ++y)
         {
-            Himii::Renderer2D::DrawQuad({0.6 * i, 0.5f}, {0.6f, 0.6f}, m_BlockTexture);
+            for (int x = 0; x < m_Terrain->GetWidth(); ++x)
+            {
+                BlockType block = m_Terrain->GetBlocks()[y][x];
+                glm::vec4 color=blockColors[block];
+                if (block != AIR)
+                {
+                    Himii::Renderer2D::DrawQuad({y, x}, {0.2, 0.2}, {1,1,1,1});
+                    HIMII_CORE_INFO("color:{0},{1},{2}",color.r,color.b,color.g);
+                }
+            }
         }
-        Himii::Renderer2D::DrawQuad({0.0f, 0.0f, -0.1f}, {10.0f, 10.0f}, {0.65f, 0.42f, 0.25f, 1.0f});
-
+        Himii::Renderer2D::DrawQuad({0,0}, {0.2, 0.2}, glm::vec4{0.25,0.13,0.26,1.0});
         Himii::Renderer2D::EndScene();
     }
 }

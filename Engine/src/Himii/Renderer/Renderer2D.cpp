@@ -127,11 +127,11 @@ namespace Himii
         s_Data->QuadVertexArray->Bind();
         RenderCommand::DrawIndexed(s_Data->QuadVertexArray);
     }
-    void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor = 1.0f,const glm::vec4& tintColor)
+    void Renderer2D::DrawRotatedQuad(const glm::vec2& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor ,const glm::vec4& tintColor)
     {
         DrawRotatedQuad({position.x, position.y, 0.0f}, size, rotation,texture,tilingFactor,tintColor);
     }
-    void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor = 1.0f,const glm::vec4& tintColor)
+    void Renderer2D::DrawRotatedQuad(const glm::vec3& position, const glm::vec2& size, float rotation, const Ref<Texture2D>& texture, float tilingFactor ,const glm::vec4& tintColor)
     {
 
         HIMII_PROFILE_FUNCTION();
