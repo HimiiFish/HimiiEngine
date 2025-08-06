@@ -19,16 +19,22 @@ namespace Himii
 
     WindowsWindow::WindowsWindow(const WindowProps &props)
     {
+        HIMII_PROFILE_FUNCTION();
+
         Init(props);
     }
 
     WindowsWindow::~WindowsWindow()
     {
+        HIMII_PROFILE_FUNCTION();
+
         Shutdown();
     }
 
     void WindowsWindow::Init(const WindowProps &props)
     {
+        HIMII_PROFILE_FUNCTION();
+
         // 设置标题
         m_Data.Title = props.Title;
         m_Data.Width = props.Width;
@@ -38,12 +44,13 @@ namespace Himii
 
         if (s_GLFWWindwCount==0)
         {
-            HIMII_CORE_INFO("glfwInit");
+            HIMII_PROFILE_SCOPE("glfwInit");
             int sucess = glfwInit();
             HIMII_CORE_ASSERT(sucess, "Failed to initialize GLFW");
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
+        HIMII_PROFILE_SCOPE("glfwCreateWindow");
         m_Window = glfwCreateWindow((int)props.Width, props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         ++s_GLFWWindwCount;
 
@@ -156,6 +163,8 @@ namespace Himii
 
     void WindowsWindow::Shutdown()
     {
+        HIMII_PROFILE_FUNCTION();
+
         glfwDestroyWindow(m_Window);
         --s_GLFWWindwCount;
 
@@ -167,11 +176,15 @@ namespace Himii
 
     void WindowsWindow::Update()
     {
+        HIMII_PROFILE_FUNCTION();
+
         m_Context->SwapBuffers();
         glfwPollEvents();
     }
     void WindowsWindow::SetVSync(bool enabled)
     {
+        HIMII_PROFILE_FUNCTION();
+
         if (enabled)
         {
             glfwSwapInterval(1); // 开启VSync

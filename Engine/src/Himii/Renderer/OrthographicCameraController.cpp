@@ -13,6 +13,8 @@ namespace Himii
     }
     void OrthographicCameraController::OnUpdate(Timestep ts)
     {
+        HIMII_PROFILE_FUNCTION();
+
         if (Input::IsKeyPressed(Key::A))
         {
             m_CameraPosition.x -= cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
@@ -48,6 +50,8 @@ namespace Himii
     }
     void OrthographicCameraController::OnEvent(Event &e)
     {
+        HIMII_PROFILE_FUNCTION();
+
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseScrolled));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OrthographicCameraController::OnWindowResize));
@@ -59,6 +63,8 @@ namespace Himii
     }
     bool OrthographicCameraController::OnMouseScrolled(MouseScrolledEvent &e)
     {
+        HIMII_PROFILE_FUNCTION();
+
         m_ZoomLevel -= e.GetYOffset() * 0.25f;
         m_ZoomLevel = std::max(m_ZoomLevel, 0.25f);
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
@@ -66,6 +72,8 @@ namespace Himii
     }
     bool OrthographicCameraController::OnWindowResize(WindowResizeEvent &e)
     {
+        HIMII_PROFILE_FUNCTION();
+
         OnResize((float)e.GetWidth(), (float)e.GetHeight());
         return false;
     }

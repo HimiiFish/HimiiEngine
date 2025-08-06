@@ -9,6 +9,8 @@ namespace Himii
 
     Application::Application() 
     {
+        HIMII_PROFILE_FUNCTION();
+
         s_Instance = this;
         m_Window = Window::Create();
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -20,17 +22,22 @@ namespace Himii
 
     Application::~Application()
     {
+        HIMII_PROFILE_FUNCTION();
         s_Instance = nullptr;
     }
 
     void Application::PushLayer(Layer *layer)
     {
+        HIMII_PROFILE_FUNCTION();
+
         m_LayerStack.PushLayer(layer);
         layer->OnAttach();
     }
 
     void Application::PushOverlay(Layer *overlay)
     {
+        HIMII_PROFILE_FUNCTION();
+
         m_LayerStack.PushOverlay(overlay);
         overlay->OnAttach();
     }
@@ -42,6 +49,8 @@ namespace Himii
 
     void Application::OnEvent(Event &e)
     {
+        HIMII_PROFILE_FUNCTION();
+
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
@@ -62,6 +71,8 @@ namespace Himii
 
     bool Application::OnWindowResize(WindowResizeEvent& e)
     {
+        HIMII_PROFILE_FUNCTION();
+
         if (e.GetWidth() == 0 || e.GetHeight() == 0)
         {
             m_Minimized = true;
@@ -76,23 +87,33 @@ namespace Himii
 
     void Application::Run()
     {
+        HIMII_PROFILE_FUNCTION();
+
         while (m_Running)
         {
+            HIMII_PROFILE_SCOPE("RunLoop")
+
             float time = (float)glfwGetTime();
             Timestep timestep = time - m_LastFrameTime;
             m_LastFrameTime = time;
 
             if (!m_Minimized)
             {
-                // Layer Update
-                for (Layer *layer: m_LayerStack)
                 {
-                    layer->OnUpdate(timestep);
+                    HIMII_PROFILE_SCOPE("LayerStack OnUpdate")
+                    // Layer Update
+                    for (Layer *layer: m_LayerStack)
+                    {
+                        layer->OnUpdate(timestep);
+                    }
                 }
                 m_ImGuiLayer->Begin();
-                for (Layer *layer: m_LayerStack)
                 {
-                    layer->OnImGuiRender();
+                    HIMII_PROFILE_SCOPE("Layerstack OnImGuiRender")
+                    for (Layer *layer: m_LayerStack)
+                    {
+                        layer->OnImGuiRender();
+                    }
                 }
                 m_ImGuiLayer->End();
             }

@@ -19,6 +19,8 @@ namespace Himii
 
     OpenGLShader::OpenGLShader(const std::string &filepath)
     {
+        HIMII_PROFILE_FUNCTION();
+
         std::string shaderSource = ReadFile(filepath);
         auto shaderSources = PreProcess(shaderSource);
         Compile(shaderSources);
@@ -33,6 +35,8 @@ namespace Himii
     OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource,
                                const std::string &fragmentSource) : m_Name(name)
     {
+        HIMII_PROFILE_FUNCTION();
+
         std::unordered_map<GLenum, std::string> sources;
         sources[GL_VERTEX_SHADER] = vertexSource;
         sources[GL_FRAGMENT_SHADER] = fragmentSource;
@@ -41,11 +45,15 @@ namespace Himii
 
     OpenGLShader::~OpenGLShader()
     {
+        HIMII_PROFILE_FUNCTION();
+
         glDeleteProgram(m_RendererID);
     }
 
     std::string OpenGLShader::ReadFile(const std::string &filepath)
     {
+        HIMII_PROFILE_FUNCTION();
+
         std::string result;
         std::ifstream in(filepath, std::ios::in|std::ios::binary);
         if (in)
@@ -65,6 +73,8 @@ namespace Himii
 
     std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string &source)
     {
+        HIMII_PROFILE_FUNCTION();
+
         std::unordered_map<GLenum, std::string> shaderSources;
 
         const char *typeToken = "#type";
@@ -160,46 +170,64 @@ namespace Himii
 
     void OpenGLShader::Bind() const
     {
+        HIMII_PROFILE_FUNCTION();
+
         glUseProgram(m_RendererID);
     }
 
     void OpenGLShader::Unbind() const
     {
+        HIMII_PROFILE_FUNCTION();
+
         glUseProgram(0);
     }
 
     void OpenGLShader::SetInt(const std::string &name, int value)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformInt(name, value);
     }
 
     void OpenGLShader::SetIntArray(const std::string &name, int *values, uint32_t count)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformIntArray(name, values, count);
     }
 
     void OpenGLShader::SetFloat(const std::string &name, float value)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformFloat(name, value);
     }
 
     void OpenGLShader::SetFloat2(const std::string &name, const glm::vec2 &value)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformFloat2(name, value);
     }
 
     void OpenGLShader::SetFloat3(const std::string &name, const glm::vec3 &value)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformFloat3(name, value);
     }
 
     void OpenGLShader::SetFloat4(const std::string &name, const glm::vec4 &value)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformFloat4(name, value);
     }
 
     void OpenGLShader::SetMat4(const std::string &name, const glm::mat4 &value)
     {
+        HIMII_PROFILE_FUNCTION();
+
         UploadUniformMat4(name, value);
     }
 

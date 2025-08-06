@@ -16,3 +16,5 @@
 
 #include "Himii/Core/Core.h"
 #include "Himii/Core/Log.h"
+
+#include "Himii/Instrument/Instrumentor.h"

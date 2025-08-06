@@ -9,58 +9,14 @@
 
 namespace Himii
 {
-    static ImGuiKey ImGui_ImplGlfw_KeyToImGuiKey(int key)
-    {
-        switch (key)
-        {
-            case GLFW_KEY_TAB:
-                return ImGuiKey_Tab;
-            case GLFW_KEY_LEFT:
-                return ImGuiKey_LeftArrow;
-            case GLFW_KEY_RIGHT:
-                return ImGuiKey_RightArrow;
-            case GLFW_KEY_UP:
-                return ImGuiKey_UpArrow;
-            case GLFW_KEY_DOWN:
-                return ImGuiKey_DownArrow;
-            case GLFW_KEY_PAGE_UP:
-                return ImGuiKey_PageUp;
-            case GLFW_KEY_PAGE_DOWN:
-                return ImGuiKey_PageDown;
-            case GLFW_KEY_HOME:
-                return ImGuiKey_Home;
-            case GLFW_KEY_END:
-                return ImGuiKey_End;
-            case GLFW_KEY_INSERT:
-                return ImGuiKey_Insert;
-            case GLFW_KEY_DELETE:
-                return ImGuiKey_Delete;
-            case GLFW_KEY_BACKSPACE:
-                return ImGuiKey_Backspace;
-            case GLFW_KEY_SPACE:
-                return ImGuiKey_Space;
-            case GLFW_KEY_ENTER:
-                return ImGuiKey_Enter;
-            case GLFW_KEY_ESCAPE:
-                return ImGuiKey_Escape;
-            default:
-                if (key >= '0' && key <= '9')
-                    return (ImGuiKey)(ImGuiKey_0 + (key - '0'));
-                if (key >= 'A' && key <= 'Z')
-                    return (ImGuiKey)(ImGuiKey_A + (key - 'A'));
-                if (key >= 'a' && key <= 'z')
-                    return (ImGuiKey)(ImGuiKey_A + (key - 'a'));
-                break;
-        }
-        return ImGuiKey_None; // 未知键
-    }
-
     ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer")
     {
     }
 
     void ImGuiLayer::OnAttach()
     {
+        HIMII_PROFILE_FUNCTION();
+
         HIMII_CORE_INFO("ImGuiLayer::OnAttach()");
 
         ImGui::CreateContext();
@@ -78,7 +34,7 @@ namespace Himii
         io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
         const char *font_path = "assets/fonts/msyh.ttc"; // 请替换为你的字体实际路径和文件名
-        float font_size = 14.0f;
+        float font_size = 15.0f;
 
         io.Fonts->AddFontFromFileTTF(font_path, font_size);
         io.FontDefault =
@@ -98,6 +54,8 @@ namespace Himii
 
     void ImGuiLayer::OnDetach()
     {
+        HIMII_PROFILE_FUNCTION();
+
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
@@ -114,6 +72,8 @@ namespace Himii
 
     void ImGuiLayer::Begin()
     {
+        HIMII_PROFILE_FUNCTION();
+
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
@@ -121,6 +81,8 @@ namespace Himii
 
     void ImGuiLayer::End()
     {
+        HIMII_PROFILE_FUNCTION();
+
         ImGuiIO &io = ImGui::GetIO();
         Application &app = Application::Get();
         io.DisplaySize = ImVec2((float)app.GetWindow().GetWidth(), (float)app.GetWindow().GetHeight());

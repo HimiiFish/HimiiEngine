@@ -9,6 +9,8 @@ namespace Himii
 
     void Renderer::Init()
     {
+        HIMII_PROFILE_FUNCTION();
+
         RenderCommand::Init();
         Renderer2D::Init();
     }

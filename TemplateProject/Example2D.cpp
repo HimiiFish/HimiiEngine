@@ -11,33 +11,47 @@ Example2D::Example2D() : Layer("Example2D"), m_CameraController(1280.0f / 720.0f
 
 void Example2D::OnAttach()
 {
+    HIMII_PROFILE_FUNCTION();
+
     m_BlockTexture = Himii::Texture2D::Create("assets/textures/grass.png");
 }
 void Example2D::OnDetach()
 {
-
+    HIMII_PROFILE_FUNCTION();
 }
 
 void Example2D::OnUpdate(Himii::Timestep ts)
 {
-    m_CameraController.OnUpdate(ts);
+    HIMII_PROFILE_FUNCTION();
 
-    Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
-    Himii::RenderCommand::Clear();
-
-    Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
-
-    Himii::Renderer2D::DrawQuad({0.0, 0.0f}, {0.2f, 0.2f}, {0.15f, 0.78f, 0.45f, 1.0f});
-    for (int i = 0;i < 5;i++)
     {
-        Himii::Renderer2D::DrawQuad({0.6*i, 0.5f}, {0.6f, 0.6f}, m_BlockTexture);
+        HIMII_PROFILE_SCOPE("CameraController::OnUpdate");
+        m_CameraController.OnUpdate(ts);
     }
-    Himii::Renderer2D::DrawQuad({0.0f, 0.0f,-0.1f}, {10.0f, 10.0f}, {0.65f, 0.42f, 0.25f,1.0f});
 
-    Himii::Renderer2D::EndScene();
+    {
+        HIMII_PROFILE_SCOPE("Renderer Prep")
+        Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
+        Himii::RenderCommand::Clear();
+    }
+
+    {
+        HIMII_PROFILE_SCOPE("Renderer Draw");
+        Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
+
+        Himii::Renderer2D::DrawQuad({0.0, 0.0f}, {0.2f, 0.2f}, {0.15f, 0.78f, 0.45f, 1.0f});
+        for (int i = 0; i < 5; i++)
+        {
+            Himii::Renderer2D::DrawQuad({0.6 * i, 0.5f}, {0.6f, 0.6f}, m_BlockTexture);
+        }
+        Himii::Renderer2D::DrawQuad({0.0f, 0.0f, -0.1f}, {10.0f, 10.0f}, {0.65f, 0.42f, 0.25f, 1.0f});
+
+        Himii::Renderer2D::EndScene();
+    }
 }
 void Example2D::OnImGuiRender()
 {
+    HIMII_PROFILE_FUNCTION();
     ImGui::Begin("设置");
     ImGui::Text("颜色设置");
     ImGui::ColorEdit4("矩形颜色", glm::value_ptr(m_SquareColor));
