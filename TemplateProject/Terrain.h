@@ -30,7 +30,7 @@ class Terrain
         void GenerateTerrain();
         void GenerateHeightMap(std::vector<int> &heightMap);
 
-        std::vector<std::vector<BlockType>> GetBlocks()
+        const std::vector<std::vector<BlockType>> GetBlocks() const
         {
             return blocks;
         }
