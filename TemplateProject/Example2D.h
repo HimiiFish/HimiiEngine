@@ -22,5 +22,5 @@ class Example2D: public Himii::Layer
         Himii::Ref<Himii::Texture2D> m_BlockTexture;
         glm::vec4 m_SquareColor = {0.5f, 0.26f, 0.56f,1.0f};
 
-        //Himii::Ref<Terrain> m_Terrain;
+        Himii::Ref<Terrain> m_Terrain;
 };

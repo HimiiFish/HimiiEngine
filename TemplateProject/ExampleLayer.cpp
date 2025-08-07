@@ -50,7 +50,7 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f
             -0.5f, 0.5f,  0.5f, 0.0f, 1.0f  // 顶部蓝色
     };
     std::shared_ptr<Himii::VertexBuffer> m_VertexBuffer;
-    m_VertexBuffer.reset(Himii::VertexBuffer::Create(vertices, sizeof(vertices)));
+    m_VertexBuffer=(Himii::VertexBuffer::Create(vertices, sizeof(vertices)));
 
     Himii::BufferLayout layout = {{Himii::ShaderDataType::Float3, "a_Position"},
                                   {Himii::ShaderDataType::Float2, "a_TexCoord"}};
@@ -59,7 +59,7 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f
 
     unsigned int indices[] = {0, 1, 2}; // 三角形的索引
     std::shared_ptr<Himii::IndexBuffer> m_IndexBuffer;
-    m_IndexBuffer.reset(Himii::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
+    m_IndexBuffer=(Himii::IndexBuffer::Create(indices, sizeof(indices) / sizeof(uint32_t)));
     m_VertexArray->SetIndexBuffer(m_IndexBuffer);
 
     m_SquareVA=(Himii::VertexArray::Create());
@@ -73,7 +73,7 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f
     };
     // 创建顶点缓冲区
     std::shared_ptr<Himii::VertexBuffer> squareVB;
-    squareVB.reset(Himii::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
+    squareVB=(Himii::VertexBuffer::Create(squareVertices, sizeof(squareVertices)));
 
     Himii::BufferLayout squareLayout = {
             {Himii::ShaderDataType::Float3, "a_Position"},
@@ -84,7 +84,7 @@ ExampleLayer::ExampleLayer() : Layer("ExampleLayer"), m_CameraController(1280.0f
     // 设置索引缓冲区
     uint32_t squareIndices[] = {0, 1, 2, 2, 3, 0}; // 两个三角形组成的正方形
     std::shared_ptr<Himii::IndexBuffer> squareIB;
-    squareIB.reset(Himii::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
+    squareIB=(Himii::IndexBuffer::Create(squareIndices, sizeof(squareIndices) / sizeof(uint32_t)));
     m_SquareVA->SetIndexBuffer(squareIB);
 
     // glBindBuffer(GL_ARRAY_BUFFER, 0);

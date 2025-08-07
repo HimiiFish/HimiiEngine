@@ -30,7 +30,7 @@ namespace Himii
         stbi_set_flip_vertically_on_load(1);
         stbi_uc *data = nullptr;
         {
-            HIMII_PROFILE_SCOPE("sebi_load - OpenGLTexture::OpenGLTexture(const std::string&)");
+            HIMII_PROFILE_SCOPE("stbi_load - OpenGLTexture::OpenGLTexture(const std::string&)");
             data=stbi_load(path.c_str(), &width, &height, &channels, 0);
         }
         
