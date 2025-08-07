@@ -78,11 +78,11 @@ void Example2D::OnImGuiRender()
     ImGui::Text("颜色设置");
     ImGui::ColorEdit4("矩形颜色", glm::value_ptr(m_SquareColor));
     ImGui::End();
-    // ImGuiのメインループ内
-    ImGui::Begin("Debug"); // ウィンドウを開始
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-                ImGui::GetIO().Framerate);
-    ImGui::End(); // ウィンドウを終了
+
+    ImGui::Begin("Debug");
+    ImGui::Text("均值延迟 %.3f ms/帧率 (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
+    ImGui::GetIO().Framerate);
+    ImGui::End(); 
 }
 void Example2D::OnEvent(Himii::Event &event)
 {
