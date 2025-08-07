@@ -199,6 +199,7 @@ namespace Himii
         {
             textureIndex = (float)s_Data.TextureSlotIndex;
             s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+            ++s_Data.TextureSlotIndex;
         }
 
         s_Data.QuadVertexBufferPtr->Position = position;

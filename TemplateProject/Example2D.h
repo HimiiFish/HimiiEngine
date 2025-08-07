@@ -19,7 +19,8 @@ class Example2D: public Himii::Layer
 
         Himii::Ref<Himii::Shader> m_Shader;
         Himii::Ref<Himii::VertexArray> m_SquareVA;
-        Himii::Ref<Himii::Texture2D> m_BlockTexture;
+        Himii::Ref<Himii::Texture2D> m_GrassTexture;
+        Himii::Ref<Himii::Texture2D> m_MudTexture;
         glm::vec4 m_SquareColor = {0.5f, 0.26f, 0.56f,1.0f};
 
         Himii::Ref<Terrain> m_Terrain;

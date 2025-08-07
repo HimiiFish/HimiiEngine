@@ -13,8 +13,9 @@ void Example2D::OnAttach()
 {
     HIMII_PROFILE_FUNCTION();
 
-    m_BlockTexture = Himii::Texture2D::Create("assets/textures/grass.png");
-    
+    m_GrassTexture = Himii::Texture2D::Create("assets/textures/grass.png");
+    m_MudTexture = Himii::Texture2D::Create("assets/textures/mud.png");
+
     m_Terrain = Himii::CreateRef<Terrain>();
 
     m_Terrain->GenerateTerrain();
@@ -43,30 +44,39 @@ void Example2D::OnUpdate(Himii::Timestep ts)
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-        //Himii::Renderer2D::DrawQuad({0.5, 0.5}, {1, 1}, m_BlockTexture);
-        Himii::Renderer2D::DrawQuad({0.5, 0.5}, {1, 1}, {0.12,0.45,0.62,1.0});
-        //Himii::Renderer2D::DrawRotatedQuad({-0.5, -0.5}, {1.2, 1.2}, glm::radians(45.0f), {0.3, 0.56, 0.52,1.0});
+        Himii::Renderer2D::DrawQuad({0.5, 0.5}, {1, 1}, m_GrassTexture);
+        Himii::Renderer2D::DrawQuad({-0.5, 0.5}, {1, 1}, {0.12, 0.45, 0.62, 1.0});
+        // Himii::Renderer2D::DrawRotatedQuad({-0.5, -0.5}, {1.2, 1.2}, glm::radians(45.0f), {0.3, 0.56, 0.52,1.0});
 
-        #pragma region testTerrain
-         const auto &blocks = m_Terrain->GetBlocks();
-         const float tileSize = 0.2f; // 与绘制尺寸一致
+//#pragma region testTerrain
+//        const auto &blocks = m_Terrain->GetBlocks();
+//        const float tileSize = 0.2f; // 与绘制尺寸一致
+//
+//        for (int y = 0; y < m_Terrain->getHeight(); ++y)
+//        {
+//            for (int x = 0; x < m_Terrain->GetWidth(); ++x)
+//            {
+//                BlockType block = blocks[y][x];
+//                if (block == GRASS)
+//                {
+//                    int renderY = m_Terrain->getHeight() - 1 - y;
+//                    Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize},m_GrassTexture);
+//                }
+//                if (block == DIRT)
+//                {
+//                    int renderY = m_Terrain->getHeight() - 1 - y;
+//                    Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize},m_MudTexture);
+//                }
+//                else
+//                {
+//                    glm::vec4 color = blockColors[block];
+//                    int renderY = m_Terrain->getHeight() - 1 - y;
+//                    Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize}, color);
+//                }
+//            }
+//        }
+//#pragma endregion
 
-         for (int y = 0; y < m_Terrain->getHeight(); ++y)
-        {
-             for (int x = 0; x < m_Terrain->GetWidth(); ++x)
-             {
-                 BlockType block = blocks[y][x];
-                 if (block != AIR)
-                 {
-                     glm::vec4 color = blockColors[block];
-                     int renderY = m_Terrain->getHeight() - 1 - y;
-                     Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize}, color);
-
-                }
-            }
-        }
-#pragma endregion
-     
         Himii::Renderer2D::DrawQuad({0, 0}, {0.2, 0.2}, glm::vec4{0.25, 0.13, 0.26, 1.0});
         Himii::Renderer2D::EndScene();
     }
@@ -80,9 +90,8 @@ void Example2D::OnImGuiRender()
     ImGui::End();
 
     ImGui::Begin("Debug");
-    ImGui::Text("均值延迟 %.3f ms/帧率 (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate,
-    ImGui::GetIO().Framerate);
-    ImGui::End(); 
+    ImGui::Text("均值延迟 %.3f ms/帧率 (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::End();
 }
 void Example2D::OnEvent(Himii::Event &event)
 {
