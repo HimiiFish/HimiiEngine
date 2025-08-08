@@ -34,6 +34,7 @@ void Example2D::OnUpdate(Himii::Timestep ts)
         m_CameraController.OnUpdate(ts);
     }
 
+    Himii::Renderer2D::ResetStats();
     {
         HIMII_PROFILE_SCOPE("Renderer Prep")
         Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});

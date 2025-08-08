@@ -24,7 +24,7 @@ namespace Himii
 
         Ref<VertexArray> QuadVertexArray;
         Ref<VertexBuffer> QuadVertexBuffer;
-        Ref<Shader> TextureShader;
+        Ref<Shader> QuadShader;
         Ref<Texture2D> WhiteTexture;
 
         uint32_t QuadIndexCount = 0;
@@ -35,6 +35,9 @@ namespace Himii
         uint32_t TextureSlotIndex = 1;
 
         glm::vec4 QuadVertexPositions[4];
+
+        
+        Renderer2D::Statistics Stats;
     };
 
 
@@ -87,9 +90,9 @@ namespace Himii
             samplers[i] = i;
 
         //  创建着色器程序
-        s_Data.TextureShader = Shader::Create("assets/shaders/Texture.glsl");
-        s_Data.TextureShader->Bind();
-        s_Data.TextureShader->SetIntArray("u_Texture", samplers,s_Data.MaxTextureSlots);
+        s_Data.QuadShader = Shader::Create("assets/shaders/Texture.glsl");
+        s_Data.QuadShader->Bind();
+        s_Data.QuadShader->SetIntArray("u_Texture", samplers,s_Data.MaxTextureSlots);
 
         s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 
@@ -108,8 +111,8 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        s_Data.TextureShader->Bind();
-        s_Data.TextureShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
+        s_Data.QuadShader->Bind();
+        s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
 
         s_Data.QuadIndexCount = 0;
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
@@ -120,9 +123,20 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        uint32_t datasize = (uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase;
-        s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, datasize);
+        uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase);
+        s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
+
         Flush();
+    }
+
+    void Renderer2D::StartBatch()
+    {
+        EndScene();
+
+        s_Data.QuadIndexCount = 0;
+        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+        
+        s_Data.TextureSlotIndex = 1; // 0 reserved for white texture
     }
 
     void Renderer2D::Flush()
@@ -131,13 +145,21 @@ namespace Himii
         {
             s_Data.TextureSlots[i]->Bind(i);
         }
+
+        s_Data.QuadShader->Bind();
         RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+        s_Data.Stats.DrawCalls++;
+    }
+
+    void Renderer2D::NextBatch()
+    {
+        Flush();
+        StartBatch();
     }
 
     //-----------------------------------绘制四边形----------------------------//
     void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
-        DrawQuad({position.x, position.y, 0.0f}, size, color);
     }
     void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
@@ -145,6 +167,11 @@ namespace Himii
 
         const float textureIndex = 0.0f;
         const float tilingFactor = 1.0f;
+
+        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        {
+            StartBatch();
+        }
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
@@ -178,17 +205,18 @@ namespace Himii
 
         s_Data.QuadIndexCount += 6;
 
+        s_Data.Stats.QuadCount++;
     }
-    void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const Ref<Texture2D> &texture,
-                              float tilingFactor, const glm::vec4 &tintColor)
+    void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
-        DrawQuad({position.x, position.y, 0.0f}, size, texture, tilingFactor, tintColor);
     }
-    void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size, const Ref<Texture2D> &texture,
-                              float tilingFactor, const glm::vec4 &tintColor)
+    void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size, const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
         HIMII_PROFILE_FUNCTION();
-
+        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        {
+            StartBatch();
+        }
         constexpr glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
 
         float textureIndex = 0.0f;
@@ -241,18 +269,21 @@ namespace Himii
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
+
+        s_Data.Stats.QuadCount++;
     }
     //---------------------------------绘制旋转四边形------------------------------//
-    void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,
-                                     const glm::vec4 &color)
+    void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,const glm::vec4 &color)
     {
-        DrawRotatedQuad({position.x, position.y, 0.0f}, size, rotation, color);
     }
     void Renderer2D::DrawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float rotation,
                                      const glm::vec4 &color)
     {
         HIMII_PROFILE_FUNCTION();
-
+        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        {
+            StartBatch();
+        }
         const float textureIndex = 0.0f;
         const float tilingFactor = 1.0f;
 
@@ -289,17 +320,20 @@ namespace Himii
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
+
+        s_Data.Stats.QuadCount++;
     }
-    void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,
-                                     const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
+    void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
-        DrawRotatedQuad({position.x, position.y, 0.0f}, size, rotation, texture, tilingFactor, tintColor);
     }
     void Renderer2D::DrawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float rotation,
                                      const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
         HIMII_PROFILE_FUNCTION();
-
+        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        {
+            StartBatch();
+        }
         constexpr glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
 
         float textureIndex = 0.0f;
@@ -353,5 +387,15 @@ namespace Himii
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
+
+        s_Data.Stats.QuadCount++;
+    }
+    void Renderer2D::ResetStats()
+    {
+        memset(&s_Data.Stats, 0, sizeof(Statistics));
+    }
+    Renderer2D::Statistics Renderer2D::GetStatistics()
+    {
+        return s_Data.Stats;
     }
 } // namespace Himii
