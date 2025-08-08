@@ -39,14 +39,18 @@ void Example2D::OnUpdate(Himii::Timestep ts)
         Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
         Himii::RenderCommand::Clear();
     }
-
+    
     {
+
+        static float rotation = 0.0f;
+        rotation += ts * 20.0f;
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-        Himii::Renderer2D::DrawQuad({0.5, 0.5}, {1, 1}, m_GrassTexture);
-        Himii::Renderer2D::DrawQuad({-0.5, 0.5}, {1, 1}, {0.12, 0.45, 0.62, 1.0});
-        // Himii::Renderer2D::DrawRotatedQuad({-0.5, -0.5}, {1.2, 1.2}, glm::radians(45.0f), {0.3, 0.56, 0.52,1.0});
+        Himii::Renderer2D::DrawQuad({0.5, 0.5}, {0.5, 0.5}, m_GrassTexture);
+        Himii::Renderer2D::DrawQuad({-0.5, 0.5}, {0.5, 0.5}, {0.12, 0.45, 0.62, 1.0});
+        Himii::Renderer2D::DrawRotatedQuad({-0.5, -0.5}, {0.5, 0.5}, 45.0f, m_MudTexture, 10.0f);
+        Himii::Renderer2D::DrawRotatedQuad({0.5, -0.5}, {0.5, 0.5}, rotation, {0.25,0.56,0.56,1.0});
 
 //#pragma region testTerrain
 //        const auto &blocks = m_Terrain->GetBlocks();
