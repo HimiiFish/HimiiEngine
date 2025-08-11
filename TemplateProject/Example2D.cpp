@@ -92,6 +92,11 @@ void Example2D::OnImGuiRender()
     ImGui::Begin("设置");
     ImGui::Text("颜色设置");
     ImGui::ColorEdit4("矩形颜色", glm::value_ptr(m_SquareColor));
+    ImGui::Text("Renderer2D Stats");
+    ImGui::Text("Draw Calls: %d", Himii::Renderer2D::GetStatistics().DrawCalls);
+    ImGui::Text("Quad Count: %d", Himii::Renderer2D::GetStatistics().QuadCount);
+    ImGui::Text("Total Vertex Count: %d", Himii::Renderer2D::GetStatistics().GetTotalVertexCount());
+    ImGui::Text("Total Index Count: %d", Himii::Renderer2D::GetStatistics().GetTotalIndexCount());
     ImGui::End();
 
     ImGui::Begin("Debug");

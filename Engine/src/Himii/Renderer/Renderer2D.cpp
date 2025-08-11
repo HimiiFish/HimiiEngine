@@ -105,7 +105,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        // delete[] s_Data.quad;
+        delete[] s_Data.QuadVertexBufferBase;
     }
     void Renderer2D::BeginScene(const OrthographicCamera &camera)
     {
@@ -123,12 +123,23 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        uint32_t dataSize = (uint32_t)((uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase);
+        uint32_t dataSize = (uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase;
         s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
 
         Flush();
     }
 
+    void Renderer2D::Flush()
+    {
+        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+        {
+            s_Data.TextureSlots[i]->Bind(i);
+        }
+
+        //s_Data.QuadShader->Bind();
+        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+        s_Data.Stats.DrawCalls++;
+    }
     void Renderer2D::StartBatch()
     {
         EndScene();
@@ -139,27 +150,10 @@ namespace Himii
         s_Data.TextureSlotIndex = 1; // 0 reserved for white texture
     }
 
-    void Renderer2D::Flush()
-    {
-        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
-        {
-            s_Data.TextureSlots[i]->Bind(i);
-        }
-
-        s_Data.QuadShader->Bind();
-        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-        s_Data.Stats.DrawCalls++;
-    }
-
-    void Renderer2D::NextBatch()
-    {
-        Flush();
-        StartBatch();
-    }
-
     //-----------------------------------绘制四边形----------------------------//
     void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
+        DrawQuad(glm::vec3(position, 0.0f), size, color);
     }
     void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
@@ -209,6 +203,7 @@ namespace Himii
     }
     void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
+        DrawQuad(glm::vec3(position, 0.0f), size, texture, tilingFactor, tintColor);
     }
     void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size, const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
@@ -275,6 +270,8 @@ namespace Himii
     //---------------------------------绘制旋转四边形------------------------------//
     void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,const glm::vec4 &color)
     {
+        DrawRotatedQuad(glm::vec3(position, 0.0f), size, rotation, color);
+
     }
     void Renderer2D::DrawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float rotation,
                                      const glm::vec4 &color)
@@ -325,6 +322,7 @@ namespace Himii
     }
     void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
+        DrawRotatedQuad(glm::vec3(position, 0.0f), size, rotation, texture, tilingFactor, tintColor);
     }
     void Renderer2D::DrawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float rotation,
                                      const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
