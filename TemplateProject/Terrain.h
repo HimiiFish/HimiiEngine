@@ -5,6 +5,7 @@
 #include <cmath>
 #include <algorithm>
 #include "glm/glm.hpp"
+#include "Perlin.h"
 
 enum BlockType
 {
@@ -24,7 +25,7 @@ const glm::vec4 blockColors[] = {
 class Terrain
 {
 	public:
-        Terrain();
+        Terrain(int width,int height);
         virtual ~Terrain() = default;
 
         void GenerateTerrain();
@@ -45,8 +46,10 @@ class Terrain
          }
 
 	private:
-        int worldWidth = 100;
-        int worldHeight = 30;
+        int worldWidth;
+        int worldHeight;
+
+        PerlinNoise perlinNoise;
 
 		std::vector<std::vector<BlockType>> blocks;
  };

@@ -1,7 +1,6 @@
 #include "Terrain.h"
-#include "Perlin.h"
 
-Terrain::Terrain()
+Terrain::Terrain(int width, int height) : worldWidth(width), worldHeight(height)
 {
     blocks.resize(worldHeight, std::vector<BlockType>(worldWidth, AIR));
     
@@ -15,48 +14,56 @@ void Terrain::GenerateTerrain()
     for (int x = 0; x < worldWidth; ++x)
     {
         // 石头层
+        int surfaceHeight = heightMap[x];
+        int dirtThickness = 3 + rand() % 2;
         int stoneDepth = 3 + rand() % 3; // 3-5 blocks below dirt
-        int stoneStart = std::min(heightMap[x] + stoneDepth, worldHeight);
-        for (int y = stoneStart; y < worldHeight; ++y)
+        for (int y = worldHeight-1; y >=0; --y)
         {
-            blocks[y][x] = STONE;
+            if (y > heightMap[x])
+            {
+                // 地表上方的空气区块
+                blocks[y][x] = AIR;
+            }
+            else if (y == heightMap[x])
+            {
+                // 顶部是草地层
+                blocks[y][x] = GRASS;
+            }
+            else if (y >= heightMap[x] - dirtThickness)
+            {
+                // 草地下方是泥土层
+                blocks[y][x] = DIRT;
+            }
+            else
+            {
+                // 更深的石头层
+                blocks[y][x] = STONE;
+            }
         }
-        // 泥土层
-        int dirtThickness = 3 + rand() % 2; // 3-4 blocks of dirt
-        int dirtTop = std::min(heightMap[x] + dirtThickness, worldHeight);
-        for (int y = heightMap[x]; y < dirtTop; ++y)
-        {
-            blocks[y][x] = DIRT;
-        }
-
-        // 草地表层
-        if (heightMap[x] > 0)
-        {
-            blocks[std::min(heightMap[x] - 1, worldHeight - 1)][x] = GRASS;
-        }
-
     }
 }
 
 void Terrain::GenerateHeightMap(std::vector<int> &heightMap)
 {
-    PerlinNoise pn;
-    double scale = 0.1; // 控制噪声频率
+    // ... (此函数无需修改，保留原样)
+    double scale = 0.1;
+    double amplitude = worldHeight / 4.0;
+    double frequency = scale;
+    double persistence = 0.5;
+    int octaves = 4;
 
     for (int x = 0; x < worldWidth; ++x)
     {
         double noiseValue = 0.0;
-        double amplitude = worldHeight / 4.0;
-        double frequency = scale;
-        double persistence = 0.5;
-        int octaves = 4;
+        double currentAmplitude = amplitude;
+        double currentFrequency = frequency;
 
         for (int i = 0; i < octaves; ++i)
         {
-            double n = pn.noise(x * frequency, 0.0);
-            noiseValue += (n * 2.0 - 1.0) * amplitude;
-            amplitude *= persistence;
-            frequency *= 2.0;
+            double n = perlinNoise.noise(x * currentFrequency, 0.0);
+            noiseValue += (n * 2.0 - 1.0) * currentAmplitude;
+            currentAmplitude *= persistence;
+            currentFrequency *= 2.0;
         }
 
         int baseHeight = worldHeight / 2;

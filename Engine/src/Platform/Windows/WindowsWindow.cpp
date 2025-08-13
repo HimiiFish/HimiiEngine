@@ -65,7 +65,7 @@ namespace Himii
         }
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
-        SetVSync(true);
+        SetVSync(false);
 
         // 设置窗口回调
         glfwSetWindowSizeCallback(m_Window, [](GLFWwindow *window, int width, int height)

@@ -16,9 +16,9 @@ void Example2D::OnAttach()
     m_GrassTexture = Himii::Texture2D::Create("assets/textures/grass.png");
     m_MudTexture = Himii::Texture2D::Create("assets/textures/mud.png");
 
-    m_Terrain = Himii::CreateRef<Terrain>();
+    //m_Terrain = Himii::CreateRef<Terrain>(200,40);
 
-    m_Terrain->GenerateTerrain();
+    //m_Terrain->GenerateTerrain();
 }
 void Example2D::OnDetach()
 {
@@ -52,38 +52,38 @@ void Example2D::OnUpdate(Himii::Timestep ts)
         Himii::Renderer2D::DrawQuad({-0.5, 0.5}, {0.5, 0.5}, {0.12, 0.45, 0.62, 1.0});
         Himii::Renderer2D::DrawRotatedQuad({-0.5, -0.5}, {0.5, 0.5}, 45.0f, m_MudTexture, 10.0f);
         Himii::Renderer2D::DrawRotatedQuad({0.5, -0.5}, {0.5, 0.5}, rotation, {0.25,0.56,0.56,1.0});
+        Himii::Renderer2D::DrawQuad({0, 0}, {0.2, 0.2}, glm::vec4{0.25, 0.13, 0.26, 1.0});
 
 //#pragma region testTerrain
 //        const auto &blocks = m_Terrain->GetBlocks();
-//        const float tileSize = 0.2f; // 与绘制尺寸一致
+//        const float tileSize = 0.2f;
 //
+//         使用 m_Terrain->getHeight() 和 m_Terrain->GetWidth() 确保渲染尺寸正确
 //        for (int y = 0; y < m_Terrain->getHeight(); ++y)
 //        {
 //            for (int x = 0; x < m_Terrain->GetWidth(); ++x)
 //            {
 //                BlockType block = blocks[y][x];
-//                if (block == GRASS)
+//                if (block != AIR) // 只绘制非空气区块
 //                {
-//                    int renderY = m_Terrain->getHeight() - 1 - y;
-//                    Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize},m_GrassTexture);
-//                }
-//                if (block == DIRT)
-//                {
-//                    int renderY = m_Terrain->getHeight() - 1 - y;
-//                    Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize},m_MudTexture);
-//                }
-//                else
-//                {
-//                    glm::vec4 color = blockColors[block];
-//                    int renderY = m_Terrain->getHeight() - 1 - y;
-//                    Himii::Renderer2D::DrawQuad({x * tileSize, renderY * tileSize}, {tileSize, tileSize}, color);
+//                    Himii::Renderer2D::DrawQuad({x * tileSize, y * tileSize}, {tileSize, tileSize}, blockColors[block]);
 //                }
 //            }
 //        }
 //#pragma endregion
 
-        Himii::Renderer2D::DrawQuad({0, 0}, {0.2, 0.2}, glm::vec4{0.25, 0.13, 0.26, 1.0});
         Himii::Renderer2D::EndScene();
+
+        /*Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
+        for (float y = -5.0f; y < 5.0f; y += 0.5f)
+        {
+            for (float x = -5.0f; x < 5.0f; x += 0.5f)
+            {
+                glm::vec4 color = {(x + 5.0f) / 10.0f, 0.4f, (y + 5.0f) / 10.0f, 0.7f};
+                Himii::Renderer2D::DrawQuad({x, y}, {0.45f, 0.45f}, color);
+            }
+        }
+        Himii::Renderer2D::EndScene();*/
     }
 }
 void Example2D::OnImGuiRender()
