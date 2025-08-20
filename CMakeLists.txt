@@ -29,7 +29,8 @@ endforeach()
 
 # 确保 Visual Studio 的输出目录存在，以避免链接器错误
 if(MSVC)
-    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+    # Ensure MSVC treats source files as UTF-8 for both C and C++ to avoid C4828 warnings
+    add_compile_options("$<$<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>")
     file(MAKE_DIRECTORY
         ${CMAKE_BINARY_DIR}/bin
         ${CMAKE_BINARY_DIR}/lib

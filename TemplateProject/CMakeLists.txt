@@ -2,7 +2,7 @@ project(TemplateProject)
 
 file(GLOB_RECURSE SOURCES "./*.cpp")
 
-# 头文件为src目录下的所有.h文件
+# 头锟侥硷拷为src目录锟铰碉拷锟斤拷锟斤拷.h锟侥硷拷
 file(GLOB_RECURSE HEADERS "./*.h")
 
 set(ALL_SOURCES
@@ -20,9 +20,7 @@ target_include_directories(TemplateProject PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine/src
 )
 # Copy font assets to the executable output directory so the runtime can
-# 将字体资源复制到可执行文件输出目录，以便运行时可以使用
 # load them without referencing the repository structure.
-# 不参考仓库结构加载它们。
 add_custom_command(TARGET TemplateProject POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:TemplateProject>/assets

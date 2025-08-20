@@ -24,6 +24,10 @@ namespace Himii
     {
         m_SceneData->ViewProjectionMatrix = camera.GetViewProjectionMatrix();
     }
+    void Renderer::BeginScene(const glm::mat4& viewProjection)
+    {
+        m_SceneData->ViewProjectionMatrix = viewProjection;
+    }
     void Renderer::EndScene()
     {
     }

@@ -12,6 +12,8 @@ namespace Himii
         static void OnWindowResize(uint32_t width, uint32_t height);
 
         static void BeginScene(OrthographicCamera& camera);
+    // 新增：允许直接传入 ViewProjection 矩阵（便于自定义透视相机等场景）
+    static void BeginScene(const glm::mat4& viewProjection);
         static void EndScene();
 
         static void Submit(const Ref<Shader> &shader, const Ref<VertexArray> &vertexArray,const glm::mat4& transform=glm::mat4(1.0f));
