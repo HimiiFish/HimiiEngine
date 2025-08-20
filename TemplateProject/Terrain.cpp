@@ -13,39 +13,37 @@ void Terrain::GenerateTerrain()
 
     for (int x = 0; x < worldWidth; ++x)
     {
-        // Ê¯Í·²ã
-        int surfaceHeight = heightMap[x];
-        int dirtThickness = 3 + rand() % 2;
-        int stoneDepth = 3 + rand() % 3; // 3-5 blocks below dirt
-        for (int y = worldHeight-1; y >=0; --y)
+        const int h = heightMap[x];
+        const int dirtThickness = 3; // å›ºå®šåšåº¦ï¼Œé¿å… rand å¸¦æ¥çš„ä¸å¯é¢„æµ‹åˆ†æ”¯ä¸å¼€é”€
+
+        // å…ˆä¸ŠåŠéƒ¨åˆ†ï¼ˆ> hï¼‰å…¨éƒ¨ AIR
+        for (int y = h + 1; y < worldHeight; ++y)
         {
-            if (y > heightMap[x])
-            {
-                // µØ±íÉÏ·½µÄ¿ÕÆøÇø¿é
-                blocks[y][x] = AIR;
-            }
-            else if (y == heightMap[x])
-            {
-                // ¶¥²¿ÊÇ²İµØ²ã
-                blocks[y][x] = GRASS;
-            }
-            else if (y >= heightMap[x] - dirtThickness)
-            {
-                // ²İµØÏÂ·½ÊÇÄàÍÁ²ã
-                blocks[y][x] = DIRT;
-            }
-            else
-            {
-                // ¸üÉîµÄÊ¯Í·²ã
-                blocks[y][x] = STONE;
-            }
+            blocks[y][x] = AIR;
+        }
+
+        if (h >= 0 && h < worldHeight)
+        {
+            blocks[h][x] = GRASS; // è¡¨å±‚è‰
+        }
+
+        // ä¸‹é¢ dirtThickness å±‚ä¸º DIRTï¼Œå†å¾€ä¸‹ä¸º STONE
+        const int dirtStart = std::max(0, h - dirtThickness);
+        for (int y = dirtStart; y < h; ++y)
+        {
+            blocks[y][x] = DIRT;
+        }
+
+        for (int y = 0; y < dirtStart; ++y)
+        {
+            blocks[y][x] = STONE;
         }
     }
 }
 
 void Terrain::GenerateHeightMap(std::vector<int> &heightMap)
 {
-    // ... (´Ëº¯ÊıÎŞĞèĞŞ¸Ä£¬±£ÁôÔ­Ñù)
+    // ä¿æŒç®€æ´çš„å¤šå€é¢‘ Perlin åˆæˆ
     double scale = 0.1;
     double amplitude = worldHeight / 4.0;
     double frequency = scale;
@@ -66,8 +64,8 @@ void Terrain::GenerateHeightMap(std::vector<int> &heightMap)
             currentFrequency *= 2.0;
         }
 
-        int baseHeight = worldHeight / 2;
-        heightMap[x] = baseHeight + static_cast<int>(noiseValue);
-        heightMap[x] = std::clamp(heightMap[x], 1, worldHeight - 1);
+    const int baseHeight = worldHeight / 2;
+    int h = baseHeight + static_cast<int>(noiseValue);
+    heightMap[x] = std::clamp(h, 1, worldHeight - 1);
     }
 }

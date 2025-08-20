@@ -48,7 +48,7 @@ namespace Himii
         HIMII_PROFILE_FUNCTION();
 
         s_Data.QuadVertexArray = VertexArray::Create();
-        // ´´½¨¶¥µã»º³åÇø
+        // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ã»ºï¿½ï¿½ï¿½ï¿½
         s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
 
         s_Data.QuadVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
@@ -89,7 +89,7 @@ namespace Himii
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
             samplers[i] = i;
 
-        //  ´´½¨×ÅÉ«Æ÷³ÌÐò
+        //  ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         s_Data.QuadShader = Shader::Create("assets/shaders/Texture.glsl");
         s_Data.QuadShader->Bind();
         s_Data.QuadShader->SetIntArray("u_Texture", samplers,s_Data.MaxTextureSlots);
@@ -113,6 +113,7 @@ namespace Himii
 
         s_Data.QuadShader->Bind();
         s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjectionMatrix());
+    s_Data.QuadShader->SetMat4("u_Transform", glm::mat4(1.0f));
 
         s_Data.QuadIndexCount = 0;
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
@@ -150,7 +151,7 @@ namespace Himii
         s_Data.TextureSlotIndex = 1; // 0 reserved for white texture
     }
 
-    //-----------------------------------»æÖÆËÄ±ßÐÎ----------------------------//
+    //-----------------------------------ï¿½ï¿½ï¿½ï¿½ï¿½Ä±ï¿½ï¿½ï¿½----------------------------//
     void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
         DrawQuad(glm::vec3(position, 0.0f), size, color);
@@ -267,7 +268,7 @@ namespace Himii
 
         s_Data.Stats.QuadCount++;
     }
-    //---------------------------------»æÖÆÐý×ªËÄ±ßÐÎ------------------------------//
+    //---------------------------------ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×ªï¿½Ä±ï¿½ï¿½ï¿½------------------------------//
     void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,const glm::vec4 &color)
     {
         DrawRotatedQuad(glm::vec3(position, 0.0f), size, rotation, color);

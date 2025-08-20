@@ -2,6 +2,8 @@
 #include "Himii/Core/EntryPoint.h"
 #include "ExampleLayer.h"
 #include "Example2D.h"
+#include "CubeLayer.h"
+
 #include <iostream>
 
 
@@ -11,7 +13,8 @@ public:
     {
         // 初始化代码
         //PushLayer(new ExampleLayer());
-        PushLayer(new Example2D);
+        //PushLayer(new Example2D);
+        PushLayer(new CubeLayer); // 启用立方体示例
     }
 
     virtual ~TemplateProject()

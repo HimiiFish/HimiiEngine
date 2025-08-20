@@ -31,19 +31,11 @@ class Terrain
         void GenerateTerrain();
         void GenerateHeightMap(std::vector<int> &heightMap);
 
-        const std::vector<std::vector<BlockType>> GetBlocks() const
-        {
-            return blocks;
-        }
+    // 返回常量引用，避免整张地图的大拷贝
+    const std::vector<std::vector<BlockType>>& GetBlocks() const noexcept { return blocks; }
 
-        int GetWidth()
-        {
-            return worldWidth;
-        }
-        int getHeight()
-        {
-            return worldHeight;
-         }
+    int GetWidth() const noexcept { return worldWidth; }
+    int getHeight() const noexcept { return worldHeight; }
 
 	private:
         int worldWidth;
