@@ -16,7 +16,7 @@ void Example2D::OnAttach()
     m_GrassTexture = Himii::Texture2D::Create("assets/textures/grass.png");
     m_MudTexture = Himii::Texture2D::Create("assets/textures/mud.png");
 
-    //m_Terrain = Himii::CreateRef<Terrain>(200,40);
+    //m_Terrain = Himii::CreateRef<Terrain>(200,40);//
 
     //m_Terrain->GenerateTerrain();
 }
