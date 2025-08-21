@@ -25,12 +25,16 @@ private:
     void RebuildVB();
     void UpdateCamera(Himii::Timestep ts);
     void BuildTerrainMesh();
+    void BuildSkybox();
 
 private:
     Himii::Ref<Himii::VertexArray> m_CubeVA;     // 旧：单方块（保留但不再使用）
     Himii::Ref<Himii::VertexArray> m_TerrainVA;  // 新：整张地形网格
+    Himii::Ref<Himii::VertexArray> m_SkyboxVA;   // 天空盒立方体
     Himii::Ref<Himii::Texture2D>   m_Atlas;
-    Himii::Ref<Himii::Shader>      m_TextureShader;
+    Himii::Ref<Himii::Shader>      m_TextureShader; // 旧 2D 纹理着色器
+    Himii::Ref<Himii::Shader>      m_LitShader;     // 新：带全局光照
+    Himii::Ref<Himii::Shader>      m_SkyboxShader;  // 新：天空盒
     Himii::ShaderLibrary           m_ShaderLibrary;
 
     // 图集网格（可在 ImGui 中调整）
@@ -68,6 +72,13 @@ private:
     int m_TerrainD = 128;
     int m_TerrainH = 32;
     bool m_AutoRebuild = true; // 实时重建开关
+
+    // 全局光照参数
+    glm::vec3 m_AmbientColor {0.35f, 0.40f, 0.45f};
+    float     m_AmbientIntensity = 0.4f;
+    glm::vec3 m_LightDir{-0.4f, -1.0f, -0.3f};
+    glm::vec3 m_LightColor{1.0f, 0.98f, 0.92f};
+    float     m_LightIntensity = 1.0f;
 
         // 噪声参数（fBm + Ridged + Domain Warp，可在 ImGui 中调整）
         struct NoiseSettings {
