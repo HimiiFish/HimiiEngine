@@ -111,6 +111,15 @@ void EditorLayer::OnImGuiRender()
     }
     ImGui::End();
 
+    // 根据 Scene/Game 的悬停状态，决定是否让 ImGui 层阻断底层输入
+    // 目标：当鼠标在 Scene 上滚动时，让滚轮事件传到底层相机控制器
+    auto& app = Himii::Application::Get();
+    if (auto* imgui = app.GetImGuiLayer())
+    {
+        const bool wantBlock = !(m_SceneHovered || m_SceneFocused || m_GameHovered || m_GameFocused);
+        imgui->BlockEvents(wantBlock);
+    }
+
     // Placeholder panels
     ImGui::Begin("Hierarchy");
     ImGui::TextUnformatted("[Scene] Terrain");

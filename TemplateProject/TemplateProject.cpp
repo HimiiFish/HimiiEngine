@@ -14,8 +14,8 @@ public:
     {
         // 初始化代码
         //PushLayer(new ExampleLayer());
-        //PushLayer(new Example2D);
-        PushLayer(new CubeLayer); // 启用立方体示例
+        PushLayer(new Example2D);
+        //PushLayer(new CubeLayer); // 启用立方体示例
     // 叠加编辑器Overlay
     PushOverlay(new EditorLayer());
     }

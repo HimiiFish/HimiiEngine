@@ -15,26 +15,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        if (Input::IsKeyPressed(Key::A))
-        {
-            m_CameraPosition.x -= cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-            m_CameraPosition.y -= sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-        }
-        else if (Input::IsKeyPressed(Key::D))
-        {
-            m_CameraPosition.x += cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-            m_CameraPosition.y += sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-        }
-        if (Input::IsKeyPressed(Key::W))
-        {
-            m_CameraPosition.x += -sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-            m_CameraPosition.y += cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-        }
-        else if (Input::IsKeyPressed(Key::S))
-        {
-            m_CameraPosition.x -= -sin(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-            m_CameraPosition.y -= cos(glm::radians(m_CameraRotation)) * m_CameraTranslationSpeed * ts;
-        }
+    // WASD 移动仅用于透视相机。正交相机不使用 WASD，这里不做平移输入处理。
 
         if (m_Rotation)
         {
@@ -54,11 +35,16 @@ namespace Himii
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseScrolled));
+    dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseMoved));
+    dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseButtonPressed));
+    dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseButtonReleased));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OrthographicCameraController::OnWindowResize));
     }
     void OrthographicCameraController::OnResize(float width, float height)
     {
         m_AspectRatio=width/height;
+    m_ViewportWidth = width;
+    m_ViewportHeight = height;
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel,m_ZoomLevel);
     }
     bool OrthographicCameraController::OnMouseScrolled(MouseScrolledEvent &e)
@@ -68,6 +54,48 @@ namespace Himii
         m_ZoomLevel -= e.GetYOffset() * 0.25f;
         m_ZoomLevel = std::max(m_ZoomLevel, 0.25f);
         m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+        return false;
+    }
+    bool OrthographicCameraController::OnMouseMoved(MouseMovedEvent &e)
+    {
+        if (!m_MiddleDragging)
+            return false;
+
+        // 把屏幕像素位移换算到世界坐标位移
+        glm::vec2 mousePos{e.GetX(), e.GetY()};
+        glm::vec2 delta = mousePos - m_LastMousePos;
+        m_LastMousePos = mousePos;
+
+        if (m_ViewportWidth <= 0.0f || m_ViewportHeight <= 0.0f)
+            return false;
+
+        float worldHalfH = m_ZoomLevel;                 // 正交上下为 [-zoom, +zoom]
+        float worldHalfW = m_AspectRatio * m_ZoomLevel; // 左右范围 [-aspect*zoom, +aspect*zoom]
+        float worldPerPixelX = (2.0f * worldHalfW) / m_ViewportWidth;
+        float worldPerPixelY = (2.0f * worldHalfH) / m_ViewportHeight;
+
+        // 屏幕坐标 y 向下为正，世界 y 向上为正，需要取反
+        m_CameraPosition.x -= delta.x * worldPerPixelX;
+        m_CameraPosition.y += delta.y * worldPerPixelY * 1.0f;
+        m_Camera.SetPosition(m_CameraPosition);
+        return false;
+    }
+    bool OrthographicCameraController::OnMouseButtonPressed(MouseButtonPressedEvent &e)
+    {
+        if (e.GetMouseButton() == Mouse::ButtonMiddle)
+        {
+            m_MiddleDragging = true;
+            // 记录初始位置
+            m_LastMousePos = { Input::GetMouseX(), Input::GetMouseY() };
+        }
+        return false;
+    }
+    bool OrthographicCameraController::OnMouseButtonReleased(MouseButtonReleasedEvent &e)
+    {
+        if (e.GetMouseButton() == Mouse::ButtonMiddle)
+        {
+            m_MiddleDragging = false;
+        }
         return false;
     }
     bool OrthographicCameraController::OnWindowResize(WindowResizeEvent &e)

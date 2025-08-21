@@ -7,7 +7,7 @@ namespace Himii
 {
 	class OpenGLTexture:public Texture2D 
     {
-        // Í¨¹ý Texture2D ¼Ì³Ð
+        // Í¨ï¿½ï¿½ Texture2D ï¿½Ì³ï¿½
     public:
         OpenGLTexture(uint32_t width, uint32_t height);
         OpenGLTexture(const std::string &path);
@@ -28,6 +28,12 @@ namespace Himii
         {
             return m_RendererID==((OpenGLTexture&)other).m_RendererID;
         };
+
+    // Atlas UV helpers
+    virtual std::array<glm::vec2,4> GetUVFromGrid(int col, int row, int cols, int rows, float paddingNorm = 0.0f) const override;
+    virtual std::array<glm::vec2,4> GetUVFromPixels(const glm::vec2& pixelMin,
+                            const glm::vec2& pixelMax,
+                            const glm::vec2& paddingPx = {0.0f, 0.0f}) const override;
 
     private:
         std::string m_Path;

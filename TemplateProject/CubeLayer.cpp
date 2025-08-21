@@ -81,27 +81,19 @@ void CubeLayer::OnAttach()
 
 void CubeLayer::RebuildVB()
 {
-    // 6个面使用网格模式 UV（示例：草方块的 side/top/bottom）
-    glm::vec4 uvFront = AtlasUVRect(m_GrassUV.side.col, m_GrassUV.side.row, m_AtlasCols, m_AtlasRows, m_GridPadding);
-    glm::vec4 uvBack = uvFront;
-    glm::vec4 uvLeft = uvFront;
-    glm::vec4 uvRight = uvFront;
-    glm::vec4 uvTop = AtlasUVRect(m_GrassUV.top.col, m_GrassUV.top.row, m_AtlasCols, m_AtlasRows, m_GridPadding);
-    glm::vec4 uvBottom =
-            AtlasUVRect(m_GrassUV.bottom.col, m_GrassUV.bottom.row, m_AtlasCols, m_AtlasRows, m_GridPadding);
-
-    auto quadUV = [](const glm::vec4 &r) -> std::array<glm::vec2, 4>
+    // 使用 Texture2D 的图集 UV API（按归一 padding）
+    auto makeQuadUV = [&](int col, int row) -> std::array<glm::vec2, 4>
     {
-        // (u0,v0)=左下, (u1,v1)=右上
-        return {glm::vec2{r.x, r.y}, glm::vec2{r.z, r.y}, glm::vec2{r.z, r.w}, glm::vec2{r.x, r.w}};
+        float pad = m_GridPadding; // 这里 m_GridPadding 已按归一（0..1）使用
+        return m_Atlas->GetUVFromGrid(col, row, m_AtlasCols, m_AtlasRows, pad);
     };
 
-    auto uvF = quadUV(uvFront);
-    auto uvB = quadUV(uvBack);
-    auto uvL = quadUV(uvLeft);
-    auto uvR = quadUV(uvRight);
-    auto uvT = quadUV(uvTop);
-    auto uvD = quadUV(uvBottom);
+    auto uvF = makeQuadUV(m_GrassUV.side.col,   m_GrassUV.side.row);
+    auto uvB = uvF;
+    auto uvL = uvF;
+    auto uvR = uvF;
+    auto uvT = makeQuadUV(m_GrassUV.top.col,    m_GrassUV.top.row);
+    auto uvD = makeQuadUV(m_GrassUV.bottom.col, m_GrassUV.bottom.row);
 
     std::vector<float> vertices;
     vertices.reserve(24 * 11);
@@ -605,10 +597,11 @@ void CubeLayer::BuildTerrainMesh()
         baseIdx += 4;
     };
 
-    auto quadUV = [](const glm::vec4 &r)
+    // 在本作用域定义基于 Texture2D 图集 API 的 UV 计算（按归一 padding）
+    auto makeQuadUV2 = [&](int col, int row) -> std::array<glm::vec2, 4>
     {
-        return std::array<glm::vec2, 4>{glm::vec2{r.x, r.y}, glm::vec2{r.z, r.y}, glm::vec2{r.z, r.w},
-                                        glm::vec2{r.x, r.w}};
+        float pad = m_GridPadding;
+        return m_Atlas->GetUVFromGrid(col, row, m_AtlasCols, m_AtlasRows, pad);
     };
 
     auto uvFor = [&](BlockType t, int face) -> std::array<glm::vec2, 4>
@@ -616,20 +609,12 @@ void CubeLayer::BuildTerrainMesh()
         AtlasTile tile{0, 0};
         switch (t)
         {
-            case GRASS:
-                tile = (face == 4 ? m_GrassUV.top : face == 5 ? m_GrassUV.bottom : m_GrassUV.side);
-                break;
-            case DIRT:
-                tile = m_DirtUV.side;
-                break;
-            case STONE:
-                tile = m_StoneUV.side;
-                break;
-            default:
-                break;
+            case GRASS: tile = (face == 4 ? m_GrassUV.top : face == 5 ? m_GrassUV.bottom : m_GrassUV.side); break;
+            case DIRT:  tile = m_DirtUV.side; break;
+            case STONE: tile = m_StoneUV.side; break;
+            default: break;
         }
-        glm::vec4 r = AtlasUVRect(tile.col, tile.row, m_AtlasCols, m_AtlasRows, m_GridPadding);
-        return quadUV(r);
+    return makeQuadUV2(tile.col, tile.row);
     };
 
     uint32_t baseIdx = 0;

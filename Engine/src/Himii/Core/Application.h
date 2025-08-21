@@ -29,10 +29,10 @@ namespace Himii
 
         void Close();
 
-        /*ImGuiLayer *GetImGuiLayer()
+        ImGuiLayer *GetImGuiLayer()
         {
             return m_ImGuiLayer;
-        }*/
+        }
 
         static Application &Get()
         {
