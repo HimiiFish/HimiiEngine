@@ -1,47 +1,36 @@
+ï»¿#pragma once
 #include <algorithm>
 #include <cmath>
 #include <numeric>
 #include <random>
 #include <vector>
 
+// æ”¹è¿›ç‰ˆ Perlinï¼šå¯æŒ‡å®š seedï¼Œæä¾› 2D å™ªå£°ã€fBmï¼ˆå¤šå€é¢‘ï¼‰ã€Ridgedã€å¤šçº§ domain warp
 class PerlinNoise {
 private:
     std::vector<int> permutation;
 
 public:
-    PerlinNoise()
+    explicit PerlinNoise(uint32_t seed = 1337)
     {
-        // ³õÊ¼»¯ÅÅÁĞ±í
         permutation.resize(256);
         std::iota(permutation.begin(), permutation.end(), 0);
 
-        // Ëæ»ú´òÂÒÅÅÁĞ
-        std::random_device rd;
-        std::mt19937 g(rd());
+        std::mt19937 g(seed);
         std::shuffle(permutation.begin(), permutation.end(), g);
-
-        // ¸´ÖÆÅÅÁĞ±íµ½µÚ¶ş¸ö²¿·Ö£¬±ÜÃâË÷ÒıÔ½½ç
         permutation.insert(permutation.end(), permutation.begin(), permutation.end());
     }
 
-    double noise(double x, double y, double z = 0.0)
+    // æ ‡å‡† 3D Perlinï¼Œè¿”å› [0,1]
+    double noise(double x, double y, double z = 0.0) const
     {
-        // È·¶¨°üº¬µãµÄµ¥Î»Á¢·½Ìå
         int X = static_cast<int>(floor(x)) & 255;
         int Y = static_cast<int>(floor(y)) & 255;
         int Z = static_cast<int>(floor(z)) & 255;
 
-        // ¼ÆËãµãÔÚµ¥Î»Á¢·½ÌåÖĞµÄÏà¶Ô×ø±ê
-        x -= floor(x);
-        y -= floor(y);
-        z -= floor(z);
+        x -= floor(x); y -= floor(y); z -= floor(z);
+        double u = fade(x), v = fade(y), w = fade(z);
 
-        // ¼ÆËã»ººÍÇúÏß
-        double u = fade(x);
-        double v = fade(y);
-        double w = fade(z);
-
-        // ¹şÏ£Á¢·½Ìå8¸ö½ÇµÄ×ø±ê
         int A = permutation[X] + Y;
         int AA = permutation[A] + Z;
         int AB = permutation[A + 1] + Z;
@@ -49,37 +38,72 @@ public:
         int BA = permutation[B] + Z;
         int BB = permutation[B + 1] + Z;
 
-        // »ìºÏ8¸ö½ÇµÄ¹±Ï×
         double res = lerp(
-                w,
-                lerp(v, lerp(u, grad(permutation[AA], x, y, z), grad(permutation[BA], x - 1, y, z)),
-                     lerp(u, grad(permutation[AB], x, y - 1, z), grad(permutation[BB], x - 1, y - 1, z))),
-                lerp(v, lerp(u, grad(permutation[AA + 1], x, y, z - 1), grad(permutation[BA + 1], x - 1, y, z - 1)),
-                     lerp(u, grad(permutation[AB + 1], x, y - 1, z - 1),
-                          grad(permutation[BB + 1], x - 1, y - 1, z - 1))));
-        return (res + 1.0) / 2.0; // ½«½á¹ûÓ³Éäµ½[0,1]·¶Î§
+            w,
+            lerp(v,
+                lerp(u, grad(permutation[AA], x, y, z),     grad(permutation[BA], x - 1, y, z)),
+                lerp(u, grad(permutation[AB], x, y - 1, z),  grad(permutation[BB], x - 1, y - 1, z))
+            ),
+            lerp(v,
+                lerp(u, grad(permutation[AA + 1], x, y, z - 1),    grad(permutation[BA + 1], x - 1, y, z - 1)),
+                lerp(u, grad(permutation[AB + 1], x, y - 1, z - 1), grad(permutation[BB + 1], x - 1, y - 1, z - 1))
+            )
+        );
+        return (res + 1.0) * 0.5;
+    }
+
+    // ä¾¿æ· 2D è°ƒç”¨
+    inline double noise2D(double x, double y) const { return noise(x, y, 0.0); }
+
+    // fBmï¼šåˆ†å½¢å¸ƒæœ—è¿åŠ¨ï¼ŒæŸ”å’Œè¿è´¯
+    double fbm2D(double x, double y, int octaves, double lacunarity = 2.0, double gain = 0.5) const
+    {
+        double sum = 0.0, amp = 0.5, freq = 1.0, norm = 0.0;
+        for (int i = 0; i < octaves; ++i)
+        {
+            sum += (noise2D(x * freq, y * freq) * 2.0 - 1.0) * amp; // [-1,1]
+            norm += amp;
+            amp *= gain;
+            freq *= lacunarity;
+        }
+        sum /= (norm > 0.0 ? norm : 1.0); // å½’ä¸€
+        return (sum + 1.0) * 0.5; // [0,1]
+    }
+
+    // Ridged multifractalï¼šå±±å³°æ¸…æ™°ï¼Œè°·åº•é”åˆ©
+    double ridged2D(double x, double y, int octaves, double lacunarity = 2.0, double gain = 0.5) const
+    {
+        double sum = 0.0, amp = 0.5, freq = 1.0, norm = 0.0;
+        for (int i = 0; i < octaves; ++i)
+        {
+            double n = noise2D(x * freq, y * freq) * 2.0 - 1.0; // [-1,1]
+            n = 1.0 - std::abs(n);  // å³°å€¼åè½¬
+            n *= n;                 // æ›´å°–é”
+            sum += n * amp;
+            norm += amp;
+            amp *= gain;
+            freq *= lacunarity;
+        }
+        sum /= (norm > 0.0 ? norm : 1.0);
+        return sum; // [0,1]
+    }
+
+    // Domain warpï¼šå¯¹è¾“å…¥åæ ‡è¿›è¡Œå°å¹…æ‰°åŠ¨ï¼Œç ´é™¤ç½‘æ ¼æ„Ÿ
+    void domainWarp2D(double &x, double &y, double warpScale = 0.25, double warpAmp = 2.0) const
+    {
+        double dx = (noise2D(x * warpScale + 37.2, y * warpScale + 11.7) * 2.0 - 1.0) * warpAmp;
+        double dy = (noise2D(x * warpScale - 19.4, y * warpScale + 73.8) * 2.0 - 1.0) * warpAmp;
+        x += dx; y += dy;
     }
 
 private:
-    // »ººÍÇúÏß (6t^5 - 15t^4 + 10t^3)
-    static double fade(double t)
-    {
-        return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-
-    // ÏßĞÔ²åÖµ
-    static double lerp(double t, double a, double b)
-    {
-        return a + t * (b - a);
-    }
-
-    // ¼ÆËãÌİ¶ÈÏòÁ¿²¢¼ÆËãµã»ı
+    static double fade(double t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+    static double lerp(double t, double a, double b) { return a + t * (b - a); }
     static double grad(int hash, double x, double y, double z)
     {
         int h = hash & 15;
-        // ½«4Î»¹şÏ£Öµ×ª»»Îª12¸öÌİ¶È·½ÏòÖ®Ò»
         double u = h < 8 ? x : y;
-        double v = h < 4 ? y : h == 12 || h == 14 ? x : z;
+        double v = h < 4 ? y : (h == 12 || h == 14 ? x : z);
         return ((h & 1) == 0 ? u : -u) + ((h & 2) == 0 ? v : -v);
     }
 };

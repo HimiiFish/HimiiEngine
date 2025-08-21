@@ -1,6 +1,8 @@
 #include "CubeLayer.h"
 #include <array>
+#include <algorithm>
 #include "Himii/Events/ApplicationEvent.h"
+#include "Himii/Core/Log.h"
 #include "Himii/Renderer/RenderCommand.h"
 #include "Terrain.h"
 #include "glad/glad.h"
@@ -30,30 +32,11 @@ void CubeLayer::OnAttach()
 {
     // 开启深度测试（如全局已开启可省略）
     glEnable(GL_DEPTH_TEST);
-    // 开启背面剔除，减少填充开销
-    glEnable(GL_CULL_FACE);
-    glCullFace(GL_BACK);
-    glFrontFace(GL_CCW);
+    // 背面剔除：为排查可见性问题，先禁用（确认正常后可再开启并校正三角形绕序）
+    glDisable(GL_CULL_FACE);
 
-    // 1) 顶点数据：准备地形网格 VA（会动态填充）
+    // 1) 顶点数据：准备地形网格 VA（BuildTerrainMesh 内部会创建并填充 VB/IB）
     m_TerrainVA = Himii::VertexArray::Create();
-
-    // 顶点结构匹配 TemplateProject/assets/shaders/Texture.glsl
-    // layout(location=0) a_Position (vec3)
-    // layout(location=1) a_Color    (vec4)
-    // layout(location=2) a_TexCoord (vec2)
-    // layout(location=3) a_TexIndex (float)
-    // layout(location=4) a_TilingFactor (float)
-    const uint32_t kVertexStrideFloats = 3 + 4 + 2 + 1 + 1; // 11
-    // 先创建一个空 VB，稍后 BuildTerrainMesh 填充
-    auto vb = Himii::VertexBuffer::Create(1u * kVertexStrideFloats * sizeof(float));
-    Himii::BufferLayout layout = {
-            {Himii::ShaderDataType::Float3, "a_Position"},    {Himii::ShaderDataType::Float4, "a_Color"},
-            {Himii::ShaderDataType::Float2, "a_TexCoord"},    {Himii::ShaderDataType::Float, "a_TexIndex"},
-            {Himii::ShaderDataType::Float, "a_TilingFactor"},
-    };
-    vb->SetLayout(layout);
-    m_TerrainVA->AddVertexBuffer(vb);
 
     // 2) 地形索引缓冲稍后由 BuildTerrainMesh 生成
 
@@ -70,6 +53,11 @@ void CubeLayer::OnAttach()
 
     // 4) 基于柏林噪声生成 30x30x10 的体素地形网格
     BuildTerrainMesh();
+
+    // 5) 设置一个能看见地形的默认相机位置与朝向（避免出生在方块内部）
+    m_CamPos = { m_TerrainW * 0.5f, m_TerrainH * 1.2f, m_TerrainD + m_TerrainH * 1.0f };
+    m_CamTarget = { m_TerrainW * 0.5f, m_TerrainH * 0.5f, m_TerrainD * 0.5f };
+    m_OrientInitialized = false; // 让 UpdateCamera 基于新的目标重算 yaw/pitch
 }
 
 void CubeLayer::RebuildVB()
@@ -190,8 +178,18 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     ImGui::SeparatorText("Atlas (Grid)");
     // broken block removed
 }
-#endif
 
+#endif
+void CubeLayer::OnEvent(Himii::Event &e)
+{
+    using namespace Himii;
+    EventDispatcher dispatcher(e);
+    dispatcher.Dispatch<WindowResizeEvent>([&](WindowResizeEvent &ev) {
+        if (ev.GetHeight() > 0)
+            m_Aspect = (float)ev.GetWidth() / (float)ev.GetHeight();
+        return false;
+    });
+}
 void CubeLayer::UpdateCamera(Himii::Timestep ts)
 {
     using namespace Himii;
@@ -308,33 +306,146 @@ void CubeLayer::OnImGuiRender()
     {
         BuildTerrainMesh();
     }
+    ImGui::SeparatorText("Terrain Size");
+    static int w = m_TerrainW, d = m_TerrainD, h = m_TerrainH;
+    bool sizeChanged = false;
+    sizeChanged |= ImGui::DragInt("Width", &w, 1, 8, 512);
+    sizeChanged |= ImGui::DragInt("Depth", &d, 1, 8, 512);
+    sizeChanged |= ImGui::DragInt("Height", &h, 1, 8, 256);
+    if (sizeChanged)
+    {
+        w = std::max(8, std::min(512, w));
+        d = std::max(8, std::min(512, d));
+        h = std::max(8, std::min(256, h));
+    }
+    if (ImGui::Button("应用尺寸并重建"))
+    {
+        m_TerrainW = w; m_TerrainD = d; m_TerrainH = h;
+        BuildTerrainMesh();
+    }
+
+    ImGui::Checkbox("参数修改后自动重建", &m_AutoRebuild);
+    ImGui::SeparatorText("Noise (Perlin fBm/Ridged/Warp)");
+    bool nChanged = false;
+    nChanged |= ImGui::DragScalar("Seed", ImGuiDataType_U32, &m_Noise.seed, 1.0f);
+    nChanged |= ImGui::DragFloat("Biome Scale", &m_Noise.biomeScale, 0.001f, 0.001f, 1.0f);
+    nChanged |= ImGui::DragFloat("Continent Scale", &m_Noise.continentScale, 0.0005f, 0.002f, 0.05f);
+    nChanged |= ImGui::DragFloat("Continent Strength", &m_Noise.continentStrength, 0.01f, 0.0f, 1.0f);
+
+    ImGui::TextUnformatted("Plains (fBm)");
+    nChanged |= ImGui::DragFloat("Plains Scale", &m_Noise.plainsScale, 0.001f, 0.001f, 1.0f);
+    nChanged |= ImGui::DragInt("Plains Octaves", &m_Noise.plainsOctaves, 1.0f, 1, 12);
+    nChanged |= ImGui::DragFloat("Plains Lacunarity", &m_Noise.plainsLacunarity, 0.01f, 1.0f, 4.0f);
+    nChanged |= ImGui::DragFloat("Plains Gain", &m_Noise.plainsGain, 0.01f, 0.1f, 0.9f);
+
+    ImGui::TextUnformatted("Mountain (Ridged)");
+    nChanged |= ImGui::DragFloat("Mountain Scale", &m_Noise.mountainScale, 0.001f, 0.001f, 1.0f);
+    nChanged |= ImGui::DragInt("Mountain Octaves", &m_Noise.mountainOctaves, 1.0f, 1, 12);
+    nChanged |= ImGui::DragFloat("Mountain Lacunarity", &m_Noise.mountainLacunarity, 0.01f, 1.0f, 4.0f);
+    nChanged |= ImGui::DragFloat("Mountain Gain", &m_Noise.mountainGain, 0.01f, 0.1f, 0.9f);
+    nChanged |= ImGui::DragFloat("Ridge Sharpness", &m_Noise.ridgeSharpness, 0.01f, 0.5f, 3.0f);
+
+    ImGui::TextUnformatted("Warp");
+    nChanged |= ImGui::DragFloat("Warp Scale", &m_Noise.warpScale, 0.001f, 0.0f, 1.0f);
+    nChanged |= ImGui::DragFloat("Warp Amp", &m_Noise.warpAmp, 0.01f, 0.0f, 10.0f);
+    ImGui::TextUnformatted("Detail");
+    nChanged |= ImGui::DragFloat("Detail Scale", &m_Noise.detailScale, 0.001f, 0.02f, 1.0f);
+    nChanged |= ImGui::DragFloat("Detail Amp", &m_Noise.detailAmp, 0.01f, 0.0f, 0.5f);
+
+    ImGui::TextUnformatted("Shape");
+    nChanged |= ImGui::DragFloat("Height Mul", &m_Noise.heightMul, 0.01f, 0.1f, 2.0f);
+    nChanged |= ImGui::DragFloat("Plateau", &m_Noise.plateau, 0.01f, 0.0f, 1.0f);
+    nChanged |= ImGui::DragInt("Step Levels", &m_Noise.stepLevels, 1.0f, 1, 12);
+    nChanged |= ImGui::DragFloat("Curve Exponent", &m_Noise.curveExponent, 0.01f, 0.5f, 2.0f);
+    nChanged |= ImGui::DragFloat("Valley Depth", &m_Noise.valleyDepth, 0.01f, 0.0f, 0.4f);
+    nChanged |= ImGui::DragFloat("Sea Level", &m_Noise.seaLevel, 0.01f, 0.0f, 0.9f);
+    nChanged |= ImGui::DragFloat("Mountain Weight", &m_Noise.mountainWeight, 0.01f, 0.0f, 1.0f);
+    if (nChanged && m_AutoRebuild)
+        BuildTerrainMesh();
     ImGui::End();
 }
 
 void CubeLayer::BuildTerrainMesh()
 {
-    PerlinNoise perlin;
+    // 为避免缓冲区尺寸不足导致 glBufferSubData 失败，这里直接重建 VA/VB/IB
+    m_TerrainVA = Himii::VertexArray::Create();
+
+    PerlinNoise perlin(m_Noise.seed);
     const int W = m_TerrainW, D = m_TerrainD, H = m_TerrainH;
     std::vector<int> heightMap(W * D, 0);
-    const double scale = 0.12;
-    const int octaves = 3;
-    const double persistence = 0.5;
-    const double ampBase = H * 0.5;
     for (int z = 0; z < D; ++z)
+    {
         for (int x = 0; x < W; ++x)
         {
-            double value = 0.0, amp = ampBase, freq = scale;
-            for (int o = 0; o < octaves; ++o)
+            // 归一坐标 [0,1]
+            double nx = (double)x / (double)W;
+            double nz = (double)z / (double)D;
+
+            // 小幅 domain warp 去除网格感
+            double wx = nx, wz = nz;
+            perlin.domainWarp2D(wx, wz, (double)m_Noise.warpScale, (double)m_Noise.warpAmp);
+
+            // 低频群落权重（0..1），调制山地比重
+            double biome = perlin.fbm2D(nx * (double)m_Noise.biomeScale, nz * (double)m_Noise.biomeScale, 3, 2.0, 0.5);
+            biome = std::clamp(biome * (double)m_Noise.mountainWeight, 0.0, 1.0);
+
+            // 大洲层：决定“大陆-海洋”的宏观起伏
+            double continent = perlin.fbm2D(nx * (double)m_Noise.continentScale,
+                                            nz * (double)m_Noise.continentScale,
+                                            4, 2.0, 0.5); // 0..1
+            continent = (continent * 2.0 - 1.0); // [-1,1]
+            continent = std::clamp(continent * (double)m_Noise.continentStrength, -1.0, 1.0);
+            // 映射至 0..1，正值抬升，负值压低
+            double continentLift = (continent + 1.0) * 0.5; // 0..1
+
+            // 平原（柔和）与山地（脊状）两套噪声
+            double plains = perlin.fbm2D(wx * (double)m_Noise.plainsScale, wz * (double)m_Noise.plainsScale,
+                                         m_Noise.plainsOctaves, (double)m_Noise.plainsLacunarity, (double)m_Noise.plainsGain); // 0..1
+            double mountain = perlin.ridged2D(wx * (double)m_Noise.mountainScale, wz * (double)m_Noise.mountainScale,
+                                              m_Noise.mountainOctaves, (double)m_Noise.mountainLacunarity, (double)m_Noise.mountainGain); // 0..1
+            // 山脊锐度提升
+            mountain = std::pow(std::clamp(mountain, 0.0, 1.0), 1.0 / std::max(0.1, (double)m_Noise.ridgeSharpness));
+
+            // 按群落混合
+            // 细节层（打花纹 & 小起伏）
+            double detail = perlin.fbm2D(wx * (double)m_Noise.detailScale, wz * (double)m_Noise.detailScale,
+                                         3, 2.0, 0.5);
+            // 核心高度合成
+            double h01 = plains * (1.0 - biome) + mountain * biome; // 0..1
+            h01 = h01 + (detail - 0.5) * 2.0 * (double)m_Noise.detailAmp; // [-detailAmp, +detailAmp]
+            h01 = std::clamp(h01, 0.0, 1.0);
+            // 注入大陆大尺度抬升/压低
+            h01 = (h01 * 0.8 + continentLift * 0.2);
+
+            // 台地整形（可选）：将高度拉向 1/steps 的分段
+            if (m_Noise.plateau > 0.0f)
             {
-                double n = perlin.noise(x * freq, z * freq);
-                value += (n * 2.0 - 1.0) * amp;
-                amp *= persistence;
-                freq *= 2.0;
+                const double steps = std::max(1, m_Noise.stepLevels);
+                double stepped = std::floor(h01 * steps) / steps;
+                h01 = h01 * (1.0 - (double)m_Noise.plateau) + stepped * (double)m_Noise.plateau;
             }
-            int h = (int)glm::round((H * 0.5) + value);
+
+            // 高度分布调整：指数曲线（>1 提升高区占比）
+            h01 = std::pow(std::clamp(h01, 0.0, 1.0), 1.0 / std::max(0.1, (double)m_Noise.curveExponent));
+
+            // 谷地下切：加强低处沟壑（适度）
+            if (m_Noise.valleyDepth > 0.0f)
+            {
+                double v = (0.5 - h01);
+                h01 -= v * (double)m_Noise.valleyDepth; // 低处更低，高处几乎不变
+                h01 = std::clamp(h01, 0.0, 1.0);
+            }
+
+            // 海平面抬升
+            h01 = std::max(h01, (double)m_Noise.seaLevel);
+
+            // 映射到体素高度
+            double maxH = (double)(H - 1);
+            int h = (int)glm::round(h01 * (double)m_Noise.heightMul * maxH);
             h = glm::clamp(h, 0, H - 1);
             heightMap[z * W + x] = h;
         }
+    }
 
     std::vector<float> vertices;
     std::vector<uint32_t> indices;
@@ -455,20 +566,14 @@ void CubeLayer::BuildTerrainMesh()
     if (vertices.empty() || indices.empty())
         return;
 
-    auto &vbs = m_TerrainVA->GetVertexBuffers();
-    if (!vbs.empty())
-        vbs[0]->SetData(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
-    else
-    {
-        auto vb = Himii::VertexBuffer::Create(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
-        Himii::BufferLayout layout = {
-                {Himii::ShaderDataType::Float3, "a_Position"},    {Himii::ShaderDataType::Float4, "a_Color"},
-                {Himii::ShaderDataType::Float2, "a_TexCoord"},    {Himii::ShaderDataType::Float, "a_TexIndex"},
-                {Himii::ShaderDataType::Float, "a_TilingFactor"},
-        };
-        vb->SetLayout(layout);
-        m_TerrainVA->AddVertexBuffer(vb);
-    }
+    auto vb = Himii::VertexBuffer::Create(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
+    Himii::BufferLayout layout = {
+            {Himii::ShaderDataType::Float3, "a_Position"},    {Himii::ShaderDataType::Float4, "a_Color"},
+            {Himii::ShaderDataType::Float2, "a_TexCoord"},    {Himii::ShaderDataType::Float, "a_TexIndex"},
+            {Himii::ShaderDataType::Float, "a_TilingFactor"},
+    };
+    vb->SetLayout(layout);
+    m_TerrainVA->AddVertexBuffer(vb);
 
     auto ib = Himii::IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size()));
     m_TerrainVA->SetIndexBuffer(ib);
