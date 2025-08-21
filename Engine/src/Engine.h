@@ -24,5 +24,6 @@
 #include "Himii/Renderer/OrthographicCamera.h"
 #include "Himii/Renderer/OrthographicCameraController.h"
 #include "Himii/Renderer/Texture.h"
+#include "Himii/Renderer/Framebuffer.h"
 
 //---------其他-----------

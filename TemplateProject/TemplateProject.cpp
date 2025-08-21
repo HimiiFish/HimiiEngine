@@ -3,6 +3,7 @@
 #include "ExampleLayer.h"
 #include "Example2D.h"
 #include "CubeLayer.h"
+#include "EditorLayer.h"
 
 #include <iostream>
 
@@ -15,6 +16,8 @@ public:
         //PushLayer(new ExampleLayer());
         //PushLayer(new Example2D);
         PushLayer(new CubeLayer); // 启用立方体示例
+    // 叠加编辑器Overlay
+    PushOverlay(new EditorLayer());
     }
 
     virtual ~TemplateProject()

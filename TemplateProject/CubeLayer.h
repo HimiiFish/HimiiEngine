@@ -120,4 +120,8 @@ private:
     BlockUV m_GrassUV{{2, 12}, {1, 14}, {1, 12}}; // 草方块：top/side/bottom
     BlockUV m_DirtUV{{1, 13}, {1, 13}, {1, 13}};  // 泥土：一般三面相同，可只用 side
     BlockUV m_StoneUV{{7, 8}, {7, 8}, {7, 8}}; // 石头：三面相同，可只用 side
+
+    // 离屏渲染
+    Himii::Ref<Himii::Framebuffer> m_Framebuffer;
+    Himii::Ref<Himii::Framebuffer> m_GameFramebuffer;
 };
