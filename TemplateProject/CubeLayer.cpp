@@ -11,7 +11,7 @@
 #include "glad/glad.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "imgui.h"
+// #include "imgui.h" // moved all UI to EditorLayer Inspector
 
 CubeLayer::CubeLayer() : Himii::Layer("CubeLayer")
 {
@@ -39,107 +39,56 @@ void CubeLayer::OnAttach()
     // 背面剔除：为排查可见性问题，先禁用（确认正常后可再开启并校正三角形绕序）
     glDisable(GL_CULL_FACE);
 
-    // 1) 顶点数据：准备地形网格 VA（BuildTerrainMesh 内部会创建并填充 VB/IB）
-    m_TerrainVA = Himii::VertexArray::Create();
-
-    // 2) 地形索引缓冲稍后由 BuildTerrainMesh 生成
-
-    // 3) 载入贴图、着色器
-    m_Atlas = Himii::Texture2D::Create("assets/textures/blocks.png");
-    // 如需 Pixel 模式可在此读取像素尺寸：m_Atlas->GetWidth()/GetHeight()
-    m_TextureShader = m_ShaderLibrary.Load("assets/shaders/Texture.glsl");
-    m_LitShader = m_ShaderLibrary.Load("assets/shaders/LitTexture.glsl");
-    m_SkyboxShader = m_ShaderLibrary.Load("assets/shaders/Skybox.glsl");
-
-    m_TextureShader->Bind();
-    // 设置采样器数组 [0..31]，确保 v_TexIndex=0 时能采样到纹理槽0
-    int samplers[32];
-    for (int i = 0; i < 32; ++i)
-        samplers[i] = i;
-    m_TextureShader->SetIntArray("u_Texture", samplers, 32);
-    m_LitShader->Bind();
-    m_LitShader->SetIntArray("u_Texture", samplers, 32);
-
-    // 4) 基于柏林噪声生成体素地形网格
-    BuildTerrainMesh();
-
-    // 4.5) 构建天空盒
-    BuildSkybox();
-
-    // 5) 设置一个能看见地形的默认相机位置与朝向（避免出生在方块内部）
-    m_CamPos = {m_TerrainW * 0.5f, m_TerrainH * 1.2f, m_TerrainD + m_TerrainH * 1.0f};
-    m_CamTarget = {m_TerrainW * 0.5f, m_TerrainH * 0.5f, m_TerrainD * 0.5f};
-    m_OrientInitialized = false; // 让 UpdateCamera 基于新的目标重算 yaw/pitch
-    // 6) 创建离屏帧缓冲（初始给窗口大小，稍后由 EditorLayer 面板驱动调整）
-    auto &app = Himii::Application::Get();
-    uint32_t winW = app.GetWindow().GetWidth();
-    uint32_t winH = app.GetWindow().GetHeight();
-    Himii::FramebufferSpecification fbSpec{winW, winH};
-    m_Framebuffer = Himii::Framebuffer::Create(fbSpec);
-    m_GameFramebuffer = Himii::Framebuffer::Create(fbSpec);
-}
-
-void CubeLayer::RebuildVB()
-{
-    // 使用 Texture2D 的图集 UV API（按归一 padding）
-    auto makeQuadUV = [&](int col, int row) -> std::array<glm::vec2, 4>
+    // 0) 创建离屏帧缓冲（Scene/Game），初始尺寸给一个合理默认，后续由 Editor 面板驱动 Resize
     {
-        float pad = m_GridPadding; // 这里 m_GridPadding 已按归一（0..1）使用
-        return m_Atlas->GetUVFromGrid(col, row, m_AtlasCols, m_AtlasRows, pad);
-    };
+        Himii::FramebufferSpecification fbSpec;
+        fbSpec.Width = 1280; fbSpec.Height = 720;
+        m_Framebuffer = Himii::Framebuffer::Create(fbSpec);
+        m_GameFramebuffer = Himii::Framebuffer::Create(fbSpec);
+    }
 
-    auto uvF = makeQuadUV(m_GrassUV.side.col,   m_GrassUV.side.row);
-    auto uvB = uvF;
-    auto uvL = uvF;
-    auto uvR = uvF;
-    auto uvT = makeQuadUV(m_GrassUV.top.col,    m_GrassUV.top.row);
-    auto uvD = makeQuadUV(m_GrassUV.bottom.col, m_GrassUV.bottom.row);
-
-    std::vector<float> vertices;
-    vertices.reserve(24 * 11);
-
-    const float s = 0.5f;
-    glm::vec3 f[4] = {{-s, -s, s}, {s, -s, s}, {s, s, s}, {-s, s, s}};
-    glm::vec3 b[4] = {{s, -s, -s}, {-s, -s, -s}, {-s, s, -s}, {s, s, -s}};
-    glm::vec3 l[4] = {{-s, -s, -s}, {-s, -s, s}, {-s, s, s}, {-s, s, -s}};
-    glm::vec3 r[4] = {{s, -s, s}, {s, -s, -s}, {s, s, -s}, {s, s, s}};
-    glm::vec3 t[4] = {{-s, s, s}, {s, s, s}, {s, s, -s}, {-s, s, -s}};
-    glm::vec3 d[4] = {{-s, -s, -s}, {s, -s, -s}, {s, -s, s}, {-s, -s, s}};
-
-    auto pushFace = [&](glm::vec3 v[4], std::array<glm::vec2, 4> &uvs)
+    // 1) 加载着色器与纹理资源
     {
-        const float rC = 1.0f, gC = 1.0f, bC = 1.0f, aC = 1.0f;
-        const float texIndex = 0.0f;
-        const float tiling = 1.0f;
-        for (int i = 0; i < 4; ++i)
+        // 着色器位于 TemplateProject/assets/shaders
+        m_LitShader = m_ShaderLibrary.Load("assets/shaders/LitTexture.glsl");
+        m_SkyboxShader = m_ShaderLibrary.Load("assets/shaders/Skybox.glsl");
+
+        // 纹理图集（体素贴图）
+        m_Atlas = Himii::Texture2D::Create("assets/textures/blocks.png");
+
+        // 初始化采样器数组（LitTexture.glsl 使用 u_Texture[32]）
+        if (m_LitShader)
         {
-            vertices.push_back(v[i].x);
-            vertices.push_back(v[i].y);
-            vertices.push_back(v[i].z);
-            vertices.push_back(rC);
-            vertices.push_back(gC);
-            vertices.push_back(bC);
-            vertices.push_back(aC);
-            vertices.push_back(uvs[i].x);
-            vertices.push_back(uvs[i].y);
-            vertices.push_back(texIndex);
-            vertices.push_back(tiling);
+            int samplers[32];
+            for (int i = 0; i < 32; ++i) samplers[i] = i;
+            m_LitShader->Bind();
+            m_LitShader->SetIntArray("u_Texture", samplers, 32);
         }
-    };
+    }
 
-    pushFace(f, uvF);
-    pushFace(b, uvB);
-    pushFace(l, uvL);
-    pushFace(r, uvR);
-    pushFace(t, uvT);
-    pushFace(d, uvD);
+    // 2) 生成网格：地形与天空盒
+    BuildTerrainMesh();
+    BuildSkybox();
+    // 3) 绑定到 ECS 实体，供 Scene::OnUpdate 渲染
+    BuildECSScene();
 
-    m_CubeVA->GetVertexBuffers()[0]->SetData(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
+    // 4) 将当前场景注入 Editor，确保 Hierarchy/Inspector 可见
+    if (auto *editor = dynamic_cast<EditorLayer*>(Himii::Application::Get().GetLayerStack().begin()!=Himii::Application::Get().GetLayerStack().end() ? *Himii::Application::Get().GetLayerStack().begin() : nullptr))
+    {
+        if (editor && editor->GetActiveScene() != &m_Scene)
+            editor->SetActiveScene(&m_Scene);
+    }
+    else
+    {
+        // 遍历查找 EditorLayer（更稳妥）
+        for (auto *layer : Himii::Application::Get().GetLayerStack())
+            if (auto *ed = dynamic_cast<EditorLayer*>(layer)) { ed->SetActiveScene(&m_Scene); break; }
+    }
 }
 
 void CubeLayer::OnDetach()
 {
-    // 这里不强制关闭，由更高层统一管理；如需关闭可恢复：glDisable(GL_DEPTH_TEST);
+    HIMII_PROFILE_FUNCTION();
 }
 
 void CubeLayer::OnUpdate(Himii::Timestep ts)
@@ -152,6 +101,9 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     for (auto *layer: appRef.GetLayerStack())
         if ((editorRef = dynamic_cast<EditorLayer *>(layer)))
             break;
+    // 确保 EditorLayer 持有当前场景（避免启动顺序导致的空指针）
+    if (editorRef && editorRef->GetActiveScene() != &m_Scene)
+        editorRef->SetActiveScene(&m_Scene);
     uint32_t sceneW = 0, sceneH = 0, gameW = 0, gameH = 0;
     float aspectScene = m_Aspect, aspectGame = m_Aspect;
     if (editorRef && m_Framebuffer)
@@ -187,7 +139,7 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     if (!editorRef || editorRef->IsSceneHovered() || editorRef->IsSceneFocused())
         UpdateCamera(ts);
 
-    // 渲染函数：把一帧画到指定帧缓冲
+    // 渲染函数：把一帧画到指定帧缓冲（ECS 提交在 Scene::OnUpdate 内部）
     auto renderTo = [this](Himii::Ref<Himii::Framebuffer> fb, float aspect)
     {
         if (!fb)
@@ -199,29 +151,21 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
         glm::mat4 transform(1.0f);
         // 计算透视投影与视图矩阵（使用传入 aspect）
         const float fovYRad = glm::radians(m_FovYDeg);
-        glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ);
+    glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ); 
         glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
         glm::mat4 viewProj = projection * view;
 
-        // 提交绘制：先天空盒，再地形
-        Himii::Renderer::BeginScene(viewProj);
-        glDepthFunc(GL_LEQUAL);
-        glDepthMask(GL_FALSE);
-        if (m_SkyboxVA)
+        // 将每帧可变数据（比如天空盒围绕相机的缩放/旋转）写入到对应实体的 Transform 上
+        if (m_SkyboxEntity)
         {
-            glm::mat4 skyTransform =
-                    glm::translate(glm::mat4(1.0f), m_CamPos) * glm::scale(glm::mat4(1.0f), glm::vec3(m_FarZ * 0.5f));
-            m_SkyboxShader->Bind();
-            m_SkyboxShader->SetFloat3("u_TopColor", {0.24f, 0.52f, 0.88f});
-            m_SkyboxShader->SetFloat3("u_HorizonColor", {0.85f, 0.90f, 0.98f});
-            m_SkyboxShader->SetFloat3("u_BottomColor", {0.95f, 0.95f, 1.00f});
-            Himii::Renderer::Submit(m_SkyboxShader, m_SkyboxVA, skyTransform);
+            auto &tr = m_SkyboxEntity.GetComponent<Himii::Transform>();
+            tr.Position = m_CamPos; // 天空盒跟随相机位置
+            tr.Scale = glm::vec3(m_FarZ * 0.5f);
+            tr.Rotation = {0.0f, glm::radians(m_Angle), 0.0f};
         }
-        glDepthMask(GL_TRUE);
-        glDepthFunc(GL_LESS);
 
-        m_Atlas->Bind(0);
-        if (m_TerrainVA)
+        // 一些全局材质/灯光参数，通过 Shader 的外部接口设置一次
+        if (m_LitShader)
         {
             m_LitShader->Bind();
             m_LitShader->SetFloat3("u_AmbientColor", m_AmbientColor);
@@ -229,8 +173,11 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
             m_LitShader->SetFloat3("u_LightDir", m_LightDir);
             m_LitShader->SetFloat3("u_LightColor", m_LightColor);
             m_LitShader->SetFloat("u_LightIntensity", m_LightIntensity);
-            Himii::Renderer::Submit(m_LitShader, m_TerrainVA, transform);
         }
+
+        // 由 Renderer 管线包裹 ECS 的渲染
+        Himii::Renderer::BeginScene(viewProj);
+        m_Scene.OnUpdate({});
         Himii::Renderer::EndScene();
         fb->Unbind();
     };
@@ -259,28 +206,7 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     }
 }
 
-#if 0 // disabled broken duplicate definition
-    void CubeLayer::OnImGuiRender()
-{
-    ImGui::Begin("Cube Settings");
-    ImGui::Text("均值延迟 %.3f ms/帧率 (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::SeparatorText("Camera (Perspective)");
-    ImGui::DragFloat("FovY (deg)", &m_FovYDeg, 0.1f, 10.0f, 120.0f);
-    ImGui::DragFloat("NearZ", &m_NearZ, 0.01f, 0.01f, 10.0f);
-    ImGui::DragFloat("FarZ", &m_FarZ, 1.0f, 10.0f, 1000.0f);
-    ImGui::DragFloat3("Cam Pos", &m_CamPos.x, 0.05f);
-    ImGui::DragFloat3("Cam Target", &m_CamTarget.x, 0.05f);
-    ImGui::DragFloat3("Cam Up", &m_CamUp.x, 0.05f);
-    ImGui::DragFloat("Aspect", &m_Aspect, 0.01f, 0.1f, 5.0f);
-    ImGui::Checkbox("Mouse Look (hold RMB)", &m_MouseLook);
-    ImGui::DragFloat("Move Speed", &m_MoveSpeed, 0.1f, 0.1f, 50.0f);
-    ImGui::DragFloat("Mouse Sensitivity (deg/px)", &m_MouseSensitivity, 0.01f, 0.01f, 2.0f);
-
-    ImGui::SeparatorText("Atlas (Grid)");
-    // broken block removed
-}
-
-#endif
+// 该层不再承担 ImGui 参数调试，改由 EditorLayer 的 Inspector 面板管理
 void CubeLayer::OnEvent(Himii::Event &e)
 {
     using namespace Himii;
@@ -367,115 +293,7 @@ void CubeLayer::UpdateCamera(Himii::Timestep ts)
     m_CamUp = up;
 }
 
-void CubeLayer::OnImGuiRender()
-{
-    ImGui::Begin("Cube Settings");
-    ImGui::Text("均值延迟 %.3f ms/帧率 (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::SeparatorText("Camera (Perspective)");
-    ImGui::DragFloat("FovY (deg)", &m_FovYDeg, 0.1f, 10.0f, 120.0f);
-    ImGui::DragFloat("NearZ", &m_NearZ, 0.01f, 0.01f, 10.0f);
-    ImGui::DragFloat("FarZ", &m_FarZ, 1.0f, 10.0f, 1000.0f);
-    ImGui::DragFloat3("Cam Pos", &m_CamPos.x, 0.05f);
-    ImGui::DragFloat3("Cam Target", &m_CamTarget.x, 0.05f);
-    ImGui::DragFloat3("Cam Up", &m_CamUp.x, 0.05f);
-    ImGui::DragFloat("Aspect", &m_Aspect, 0.01f, 0.1f, 5.0f);
-    ImGui::Checkbox("Mouse Look (hold RMB)", &m_MouseLook);
-    ImGui::DragFloat("Move Speed", &m_MoveSpeed, 0.1f, 0.1f, 50.0f);
-    ImGui::DragFloat("Mouse Sensitivity (deg/px)", &m_MouseSensitivity, 0.01f, 0.01f, 2.0f);
-
-    ImGui::SeparatorText("Atlas (Grid)");
-    bool atlasChanged = false;
-    atlasChanged |= ImGui::DragInt("Atlas Cols", &m_AtlasCols, 1, 1, 64);
-    atlasChanged |= ImGui::DragInt("Atlas Rows", &m_AtlasRows, 1, 1, 64);
-    atlasChanged |= ImGui::DragFloat("Grid Padding", &m_GridPadding, 0.0005f, 0.0f, 0.05f);
-
-    ImGui::SeparatorText("Block UV Mapping (col,row)");
-    ImGui::TextUnformatted("Grass");
-    atlasChanged |= ImGui::DragInt2("Grass Top", &m_GrassUV.top.col);
-    atlasChanged |= ImGui::DragInt2("Grass Side", &m_GrassUV.side.col);
-    atlasChanged |= ImGui::DragInt2("Grass Bottom", &m_GrassUV.bottom.col);
-    ImGui::Separator();
-    ImGui::TextUnformatted("Dirt");
-    atlasChanged |= ImGui::DragInt2("Dirt Top", &m_DirtUV.top.col);
-    atlasChanged |= ImGui::DragInt2("Dirt Side", &m_DirtUV.side.col);
-    atlasChanged |= ImGui::DragInt2("Dirt Bottom", &m_DirtUV.bottom.col);
-    ImGui::Separator();
-    ImGui::TextUnformatted("Stone");
-    atlasChanged |= ImGui::DragInt2("Stone Top", &m_StoneUV.top.col);
-    atlasChanged |= ImGui::DragInt2("Stone Side", &m_StoneUV.side.col);
-    atlasChanged |= ImGui::DragInt2("Stone Bottom", &m_StoneUV.bottom.col);
-
-    if (ImGui::Button("重建地形 (应用上述 UV)") || atlasChanged)
-    {
-        BuildTerrainMesh();
-    }
-    ImGui::SeparatorText("Terrain Size");
-    static int w = m_TerrainW, d = m_TerrainD, h = m_TerrainH;
-    bool sizeChanged = false;
-    sizeChanged |= ImGui::DragInt("Width", &w, 1, 8, 512);
-    sizeChanged |= ImGui::DragInt("Depth", &d, 1, 8, 512);
-    sizeChanged |= ImGui::DragInt("Height", &h, 1, 8, 256);
-    if (sizeChanged)
-    {
-        w = std::max(8, std::min(512, w));
-        d = std::max(8, std::min(512, d));
-        h = std::max(8, std::min(256, h));
-    }
-    if (ImGui::Button("应用尺寸并重建"))
-    {
-        m_TerrainW = w;
-        m_TerrainD = d;
-        m_TerrainH = h;
-        BuildTerrainMesh();
-    }
-
-    ImGui::Checkbox("参数修改后自动重建", &m_AutoRebuild);
-    ImGui::SeparatorText("Noise (Perlin fBm/Ridged/Warp)");
-    bool nChanged = false;
-    nChanged |= ImGui::DragScalar("Seed", ImGuiDataType_U32, &m_Noise.seed, 1.0f);
-    nChanged |= ImGui::DragFloat("Biome Scale", &m_Noise.biomeScale, 0.001f, 0.001f, 1.0f);
-    nChanged |= ImGui::DragFloat("Continent Scale", &m_Noise.continentScale, 0.0005f, 0.002f, 0.05f);
-    nChanged |= ImGui::DragFloat("Continent Strength", &m_Noise.continentStrength, 0.01f, 0.0f, 1.0f);
-
-    ImGui::TextUnformatted("Plains (fBm)");
-    nChanged |= ImGui::DragFloat("Plains Scale", &m_Noise.plainsScale, 0.001f, 0.001f, 1.0f);
-    nChanged |= ImGui::DragInt("Plains Octaves", &m_Noise.plainsOctaves, 1.0f, 1, 12);
-    nChanged |= ImGui::DragFloat("Plains Lacunarity", &m_Noise.plainsLacunarity, 0.01f, 1.0f, 4.0f);
-    nChanged |= ImGui::DragFloat("Plains Gain", &m_Noise.plainsGain, 0.01f, 0.1f, 0.9f);
-
-    ImGui::TextUnformatted("Mountain (Ridged)");
-    nChanged |= ImGui::DragFloat("Mountain Scale", &m_Noise.mountainScale, 0.001f, 0.001f, 1.0f);
-    nChanged |= ImGui::DragInt("Mountain Octaves", &m_Noise.mountainOctaves, 1.0f, 1, 12);
-    nChanged |= ImGui::DragFloat("Mountain Lacunarity", &m_Noise.mountainLacunarity, 0.01f, 1.0f, 4.0f);
-    nChanged |= ImGui::DragFloat("Mountain Gain", &m_Noise.mountainGain, 0.01f, 0.1f, 0.9f);
-    nChanged |= ImGui::DragFloat("Ridge Sharpness", &m_Noise.ridgeSharpness, 0.01f, 0.5f, 3.0f);
-
-    ImGui::TextUnformatted("Warp");
-    nChanged |= ImGui::DragFloat("Warp Scale", &m_Noise.warpScale, 0.001f, 0.0f, 1.0f);
-    nChanged |= ImGui::DragFloat("Warp Amp", &m_Noise.warpAmp, 0.01f, 0.0f, 10.0f);
-    ImGui::TextUnformatted("Detail");
-    nChanged |= ImGui::DragFloat("Detail Scale", &m_Noise.detailScale, 0.001f, 0.02f, 1.0f);
-    nChanged |= ImGui::DragFloat("Detail Amp", &m_Noise.detailAmp, 0.01f, 0.0f, 0.5f);
-
-    ImGui::TextUnformatted("Shape");
-    nChanged |= ImGui::DragFloat("Height Mul", &m_Noise.heightMul, 0.01f, 0.1f, 2.0f);
-    nChanged |= ImGui::DragFloat("Plateau", &m_Noise.plateau, 0.01f, 0.0f, 1.0f);
-    nChanged |= ImGui::DragInt("Step Levels", &m_Noise.stepLevels, 1.0f, 1, 12);
-    nChanged |= ImGui::DragFloat("Curve Exponent", &m_Noise.curveExponent, 0.01f, 0.5f, 2.0f);
-    nChanged |= ImGui::DragFloat("Valley Depth", &m_Noise.valleyDepth, 0.01f, 0.0f, 0.4f);
-    nChanged |= ImGui::DragFloat("Sea Level", &m_Noise.seaLevel, 0.01f, 0.0f, 0.9f);
-    nChanged |= ImGui::DragFloat("Mountain Weight", &m_Noise.mountainWeight, 0.01f, 0.0f, 1.0f);
-    if (nChanged && m_AutoRebuild)
-        BuildTerrainMesh();
-
-    ImGui::SeparatorText("Lighting");
-    ImGui::ColorEdit3("Ambient Color", &m_AmbientColor.x);
-    ImGui::DragFloat("Ambient Intensity", &m_AmbientIntensity, 0.01f, 0.0f, 2.0f);
-    ImGui::DragFloat3("Light Dir", &m_LightDir.x, 0.01f, -1.0f, 1.0f);
-    ImGui::ColorEdit3("Light Color", &m_LightColor.x);
-    ImGui::DragFloat("Light Intensity", &m_LightIntensity, 0.01f, 0.0f, 4.0f);
-    ImGui::End();
-}
+// OnImGuiRender 已移除
 
 void CubeLayer::BuildTerrainMesh()
 {
@@ -723,4 +541,37 @@ void CubeLayer::BuildSkybox()
     m_SkyboxVA->AddVertexBuffer(vb);
     auto ib = Himii::IndexBuffer::Create(idx.data(), (uint32_t)idx.size());
     m_SkyboxVA->SetIndexBuffer(ib);
+}
+
+void CubeLayer::BuildECSScene()
+{
+    // 创建或刷新地形实体
+    if (!m_TerrainEntity)
+        m_TerrainEntity = m_Scene.CreateEntity("Terrain");
+    if (!m_TerrainEntity.HasComponent<Himii::Transform>())
+        m_TerrainEntity.AddComponent<Himii::Transform>();
+    if (!m_TerrainEntity.HasComponent<Himii::MeshRenderer>())
+        m_TerrainEntity.AddComponent<Himii::MeshRenderer>();
+    {
+        auto &mr = m_TerrainEntity.GetComponent<Himii::MeshRenderer>();
+        mr.vertexArray = m_TerrainVA;
+        mr.shader = m_LitShader;
+        mr.texture = m_Atlas;
+    }
+
+    // 创建或刷新天空盒实体
+    if (!m_SkyboxEntity)
+        m_SkyboxEntity = m_Scene.CreateEntity("Skybox");
+    if (!m_SkyboxEntity.HasComponent<Himii::Transform>())
+        m_SkyboxEntity.AddComponent<Himii::Transform>();
+    if (!m_SkyboxEntity.HasComponent<Himii::MeshRenderer>())
+        m_SkyboxEntity.AddComponent<Himii::MeshRenderer>();
+    if (!m_SkyboxEntity.HasComponent<Himii::SkyboxTag>())
+        m_SkyboxEntity.AddComponent<Himii::SkyboxTag>();
+    {
+        auto &mr = m_SkyboxEntity.GetComponent<Himii::MeshRenderer>();
+        mr.vertexArray = m_SkyboxVA;
+        mr.shader = m_SkyboxShader;
+        mr.texture = {};
+    }
 }

@@ -1,4 +1,5 @@
 #include "EditorLayer.h"
+#include "CubeLayer.h" // 访问运行层参数
 using namespace Himii;
 // 需要组件定义
 #include "Himii/Scene/Components.h"
@@ -200,8 +201,71 @@ void EditorLayer::OnImGuiRender()
     }
     ImGui::End();
 
-    // Inspector 面板：显示并编辑选中实体的常用组件
+    // Inspector 面板：显示并编辑选中实体的常用组件 + 运行层参数
     ImGui::Begin("Inspector");
+    // 附加：显示运行层（CubeLayer）的相机/光照/地形参数，便于统一在 Inspector 管理
+    if (auto *appPtr = &Himii::Application::Get())
+    {
+        CubeLayer *cube = nullptr;
+        for (auto *layer : appPtr->GetLayerStack())
+            if ((cube = dynamic_cast<CubeLayer *>(layer))) break;
+        if (cube && ImGui::CollapsingHeader("Runtime Settings (CubeLayer)", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            ImGui::SeparatorText("Camera");
+            ImGui::DragFloat("FovY (deg)", &cube->m_FovYDeg, 0.1f, 10.0f, 120.0f);
+            ImGui::DragFloat("NearZ", &cube->m_NearZ, 0.01f, 0.01f, 10.0f);
+            ImGui::DragFloat("FarZ", &cube->m_FarZ, 1.0f, 1.0f, 5000.0f);
+            ImGui::DragFloat3("Cam Pos", &cube->m_CamPos.x, 0.05f);
+            ImGui::DragFloat3("Cam Target", &cube->m_CamTarget.x, 0.05f);
+            ImGui::DragFloat3("Cam Up", &cube->m_CamUp.x, 0.05f);
+            ImGui::DragFloat("Move Speed", &cube->m_MoveSpeed, 0.1f, 0.0f, 100.0f);
+            ImGui::DragFloat("Mouse Sensitivity", &cube->m_MouseSensitivity, 0.01f, 0.01f, 2.0f);
+
+            ImGui::SeparatorText("Lighting");
+            ImGui::ColorEdit3("Ambient Color", &cube->m_AmbientColor.x);
+            ImGui::DragFloat("Ambient Intensity", &cube->m_AmbientIntensity, 0.01f, 0.0f, 2.0f);
+            ImGui::DragFloat3("Light Dir", &cube->m_LightDir.x, 0.01f, -1.0f, 1.0f);
+            ImGui::ColorEdit3("Light Color", &cube->m_LightColor.x);
+            ImGui::DragFloat("Light Intensity", &cube->m_LightIntensity, 0.01f, 0.0f, 4.0f);
+
+            ImGui::SeparatorText("Terrain");
+            bool tChanged = false;
+            tChanged |= ImGui::DragInt("Width", &cube->m_TerrainW, 1, 8, 512);
+            tChanged |= ImGui::DragInt("Depth", &cube->m_TerrainD, 1, 8, 512);
+            tChanged |= ImGui::DragInt("Height", &cube->m_TerrainH, 1, 8, 256);
+            ImGui::Checkbox("Auto Rebuild", &cube->m_AutoRebuild);
+            if (ImGui::Button("Rebuild Terrain")) { cube->BuildTerrainMesh(); cube->BuildECSScene(); }
+
+            ImGui::SeparatorText("Noise");
+            auto &n = cube->m_Noise;
+            bool nChanged = false;
+            nChanged |= ImGui::DragScalar("Seed", ImGuiDataType_U32, &n.seed, 1.0f);
+            nChanged |= ImGui::DragFloat("Biome Scale", &n.biomeScale, 0.001f, 0.001f, 1.0f);
+            nChanged |= ImGui::DragFloat("Continent Scale", &n.continentScale, 0.0005f, 0.002f, 0.05f);
+            nChanged |= ImGui::DragFloat("Continent Strength", &n.continentStrength, 0.01f, 0.0f, 1.0f);
+            nChanged |= ImGui::DragFloat("Plains Scale", &n.plainsScale, 0.001f, 0.001f, 1.0f);
+            nChanged |= ImGui::DragInt("Plains Octaves", &n.plainsOctaves, 1.0f, 1, 12);
+            nChanged |= ImGui::DragFloat("Plains Lacunarity", &n.plainsLacunarity, 0.01f, 1.0f, 4.0f);
+            nChanged |= ImGui::DragFloat("Plains Gain", &n.plainsGain, 0.01f, 0.1f, 0.9f);
+            nChanged |= ImGui::DragFloat("Mountain Scale", &n.mountainScale, 0.001f, 0.001f, 1.0f);
+            nChanged |= ImGui::DragInt("Mountain Octaves", &n.mountainOctaves, 1.0f, 1, 12);
+            nChanged |= ImGui::DragFloat("Mountain Lacunarity", &n.mountainLacunarity, 0.01f, 1.0f, 4.0f);
+            nChanged |= ImGui::DragFloat("Mountain Gain", &n.mountainGain, 0.01f, 0.1f, 0.9f);
+            nChanged |= ImGui::DragFloat("Ridge Sharpness", &n.ridgeSharpness, 0.01f, 0.5f, 3.0f);
+            nChanged |= ImGui::DragFloat("Warp Scale", &n.warpScale, 0.001f, 0.0f, 1.0f);
+            nChanged |= ImGui::DragFloat("Warp Amp", &n.warpAmp, 0.01f, 0.0f, 10.0f);
+            nChanged |= ImGui::DragFloat("Detail Scale", &n.detailScale, 0.001f, 0.02f, 1.0f);
+            nChanged |= ImGui::DragFloat("Detail Amp", &n.detailAmp, 0.01f, 0.0f, 0.5f);
+            nChanged |= ImGui::DragFloat("Height Mul", &n.heightMul, 0.01f, 0.1f, 2.0f);
+            nChanged |= ImGui::DragFloat("Plateau", &n.plateau, 0.01f, 0.0f, 1.0f);
+            nChanged |= ImGui::DragInt("Step Levels", &n.stepLevels, 1.0f, 1, 12);
+            nChanged |= ImGui::DragFloat("Curve Exponent", &n.curveExponent, 0.01f, 0.5f, 2.0f);
+            nChanged |= ImGui::DragFloat("Valley Depth", &n.valleyDepth, 0.01f, 0.0f, 0.4f);
+            nChanged |= ImGui::DragFloat("Sea Level", &n.seaLevel, 0.01f, 0.0f, 0.9f);
+            nChanged |= ImGui::DragFloat("Mountain Weight", &n.mountainWeight, 0.01f, 0.0f, 1.0f);
+            if ((tChanged || (nChanged && cube->m_AutoRebuild))) { cube->BuildTerrainMesh(); cube->BuildECSScene(); }
+        }
+    }
     if (m_ActiveScene && m_SelectedEntity != entt::null && m_ActiveScene->Registry().valid(m_SelectedEntity))
     {
         auto &reg = m_ActiveScene->Registry();
@@ -223,7 +287,7 @@ void EditorLayer::OnImGuiRender()
                 ImGui::DragFloat3("Scale", &tr.Scale.x, 0.01f, 0.01f, 100.0f);
             }
         }
-        if (reg.any_of<SpriteRenderer>(m_SelectedEntity))
+    if (reg.any_of<SpriteRenderer>(m_SelectedEntity))
         {
             if (ImGui::CollapsingHeader("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -313,6 +377,26 @@ void EditorLayer::OnImGuiRender()
                 if (ImGui::InputFloat2("UV3", uv3)) { sr.uvs[3] = {uv3[0], uv3[1]}; }
             }
         }
+        // MeshRenderer (3D) inspector
+        if (reg.any_of<MeshRenderer>(m_SelectedEntity))
+        {
+            if (ImGui::CollapsingHeader("MeshRenderer", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                auto &mr = reg.get<MeshRenderer>(m_SelectedEntity);
+                ImGui::Text("VAO: %p", (void*)mr.vertexArray.get());
+                ImGui::Text("Shader: %p", (void*)mr.shader.get());
+                ImGui::Text("Texture: %p", mr.texture ? (void*)mr.texture.get() : (void*)nullptr);
+                if (mr.texture)
+                    ImGui::Text("Tex Size: %u x %u", mr.texture->GetWidth(), mr.texture->GetHeight());
+                ImGui::TextDisabled("(Mesh content is built in CubeLayer and bound here)");
+            }
+        }
+        // Skybox tag
+        if (reg.any_of<SkyboxTag>(m_SelectedEntity))
+        {
+            ImGui::TextColored(ImVec4(0.6f,0.8f,1.0f,1.0f), "[Skybox]");
+        }
+
         if (ImGui::Button("Delete Entity"))
         {
             m_ActiveScene->DestroyEntity(m_SelectedEntity);

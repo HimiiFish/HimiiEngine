@@ -7,11 +7,11 @@ class CubeLayer : public Himii::Layer
 public:
     CubeLayer();
     ~CubeLayer() override = default;
+    friend class EditorLayer; // Inspector 直接管理场景参数与重建
 
     void OnAttach() override;
     void OnDetach() override;
     void OnUpdate(Himii::Timestep ts) override;
-    void OnImGuiRender() override;
     virtual void OnEvent(Himii::Event& e) override;
 
 private:
@@ -26,6 +26,9 @@ private:
     void UpdateCamera(Himii::Timestep ts);
     void BuildTerrainMesh();
     void BuildSkybox();
+
+    // ECS 化：将当前 VAO/Shader 等包装到 ECS 中，便于压力测试
+    void BuildECSScene();
 
 private:
     Himii::Ref<Himii::VertexArray> m_CubeVA;     // 旧：单方块（保留但不再使用）
@@ -124,4 +127,10 @@ private:
     // 离屏渲染
     Himii::Ref<Himii::Framebuffer> m_Framebuffer;
     Himii::Ref<Himii::Framebuffer> m_GameFramebuffer;
+
+    // ECS 场景，用于替换手写 Submit 流程
+    Himii::Scene m_Scene;
+    // 记录 ECS 中的实体句柄（便于重建/替换 VAO）
+    Himii::Entity m_TerrainEntity;
+    Himii::Entity m_SkyboxEntity;
 };

@@ -1,7 +1,9 @@
 #include "Himii/Scene/Scene.h"
 #include "Himii/Scene/Components.h"
 #include "Himii/Renderer/Renderer2D.h"
+#include "Himii/Renderer/Renderer.h"
 #include "Himii/Scene/Entity.h"
+#include "glad/glad.h"
 #include <entt/entt.hpp>
 #include <string>
 
@@ -36,14 +38,45 @@ void Scene::DestroyEntity(entt::entity e) {
 }
 
 void Scene::OnUpdate(Timestep /*ts*/) {
-    // Transform + SpriteRenderer
+    // 3D MeshRenderer - Skybox pass first (depth: LEQUAL, no depth write)
+    {
+        auto skyView = m_Registry.view<Himii::Transform, Himii::MeshRenderer, Himii::SkyboxTag>();
+    if (skyView.begin() != skyView.end()) {
+            glDepthFunc(GL_LEQUAL);
+            glDepthMask(GL_FALSE);
+            for (auto e : skyView) {
+                auto &tr = skyView.get<Himii::Transform>(e);
+                const auto &mr = skyView.get<Himii::MeshRenderer>(e);
+                if (mr.vertexArray && mr.shader) {
+                    if (mr.texture) mr.texture->Bind(0);
+                    Himii::Renderer::Submit(mr.shader, mr.vertexArray, tr.GetTransform());
+                }
+            }
+            glDepthMask(GL_TRUE);
+            glDepthFunc(GL_LESS);
+        }
+    }
+
+    // 3D MeshRenderer - regular pass (exclude skybox)
+    {
+        auto meshView = m_Registry.view<Himii::Transform, Himii::MeshRenderer>(entt::exclude<Himii::SkyboxTag>);
+        for (auto e : meshView) {
+            auto &tr = meshView.get<Himii::Transform>(e);
+            const auto &mr = meshView.get<Himii::MeshRenderer>(e);
+            if (mr.vertexArray && mr.shader) {
+                if (mr.texture) mr.texture->Bind(0);
+                Himii::Renderer::Submit(mr.shader, mr.vertexArray, tr.GetTransform());
+            }
+        }
+    }
+
+    // 2D SpriteRenderer 实体：Renderer2D 批渲染
     auto group = m_Registry.group<Himii::Transform>(entt::get<Himii::SpriteRenderer>);
     for (auto entity : group) {
         auto &tr = group.get<Himii::Transform>(entity);
         if (auto *sr = m_Registry.try_get<Himii::SpriteRenderer>(entity)) {
             const glm::mat4 transform = tr.GetTransform();
             if (sr->texture) {
-                // 如果有自定义UV，则用图集分片绘制，否则标准全贴图
                 if (sr->uvs[0] != glm::vec2(0.0f) || sr->uvs[1] != glm::vec2(1.0f, 0.0f)
                     || sr->uvs[2] != glm::vec2(1.0f, 1.0f) || sr->uvs[3] != glm::vec2(0.0f, 1.0f)) {
                     Himii::Renderer2D::DrawQuadUV(transform, sr->texture, sr->uvs, sr->tiling, sr->color);

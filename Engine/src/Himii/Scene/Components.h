@@ -12,6 +12,8 @@
 #include <random>
 #include "Himii/Core/Core.h"        // Ref<>
 #include "Himii/Renderer/Texture.h" // Texture2D
+#include "Himii/Renderer/VertexArray.h" // VertexArray for 3D meshes
+#include "Himii/Renderer/Shader.h"      // Shader reference
 #include "Himii/Core/UUID.h"
 
 namespace Himii
@@ -80,5 +82,15 @@ namespace Himii
         float nearClip = -1.0f;
         float farClip = 1.0f;
     };
+
+    // 3D 网格渲染组件：用于 Renderer::Submit 路径
+    struct MeshRenderer {
+        Ref<VertexArray> vertexArray{};
+        Ref<Shader>      shader{};
+        Ref<Texture2D>   texture{}; // 可选：供 shader 取样
+    };
+
+    // 标记组件：用于区分天空盒渲染通道
+    struct SkyboxTag {};
 
 } // namespace Himii
