@@ -5,6 +5,39 @@ using namespace Himii;
 // for snprintf
 #include <cstdio>
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#include <commdlg.h>
+#pragma comment(lib, "Comdlg32.lib")
+
+// 简单的本地文件打开对话框（返回 UTF-8 路径，失败返回空串）
+static std::string OpenFileDialog(const wchar_t* filter)
+{
+    wchar_t fileBuffer[MAX_PATH] = L"";
+    OPENFILENAMEW ofn{};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = nullptr;
+    ofn.lpstrFile = fileBuffer;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrFilter = filter; // 形如 L"Images\0*.png;*.jpg\0All\0*.*\0\0"
+    ofn.nFilterIndex = 1;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_NOCHANGEDIR;
+    if (GetOpenFileNameW(&ofn) == TRUE)
+    {
+        // 转 UTF-8
+        int needed = WideCharToMultiByte(CP_UTF8, 0, fileBuffer, -1, nullptr, 0, nullptr, nullptr);
+        if (needed > 0)
+        {
+            std::string utf8(needed - 1, '\0');
+            WideCharToMultiByte(CP_UTF8, 0, fileBuffer, -1, utf8.data(), needed, nullptr, nullptr);
+            return utf8;
+        }
+    }
+    return {};
+}
+#endif
+
 void EditorLayer::OnImGuiRender()
 {
     static bool dockspaceOpen = true;
@@ -156,8 +189,7 @@ void EditorLayer::OnImGuiRender()
         {
             auto e = m_ActiveScene->CreateEntity("Entity");
             // 默认会有 Transform，这里附加一个默认颜色的 SpriteRenderer 便于可见
-            reg.emplace_or_replace<SpriteRenderer>(e, glm::vec4{0.8f, 0.8f, 0.8f, 1.0f});
-            m_SelectedEntity = e;
+            e.AddComponent<SpriteRenderer>(glm::vec4{0.8f, 0.8f, 0.8f, 1.0f});
         }
         if (m_SelectedEntity != entt::null && !reg.valid(m_SelectedEntity))
             m_SelectedEntity = entt::null;
@@ -198,6 +230,87 @@ void EditorLayer::OnImGuiRender()
                 auto &sr = reg.get<SpriteRenderer>(m_SelectedEntity);
                 ImGui::ColorEdit4("Color", &sr.color.x);
                 ImGui::DragFloat("Tiling", &sr.tiling, 0.01f, 0.1f, 100.0f);
+
+                ImGui::Separator();
+                ImGui::TextUnformatted("Texture");
+                static std::string s_LastTexturePath;
+#ifdef _WIN32
+                if (ImGui::Button("Select Texture..."))
+                {
+                    // 常见图片格式筛选
+                    const wchar_t* filter = L"Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.ktx;*.dds\0All Files\0*.*\0\0";
+                    std::string path = OpenFileDialog(filter);
+                    if (!path.empty())
+                    {
+                        auto tex = Himii::Texture2D::Create(path);
+                        if (tex)
+                        {
+                            sr.texture = tex;
+                            s_LastTexturePath = path;
+                        }
+                    }
+                }
+#else
+                ImGui::TextDisabled("(当前平台未实现文件对话框)");
+#endif
+                ImGui::SameLine();
+                if (ImGui::Button("Clear"))
+                {
+                    sr.texture = {};
+                }
+                if (sr.texture)
+                {
+                    ImGui::Text("Size: %u x %u", sr.texture->GetWidth(), sr.texture->GetHeight());
+                    if (!s_LastTexturePath.empty())
+                        ImGui::TextWrapped("%s", s_LastTexturePath.c_str());
+                }
+
+                ImGui::Separator();
+                ImGui::TextUnformatted("UV");
+                if (ImGui::Button("Reset UV (0..1)"))
+                {
+                    sr.uvs[0] = {0.0f, 0.0f}; sr.uvs[1] = {1.0f, 0.0f};
+                    sr.uvs[2] = {1.0f, 1.0f}; sr.uvs[3] = {0.0f, 1.0f};
+                }
+
+                // Grid UV
+                ImGui::TextUnformatted("Grid UV (cols/rows/col/row)");
+                static int cols = 1, rows = 1, col = 0, row = 0; static float padNorm = 0.0f;
+                ImGui::InputInt("Cols", &cols); ImGui::SameLine(); ImGui::InputInt("Rows", &rows);
+                ImGui::InputInt("Col", &col);  ImGui::SameLine(); ImGui::InputInt("Row", &row);
+                ImGui::DragFloat("Padding (norm)", &padNorm, 0.001f, 0.0f, 0.25f);
+                bool canGrid = sr.texture && cols > 0 && rows > 0 && col >= 0 && row >= 0;
+                if (ImGui::Button("Apply Grid UV") && canGrid)
+                {
+                    sr.uvs = sr.texture->GetUVFromGrid(col, row, cols, rows, padNorm);
+                }
+                if (!sr.texture)
+                    ImGui::TextDisabled("(需要先加载纹理)");
+
+                // Pixels UV
+                ImGui::Separator();
+                ImGui::TextUnformatted("Pixels UV (min/max/padding px)");
+                static float minX=0, minY=0, maxX=0, maxY=0, padX=0, padY=0;
+                ImGui::InputFloat("MinX", &minX); ImGui::SameLine(); ImGui::InputFloat("MinY", &minY);
+                ImGui::InputFloat("MaxX", &maxX); ImGui::SameLine(); ImGui::InputFloat("MaxY", &maxY);
+                ImGui::InputFloat("PadX", &padX); ImGui::SameLine(); ImGui::InputFloat("PadY", &padY);
+                bool canPx = sr.texture && maxX>minX && maxY>minY;
+                if (ImGui::Button("Apply Pixels UV") && canPx)
+                {
+                    sr.uvs = sr.texture->GetUVFromPixels({minX, minY}, {maxX, maxY}, {padX, padY});
+                }
+
+                // Manual UV edit
+                ImGui::Separator();
+                ImGui::TextUnformatted("Manual UV (0..1)");
+                float uv0[2] = { sr.uvs[0].x, sr.uvs[0].y };
+                float uv1[2] = { sr.uvs[1].x, sr.uvs[1].y };
+                float uv2[2] = { sr.uvs[2].x, sr.uvs[2].y };
+                float uv3[2] = { sr.uvs[3].x, sr.uvs[3].y };
+                if (ImGui::InputFloat2("UV0", uv0)) { sr.uvs[0] = {uv0[0], uv0[1]}; }
+                if (ImGui::InputFloat2("UV1", uv1)) { sr.uvs[1] = {uv1[0], uv1[1]}; }
+                if (ImGui::InputFloat2("UV2", uv2)) { sr.uvs[2] = {uv2[0], uv2[1]}; }
+                if (ImGui::InputFloat2("UV3", uv3)) { sr.uvs[3] = {uv3[0], uv3[1]}; }
             }
         }
         if (ImGui::Button("Delete Entity"))

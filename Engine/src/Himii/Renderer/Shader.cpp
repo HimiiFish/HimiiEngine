@@ -16,6 +16,7 @@ namespace Himii
             case RendererAPI::API::OpenGL:
                 return CreateRef<OpenGLShader>(filepath);
         }
+    return nullptr;
     }
 
     Ref<Shader> Shader::Create(const std::string &name, const std::string &vertexSrc, const std::string &fragmentSrc)
@@ -28,6 +29,7 @@ namespace Himii
             case RendererAPI::API::OpenGL:
                 return CreateRef<OpenGLShader>(name, vertexSrc, fragmentSrc);
         }
+    return nullptr;
     }
 
     void ShaderLibrary::Add(Ref<Shader> &shader)

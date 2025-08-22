@@ -1,6 +1,6 @@
 ﻿#include "Example2D.h"
-#include "imgui.h"
 #include "EditorLayer.h"
+#include "imgui.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -19,22 +19,26 @@ void Example2D::OnAttach()
     Himii::FramebufferSpecification fbSpec{app.GetWindow().GetWidth(), app.GetWindow().GetHeight()};
     m_SceneFramebuffer = Himii::Framebuffer::Create(fbSpec);
 
-    // 最小 ECS 场景：创建几个彩色方块实体
+    // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
     {
         auto e1 = m_Scene.CreateEntity("Red Quad");
-    auto &tr1 = m_Scene.Registry().get<Himii::Transform>(e1);
-    tr1.Position = {-0.5f, -0.5f, 0.0f};
-        m_Scene.Registry().emplace<Himii::SpriteRenderer>(e1, glm::vec4{0.9f, 0.2f, 0.3f, 1.0f});
+        auto &tr1 = e1.GetComponent<Himii::Transform>();
+        tr1.Position = {-0.5f, -0.5f, 0.0f};
+        e1.AddComponent<Himii::SpriteRenderer>(glm::vec4{0.9f, 0.2f, 0.3f, 1.0f});
 
         auto e2 = m_Scene.CreateEntity("Green Quad");
-    auto &tr2 = m_Scene.Registry().get<Himii::Transform>(e2);
-    tr2.Position = {0.3f, 0.1f, 0.0f};
-        m_Scene.Registry().emplace<Himii::SpriteRenderer>(e2, glm::vec4{0.2f, 0.8f, 0.4f, 1.0f});
+        auto &tr2 = e2.GetComponent<Himii::Transform>();
+        tr2.Position = {0.3f, 0.1f, 0.0f};
+        e2.AddComponent<Himii::SpriteRenderer>(glm::vec4{0.2f, 0.8f, 0.4f, 1.0f});
 
         auto e3 = m_Scene.CreateEntity("Blue Quad");
-    auto &tr3 = m_Scene.Registry().get<Himii::Transform>(e3);
-    tr3.Position = {-0.2f, 0.6f, 0.0f};
-        m_Scene.Registry().emplace<Himii::SpriteRenderer>(e3, glm::vec4{0.3f, 0.5f, 1.0f, 1.0f});
+        auto &tr3 = e3.GetComponent<Himii::Transform>();
+        tr3.Position = {-0.2f, 0.6f, 0.0f};
+        e3.AddComponent<Himii::SpriteRenderer>(glm::vec4{0.3f, 0.5f, 1.0f, 1.0f});
+
+    auto e4 = m_Scene.CreateEntity("My Quad");
+    // 默认构造 SpriteRenderer（白色），或传入颜色
+    e4.AddComponent<Himii::SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
     }
 }
 void Example2D::OnDetach()
@@ -54,8 +58,9 @@ void Example2D::OnUpdate(Himii::Timestep ts)
     // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
     Himii::Renderer2D::ResetStats();
     EditorLayer *editorRef = nullptr;
-    for (auto *layer : Himii::Application::Get().GetLayerStack())
-        if ((editorRef = dynamic_cast<EditorLayer *>(layer))) break;
+    for (auto *layer: Himii::Application::Get().GetLayerStack())
+        if ((editorRef = dynamic_cast<EditorLayer *>(layer)))
+            break;
     bool resized = false;
     if (editorRef && m_SceneFramebuffer)
     {
@@ -78,7 +83,7 @@ void Example2D::OnUpdate(Himii::Timestep ts)
         Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
         Himii::RenderCommand::Clear();
     }
-    
+
     {
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
@@ -118,8 +123,9 @@ void Example2D::OnEvent(Himii::Event &event)
 {
     // 仅当 Scene 视口被悬停或聚焦时才处理滚轮/键盘等事件
     EditorLayer *editorRef = nullptr;
-    for (auto *layer : Himii::Application::Get().GetLayerStack())
-        if ((editorRef = dynamic_cast<EditorLayer *>(layer))) break;
+    for (auto *layer: Himii::Application::Get().GetLayerStack())
+        if ((editorRef = dynamic_cast<EditorLayer *>(layer)))
+            break;
     if (!editorRef || editorRef->IsSceneHovered() || editorRef->IsSceneFocused())
         m_CameraController.OnEvent(event);
 }

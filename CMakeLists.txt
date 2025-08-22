@@ -29,8 +29,13 @@ endforeach()
 
 # 确保 Visual Studio 的输出目录存在，以避免链接器错误
 if(MSVC)
-    # Ensure MSVC treats source files as UTF-8 for both C and C++ to avoid C4828 warnings
-    add_compile_options("$<$<OR:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>:/utf-8>")
+    # 让 MSVC 以 UTF-8 读取/编译源文件，消除 C4828 警告
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>" "$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+
+    # 兼容某些包含文件：显式声明源文件编码为 UTF-8（全局生效）
+    set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_STANDARD_INCLUDE_DIRECTORIES})
+    set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES})
+
     file(MAKE_DIRECTORY
         ${CMAKE_BINARY_DIR}/bin
         ${CMAKE_BINARY_DIR}/lib

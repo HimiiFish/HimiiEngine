@@ -45,6 +45,14 @@ namespace Himii
 
     static Renderer2DData s_Data;
 
+    // 计算当前批次是否需要换批（由调用者在类方法内触发 NextBatch）
+    static inline bool NeedsNewBatch(uint32_t verticesNeeded, uint32_t indicesNeeded)
+    {
+        const uint32_t usedVertices = (uint32_t)(s_Data.QuadVertexBufferPtr - s_Data.QuadVertexBufferBase);
+        return (usedVertices + verticesNeeded > Renderer2DData::MaxVertices) ||
+               (s_Data.QuadIndexCount + indicesNeeded > Renderer2DData::MaxIndices);
+    }
+
     void Renderer2D::Init()
     {
         HIMII_PROFILE_FUNCTION();
@@ -197,7 +205,7 @@ namespace Himii
         constexpr glm::vec2 textureCoords[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
         const float tilingFactor = 1.0f;
 
-        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        if (NeedsNewBatch((uint32_t)quadVertexCount, 6))
             NextBatch();
 
         for (size_t i = 0; i < quadVertexCount; i++)
@@ -223,13 +231,14 @@ namespace Himii
         constexpr size_t quadVertexCount = 4;
         constexpr glm::vec2 textureCoords[] = {{0.0f, 0.0f}, {1.0f, 0.0f}, {1.0f, 1.0f}, {0.0f, 1.0f}};
 
-        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        if (NeedsNewBatch((uint32_t)quadVertexCount, 6))
             NextBatch();
 
         float textureIndex = 0.0f;
         for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
         {
-            if (*s_Data.TextureSlots[i] == *texture)
+            const auto &slotTex = s_Data.TextureSlots[i];
+            if (slotTex && texture && *slotTex == *texture)
             {
                 textureIndex = (float)i;
                 break;
@@ -279,7 +288,7 @@ namespace Himii
                                  const glm::vec4 &tintColor)
     {
         HIMII_PROFILE_FUNCTION();
-        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+        if (NeedsNewBatch(4, 6))
             NextBatch();
 
         constexpr glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
@@ -287,7 +296,8 @@ namespace Himii
 
         for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
         {
-            if (*s_Data.TextureSlots[i].get() == *texture.get())
+            const auto &slotTex = s_Data.TextureSlots[i];
+            if (slotTex && texture && *slotTex == *texture)
             {
                 textureIndex = (float)i;
                 break;
@@ -302,14 +312,86 @@ namespace Himii
             ++s_Data.TextureSlotIndex;
         }
 
-        glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
-                              glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
+    glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
+                  glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
         s_Data.QuadVertexBufferPtr->Color = color;
         s_Data.QuadVertexBufferPtr->TexCoord = uvs[0];
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+    s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+    s_Data.QuadVertexBufferPtr->EntityID = -1;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
+        s_Data.QuadVertexBufferPtr->Color = color;
+        s_Data.QuadVertexBufferPtr->TexCoord = uvs[1];
+        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+    s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+    s_Data.QuadVertexBufferPtr->EntityID = -1;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
+        s_Data.QuadVertexBufferPtr->Color = color;
+        s_Data.QuadVertexBufferPtr->TexCoord = uvs[2];
+        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+    s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+    s_Data.QuadVertexBufferPtr->EntityID = -1;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
+        s_Data.QuadVertexBufferPtr->Color = color;
+        s_Data.QuadVertexBufferPtr->TexCoord = uvs[3];
+        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
+    s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+    s_Data.QuadVertexBufferPtr->EntityID = -1;
+        s_Data.QuadVertexBufferPtr++;
+
+        s_Data.QuadIndexCount += 6;
+        s_Data.Stats.QuadCount++;
+    }
+
+    // Transform-based UV variant
+    void Renderer2D::DrawQuadUV(const glm::mat4 &transform,
+                                 const Ref<Texture2D> &texture,
+                                 const std::array<glm::vec2,4>& uvs,
+                                 float tilingFactor,
+                                 const glm::vec4 &tintColor,
+                                 int entityID)
+    {
+        HIMII_PROFILE_FUNCTION();
+        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
+            NextBatch();
+
+        float textureIndex = 0.0f;
+        for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
+        {
+            const auto &slotTex = s_Data.TextureSlots[i];
+            if (slotTex && texture && *slotTex == *texture)
+            {
+                textureIndex = (float)i;
+                break;
+            }
+        }
+        if (textureIndex == 0.0f)
+        {
+            if (s_Data.TextureSlotIndex >= Renderer2DData::MaxTextureSlots)
+                NextBatch();
+            textureIndex = (float)s_Data.TextureSlotIndex;
+            s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
+            ++s_Data.TextureSlotIndex;
+        }
+
+        constexpr size_t quadVertexCount = 4;
+        const glm::vec4 color = tintColor;
+
+        // Emit the 4 vertices
+        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
+        s_Data.QuadVertexBufferPtr->Color = color;
+        s_Data.QuadVertexBufferPtr->TexCoord = uvs[0];
+        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        s_Data.QuadVertexBufferPtr->EntityID = entityID;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
@@ -317,6 +399,7 @@ namespace Himii
         s_Data.QuadVertexBufferPtr->TexCoord = uvs[1];
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        s_Data.QuadVertexBufferPtr->EntityID = entityID;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
@@ -324,6 +407,7 @@ namespace Himii
         s_Data.QuadVertexBufferPtr->TexCoord = uvs[2];
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        s_Data.QuadVertexBufferPtr->EntityID = entityID;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
@@ -331,6 +415,7 @@ namespace Himii
         s_Data.QuadVertexBufferPtr->TexCoord = uvs[3];
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
+        s_Data.QuadVertexBufferPtr->EntityID = entityID;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadIndexCount += 6;
@@ -347,10 +432,8 @@ namespace Himii
                                      const glm::vec4 &color)
     {
         HIMII_PROFILE_FUNCTION();
-        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
-        {
-            StartBatch();
-        }
+        if (NeedsNewBatch(4, 6))
+            NextBatch();
         const float textureIndex = 0.0f;
         const float tilingFactor = 1.0f;
 
@@ -398,10 +481,8 @@ namespace Himii
                                      const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
         HIMII_PROFILE_FUNCTION();
-        if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
-        {
-            StartBatch();
-        }
+        if (NeedsNewBatch(4, 6))
+            NextBatch();
         constexpr glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
 
         float textureIndex = 0.0f;

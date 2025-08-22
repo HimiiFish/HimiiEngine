@@ -52,8 +52,24 @@ namespace Himii
     struct SpriteRenderer {
         glm::vec4 color{1.0f};
         Ref<Texture2D> texture{};       // 可为空，仅颜色
-        std::array<glm::vec2, 4> uvs{}; // 可选：自定义 UV（用于图集）
+        std::array<glm::vec2, 4> uvs{ // 默认全贴图 UV
+            glm::vec2{0.0f, 0.0f}, glm::vec2{1.0f, 0.0f},
+            glm::vec2{1.0f, 1.0f}, glm::vec2{0.0f, 1.0f}
+        };
         float tiling = 1.0f;
+
+        SpriteRenderer() = default;
+        explicit SpriteRenderer(const glm::vec4 &tint)
+            : color(tint) {}
+        // 提供纹理 + 色调 + 平铺 的便捷构造（避免 emplace 的括号初始化失败）
+        SpriteRenderer(const Ref<Texture2D> &tex, const glm::vec4 &tint, float tilingFactor)
+            : color(tint), texture(tex), tiling(tilingFactor) {}
+        // 提供纹理 + 自定义 UV + 平铺 + 色调 的构造
+        SpriteRenderer(const Ref<Texture2D> &tex,
+                       const std::array<glm::vec2, 4> &customUVs,
+                       float tilingFactor,
+                       const glm::vec4 &tint)
+            : color(tint), texture(tex), uvs(customUVs), tiling(tilingFactor) {}
     };
 
     // 可选：作为主摄像机使用（暂不用于渲染主循环，留作扩展）

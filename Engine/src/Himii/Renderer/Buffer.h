@@ -130,8 +130,8 @@ namespace Himii
             for (auto &element: m_Elements)
             {
                 element.Offset = offset;
-                offset += element.Size;
-                m_Stride += element.Size;
+                offset += static_cast<uint32_t>(element.Size);
+                m_Stride += static_cast<uint32_t>(element.Size);
             }
         }
 

@@ -75,3 +75,8 @@ endif()
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
 target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw)
+
+# 强制 MSVC 以 UTF-8 编译此目标，进一步消除 C4828
+if(MSVC)
+    target_compile_options(Engine PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> $<$<C_COMPILER_ID:MSVC>:/utf-8>)
+endif()

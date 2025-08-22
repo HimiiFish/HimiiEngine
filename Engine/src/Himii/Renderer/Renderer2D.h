@@ -42,6 +42,14 @@ namespace Himii
                    float tilingFactor=1.0f,
                    const glm::vec4& tintColor = glm::vec4(1.0f));
 
+    // Transform-based UV variant: supports full Position/Rotation/Scale via transform matrix
+    static void DrawQuadUV(const glm::mat4 &transform,
+                   const Ref<Texture2D>& texture,
+                   const std::array<glm::vec2,4>& uvs,
+                   float tilingFactor=1.0f,
+                   const glm::vec4& tintColor = glm::vec4(1.0f),
+                   int entityID = -1);
+
         struct Statistics {
             uint32_t DrawCalls = 0;
             uint32_t QuadCount = 0;
