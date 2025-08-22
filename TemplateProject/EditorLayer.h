@@ -1,6 +1,8 @@
 #pragma once
 #include "Engine.h"
 #include "imgui.h"
+// 为了在头文件中保存选中实体句柄
+#include <entt/entt.hpp>
 
 namespace Himii { class Framebuffer; }
 
@@ -29,6 +31,11 @@ public:
     bool   IsGameHovered() const { return m_GameHovered; }
     bool   IsGameFocused() const { return m_GameFocused; }
 
+    // 注入当前运行中的场景，供 Hierarchy/Inspector 使用
+public:
+    void SetActiveScene(Himii::Scene* scene) { m_ActiveScene = scene; if (!scene) m_SelectedEntity = entt::null; }
+    Himii::Scene* GetActiveScene() const { return m_ActiveScene; }
+
 private:
     uint32_t m_SceneTexture = 0;
     uint32_t m_SceneWidth = 0, m_SceneHeight = 0;
@@ -41,4 +48,8 @@ private:
     ImVec2   m_LastGameAvail = {0, 0};
     bool     m_GameHovered = false;
     bool     m_GameFocused = false;
+
+    // ECS 面板状态
+    Himii::Scene* m_ActiveScene = nullptr;
+    entt::entity  m_SelectedEntity{entt::null};
 };

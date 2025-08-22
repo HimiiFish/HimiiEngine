@@ -1,5 +1,9 @@
 #include "EditorLayer.h"
 using namespace Himii;
+// 需要组件定义
+#include "Himii/Scene/Components.h"
+// for snprintf
+#include <cstdio>
 
 void EditorLayer::OnImGuiRender()
 {
@@ -120,14 +124,92 @@ void EditorLayer::OnImGuiRender()
         imgui->BlockEvents(wantBlock);
     }
 
-    // Placeholder panels
+    // Hierarchy 面板：列出场景中的实体（简单策略：有 Transform 的都显示）
     ImGui::Begin("Hierarchy");
-    ImGui::TextUnformatted("[Scene] Terrain");
-    ImGui::TextUnformatted("[Camera] EditorCamera");
+    if (m_ActiveScene)
+    {
+        auto &reg = m_ActiveScene->Registry();
+        // 遍历所有带 Transform 的实体
+        auto view = reg.view<Transform>();
+        for (auto e : view)
+        {
+            // 名称优先：Tag.name，否则显示生成的 ID 或句柄值
+            std::string label;
+        if (auto* t = reg.try_get<Tag>(e))
+                label = t->name.empty() ? std::string("Entity") : t->name;
+            else
+            {
+                if (auto* id = reg.try_get<ID>(e)) {
+                    char tmp[64]; std::snprintf(tmp, sizeof(tmp), "Entity %llu", (unsigned long long)(uint64_t)id->id);
+                    label = tmp;
+                } else {
+            char tmp[64]; std::snprintf(tmp, sizeof(tmp), "Entity %u", (unsigned)e);
+                    label = tmp;
+                }
+            }
+            // 渲染选择项
+            bool selected = (e == m_SelectedEntity);
+            if (ImGui::Selectable(label.c_str(), selected))
+                m_SelectedEntity = e;
+        }
+        if (ImGui::Button("Create Entity"))
+        {
+            auto e = m_ActiveScene->CreateEntity("Entity");
+            // 默认会有 Transform，这里附加一个默认颜色的 SpriteRenderer 便于可见
+            reg.emplace_or_replace<SpriteRenderer>(e, glm::vec4{0.8f, 0.8f, 0.8f, 1.0f});
+            m_SelectedEntity = e;
+        }
+        if (m_SelectedEntity != entt::null && !reg.valid(m_SelectedEntity))
+            m_SelectedEntity = entt::null;
+    }
+    else
+    {
+        ImGui::TextUnformatted("No active Scene.");
+    }
     ImGui::End();
 
+    // Inspector 面板：显示并编辑选中实体的常用组件
     ImGui::Begin("Inspector");
-    ImGui::TextUnformatted("Select an item to see details.");
+    if (m_ActiveScene && m_SelectedEntity != entt::null && m_ActiveScene->Registry().valid(m_SelectedEntity))
+    {
+        auto &reg = m_ActiveScene->Registry();
+        if (reg.any_of<Tag>(m_SelectedEntity))
+        {
+            auto &tag = reg.get<Tag>(m_SelectedEntity);
+            char nameBuf[128];
+            std::snprintf(nameBuf, sizeof(nameBuf), "%s", tag.name.c_str());
+            if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
+                tag.name = nameBuf;
+        }
+        if (reg.any_of<Transform>(m_SelectedEntity))
+        {
+            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                auto &tr = reg.get<Transform>(m_SelectedEntity);
+                ImGui::DragFloat3("Position", &tr.Position.x, 0.01f);
+                ImGui::DragFloat3("Rotation", &tr.Rotation.x, 0.5f);
+                ImGui::DragFloat3("Scale", &tr.Scale.x, 0.01f, 0.01f, 100.0f);
+            }
+        }
+        if (reg.any_of<SpriteRenderer>(m_SelectedEntity))
+        {
+            if (ImGui::CollapsingHeader("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                auto &sr = reg.get<SpriteRenderer>(m_SelectedEntity);
+                ImGui::ColorEdit4("Color", &sr.color.x);
+                ImGui::DragFloat("Tiling", &sr.tiling, 0.01f, 0.1f, 100.0f);
+            }
+        }
+        if (ImGui::Button("Delete Entity"))
+        {
+            m_ActiveScene->DestroyEntity(m_SelectedEntity);
+            m_SelectedEntity = entt::null;
+        }
+    }
+    else
+    {
+        ImGui::TextUnformatted("Select an entity in Hierarchy.");
+    }
     ImGui::End();
 
     ImGui::Begin("Console");

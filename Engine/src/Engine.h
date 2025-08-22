@@ -27,3 +27,7 @@
 #include "Himii/Renderer/Framebuffer.h"
 
 //---------其他-----------
+// ECS
+#include "Himii/Scene/Components.h"
+#include "Himii/Scene/Entity.h"
+#include "Himii/Scene/Scene.h"

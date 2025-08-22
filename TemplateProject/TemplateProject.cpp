@@ -16,8 +16,8 @@ public:
         //PushLayer(new ExampleLayer());
         PushLayer(new Example2D);
         //PushLayer(new CubeLayer); // 启用立方体示例
-    // 叠加编辑器Overlay
-    PushOverlay(new EditorLayer());
+        // 叠加编辑器Overlay
+        PushOverlay(new EditorLayer());
     }
 
     virtual ~TemplateProject()
