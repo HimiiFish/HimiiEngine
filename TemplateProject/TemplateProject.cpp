@@ -1,4 +1,4 @@
-﻿#include "Engine.h"
+#include "Engine.h"
 #include "Himii/Core/EntryPoint.h"
 #include "ExampleLayer.h"
 #include "Example2D.h"

@@ -24,6 +24,8 @@ public:
     ImVec2 GetSceneDesiredSize() const { return m_LastSceneAvail; }
     bool   IsSceneHovered() const { return m_SceneHovered; }
     bool   IsSceneFocused() const { return m_SceneFocused; }
+    // 将鼠标转换为 Scene 视口内的像素坐标（基于最近一次绘制的 Image 区域）。返回是否在范围内
+    bool GetSceneMousePixel(uint32_t texW, uint32_t texH, uint32_t &outX, uint32_t &outY) const;
 
     void SetGameTexture(uint32_t textureID) { m_GameTexture = textureID; }
     void SetGameSize(uint32_t w, uint32_t h) { m_GameWidth = w; m_GameHeight = h; }
@@ -35,6 +37,7 @@ public:
 public:
     void SetActiveScene(Himii::Scene* scene) { m_ActiveScene = scene; if (!scene) m_SelectedEntity = entt::null; }
     Himii::Scene* GetActiveScene() const { return m_ActiveScene; }
+    void SetSelectedEntity(entt::entity e) { m_SelectedEntity = e; }
 
 private:
     uint32_t m_SceneTexture = 0;
@@ -42,6 +45,8 @@ private:
     ImVec2   m_LastSceneAvail = {0, 0};
     bool     m_SceneHovered = false;
     bool     m_SceneFocused = false;
+    ImVec2   m_SceneImageMin = {0, 0};
+    ImVec2   m_SceneImageSize = {0, 0};
 
     uint32_t m_GameTexture = 0;
     uint32_t m_GameWidth = 0, m_GameHeight = 0;

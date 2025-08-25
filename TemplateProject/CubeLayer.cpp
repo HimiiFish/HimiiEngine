@@ -45,6 +45,9 @@ void CubeLayer::OnAttach()
         fbSpec.Width = 1280; fbSpec.Height = 720;
         m_Framebuffer = Himii::Framebuffer::Create(fbSpec);
         m_GameFramebuffer = Himii::Framebuffer::Create(fbSpec);
+    // picking FBO
+    Himii::FramebufferSpecification pickSpec = fbSpec; pickSpec.EnablePicking = true;
+    m_PickingFramebuffer = Himii::Framebuffer::Create(pickSpec);
     }
 
     // 1) 加载着色器与纹理资源
@@ -115,7 +118,20 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
         if (newW != spec.Width || newH != spec.Height)
         {
             m_Framebuffer->Resize(newW, newH);
+            if (m_PickingFramebuffer) m_PickingFramebuffer->Resize(newW, newH);
             aspectScene = (float)newW / (float)newH;
+            // 同步场景内摄像机的宽高比，避免拉伸变形
+            auto camView = m_Scene.Registry().view<Himii::CameraComponent>();
+            for (auto e : camView) {
+                auto &cc = camView.get<Himii::CameraComponent>(e);
+                if (cc.projection == Himii::ProjectionType::Perspective)
+                    cc.camera.SetPerspective(cc.fovYDeg, aspectScene, cc.nearZ, cc.farZ);
+                else {
+                    float orthoH = 10.0f; // 以 10 单位为基准高度
+                    float orthoW = orthoH * aspectScene;
+                    cc.camera.SetOrthographic(-orthoW*0.5f, orthoW*0.5f, -orthoH*0.5f, orthoH*0.5f, cc.nearZ, cc.farZ);
+                }
+            }
         }
         sceneW = m_Framebuffer->GetSpecification().Width;
         sceneH = m_Framebuffer->GetSpecification().Height;
@@ -139,32 +155,28 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     if (!editorRef || editorRef->IsSceneHovered() || editorRef->IsSceneFocused())
         UpdateCamera(ts);
 
-    // 渲染函数：把一帧画到指定帧缓冲（ECS 提交在 Scene::OnUpdate 内部）
-    auto renderTo = [this](Himii::Ref<Himii::Framebuffer> fb, float aspect)
+    // 渲染 Scene 视口：使用编辑器相机（外部 VP 覆盖）
+    if (m_Framebuffer)
     {
-        if (!fb)
-            return;
-        fb->Bind();
+        m_Framebuffer->Bind();
         Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
         Himii::RenderCommand::Clear();
 
-        glm::mat4 transform(1.0f);
-        // 计算透视投影与视图矩阵（使用传入 aspect）
+        float aspect = aspectScene > 0.0f ? aspectScene : m_Aspect;
         const float fovYRad = glm::radians(m_FovYDeg);
-    glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ); 
+        glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ);
         glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
         glm::mat4 viewProj = projection * view;
 
-        // 将每帧可变数据（比如天空盒围绕相机的缩放/旋转）写入到对应实体的 Transform 上
+        // 天空盒跟随编辑器相机
         if (m_SkyboxEntity)
         {
             auto &tr = m_SkyboxEntity.GetComponent<Himii::Transform>();
-            tr.Position = m_CamPos; // 天空盒跟随相机位置
+            tr.Position = m_CamPos;
             tr.Scale = glm::vec3(m_FarZ * 0.5f);
             tr.Rotation = {0.0f, glm::radians(m_Angle), 0.0f};
         }
 
-        // 一些全局材质/灯光参数，通过 Shader 的外部接口设置一次
         if (m_LitShader)
         {
             m_LitShader->Bind();
@@ -175,16 +187,119 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
             m_LitShader->SetFloat("u_LightIntensity", m_LightIntensity);
         }
 
-        // 由 Renderer 管线包裹 ECS 的渲染
-        Himii::Renderer::BeginScene(viewProj);
+        // 使用外部 VP 覆盖渲染 Scene
+        m_Scene.SetExternalViewProjection(&viewProj);
         m_Scene.OnUpdate({});
-        Himii::Renderer::EndScene();
-        fb->Unbind();
-    };
+        m_Scene.SetExternalViewProjection(nullptr);
 
-    // 渲染到两个目标
-    renderTo(m_Framebuffer, aspectScene > 0.0f ? aspectScene : m_Aspect);
-    renderTo(m_GameFramebuffer, aspectGame > 0.0f ? aspectGame : m_Aspect);
+        m_Framebuffer->Unbind();
+    }
+
+    // 渲染 Game 视口：使用场景中的 CameraComponent（运行时相机）
+    if (m_GameFramebuffer)
+    {
+        m_GameFramebuffer->Bind();
+        Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
+        Himii::RenderCommand::Clear();
+
+        // 天空盒跟随主摄像机（若存在）
+        entt::entity camEntity = entt::null;
+        auto viewCam = m_Scene.Registry().view<Himii::Transform, Himii::CameraComponent>();
+        for (auto e : viewCam) { if (viewCam.get<Himii::CameraComponent>(e).primary) { camEntity = e; break; } }
+        if (camEntity == entt::null && viewCam.begin() != viewCam.end()) camEntity = *viewCam.begin();
+        if (m_SkyboxEntity && camEntity != entt::null)
+        {
+            auto &trSky = m_SkyboxEntity.GetComponent<Himii::Transform>();
+            auto &trCam = viewCam.get<Himii::Transform>(camEntity);
+            auto &cc = viewCam.get<Himii::CameraComponent>(camEntity);
+            trSky.Position = trCam.Position;
+            float farZ = cc.farZ > 0.0f ? cc.farZ : m_FarZ;
+            trSky.Scale = glm::vec3(farZ * 0.5f);
+            trSky.Rotation = {0.0f, glm::radians(m_Angle), 0.0f};
+        }
+
+        if (m_LitShader)
+        {
+            m_LitShader->Bind();
+            m_LitShader->SetFloat3("u_AmbientColor", m_AmbientColor);
+            m_LitShader->SetFloat("u_AmbientIntensity", m_AmbientIntensity);
+            m_LitShader->SetFloat3("u_LightDir", m_LightDir);
+            m_LitShader->SetFloat3("u_LightColor", m_LightColor);
+            m_LitShader->SetFloat("u_LightIntensity", m_LightIntensity);
+        }
+
+        // 不设置外部 VP，场景内部将选用 CameraComponent 渲染
+        m_Scene.SetExternalViewProjection(nullptr);
+        m_Scene.OnUpdate({});
+
+        m_GameFramebuffer->Unbind();
+    }
+
+    // Picking pass: render only entity IDs into R32UI attachment
+    if (m_PickingFramebuffer)
+    {
+        m_PickingFramebuffer->Bind();
+    // Clear picking attachment to 0 (no entity)
+    GLuint clearZero[4] = { 0, 0, 0, 0 };
+    glClearBufferuiv(GL_COLOR, 1, clearZero);
+        Himii::RenderCommand::Clear();
+
+    // matrices: use the same editor camera as Scene viewport
+    const float fovYRad = glm::radians(m_FovYDeg);
+    float aspect = (float)m_PickingFramebuffer->GetSpecification().Width / (float)m_PickingFramebuffer->GetSpecification().Height;
+    glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ);
+    glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
+    glm::mat4 viewProj = projection * view;
+
+        static Himii::Ref<Himii::Shader> s_Picking;
+        if (!s_Picking) s_Picking = m_ShaderLibrary.Load("assets/shaders/Picking.glsl");
+        if (s_Picking)
+        {
+            // Skybox not drawn into picking
+            auto meshView = m_Scene.Registry().view<Himii::Transform, Himii::MeshRenderer>(entt::exclude<Himii::SkyboxTag>);
+            s_Picking->Bind();
+            s_Picking->SetMat4("u_ViewProjection", viewProj);
+            for (auto e : meshView)
+            {
+                auto &tr = meshView.get<Himii::Transform>(e);
+                auto &mr = meshView.get<Himii::MeshRenderer>(e);
+                if (!mr.vertexArray) continue;
+                uint32_t id = 0;
+                if (m_TerrainEntity && e == m_TerrainEntity.Raw()) id = m_TerrainPickID;
+                else if (m_SkyboxEntity && e == m_SkyboxEntity.Raw()) id = m_SkyboxPickID; // excluded by view
+                else id = (uint32_t)(uint64_t)e; // fallback: use entt handle
+                s_Picking->SetInt("u_EntityID", (int)id);
+                Himii::Renderer::Submit(s_Picking, mr.vertexArray, tr.GetTransform());
+            }
+        }
+        m_PickingFramebuffer->Unbind();
+
+        // If mouse over Scene panel, read pixel and set selection
+        if (editorRef && (editorRef->IsSceneHovered() || editorRef->IsSceneFocused()))
+        {
+            uint32_t px=0, py=0;
+            uint32_t texW = m_PickingFramebuffer->GetSpecification().Width;
+            uint32_t texH = m_PickingFramebuffer->GetSpecification().Height;
+            // Trigger selection on left mouse click within Scene image
+            if (editorRef->GetSceneMousePixel(texW, texH, px, py) && Himii::Input::IsMouseButtonPressed(Himii::Mouse::ButtonLeft))
+            {
+                uint32_t id = m_PickingFramebuffer->ReadPickingPixel(px, py);
+            if (id != 0)
+            {
+                // map id to entity
+                entt::entity picked = entt::null;
+                if (id == m_TerrainPickID) picked = m_TerrainEntity.Raw();
+                // skybox intentionally excluded
+                else picked = (entt::entity)(uint32_t)id;
+                if (picked != entt::null && m_Scene.Registry().valid(picked))
+                {
+                        if (editorRef->GetActiveScene() != &m_Scene) editorRef->SetActiveScene(&m_Scene);
+                        editorRef->SetSelectedEntity(picked);
+                }
+            }
+            }
+        }
+    }
     // 这里简单地遍历 LayerStack 找到 EditorLayer 并传值
     auto &app2 = Himii::Application::Get();
     for (auto *layer: app2.GetLayerStack())
@@ -573,5 +688,24 @@ void CubeLayer::BuildECSScene()
         mr.vertexArray = m_SkyboxVA;
         mr.shader = m_SkyboxShader;
         mr.texture = {};
+    }
+
+    // 如果场景中没有摄像机，则创建一个临时摄像机实体，承载原层相机参数（暂时）
+    {
+        auto viewCam = m_Scene.Registry().view<Himii::CameraComponent>();
+        if (viewCam.begin() == viewCam.end())
+        {
+            auto camEnt = m_Scene.CreateEntity("Camera");
+            auto &cc = camEnt.AddComponent<Himii::CameraComponent>();
+            cc.primary = true;
+            cc.projection = Himii::ProjectionType::Perspective;
+            cc.fovYDeg = m_FovYDeg;
+            cc.nearZ = m_NearZ;
+            cc.farZ = m_FarZ;
+            cc.useLookAt = true;
+            cc.lookAtTarget = m_CamTarget;
+            auto &tr = camEnt.GetComponent<Himii::Transform>();
+            tr.Position = m_CamPos;
+        }
     }
 }

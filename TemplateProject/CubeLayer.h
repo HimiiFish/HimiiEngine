@@ -127,10 +127,14 @@ private:
     // 离屏渲染
     Himii::Ref<Himii::Framebuffer> m_Framebuffer;
     Himii::Ref<Himii::Framebuffer> m_GameFramebuffer;
+    Himii::Ref<Himii::Framebuffer> m_PickingFramebuffer; // R32UI picking buffer
 
     // ECS 场景，用于替换手写 Submit 流程
     Himii::Scene m_Scene;
     // 记录 ECS 中的实体句柄（便于重建/替换 VAO）
     Himii::Entity m_TerrainEntity;
     Himii::Entity m_SkyboxEntity;
+    // entity id mapping for picking
+    uint32_t m_TerrainPickID = 1; // assign stable ids per entity
+    uint32_t m_SkyboxPickID = 2;
 };

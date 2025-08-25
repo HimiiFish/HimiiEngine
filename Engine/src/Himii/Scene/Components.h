@@ -2,9 +2,9 @@
 // 基础组件定义（对标主流引擎：稳定ID、可读名称、Transform、SpriteRenderer、可选Camera）
 // 注意：这是最小可用集，后续可扩展（Hierarchy、RigidBody等）。
 #include "Hepch.h"
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/glm.hpp>
 #include "glm/gtc/quaternion.hpp" // glm::quat
-#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>  // glm::toMat4
 #include "glm/gtc/matrix_transform.hpp" // glm::translate, glm::rotate, glm::scale
 #include <array>
@@ -15,6 +15,7 @@
 #include "Himii/Renderer/VertexArray.h" // VertexArray for 3D meshes
 #include "Himii/Renderer/Shader.h"      // Shader reference
 #include "Himii/Core/UUID.h"
+#include "Himii/Renderer/Camera.h"
 
 namespace Himii
 {
@@ -77,10 +78,16 @@ namespace Himii
     // 可选：作为主摄像机使用（暂不用于渲染主循环，留作扩展）
     struct CameraComponent {
         bool primary = false; // 是否为主摄像机
-        // 仅预留参数，实际投影由引擎相机类驱动
-        float orthoSize = 10.0f;
-        float nearClip = -1.0f;
-        float farClip = 1.0f;
+        ProjectionType projection = ProjectionType::Perspective;
+        float fovYDeg = 45.0f; // 仅透视用
+        float nearZ = 0.1f;
+        float farZ = 100.0f;
+        // 控制方式：是否使用 LookAt 目标（否则使用 Transform 的欧拉旋转）
+        bool useLookAt = true;
+        glm::vec3 lookAtTarget{0.0f, 0.0f, 0.0f};
+        glm::vec3 up{0.0f, 1.0f, 0.0f};
+        // 运行时相机对象（缓存投影视图矩阵）
+        Himii::Camera camera{};
     };
 
     // 3D 网格渲染组件：用于 Renderer::Submit 路径

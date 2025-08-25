@@ -50,7 +50,9 @@ namespace Himii
             glfwSetErrorCallback(GLFWErrorCallback);
         }
 
-        HIMII_PROFILE_SCOPE("glfwCreateWindow");
+    HIMII_PROFILE_SCOPE("glfwCreateWindow");
+    // 默认最大化窗口
+    glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
         m_Window = glfwCreateWindow((int)props.Width, props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         ++s_GLFWWindwCount;
 
@@ -63,7 +65,10 @@ namespace Himii
             glfwTerminate();
             return;
         }
-        glfwSetWindowUserPointer(m_Window, &m_Data);
+    // 再次确保最大化（防止某些平台忽略 hint）
+    glfwMaximizeWindow(m_Window);
+
+    glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetVSync(false);
 

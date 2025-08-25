@@ -38,10 +38,43 @@ void Scene::DestroyEntity(entt::entity e) {
 }
 
 void Scene::OnUpdate(Timestep /*ts*/) {
+    // 选择一个主摄像机或使用外部提供的 ViewProjection
+    glm::mat4 viewProj(1.0f);
+    if (m_UseExternalVP) {
+        viewProj = m_ExternalVP;
+    } else {
+    {
+        entt::entity camEntity = entt::null;
+        auto viewCam = m_Registry.view<Himii::Transform, Himii::CameraComponent>();
+        for (auto e : viewCam) { if (viewCam.get<Himii::CameraComponent>(e).primary) { camEntity = e; break; } }
+        if (camEntity == entt::null && viewCam.begin() != viewCam.end()) camEntity = *viewCam.begin();
+        if (camEntity != entt::null)
+        {
+            auto &tr = viewCam.get<Himii::Transform>(camEntity);
+            auto &cc = viewCam.get<Himii::CameraComponent>(camEntity);
+            // 此处不强行设定 aspect，保持由外层（如 CubeLayer Resize 时）或 Inspector 控制
+            if (cc.useLookAt)
+            {
+                glm::mat4 V = glm::lookAt(tr.Position, cc.lookAtTarget, cc.up);
+                cc.camera.SetPosition(tr.Position);
+                viewProj = cc.camera.GetProjection() * V;
+            }
+            else
+            {
+                cc.camera.SetPosition(tr.Position);
+                cc.camera.SetRotationEuler(tr.Rotation);
+                viewProj = cc.camera.GetViewProjection();
+            }
+        }
+    } }
+
+    // 如果没有可用摄像机，保留上层（例如 CubeLayer）外部调用 BeginScene 的能力
+
     // 3D MeshRenderer - Skybox pass first (depth: LEQUAL, no depth write)
     {
         auto skyView = m_Registry.view<Himii::Transform, Himii::MeshRenderer, Himii::SkyboxTag>();
     if (skyView.begin() != skyView.end()) {
+            if (viewProj != glm::mat4(1.0f)) Himii::Renderer::BeginScene(viewProj);
             glDepthFunc(GL_LEQUAL);
             glDepthMask(GL_FALSE);
             for (auto e : skyView) {
@@ -54,12 +87,14 @@ void Scene::OnUpdate(Timestep /*ts*/) {
             }
             glDepthMask(GL_TRUE);
             glDepthFunc(GL_LESS);
+            if (viewProj != glm::mat4(1.0f)) Himii::Renderer::EndScene();
         }
     }
 
     // 3D MeshRenderer - regular pass (exclude skybox)
     {
         auto meshView = m_Registry.view<Himii::Transform, Himii::MeshRenderer>(entt::exclude<Himii::SkyboxTag>);
+        if (meshView.begin() != meshView.end() && viewProj != glm::mat4(1.0f)) Himii::Renderer::BeginScene(viewProj);
         for (auto e : meshView) {
             auto &tr = meshView.get<Himii::Transform>(e);
             const auto &mr = meshView.get<Himii::MeshRenderer>(e);
@@ -68,6 +103,7 @@ void Scene::OnUpdate(Timestep /*ts*/) {
                 Himii::Renderer::Submit(mr.shader, mr.vertexArray, tr.GetTransform());
             }
         }
+        if (meshView.begin() != meshView.end() && viewProj != glm::mat4(1.0f)) Himii::Renderer::EndScene();
     }
 
     // 2D SpriteRenderer 实体：Renderer2D 批渲染
