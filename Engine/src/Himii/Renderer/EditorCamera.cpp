@@ -20,7 +20,12 @@ void EditorCamera::SetRotationEuler(const glm::vec3& eulerRadians) { m_RotationE
 
 void EditorCamera::SetLookAt(const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up) {
     m_Position = pos;
-    m_View = glm::lookAt(pos, target, up);
+    // 由目标方向反推出当前欧拉角（忽略 roll）
+    glm::vec3 fwd = glm::normalize(target - pos);
+    float pitch = asinf(glm::clamp(fwd.y, -1.0f, 1.0f));
+    float yaw   = atan2f(fwd.z, fwd.x);
+    m_RotationEuler = glm::vec3(pitch, yaw, 0.0f);
+    RecalculateView();
 }
 
 void EditorCamera::RebuildProjection() {

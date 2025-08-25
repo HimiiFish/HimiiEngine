@@ -1,12 +1,13 @@
 {
-  "name": "himiengine-project",
-  "version-string": "0.1.0",
+    "name": "himiengine-project",
+    "version-string": "0.1.0",
     "dependencies": [
         "glad",
         "glfw3",
         "spdlog",
         "glm",
-  "stb",
-  "entt"
+        "stb",
+        "yaml-cpp",
+        "entt"
     ]
 }

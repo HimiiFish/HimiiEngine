@@ -84,8 +84,10 @@ namespace Himii
         float fovYDeg = 45.0f; // 仅透视用
         float nearZ = 0.1f;
         float farZ = 100.0f;
-        // 控制方式：是否使用 LookAt 目标（否则使用 Transform 的欧拉旋转）
-        bool useLookAt = true;
+    // 正交相机的可视高度（用于缩放/zoom），保持垂直尺寸不变，水平按纵横比自适应
+    float orthoSize = 10.0f;
+    // 控制方式：是否使用 LookAt 目标（否则使用 Transform 的欧拉旋转）。默认关闭以便旋转独立。
+    bool useLookAt = false;
         glm::vec3 lookAtTarget{0.0f, 0.0f, 0.0f};
         glm::vec3 up{0.0f, 1.0f, 0.0f};
     // 运行时场景相机对象

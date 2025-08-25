@@ -6,6 +6,7 @@
 #include "glad/glad.h"
 #include <entt/entt.hpp>
 #include <string>
+#include <vector>
 
 namespace Himii {
 
@@ -57,17 +58,26 @@ void Scene::OnUpdate(Timestep ts) {
         {
             auto &tr = viewCam.get<Himii::Transform>(camEntity);
             auto &cc = viewCam.get<Himii::CameraComponent>(camEntity);
-            // 此处不强行设定 aspect，保持由外层（如 CubeLayer Resize 时）或 Inspector 控制
+            // 设置投影（含正交缩放）
+            if (cc.projection == ProjectionType::Perspective) {
+                cc.camera.SetFovYDeg(cc.fovYDeg);
+            } else {
+                cc.camera.SetOrthographicBySize(cc.orthoSize, cc.nearZ, cc.farZ);
+            }
+
+            // 设置视图：两种驱动方式
             if (cc.useLookAt)
             {
-                glm::mat4 V = glm::lookAt(tr.Position, cc.lookAtTarget, cc.up);
                 cc.camera.SetPosition(tr.Position);
+                // 将旋转与位置解耦，使用 lookAt 目标来构造朝向
+                glm::mat4 V = glm::lookAt(tr.Position, cc.lookAtTarget, cc.up);
                 viewProj = cc.camera.GetProjection() * V;
             }
             else
             {
-                cc.camera.SetPosition(tr.Position);
+                // 显式设置位置与欧拉角，不再因 SetPosition 改变旋转
                 cc.camera.SetRotationEuler(tr.Rotation);
+                cc.camera.SetPosition(tr.Position);
                 viewProj = cc.camera.GetViewProjection();
             }
         }
@@ -143,6 +153,14 @@ void Scene::OnUpdate(Timestep ts) {
             if (nsc.Instance) nsc.Instance->OnUpdate(ts);
         }
     }
+}
+
+void Scene::Clear() {
+    // 收集后再销毁，避免遍历时失效
+    std::vector<entt::entity> toDelete;
+    auto view = m_Registry.view<Transform>();
+    for (auto e : view) toDelete.push_back(e);
+    for (auto e : toDelete) DestroyEntity(e);
 }
 
 } // namespace Himii

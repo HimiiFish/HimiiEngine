@@ -10,25 +10,64 @@ void SceneCamera::SetPerspective(float fovYDeg, float aspect, float nearZ, float
 
 void SceneCamera::SetOrthographic(float left, float right, float bottom, float top, float nearZ, float farZ) {
     m_Type = ProjectionType::Orthographic;
+    m_Near = nearZ; m_Far = farZ;
     m_Projection = glm::ortho(left, right, bottom, top, nearZ, farZ);
+}
+
+void SceneCamera::SetOrthographicBySize(float orthoSize, float aspect, float nearZ, float farZ) {
+    m_Type = ProjectionType::Orthographic;
+    m_OrthoSize = orthoSize; m_Aspect = aspect; m_Near = nearZ; m_Far = farZ;
+    float halfH = m_OrthoSize * 0.5f;
+    float halfW = halfH * m_Aspect;
+    m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
 }
 
 void SceneCamera::SetViewport(float width, float height) {
     m_Aspect = (height > 0.0f) ? (width / height) : m_Aspect;
-    if (m_Type == ProjectionType::Perspective)
+    if (m_Type == ProjectionType::Perspective) {
         m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
+    } else {
+        float halfH = m_OrthoSize * 0.5f;
+        float halfW = halfH * m_Aspect;
+        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    }
 }
 
 void SceneCamera::SetClip(float nearZ, float farZ) {
     m_Near = nearZ; m_Far = farZ;
-    if (m_Type == ProjectionType::Perspective)
+    if (m_Type == ProjectionType::Perspective) {
         m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
+    } else {
+        float halfH = m_OrthoSize * 0.5f;
+        float halfW = halfH * m_Aspect;
+        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    }
 }
 
 void SceneCamera::SetProjectionType(ProjectionType type) {
     m_Type = type;
+    if (m_Type == ProjectionType::Perspective) {
+        m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
+    } else {
+        float halfH = m_OrthoSize * 0.5f;
+        float halfW = halfH * m_Aspect;
+        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    }
+}
+
+void SceneCamera::SetFovYDeg(float fovYDeg) {
+    m_FovYDeg = fovYDeg;
     if (m_Type == ProjectionType::Perspective)
         m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
+}
+
+void SceneCamera::SetOrthoSize(float orthoSize) {
+    m_OrthoSize = orthoSize;
+    if (m_Type == ProjectionType::Orthographic) {
+        float halfH = m_OrthoSize * 0.5f;
+        float halfW = halfH * m_Aspect;
+        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    }
 }
 
 void SceneCamera::SetPosition(const glm::vec3& pos) { m_Position = pos; RecalculateView(); }

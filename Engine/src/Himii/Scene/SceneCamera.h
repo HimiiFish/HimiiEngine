@@ -15,6 +15,12 @@ namespace Himii {
         // Back-compat helpers (used by existing code)
         void SetPerspective(float fovYDeg, float aspect, float nearZ, float farZ);
         void SetOrthographic(float left, float right, float bottom, float top, float nearZ, float farZ);
+    // Convenience: set orthographic by size (vertical view height) and aspect
+    void SetOrthographicBySize(float orthoSize, float aspect=(16.0f/9.0f), float nearZ=0.1f, float farZ=100.0f);
+
+    // Parameter setters that rebuild projection using stored aspect/clip
+    void SetFovYDeg(float fovYDeg);
+    void SetOrthoSize(float orthoSize);
 
         // Camera interface
         void SetViewport(float width, float height) override;
@@ -41,6 +47,7 @@ namespace Himii {
         float m_Aspect{16.0f/9.0f};
         float m_Near{0.1f};
         float m_Far{100.0f};
+    float m_OrthoSize{10.0f};
     };
 
 } // namespace Himii

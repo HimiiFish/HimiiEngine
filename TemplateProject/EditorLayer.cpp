@@ -9,8 +9,17 @@ using namespace Himii;
 // 脚本头文件（Inspector 用）
 #include "TerrainScript.h"
 #include "Move2DScript.h"
+// 场景序列化
+#include "Himii/Scene/SceneSerializer.h"
+// 容器
+#include <vector>
+// 显式引入 entt，避免依赖链差异导致的推导问题
+#include <entt/entt.hpp>
 
 #ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <commdlg.h>
@@ -31,6 +40,32 @@ static std::string OpenFileDialog(const wchar_t *filter)
     if (GetOpenFileNameW(&ofn) == TRUE)
     {
         // 转 UTF-8
+        int needed = WideCharToMultiByte(CP_UTF8, 0, fileBuffer, -1, nullptr, 0, nullptr, nullptr);
+        if (needed > 0)
+        {
+            std::string utf8(needed - 1, '\0');
+            WideCharToMultiByte(CP_UTF8, 0, fileBuffer, -1, utf8.data(), needed, nullptr, nullptr);
+            return utf8;
+        }
+    }
+    return {};
+}
+
+// 简单的本地文件保存对话框（返回 UTF-8 路径，失败返回空串）
+static std::string SaveFileDialog(const wchar_t *filter, const wchar_t* defaultExt = L"yaml")
+{
+    wchar_t fileBuffer[MAX_PATH] = L"";
+    OPENFILENAMEW ofn{};
+    ofn.lStructSize = sizeof(ofn);
+    ofn.hwndOwner = nullptr;
+    ofn.lpstrFile = fileBuffer;
+    ofn.nMaxFile = MAX_PATH;
+    ofn.lpstrFilter = filter; // 形如 L"YAML Scene (*.yaml)\0*.yaml\0All Files\0*.*\0\0"
+    ofn.nFilterIndex = 1;
+    ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
+    ofn.lpstrDefExt = defaultExt;
+    if (GetSaveFileNameW(&ofn) == TRUE)
+    {
         int needed = WideCharToMultiByte(CP_UTF8, 0, fileBuffer, -1, nullptr, 0, nullptr, nullptr);
         if (needed > 0)
         {
@@ -87,9 +122,45 @@ void EditorLayer::OnImGuiRender()
     {
         if (ImGui::BeginMenu("File"))
         {
-            ImGui::MenuItem("New");
-            ImGui::MenuItem("Open...");
-            ImGui::MenuItem("Save");
+            // New Scene: 清空当前场景
+            if (ImGui::MenuItem("New"))
+            {
+                if (m_ActiveScene) { m_ActiveScene->Clear(); m_SelectedEntity = entt::null; }
+            }
+            // Open Scene: 选择 .yaml 并加载
+            if (ImGui::MenuItem("Open..."))
+            {
+#ifdef _WIN32
+                const wchar_t *filter = L"YAML Scene (*.yaml)\0*.yaml\0All Files\0*.*\0\0";
+                std::string path = OpenFileDialog(filter);
+                if (!path.empty() && m_ActiveScene) {
+                    m_ActiveScene->Clear();
+                    m_SelectedEntity = entt::null;
+                    Himii::SceneSerializer serializer(m_ActiveScene);
+                    serializer.Deserialize(path);
+                }
+#else
+                // 其他平台：可接入自定义文件对话框后再实现
+#endif
+            }
+            // Save Scene: 选择输出路径并保存
+            if (ImGui::MenuItem("Save"))
+            {
+                if (m_ActiveScene)
+                {
+#ifdef _WIN32
+                    const wchar_t *filter = L"YAML Scene (*.yaml)\0*.yaml\0All Files\0*.*\0\0";
+                    std::string path = SaveFileDialog(filter);
+                    if (!path.empty())
+                    {
+                        Himii::SceneSerializer serializer(m_ActiveScene);
+                        serializer.Serialize(path);
+                    }
+#else
+                    // 其他平台：可接入自定义文件对话框后再实现
+#endif
+                }
+            }
             ImGui::Separator();
             if (ImGui::MenuItem("Exit"))
                 Himii::Application::Get().Close();
@@ -202,15 +273,15 @@ void EditorLayer::OnImGuiRender()
     if (m_ActiveScene)
     {
         auto &reg = m_ActiveScene->Registry();
-        auto view = reg.view<Transform>();
+    auto view = reg.view<Himii::Transform>();
         for (auto e : view)
         {
             std::string label;
-            if (auto *t = reg.try_get<Tag>(e))
+            if (auto *t = reg.try_get<Himii::Tag>(e))
                 label = t->name.empty() ? std::string("Entity") : t->name;
             else
             {
-                if (auto *id = reg.try_get<ID>(e))
+                if (auto *id = reg.try_get<Himii::ID>(e))
                 {
                     char tmp[64];
                     std::snprintf(tmp, sizeof(tmp), "Entity %llu", (unsigned long long)(uint64_t)id->id);
@@ -226,11 +297,29 @@ void EditorLayer::OnImGuiRender()
             bool selected = (e == m_SelectedEntity);
             if (ImGui::Selectable(label.c_str(), selected))
                 m_SelectedEntity = e;
+
+            // 右键实体：弹出删除菜单
+            if (ImGui::BeginPopupContextItem((std::string("##EntityCtx_") + std::to_string((uint32_t)e)).c_str()))
+            {
+                if (ImGui::MenuItem("Delete Entity"))
+                {
+                    m_ActiveScene->DestroyEntity(e);
+                    if (m_SelectedEntity == e) m_SelectedEntity = entt::null;
+                    ImGui::EndPopup();
+                    break; // registry invalidation safe-guard
+                }
+                ImGui::EndPopup();
+            }
         }
-        if (ImGui::Button("Create Entity"))
+        // 右键空白处：创建实体
+        if (ImGui::BeginPopupContextWindow("HierarchyBgCtx", ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_MouseButtonRight))
         {
-            auto e = m_ActiveScene->CreateEntity("Entity");
-            e.AddComponent<SpriteRenderer>(glm::vec4{0.8f, 0.8f, 0.8f, 1.0f});
+            if (ImGui::MenuItem("Create Empty"))
+            {
+                auto e = m_ActiveScene->CreateEntity("Entity");
+                (void)e;
+            }
+            ImGui::EndPopup();
         }
         if (m_SelectedEntity != entt::null && !reg.valid(m_SelectedEntity))
             m_SelectedEntity = entt::null;
@@ -241,41 +330,54 @@ void EditorLayer::OnImGuiRender()
     }
     ImGui::End();
 
-    // Inspector 面板
-    ImGui::Begin("Inspector");
+    // Properties 面板
+    ImGui::Begin("Properties");
     if (m_ActiveScene && m_SelectedEntity != entt::null && m_ActiveScene->Registry().valid(m_SelectedEntity))
     {
         auto &reg = m_ActiveScene->Registry();
-        if (reg.any_of<Tag>(m_SelectedEntity))
+        if (reg.any_of<Himii::Tag>(m_SelectedEntity))
         {
-            auto &tag = reg.get<Tag>(m_SelectedEntity);
+            auto &tag = reg.get<Himii::Tag>(m_SelectedEntity);
             char nameBuf[128];
             std::snprintf(nameBuf, sizeof(nameBuf), "%s", tag.name.c_str());
             if (ImGui::InputText("Name", nameBuf, sizeof(nameBuf)))
                 tag.name = nameBuf;
         }
-        if (reg.any_of<Transform>(m_SelectedEntity))
+    if (reg.any_of<Himii::Transform>(m_SelectedEntity))
         {
-            if (ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen))
+            bool open = ImGui::CollapsingHeader("Transform", ImGuiTreeNodeFlags_DefaultOpen);
+            // Transform 视为核心组件，不允许移除
+            if (open)
             {
-                auto &tr = reg.get<Transform>(m_SelectedEntity);
+                auto &tr = reg.get<Himii::Transform>(m_SelectedEntity);
                 ImGui::DragFloat3("Position", &tr.Position.x, 0.01f);
                 ImGui::DragFloat3("Rotation", &tr.Rotation.x, 0.5f);
                 ImGui::DragFloat3("Scale", &tr.Scale.x, 0.01f, 0.01f, 100.0f);
             }
         }
-        if (reg.any_of<CameraComponent>(m_SelectedEntity))
+    if (reg.any_of<Himii::CameraComponent>(m_SelectedEntity))
         {
-            if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+            bool open = ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen);
+            if (ImGui::BeginPopupContextItem("##CamCtx"))
             {
-                auto &cc = reg.get<CameraComponent>(m_SelectedEntity);
+                if (ImGui::MenuItem("Remove Component"))
+                    reg.remove<Himii::CameraComponent>(m_SelectedEntity);
+                ImGui::EndPopup();
+            }
+            if (open)
+            {
+                auto &cc = reg.get<Himii::CameraComponent>(m_SelectedEntity);
                 ImGui::Checkbox("Primary", &cc.primary);
-                int proj = (cc.projection == ProjectionType::Perspective) ? 0 : 1;
+                int proj = (cc.projection == Himii::ProjectionType::Perspective) ? 0 : 1;
                 if (ImGui::Combo("Projection", &proj, "Perspective\0Orthographic\0"))
-                    cc.projection = proj == 0 ? ProjectionType::Perspective : ProjectionType::Orthographic;
+                    cc.projection = proj == 0 ? Himii::ProjectionType::Perspective : Himii::ProjectionType::Orthographic;
                 if (cc.projection == ProjectionType::Perspective)
                 {
                     ImGui::DragFloat("FovY (deg)", &cc.fovYDeg, 0.1f, 10.0f, 120.0f);
+                }
+                else
+                {
+                    ImGui::DragFloat("Ortho Size", &cc.orthoSize, 0.1f, 0.1f, 1000.0f);
                 }
                 ImGui::DragFloat("NearZ", &cc.nearZ, 0.01f, 0.01f, 10.0f);
                 ImGui::DragFloat("FarZ", &cc.farZ, 1.0f, 0.1f, 5000.0f);
@@ -284,11 +386,18 @@ void EditorLayer::OnImGuiRender()
                 ImGui::DragFloat3("Up", &cc.up.x, 0.05f);
             }
         }
-        if (reg.any_of<SpriteRenderer>(m_SelectedEntity))
+    if (reg.any_of<Himii::SpriteRenderer>(m_SelectedEntity))
         {
-            if (ImGui::CollapsingHeader("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen))
+            bool open = ImGui::CollapsingHeader("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen);
+            if (ImGui::BeginPopupContextItem("##SpriteCtx"))
             {
-                auto &sr = reg.get<SpriteRenderer>(m_SelectedEntity);
+                if (ImGui::MenuItem("Remove Component"))
+                    reg.remove<Himii::SpriteRenderer>(m_SelectedEntity);
+                ImGui::EndPopup();
+            }
+            if (open)
+            {
+                auto &sr = reg.get<Himii::SpriteRenderer>(m_SelectedEntity);
                 ImGui::ColorEdit4("Color", &sr.color.x);
                 ImGui::DragFloat("Tiling", &sr.tiling, 0.01f, 0.1f, 100.0f);
 
@@ -384,11 +493,18 @@ void EditorLayer::OnImGuiRender()
                 if (ImGui::InputFloat2("UV3", uv3)) sr.uvs[3] = {uv3[0], uv3[1]};
             }
         }
-        if (reg.any_of<MeshRenderer>(m_SelectedEntity))
+    if (reg.any_of<Himii::MeshRenderer>(m_SelectedEntity))
         {
-            if (ImGui::CollapsingHeader("MeshRenderer", ImGuiTreeNodeFlags_DefaultOpen))
+            bool open = ImGui::CollapsingHeader("MeshRenderer", ImGuiTreeNodeFlags_DefaultOpen);
+            if (ImGui::BeginPopupContextItem("##MeshCtx"))
             {
-                auto &mr = reg.get<MeshRenderer>(m_SelectedEntity);
+                if (ImGui::MenuItem("Remove Component"))
+                    reg.remove<Himii::MeshRenderer>(m_SelectedEntity);
+                ImGui::EndPopup();
+            }
+            if (open)
+            {
+                auto &mr = reg.get<Himii::MeshRenderer>(m_SelectedEntity);
                 ImGui::Text("VAO: %p", (void *)mr.vertexArray.get());
                 ImGui::Text("Shader: %p", (void *)mr.shader.get());
                 ImGui::Text("Texture: %p", mr.texture ? (void *)mr.texture.get() : (void *)nullptr);
@@ -397,16 +513,35 @@ void EditorLayer::OnImGuiRender()
                 ImGui::TextDisabled("(Mesh content is built in CubeLayer and bound here)");
             }
         }
-        if (reg.any_of<SkyboxTag>(m_SelectedEntity))
+    if (reg.any_of<Himii::SkyboxTag>(m_SelectedEntity))
         {
-            ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "[Skybox]");
+            bool open = ImGui::CollapsingHeader("SkyboxTag", ImGuiTreeNodeFlags_DefaultOpen);
+            if (ImGui::BeginPopupContextItem("##SkyCtx"))
+            {
+                if (ImGui::MenuItem("Remove Component"))
+                    reg.remove<Himii::SkyboxTag>(m_SelectedEntity);
+                ImGui::EndPopup();
+            }
+            if (open)
+                ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "[Skybox]");
         }
 
         // 脚本（NativeScriptComponent）检查与参数编辑
         if (reg.any_of<Himii::NativeScriptComponent>(m_SelectedEntity))
         {
             auto &nsc = reg.get<Himii::NativeScriptComponent>(m_SelectedEntity);
-            if (nsc.Instance)
+            bool open = ImGui::CollapsingHeader("NativeScript", ImGuiTreeNodeFlags_DefaultOpen);
+            if (ImGui::BeginPopupContextItem("##ScriptCtx"))
+            {
+                if (ImGui::MenuItem("Remove Component"))
+                {
+                    //if (nsc.Instance) { nsc.Instance->OnDestroy(); }
+                    if (nsc.DestroyScript) { nsc.DestroyScript(&nsc); }
+                    reg.remove<Himii::NativeScriptComponent>(m_SelectedEntity);
+                }
+                ImGui::EndPopup();
+            }
+            if (open && nsc.Instance)
             {
                 if (auto *ts = dynamic_cast<TerrainScript *>(nsc.Instance))
                 {
@@ -466,10 +601,66 @@ void EditorLayer::OnImGuiRender()
             }
         }
 
-        if (ImGui::Button("Delete Entity"))
+        // 添加组件按钮（替换原删除实体按钮）
+        if (ImGui::Button("Add Component")) ImGui::OpenPopup("AddComponentPopup");
+        if (ImGui::BeginPopup("AddComponentPopup"))
         {
-            m_ActiveScene->DestroyEntity(m_SelectedEntity);
-            m_SelectedEntity = entt::null;
+            // SpriteRenderer
+            if (!reg.any_of<SpriteRenderer>(m_SelectedEntity))
+            {
+                if (ImGui::MenuItem("SpriteRenderer"))
+                {
+                    reg.emplace<SpriteRenderer>(m_SelectedEntity, glm::vec4{1.0f,1.0f,1.0f,1.0f});
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            // Camera
+            if (!reg.any_of<CameraComponent>(m_SelectedEntity))
+            {
+                if (ImGui::MenuItem("Camera"))
+                {
+                    reg.emplace<CameraComponent>(m_SelectedEntity);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            // MeshRenderer
+            if (!reg.any_of<MeshRenderer>(m_SelectedEntity))
+            {
+                if (ImGui::MenuItem("MeshRenderer"))
+                {
+                    reg.emplace<MeshRenderer>(m_SelectedEntity);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            // SkyboxTag（仅供演示）
+            if (!reg.any_of<SkyboxTag>(m_SelectedEntity))
+            {
+                if (ImGui::MenuItem("SkyboxTag"))
+                {
+                    reg.emplace<SkyboxTag>(m_SelectedEntity);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            // Scripts 子菜单
+            if (ImGui::BeginMenu("Scripts"))
+            {
+                if (ImGui::MenuItem("Move2DScript"))
+                {
+                    auto *nsc = reg.try_get<Himii::NativeScriptComponent>(m_SelectedEntity);
+                    if (!nsc) nsc = &reg.emplace<Himii::NativeScriptComponent>(m_SelectedEntity);
+                    nsc->Bind<Move2DScript>();
+                    ImGui::CloseCurrentPopup();
+                }
+                if (ImGui::MenuItem("TerrainScript"))
+                {
+                    auto *nsc = reg.try_get<Himii::NativeScriptComponent>(m_SelectedEntity);
+                    if (!nsc) nsc = &reg.emplace<Himii::NativeScriptComponent>(m_SelectedEntity);
+                    nsc->Bind<TerrainScript>();
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+            }
+            ImGui::EndPopup();
         }
     }
     else
