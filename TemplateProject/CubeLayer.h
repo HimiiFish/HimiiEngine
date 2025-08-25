@@ -1,6 +1,8 @@
 #pragma once
 #include "Engine.h"
 #include "glm/glm.hpp"
+// 使用编辑器相机（仅用于 Scene 视口渲染与拾取）
+#include "Himii/Renderer/EditorCamera.h"
 
 class CubeLayer : public Himii::Layer
 {
@@ -70,11 +72,7 @@ private:
     float m_LastMouseX = 0.0f;
     float m_LastMouseY = 0.0f;
 
-    // 地形参数（体素体积大小）
-    int m_TerrainW = 128;
-    int m_TerrainD = 128;
-    int m_TerrainH = 32;
-    bool m_AutoRebuild = true; // 实时重建开关
+    // 地形参数已迁移到 TerrainScript（通过 NativeScriptComponent 挂在地形实体上）
 
     // 全局光照参数
     glm::vec3 m_AmbientColor {0.35f, 0.40f, 0.45f};
@@ -137,4 +135,7 @@ private:
     // entity id mapping for picking
     uint32_t m_TerrainPickID = 1; // assign stable ids per entity
     uint32_t m_SkyboxPickID = 2;
+
+    // 编辑器相机（驱动 Scene 视口与拾取）
+    Himii::EditorCamera m_EditorCamera;
 };

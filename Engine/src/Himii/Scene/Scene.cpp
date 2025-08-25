@@ -34,10 +34,15 @@ void Scene::DestroyEntity(entt::entity e) {
         auto it = m_EntityMap.find(pid->id);
         if (it != m_EntityMap.end()) m_EntityMap.erase(it);
     }
+    // 脚本析构
+    if (auto *nsc = m_Registry.try_get<NativeScriptComponent>(e)) {
+        if (nsc->Instance) { nsc->Instance->OnDestroy(); }
+        if (nsc->DestroyScript) { nsc->DestroyScript(nsc); }
+    }
     m_Registry.destroy(e);
 }
 
-void Scene::OnUpdate(Timestep /*ts*/) {
+void Scene::OnUpdate(Timestep ts) {
     // 选择一个主摄像机或使用外部提供的 ViewProjection
     glm::mat4 viewProj(1.0f);
     if (m_UseExternalVP) {
@@ -122,6 +127,20 @@ void Scene::OnUpdate(Timestep /*ts*/) {
             } else {
                 Himii::Renderer2D::DrawQuad(transform, sr->color);
             }
+        }
+    }
+
+    // 原生脚本更新
+    {
+        auto viewScript = m_Registry.view<NativeScriptComponent>();
+        for (auto e : viewScript) {
+            auto &nsc = viewScript.get<NativeScriptComponent>(e);
+            if (!nsc.Instance && nsc.InstantiateScript) {
+                nsc.Instance = nsc.InstantiateScript();
+                nsc.Instance->m_Entity = Entity(e, this);
+                nsc.Instance->OnCreate();
+            }
+            if (nsc.Instance) nsc.Instance->OnUpdate(ts);
         }
     }
 }

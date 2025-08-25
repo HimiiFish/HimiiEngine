@@ -16,6 +16,8 @@
 #include "Himii/Renderer/Shader.h"      // Shader reference
 #include "Himii/Core/UUID.h"
 #include "Himii/Renderer/Camera.h"
+#include "Himii/Scene/SceneCamera.h"
+#include "Himii/Scene/ScriptableEntity.h"
 
 namespace Himii
 {
@@ -86,8 +88,8 @@ namespace Himii
         bool useLookAt = true;
         glm::vec3 lookAtTarget{0.0f, 0.0f, 0.0f};
         glm::vec3 up{0.0f, 1.0f, 0.0f};
-        // 运行时相机对象（缓存投影视图矩阵）
-        Himii::Camera camera{};
+    // 运行时场景相机对象
+    Himii::SceneCamera camera{};
     };
 
     // 3D 网格渲染组件：用于 Renderer::Submit 路径
@@ -99,5 +101,21 @@ namespace Himii
 
     // 标记组件：用于区分天空盒渲染通道
     struct SkyboxTag {};
+
+    // 脚本组件：原生 C++ 脚本挂载
+    struct NativeScriptComponent {
+        ScriptableEntity* Instance = nullptr;
+
+        // 工厂函数与生命周期回调
+        ScriptableEntity* (*InstantiateScript)() = nullptr;
+        void (*DestroyScript)(NativeScriptComponent*) = nullptr;
+
+        template<typename T>
+        void Bind() {
+            InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+            DestroyScript = [](NativeScriptComponent* nsc) {
+                delete nsc->Instance; nsc->Instance = nullptr; };
+        }
+    };
 
 } // namespace Himii

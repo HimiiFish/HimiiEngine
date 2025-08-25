@@ -11,6 +11,7 @@
 #include "glad/glad.h"
 #include "glm/ext/matrix_clip_space.hpp"
 #include "glm/gtc/matrix_transform.hpp"
+#include "TerrainScript.h"
 // #include "imgui.h" // moved all UI to EditorLayer Inspector
 
 CubeLayer::CubeLayer() : Himii::Layer("CubeLayer")
@@ -120,6 +121,8 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
             m_Framebuffer->Resize(newW, newH);
             if (m_PickingFramebuffer) m_PickingFramebuffer->Resize(newW, newH);
             aspectScene = (float)newW / (float)newH;
+            // 同步编辑器相机 viewport
+            m_EditorCamera.SetViewport((float)newW, (float)newH);
             // 同步场景内摄像机的宽高比，避免拉伸变形
             auto camView = m_Scene.Registry().view<Himii::CameraComponent>();
             for (auto e : camView) {
@@ -151,7 +154,7 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
         gameH = m_GameFramebuffer->GetSpecification().Height;
     }
 
-    // 相机输入更新：仅在 Scene 面板聚焦/悬停时接收输入
+    // 相机输入更新：仅在 Scene 面板聚焦/悬停时接收输入，驱动编辑器相机姿态
     if (!editorRef || editorRef->IsSceneHovered() || editorRef->IsSceneFocused())
         UpdateCamera(ts);
 
@@ -162,11 +165,8 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
         Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
         Himii::RenderCommand::Clear();
 
-        float aspect = aspectScene > 0.0f ? aspectScene : m_Aspect;
-        const float fovYRad = glm::radians(m_FovYDeg);
-        glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ);
-        glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
-        glm::mat4 viewProj = projection * view;
+        // 用编辑器相机提供的 VP
+        glm::mat4 viewProj = m_EditorCamera.GetViewProjection();
 
         // 天空盒跟随编辑器相机
         if (m_SkyboxEntity)
@@ -245,11 +245,7 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
         Himii::RenderCommand::Clear();
 
     // matrices: use the same editor camera as Scene viewport
-    const float fovYRad = glm::radians(m_FovYDeg);
-    float aspect = (float)m_PickingFramebuffer->GetSpecification().Width / (float)m_PickingFramebuffer->GetSpecification().Height;
-    glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ);
-    glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
-    glm::mat4 viewProj = projection * view;
+    glm::mat4 viewProj = m_EditorCamera.GetViewProjection();
 
         static Himii::Ref<Himii::Shader> s_Picking;
         if (!s_Picking) s_Picking = m_ShaderLibrary.Load("assets/shaders/Picking.glsl");
@@ -300,6 +296,25 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
             }
         }
     }
+
+    // 若脚本标记 Dirty，则在这一帧末重建网格
+    if (m_TerrainEntity && m_TerrainEntity.HasComponent<Himii::NativeScriptComponent>())
+    {
+        auto &nsc = m_TerrainEntity.GetComponent<Himii::NativeScriptComponent>();
+        if (nsc.Instance)
+        {
+            if (auto *tsc = dynamic_cast<TerrainScript *>(nsc.Instance))
+            {
+                if (tsc->Dirty)
+                {
+                    BuildTerrainMesh();
+                    auto &mr = m_TerrainEntity.GetComponent<Himii::MeshRenderer>();
+                    mr.vertexArray = m_TerrainVA;
+                    tsc->Dirty = false;
+                }
+            }
+        }
+    }
     // 这里简单地遍历 LayerStack 找到 EditorLayer 并传值
     auto &app2 = Himii::Application::Get();
     for (auto *layer: app2.GetLayerStack())
@@ -340,7 +355,8 @@ void CubeLayer::UpdateCamera(Himii::Timestep ts)
     // 初始化一次 yaw/pitch 以匹配当前 CamTarget
     if (!m_OrientInitialized)
     {
-        glm::vec3 dir = glm::normalize(m_CamTarget - m_CamPos);
+    // 从当前字段推导初始朝向（默认沿 -Z）
+    glm::vec3 dir = glm::normalize(m_CamTarget - m_CamPos);
         // yaw: -Z 为 0? 我们以 -Z 为前方，初始 m_YawDeg=-90 指向 -Z
         m_PitchDeg = glm::degrees(asinf(glm::clamp(dir.y, -1.0f, 1.0f)));
         m_YawDeg = glm::degrees(atan2f(dir.z, dir.x));
@@ -390,22 +406,19 @@ void CubeLayer::UpdateCamera(Himii::Timestep ts)
     if (Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightShift))
         speed *= 2.0f;
 
-    if (Input::IsKeyPressed(Key::W))
-        m_CamPos += front * speed * dt;
-    if (Input::IsKeyPressed(Key::S))
-        m_CamPos -= front * speed * dt;
-    if (Input::IsKeyPressed(Key::A))
-        m_CamPos -= right * speed * dt;
-    if (Input::IsKeyPressed(Key::D))
-        m_CamPos += right * speed * dt;
-    if (Input::IsKeyPressed(Key::Q))
-        m_CamPos -= up * speed * dt;
-    if (Input::IsKeyPressed(Key::E))
-        m_CamPos += up * speed * dt;
+    glm::vec3 pos = m_CamPos;
+    if (Input::IsKeyPressed(Key::W)) pos += front * speed * dt;
+    if (Input::IsKeyPressed(Key::S)) pos -= front * speed * dt;
+    if (Input::IsKeyPressed(Key::A)) pos -= right * speed * dt;
+    if (Input::IsKeyPressed(Key::D)) pos += right * speed * dt;
+    if (Input::IsKeyPressed(Key::Q)) pos -= up * speed * dt;
+    if (Input::IsKeyPressed(Key::E)) pos += up * speed * dt;
 
-    // 更新 Target 与 Up
+    // 更新编辑器相机姿态（用 LookAt 确保前向一致，W 前进）
+    m_CamPos = pos;
     m_CamTarget = m_CamPos + front;
     m_CamUp = up;
+    m_EditorCamera.SetLookAt(m_CamPos, m_CamTarget, m_CamUp);
 }
 
 // OnImGuiRender 已移除
@@ -415,8 +428,25 @@ void CubeLayer::BuildTerrainMesh()
     // 为避免缓冲区尺寸不足导致 glBufferSubData 失败，这里直接重建 VA/VB/IB
     m_TerrainVA = Himii::VertexArray::Create();
 
-    PerlinNoise perlin(m_Noise.seed);
-    const int W = m_TerrainW, D = m_TerrainD, H = m_TerrainH;
+    // 从脚本读取地形大小与噪声参数（回退到旧默认）
+    int W = 128, D = 128, H = 32;
+    auto noise = m_Noise; // 使用现有字段作为默认初值
+    if (m_TerrainEntity && m_TerrainEntity.HasComponent<Himii::NativeScriptComponent>())
+    {
+        auto &nsc = m_TerrainEntity.GetComponent<Himii::NativeScriptComponent>();
+        if (nsc.Instance)
+        {
+            if (auto *ts = dynamic_cast<TerrainScript *>(nsc.Instance))
+            {
+                W = std::max(1, ts->Width);
+                D = std::max(1, ts->Depth);
+                H = std::max(1, ts->Height);
+                //noise = ts->Noise;
+            }
+        }
+    }
+
+    PerlinNoise perlin(noise.seed);
     std::vector<int> heightMap(W * D, 0);
     for (int z = 0; z < D; ++z)
     {
@@ -428,66 +458,66 @@ void CubeLayer::BuildTerrainMesh()
 
             // 小幅 domain warp 去除网格感
             double wx = nx, wz = nz;
-            perlin.domainWarp2D(wx, wz, (double)m_Noise.warpScale, (double)m_Noise.warpAmp);
+            perlin.domainWarp2D(wx, wz, (double)noise.warpScale, (double)noise.warpAmp);
 
             // 低频群落权重（0..1），调制山地比重
-            double biome = perlin.fbm2D(nx * (double)m_Noise.biomeScale, nz * (double)m_Noise.biomeScale, 3, 2.0, 0.5);
-            biome = std::clamp(biome * (double)m_Noise.mountainWeight, 0.0, 1.0);
+            double biome = perlin.fbm2D(nx * (double)noise.biomeScale, nz * (double)noise.biomeScale, 3, 2.0, 0.5);
+            biome = std::clamp(biome * (double)noise.mountainWeight, 0.0, 1.0);
 
             // 大洲层：决定“大陆-海洋”的宏观起伏
-            double continent = perlin.fbm2D(nx * (double)m_Noise.continentScale, nz * (double)m_Noise.continentScale, 4,
+            double continent = perlin.fbm2D(nx * (double)noise.continentScale, nz * (double)noise.continentScale, 4,
                                             2.0, 0.5); // 0..1
             continent = (continent * 2.0 - 1.0);       // [-1,1]
-            continent = std::clamp(continent * (double)m_Noise.continentStrength, -1.0, 1.0);
+            continent = std::clamp(continent * (double)noise.continentStrength, -1.0, 1.0);
             // 映射至 0..1，正值抬升，负值压低
             double continentLift = (continent + 1.0) * 0.5; // 0..1
 
             // 平原（柔和）与山地（脊状）两套噪声
-            double plains = perlin.fbm2D(wx * (double)m_Noise.plainsScale, wz * (double)m_Noise.plainsScale,
-                                         m_Noise.plainsOctaves, (double)m_Noise.plainsLacunarity,
-                                         (double)m_Noise.plainsGain); // 0..1
-            double mountain = perlin.ridged2D(wx * (double)m_Noise.mountainScale, wz * (double)m_Noise.mountainScale,
-                                              m_Noise.mountainOctaves, (double)m_Noise.mountainLacunarity,
-                                              (double)m_Noise.mountainGain); // 0..1
+            double plains = perlin.fbm2D(wx * (double)noise.plainsScale, wz * (double)noise.plainsScale,
+                                         noise.plainsOctaves, (double)noise.plainsLacunarity,
+                                         (double)noise.plainsGain); // 0..1
+            double mountain = perlin.ridged2D(wx * (double)noise.mountainScale, wz * (double)noise.mountainScale,
+                                              noise.mountainOctaves, (double)noise.mountainLacunarity,
+                                              (double)noise.mountainGain); // 0..1
             // 山脊锐度提升
-            mountain = std::pow(std::clamp(mountain, 0.0, 1.0), 1.0 / std::max(0.1, (double)m_Noise.ridgeSharpness));
+            mountain = std::pow(std::clamp(mountain, 0.0, 1.0), 1.0 / std::max(0.1, (double)noise.ridgeSharpness));
 
             // 按群落混合
             // 细节层（打花纹 & 小起伏）
-            double detail =
-                    perlin.fbm2D(wx * (double)m_Noise.detailScale, wz * (double)m_Noise.detailScale, 3, 2.0, 0.5);
+        double detail =
+            perlin.fbm2D(wx * (double)noise.detailScale, wz * (double)noise.detailScale, 3, 2.0, 0.5);
             // 核心高度合成
             double h01 = plains * (1.0 - biome) + mountain * biome;       // 0..1
-            h01 = h01 + (detail - 0.5) * 2.0 * (double)m_Noise.detailAmp; // [-detailAmp, +detailAmp]
+            h01 = h01 + (detail - 0.5) * 2.0 * (double)noise.detailAmp; // [-detailAmp, +detailAmp]
             h01 = std::clamp(h01, 0.0, 1.0);
             // 注入大陆大尺度抬升/压低
             h01 = (h01 * 0.8 + continentLift * 0.2);
 
             // 台地整形（可选）：将高度拉向 1/steps 的分段
-            if (m_Noise.plateau > 0.0f)
+            if (noise.plateau > 0.0f)
             {
-                const double steps = std::max(1, m_Noise.stepLevels);
+                const double steps = std::max(1, noise.stepLevels);
                 double stepped = std::floor(h01 * steps) / steps;
-                h01 = h01 * (1.0 - (double)m_Noise.plateau) + stepped * (double)m_Noise.plateau;
+                h01 = h01 * (1.0 - (double)noise.plateau) + stepped * (double)noise.plateau;
             }
 
             // 高度分布调整：指数曲线（>1 提升高区占比）
-            h01 = std::pow(std::clamp(h01, 0.0, 1.0), 1.0 / std::max(0.1, (double)m_Noise.curveExponent));
+            h01 = std::pow(std::clamp(h01, 0.0, 1.0), 1.0 / std::max(0.1, (double)noise.curveExponent));
 
             // 谷地下切：加强低处沟壑（适度）
-            if (m_Noise.valleyDepth > 0.0f)
+            if (noise.valleyDepth > 0.0f)
             {
                 double v = (0.5 - h01);
-                h01 -= v * (double)m_Noise.valleyDepth; // 低处更低，高处几乎不变
+                h01 -= v * (double)noise.valleyDepth; // 低处更低，高处几乎不变
                 h01 = std::clamp(h01, 0.0, 1.0);
             }
 
             // 海平面抬升
-            h01 = std::max(h01, (double)m_Noise.seaLevel);
+            h01 = std::max(h01, (double)noise.seaLevel);
 
             // 映射到体素高度
             double maxH = (double)(H - 1);
-            int h = (int)glm::round(h01 * (double)m_Noise.heightMul * maxH);
+            int h = (int)glm::round(h01 * (double)noise.heightMul * maxH);
             h = glm::clamp(h, 0, H - 1);
             heightMap[z * W + x] = h;
         }
@@ -667,6 +697,17 @@ void CubeLayer::BuildECSScene()
         m_TerrainEntity.AddComponent<Himii::Transform>();
     if (!m_TerrainEntity.HasComponent<Himii::MeshRenderer>())
         m_TerrainEntity.AddComponent<Himii::MeshRenderer>();
+    // 绑定 TerrainScript
+    if (!m_TerrainEntity.HasComponent<Himii::NativeScriptComponent>())
+    {
+        auto &nsc = m_TerrainEntity.AddComponent<Himii::NativeScriptComponent>();
+        nsc.Bind<TerrainScript>();
+    }
+    else
+    {
+        auto &nsc = m_TerrainEntity.GetComponent<Himii::NativeScriptComponent>();
+        if (!nsc.InstantiateScript) nsc.Bind<TerrainScript>();
+    }
     {
         auto &mr = m_TerrainEntity.GetComponent<Himii::MeshRenderer>();
         mr.vertexArray = m_TerrainVA;

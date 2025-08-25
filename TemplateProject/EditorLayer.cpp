@@ -5,6 +5,11 @@ using namespace Himii;
 // for snprintf
 #include <cstdio>
 
+#include "CubeLayer.h" // include complete type for Setting panel access
+// 脚本头文件（Inspector 用）
+#include "TerrainScript.h"
+#include "Move2DScript.h"
+
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -12,7 +17,7 @@ using namespace Himii;
 #pragma comment(lib, "Comdlg32.lib")
 
 // 简单的本地文件打开对话框（返回 UTF-8 路径，失败返回空串）
-static std::string OpenFileDialog(const wchar_t* filter)
+static std::string OpenFileDialog(const wchar_t *filter)
 {
     wchar_t fileBuffer[MAX_PATH] = L"";
     OPENFILENAMEW ofn{};
@@ -43,17 +48,19 @@ void EditorLayer::OnImGuiRender()
     static bool dockspaceOpen = true;
     static bool opt_fullscreen = true;
     static bool opt_padding = false;
+    static bool s_ShowSettingWindow = true; // 菜单控制的独立窗口显隐
 
     ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
     if (opt_fullscreen)
     {
-        ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGuiViewport *viewport = ImGui::GetMainViewport();
         ImGui::SetNextWindowPos(viewport->Pos);
         ImGui::SetNextWindowSize(viewport->Size);
         ImGui::SetNextWindowViewport(viewport->ID);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                        ImGuiWindowFlags_NoMove;
         window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
     }
 
@@ -68,7 +75,7 @@ void EditorLayer::OnImGuiRender()
         ImGui::PopStyleVar(2);
 
     // Dockspace
-    ImGuiIO& io = ImGui::GetIO();
+    ImGuiIO &io = ImGui::GetIO();
     if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
     {
         ImGuiID dockspace_id = ImGui::GetID("HIMII_DockSpace");
@@ -80,11 +87,12 @@ void EditorLayer::OnImGuiRender()
     {
         if (ImGui::BeginMenu("File"))
         {
-            if (ImGui::MenuItem("New")) {}
-            if (ImGui::MenuItem("Open...")) {}
-            if (ImGui::MenuItem("Save")) {}
+            ImGui::MenuItem("New");
+            ImGui::MenuItem("Open...");
+            ImGui::MenuItem("Save");
             ImGui::Separator();
-            if (ImGui::MenuItem("Exit")) { Himii::Application::Get().Close(); }
+            if (ImGui::MenuItem("Exit"))
+                Himii::Application::Get().Close();
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Window"))
@@ -94,95 +102,127 @@ void EditorLayer::OnImGuiRender()
             ImGui::MenuItem("Console", nullptr, true);
             ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("Setting"))
+        {
+            ImGui::MenuItem("Show Settings", nullptr, &s_ShowSettingWindow);
+            ImGui::EndMenu();
+        }
         ImGui::EndMenuBar();
+    }
+
+    // Setting 独立窗口
+    if (s_ShowSettingWindow)
+    {
+        if (ImGui::Begin("Setting", &s_ShowSettingWindow))
+        {
+            // 找到运行层以读取/设置参数
+            CubeLayer *cube = nullptr;
+            for (auto *layer : Himii::Application::Get().GetLayerStack())
+            {
+                cube = dynamic_cast<CubeLayer *>(layer);
+                if (cube) break;
+            }
+            if (cube)
+            {
+                if (ImGui::CollapsingHeader("Editor Camera", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::DragFloat("Move Speed", &cube->m_MoveSpeed, 0.1f, 0.1f, 100.0f);
+                    ImGui::DragFloat("Mouse Sensitivity", &cube->m_MouseSensitivity, 0.01f, 0.01f, 2.0f);
+                    ImGui::DragFloat("FovY (deg)", &cube->m_FovYDeg, 0.1f, 10.0f, 120.0f);
+                    ImGui::DragFloat("NearZ", &cube->m_NearZ, 0.01f, 0.01f, 10.0f);
+                    ImGui::DragFloat("FarZ", &cube->m_FarZ, 1.0f, 0.1f, 5000.0f);
+                    ImGui::DragFloat3("Position", &cube->m_CamPos.x, 0.05f);
+                }
+                if (ImGui::CollapsingHeader("Light", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::ColorEdit3("Ambient Color", &cube->m_AmbientColor.x);
+                    ImGui::DragFloat("Ambient Intensity", &cube->m_AmbientIntensity, 0.01f, 0.0f, 5.0f);
+                    ImGui::DragFloat3("Light Direction", &cube->m_LightDir.x, 0.01f);
+                    ImGui::DragFloat("Light Intensity", &cube->m_LightIntensity, 0.01f, 0.0f, 10.0f);
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled("CubeLayer not found.");
+            }
+        }
+        ImGui::End();
     }
 
     // Scene 视口（显示 FBO 颜色纹理）
     ImGui::Begin("Scene");
-    ImVec2 avail = ImGui::GetContentRegionAvail();
-    m_SceneHovered = ImGui::IsWindowHovered();
-    m_SceneFocused = ImGui::IsWindowFocused();
-    if (m_SceneTexture)
     {
-        // 注意：OpenGL 的纹理 Y 轴需翻转，ImGui::Image 使用 UV 坐标可倒置
-        ImGui::Image((ImTextureID)(intptr_t)m_SceneTexture, avail, ImVec2(0,1), ImVec2(1,0));
-        m_SceneImageMin = ImGui::GetItemRectMin();
-        m_SceneImageSize = avail;
-        if (ImGui::BeginPopupContextWindow())
-        {
-            ImGui::Text("Size: %.0f x %.0f", avail.x, avail.y);
-            ImGui::EndPopup();
-        }
-    }
-    else
-    {
-        ImGui::Dummy(avail);
-    }
-    // 记录尺寸以便外部决定是否 Resize FBO
-    if (avail.x != m_LastSceneAvail.x || avail.y != m_LastSceneAvail.y)
-    {
+        ImVec2 avail = ImGui::GetContentRegionAvail();
         m_LastSceneAvail = avail;
-        // 外部可在下一帧查询 GetSceneDesiredSize 来调整
+        m_SceneHovered = ImGui::IsWindowHovered();
+        m_SceneFocused = ImGui::IsWindowFocused();
+        if (m_SceneTexture)
+        {
+            ImVec2 imagePos = ImGui::GetCursorScreenPos();
+            m_SceneImageMin = imagePos;
+            m_SceneImageSize = avail;
+            ImGui::Image((ImTextureID)(intptr_t)m_SceneTexture, avail, ImVec2(0, 1), ImVec2(1, 0));
+        }
+        else
+        {
+            ImGui::TextDisabled("No Scene texture");
+        }
     }
     ImGui::End();
 
     // Game 视口
     ImGui::Begin("Game");
-    ImVec2 gAvail = ImGui::GetContentRegionAvail();
-    m_GameHovered = ImGui::IsWindowHovered();
-    m_GameFocused = ImGui::IsWindowFocused();
-    if (m_GameTexture)
     {
-        ImGui::Image((ImTextureID)(intptr_t)m_GameTexture, gAvail, ImVec2(0,1), ImVec2(1,0));
-        if (ImGui::BeginPopupContextWindow())
-        {
-            ImGui::Text("Size: %.0f x %.0f", gAvail.x, gAvail.y);
-            ImGui::EndPopup();
-        }
-    }
-    else
-    {
-        ImGui::Dummy(gAvail);
-    }
-    if (gAvail.x != m_LastGameAvail.x || gAvail.y != m_LastGameAvail.y)
-    {
+        ImVec2 gAvail = ImGui::GetContentRegionAvail();
         m_LastGameAvail = gAvail;
+        m_GameHovered = ImGui::IsWindowHovered();
+        m_GameFocused = ImGui::IsWindowFocused();
+        if (m_GameTexture)
+        {
+            ImGui::Image((ImTextureID)(intptr_t)m_GameTexture, gAvail, ImVec2(0, 1), ImVec2(1, 0));
+        }
+        else
+        {
+            ImGui::TextDisabled("No Game texture");
+        }
     }
     ImGui::End();
 
     // 根据 Scene/Game 的悬停状态，决定是否让 ImGui 层阻断底层输入
     // 目标：当鼠标在 Scene 上滚动时，让滚轮事件传到底层相机控制器
-    auto& app = Himii::Application::Get();
-    if (auto* imgui = app.GetImGuiLayer())
+    auto &app = Himii::Application::Get();
+    if (auto *imgui = app.GetImGuiLayer())
     {
         const bool wantBlock = !(m_SceneHovered || m_SceneFocused || m_GameHovered || m_GameFocused);
         imgui->BlockEvents(wantBlock);
     }
 
-    // Hierarchy 面板：列出场景中的实体（简单策略：有 Transform 的都显示）
+    // Hierarchy 面板：列出场景中的实体
     ImGui::Begin("Hierarchy");
     if (m_ActiveScene)
     {
         auto &reg = m_ActiveScene->Registry();
-        // 遍历所有带 Transform 的实体
         auto view = reg.view<Transform>();
         for (auto e : view)
         {
-            // 名称优先：Tag.name，否则显示生成的 ID 或句柄值
             std::string label;
-        if (auto* t = reg.try_get<Tag>(e))
+            if (auto *t = reg.try_get<Tag>(e))
                 label = t->name.empty() ? std::string("Entity") : t->name;
             else
             {
-                if (auto* id = reg.try_get<ID>(e)) {
-                    char tmp[64]; std::snprintf(tmp, sizeof(tmp), "Entity %llu", (unsigned long long)(uint64_t)id->id);
+                if (auto *id = reg.try_get<ID>(e))
+                {
+                    char tmp[64];
+                    std::snprintf(tmp, sizeof(tmp), "Entity %llu", (unsigned long long)(uint64_t)id->id);
                     label = tmp;
-                } else {
-            char tmp[64]; std::snprintf(tmp, sizeof(tmp), "Entity %u", (unsigned)e);
+                }
+                else
+                {
+                    char tmp[64];
+                    std::snprintf(tmp, sizeof(tmp), "Entity %u", (unsigned)e);
                     label = tmp;
                 }
             }
-            // 渲染选择项
             bool selected = (e == m_SelectedEntity);
             if (ImGui::Selectable(label.c_str(), selected))
                 m_SelectedEntity = e;
@@ -190,7 +230,6 @@ void EditorLayer::OnImGuiRender()
         if (ImGui::Button("Create Entity"))
         {
             auto e = m_ActiveScene->CreateEntity("Entity");
-            // 默认会有 Transform，这里附加一个默认颜色的 SpriteRenderer 便于可见
             e.AddComponent<SpriteRenderer>(glm::vec4{0.8f, 0.8f, 0.8f, 1.0f});
         }
         if (m_SelectedEntity != entt::null && !reg.valid(m_SelectedEntity))
@@ -202,9 +241,8 @@ void EditorLayer::OnImGuiRender()
     }
     ImGui::End();
 
-    // Inspector 面板：显示并编辑选中实体的常用组件
+    // Inspector 面板
     ImGui::Begin("Inspector");
-    // 摄像机组件：把原 CubeLayer 的相机/运动参数收拢到选中实体的 CameraComponent 上
     if (m_ActiveScene && m_SelectedEntity != entt::null && m_ActiveScene->Registry().valid(m_SelectedEntity))
     {
         auto &reg = m_ActiveScene->Registry();
@@ -246,7 +284,7 @@ void EditorLayer::OnImGuiRender()
                 ImGui::DragFloat3("Up", &cc.up.x, 0.05f);
             }
         }
-    if (reg.any_of<SpriteRenderer>(m_SelectedEntity))
+        if (reg.any_of<SpriteRenderer>(m_SelectedEntity))
         {
             if (ImGui::CollapsingHeader("SpriteRenderer", ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -260,8 +298,8 @@ void EditorLayer::OnImGuiRender()
 #ifdef _WIN32
                 if (ImGui::Button("Select Texture..."))
                 {
-                    // 常见图片格式筛选
-                    const wchar_t* filter = L"Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.ktx;*.dds\0All Files\0*.*\0\0";
+                    const wchar_t *filter =
+                            L"Image Files\0*.png;*.jpg;*.jpeg;*.bmp;*.tga;*.gif;*.ktx;*.dds\0All Files\0*.*\0\0";
                     std::string path = OpenFileDialog(filter);
                     if (!path.empty())
                     {
@@ -292,15 +330,21 @@ void EditorLayer::OnImGuiRender()
                 ImGui::TextUnformatted("UV");
                 if (ImGui::Button("Reset UV (0..1)"))
                 {
-                    sr.uvs[0] = {0.0f, 0.0f}; sr.uvs[1] = {1.0f, 0.0f};
-                    sr.uvs[2] = {1.0f, 1.0f}; sr.uvs[3] = {0.0f, 1.0f};
+                    sr.uvs[0] = {0.0f, 0.0f};
+                    sr.uvs[1] = {1.0f, 0.0f};
+                    sr.uvs[2] = {1.0f, 1.0f};
+                    sr.uvs[3] = {0.0f, 1.0f};
                 }
 
-                // Grid UV
                 ImGui::TextUnformatted("Grid UV (cols/rows/col/row)");
-                static int cols = 1, rows = 1, col = 0, row = 0; static float padNorm = 0.0f;
-                ImGui::InputInt("Cols", &cols); ImGui::SameLine(); ImGui::InputInt("Rows", &rows);
-                ImGui::InputInt("Col", &col);  ImGui::SameLine(); ImGui::InputInt("Row", &row);
+                static int cols = 1, rows = 1, col = 0, row = 0;
+                static float padNorm = 0.0f;
+                ImGui::InputInt("Cols", &cols);
+                ImGui::SameLine();
+                ImGui::InputInt("Rows", &rows);
+                ImGui::InputInt("Col", &col);
+                ImGui::SameLine();
+                ImGui::InputInt("Row", &row);
                 ImGui::DragFloat("Padding (norm)", &padNorm, 0.001f, 0.0f, 0.25f);
                 bool canGrid = sr.texture && cols > 0 && rows > 0 && col >= 0 && row >= 0;
                 if (ImGui::Button("Apply Grid UV") && canGrid)
@@ -310,50 +354,116 @@ void EditorLayer::OnImGuiRender()
                 if (!sr.texture)
                     ImGui::TextDisabled("(需要先加载纹理)");
 
-                // Pixels UV
                 ImGui::Separator();
                 ImGui::TextUnformatted("Pixels UV (min/max/padding px)");
-                static float minX=0, minY=0, maxX=0, maxY=0, padX=0, padY=0;
-                ImGui::InputFloat("MinX", &minX); ImGui::SameLine(); ImGui::InputFloat("MinY", &minY);
-                ImGui::InputFloat("MaxX", &maxX); ImGui::SameLine(); ImGui::InputFloat("MaxY", &maxY);
-                ImGui::InputFloat("PadX", &padX); ImGui::SameLine(); ImGui::InputFloat("PadY", &padY);
-                bool canPx = sr.texture && maxX>minX && maxY>minY;
+                static float minX = 0, minY = 0, maxX = 0, maxY = 0, padX = 0, padY = 0;
+                ImGui::InputFloat("MinX", &minX);
+                ImGui::SameLine();
+                ImGui::InputFloat("MinY", &minY);
+                ImGui::InputFloat("MaxX", &maxX);
+                ImGui::SameLine();
+                ImGui::InputFloat("MaxY", &maxY);
+                ImGui::InputFloat("PadX", &padX);
+                ImGui::SameLine();
+                ImGui::InputFloat("PadY", &padY);
+                bool canPx = sr.texture && maxX > minX && maxY > minY;
                 if (ImGui::Button("Apply Pixels UV") && canPx)
                 {
                     sr.uvs = sr.texture->GetUVFromPixels({minX, minY}, {maxX, maxY}, {padX, padY});
                 }
 
-                // Manual UV edit
                 ImGui::Separator();
                 ImGui::TextUnformatted("Manual UV (0..1)");
-                float uv0[2] = { sr.uvs[0].x, sr.uvs[0].y };
-                float uv1[2] = { sr.uvs[1].x, sr.uvs[1].y };
-                float uv2[2] = { sr.uvs[2].x, sr.uvs[2].y };
-                float uv3[2] = { sr.uvs[3].x, sr.uvs[3].y };
-                if (ImGui::InputFloat2("UV0", uv0)) { sr.uvs[0] = {uv0[0], uv0[1]}; }
-                if (ImGui::InputFloat2("UV1", uv1)) { sr.uvs[1] = {uv1[0], uv1[1]}; }
-                if (ImGui::InputFloat2("UV2", uv2)) { sr.uvs[2] = {uv2[0], uv2[1]}; }
-                if (ImGui::InputFloat2("UV3", uv3)) { sr.uvs[3] = {uv3[0], uv3[1]}; }
+                float uv0[2] = {sr.uvs[0].x, sr.uvs[0].y};
+                float uv1[2] = {sr.uvs[1].x, sr.uvs[1].y};
+                float uv2[2] = {sr.uvs[2].x, sr.uvs[2].y};
+                float uv3[2] = {sr.uvs[3].x, sr.uvs[3].y};
+                if (ImGui::InputFloat2("UV0", uv0)) sr.uvs[0] = {uv0[0], uv0[1]};
+                if (ImGui::InputFloat2("UV1", uv1)) sr.uvs[1] = {uv1[0], uv1[1]};
+                if (ImGui::InputFloat2("UV2", uv2)) sr.uvs[2] = {uv2[0], uv2[1]};
+                if (ImGui::InputFloat2("UV3", uv3)) sr.uvs[3] = {uv3[0], uv3[1]};
             }
         }
-    // MeshRenderer (3D) inspector
         if (reg.any_of<MeshRenderer>(m_SelectedEntity))
         {
             if (ImGui::CollapsingHeader("MeshRenderer", ImGuiTreeNodeFlags_DefaultOpen))
             {
                 auto &mr = reg.get<MeshRenderer>(m_SelectedEntity);
-                ImGui::Text("VAO: %p", (void*)mr.vertexArray.get());
-                ImGui::Text("Shader: %p", (void*)mr.shader.get());
-                ImGui::Text("Texture: %p", mr.texture ? (void*)mr.texture.get() : (void*)nullptr);
+                ImGui::Text("VAO: %p", (void *)mr.vertexArray.get());
+                ImGui::Text("Shader: %p", (void *)mr.shader.get());
+                ImGui::Text("Texture: %p", mr.texture ? (void *)mr.texture.get() : (void *)nullptr);
                 if (mr.texture)
                     ImGui::Text("Tex Size: %u x %u", mr.texture->GetWidth(), mr.texture->GetHeight());
                 ImGui::TextDisabled("(Mesh content is built in CubeLayer and bound here)");
             }
         }
-        // Skybox tag
         if (reg.any_of<SkyboxTag>(m_SelectedEntity))
         {
-            ImGui::TextColored(ImVec4(0.6f,0.8f,1.0f,1.0f), "[Skybox]");
+            ImGui::TextColored(ImVec4(0.6f, 0.8f, 1.0f, 1.0f), "[Skybox]");
+        }
+
+        // 脚本（NativeScriptComponent）检查与参数编辑
+        if (reg.any_of<Himii::NativeScriptComponent>(m_SelectedEntity))
+        {
+            auto &nsc = reg.get<Himii::NativeScriptComponent>(m_SelectedEntity);
+            if (nsc.Instance)
+            {
+                if (auto *ts = dynamic_cast<TerrainScript *>(nsc.Instance))
+                {
+                    if (ImGui::CollapsingHeader("TerrainScript", ImGuiTreeNodeFlags_DefaultOpen))
+                    {
+                        bool sizeChanged = false;
+                        sizeChanged |= ImGui::InputInt("Width", &ts->Width);
+                        sizeChanged |= ImGui::InputInt("Depth", &ts->Depth);
+                        sizeChanged |= ImGui::InputInt("Height", &ts->Height);
+                        if (sizeChanged) ts->Dirty = true;
+
+                        ImGui::Separator();
+                        ImGui::TextDisabled("Noise Settings");
+                        bool nChanged = false;
+                        nChanged |= ImGui::InputScalar("Seed", ImGuiDataType_U32, &ts->Noise.seed);
+                        nChanged |= ImGui::DragFloat("Biome Scale", &ts->Noise.biomeScale, 0.001f, 0.0001f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Continent Scale", &ts->Noise.continentScale, 0.001f, 0.0001f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Continent Strength", &ts->Noise.continentStrength, 0.001f, 0.0f, 2.0f);
+                        nChanged |= ImGui::DragFloat("Plains Scale", &ts->Noise.plainsScale, 0.001f, 0.0001f, 2.0f);
+                        nChanged |= ImGui::InputInt("Plains Octaves", &ts->Noise.plainsOctaves);
+                        nChanged |= ImGui::DragFloat("Plains Lacunarity", &ts->Noise.plainsLacunarity, 0.01f, 1.0f, 4.0f);
+                        nChanged |= ImGui::DragFloat("Plains Gain", &ts->Noise.plainsGain, 0.01f, 0.0f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Mountain Scale", &ts->Noise.mountainScale, 0.001f, 0.0001f, 2.0f);
+                        nChanged |= ImGui::InputInt("Mountain Octaves", &ts->Noise.mountainOctaves);
+                        nChanged |= ImGui::DragFloat("Mountain Lacunarity", &ts->Noise.mountainLacunarity, 0.01f, 1.0f, 4.0f);
+                        nChanged |= ImGui::DragFloat("Mountain Gain", &ts->Noise.mountainGain, 0.01f, 0.0f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Ridge Sharpness", &ts->Noise.ridgeSharpness, 0.01f, 0.1f, 4.0f);
+                        nChanged |= ImGui::DragFloat("Warp Scale", &ts->Noise.warpScale, 0.001f, 0.0f, 2.0f);
+                        nChanged |= ImGui::DragFloat("Warp Amp", &ts->Noise.warpAmp, 0.01f, 0.0f, 10.0f);
+                        nChanged |= ImGui::DragFloat("Detail Scale", &ts->Noise.detailScale, 0.001f, 0.0f, 2.0f);
+                        nChanged |= ImGui::DragFloat("Detail Amp", &ts->Noise.detailAmp, 0.001f, 0.0f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Height Mul", &ts->Noise.heightMul, 0.01f, 0.0f, 4.0f);
+                        nChanged |= ImGui::DragFloat("Plateau", &ts->Noise.plateau, 0.01f, 0.0f, 1.0f);
+                        nChanged |= ImGui::InputInt("Step Levels", &ts->Noise.stepLevels);
+                        nChanged |= ImGui::DragFloat("Curve Exponent", &ts->Noise.curveExponent, 0.01f, 0.1f, 5.0f);
+                        nChanged |= ImGui::DragFloat("Valley Depth", &ts->Noise.valleyDepth, 0.001f, 0.0f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Sea Level", &ts->Noise.seaLevel, 0.001f, 0.0f, 1.0f);
+                        nChanged |= ImGui::DragFloat("Mountain Weight", &ts->Noise.mountainWeight, 0.001f, 0.0f, 1.0f);
+                        if (nChanged) ts->Dirty = true;
+
+                        if (ImGui::Button("Mark Rebuild")) ts->Dirty = true;
+                        ImGui::SameLine();
+                        ImGui::TextDisabled(ts->Dirty ? "Dirty" : "Clean");
+                    }
+                }
+                if (auto *mv = dynamic_cast<Move2DScript *>(nsc.Instance))
+                {
+                    if (ImGui::CollapsingHeader("Move2DScript", ImGuiTreeNodeFlags_DefaultOpen))
+                    {
+                        ImGui::DragFloat("Speed", &mv->Speed, 0.01f, 0.0f, 10.0f);
+                    }
+                }
+            }
+            else
+            {
+                ImGui::TextDisabled("NativeScriptComponent present, but no Instance (not yet instantiated).\nIt will instantiate on Scene update.");
+            }
         }
 
         if (ImGui::Button("Delete Entity"))
@@ -372,18 +482,19 @@ void EditorLayer::OnImGuiRender()
     ImGui::TextUnformatted("Logs appear here.");
     ImGui::End();
 
-    ImGui::End();
+    ImGui::End(); // 结束主编辑器窗口
 }
-
 // 可选：供外部查询 Scene 面板的期望尺寸
 // 我们用 width/height 字段让运行层设置与读取
-
-bool EditorLayer::GetSceneMousePixel(uint32_t texW, uint32_t texH, uint32_t &outX, uint32_t &outY) const {
-    if (!m_SceneTexture || m_SceneImageSize.x <= 0 || m_SceneImageSize.y <= 0) return false;
+bool EditorLayer::GetSceneMousePixel(uint32_t texW, uint32_t texH, uint32_t &outX, uint32_t &outY) const
+{
+    if (!m_SceneTexture || m_SceneImageSize.x <= 0 || m_SceneImageSize.y <= 0)
+        return false;
     ImVec2 mouse = ImGui::GetMousePos();
     float localX = mouse.x - m_SceneImageMin.x;
     float localY = mouse.y - m_SceneImageMin.y;
-    if (localX < 0 || localY < 0 || localX >= m_SceneImageSize.x || localY >= m_SceneImageSize.y) return false;
+    if (localX < 0 || localY < 0 || localX >= m_SceneImageSize.x || localY >= m_SceneImageSize.y)
+        return false;
     // ImGui image flipped vertically; map Y accordingly
     float u = localX / m_SceneImageSize.x;
     float v = 1.0f - (localY / m_SceneImageSize.y);

@@ -1,6 +1,7 @@
 ﻿#include "Example2D.h"
 #include "EditorLayer.h"
 #include "imgui.h"
+#include "Move2DScript.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -39,6 +40,11 @@ void Example2D::OnAttach()
     auto e4 = m_Scene.CreateEntity("My Quad");
     // 默认构造 SpriteRenderer（白色），或传入颜色
     e4.AddComponent<Himii::SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+    // 绑定二维移动脚本
+    {
+        auto &nsc = e4.AddComponent<Himii::NativeScriptComponent>();
+        nsc.Bind<Move2DScript>();
+    }
     }
 }
 void Example2D::OnDetach()
