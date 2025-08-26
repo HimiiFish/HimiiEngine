@@ -88,28 +88,6 @@ void EditorLayer::OnImGuiRender()
     ImGui::End();
 
     // Game 视口
-    ImGui::Begin("Game");
-    ImVec2 gAvail = ImGui::GetContentRegionAvail();
-    m_GameHovered = ImGui::IsWindowHovered();
-    m_GameFocused = ImGui::IsWindowFocused();
-    if (m_GameTexture)
-    {
-        ImGui::Image((ImTextureID)(intptr_t)m_GameTexture, gAvail, ImVec2(0,1), ImVec2(1,0));
-        if (ImGui::BeginPopupContextWindow())
-        {
-            ImGui::Text("Size: %.0f x %.0f", gAvail.x, gAvail.y);
-            ImGui::EndPopup();
-        }
-    }
-    else
-    {
-        ImGui::Dummy(gAvail);
-    }
-    if (gAvail.x != m_LastGameAvail.x || gAvail.y != m_LastGameAvail.y)
-    {
-        m_LastGameAvail = gAvail;
-    }
-    ImGui::End();
 
     // Placeholder panels
     ImGui::Begin("Hierarchy");
@@ -127,6 +105,3 @@ void EditorLayer::OnImGuiRender()
 
     ImGui::End();
 }
-
-// 可选：供外部查询 Scene 面板的期望尺寸
-// 我们用 width/height 字段让运行层设置与读取

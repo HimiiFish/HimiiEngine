@@ -6,6 +6,8 @@
         "glfw3",
         "spdlog",
         "glm",
-        "stb"
+        "stb",
+        "yaml-cpp",
+        "imguizmo"
     ]
 }

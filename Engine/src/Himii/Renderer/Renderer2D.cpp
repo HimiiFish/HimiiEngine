@@ -209,6 +209,11 @@ namespace Himii
     void Renderer2D::DrawQuad(const glm::vec3 &position, const glm::vec2 &size, const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
         HIMII_PROFILE_FUNCTION();
+
+        float x = 1, y = 12;
+        float sheetWidth = 800, sheetHeight = 1280;
+        float spriteSize = 80;
+
         if (s_Data.QuadIndexCount >= Renderer2DData::MaxIndices)
         {
             StartBatch();
@@ -238,28 +243,28 @@ namespace Himii
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
         s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 0.0f};
+        s_Data.QuadVertexBufferPtr->TexCoord = {x * spriteSize / sheetWidth, y * spriteSize / sheetHeight};
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
         s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 0.0f};
+        s_Data.QuadVertexBufferPtr->TexCoord = {(x+1) * spriteSize / sheetWidth, y * spriteSize / sheetHeight};
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
         s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 1.0f};
+        s_Data.QuadVertexBufferPtr->TexCoord = {(x+1) * spriteSize / sheetWidth, (y+1) * spriteSize / sheetHeight};
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;
 
         s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
         s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 1.0f};
+        s_Data.QuadVertexBufferPtr->TexCoord = {x * spriteSize / sheetWidth, (y+1) * spriteSize / sheetHeight};
         s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
         s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
         s_Data.QuadVertexBufferPtr++;

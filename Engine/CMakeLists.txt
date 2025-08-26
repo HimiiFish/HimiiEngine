@@ -24,6 +24,10 @@ find_package(glfw3 CONFIG REQUIRED)
 if(NOT glfw3_FOUND)
     message(FATAL_ERROR "glfw3 not found. Please ensure it is installed via vcpkg.")
 endif ()
+find_package(yaml-cpp CONFIG REQUIRED)
+if(NOT yaml-cpp_FOUND)
+    message(FATAL_ERROR "yaml-cpp not found. Please ensure it is installed via vcpkg.")
+endif ()
 
 # 设置OpenGL的首选项
 cmake_policy(SET CMP0072 NEW)
@@ -74,4 +78,4 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends)
 
-target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw)
+target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp)
