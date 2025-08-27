@@ -1,13 +1,52 @@
 #pragma once
 #include "Himii/Core/Core.h"
 
-namespace Himii {
+namespace Himii
+{
+    enum class FramebufferFormat
+    {
+        None = 0,
 
-    struct FramebufferSpecification {
-        uint32_t Width = 1;
-        uint32_t Height = 1;
-    // Optional: enable entity picking (R32UI color attachment + depth)
-    bool EnablePicking = false;
+        //Color
+        RGBA8,
+        RED_INTEGER,
+        
+        DEPTH24STENCIL8,
+
+        // Defaults
+        Depth = DEPTH24STENCIL8
+    };
+
+    struct FramebufferTextureSpecification {
+
+        FramebufferTextureSpecification() = default;
+        FramebufferTextureSpecification(FramebufferFormat format) : TextureFormat(format)
+        {
+        }
+
+        FramebufferFormat TextureFormat = FramebufferFormat::None;
+    };
+
+    struct FramebufferAttachmentSpecification {
+
+        FramebufferAttachmentSpecification() = default;
+        FramebufferAttachmentSpecification(std::initializer_list<FramebufferTextureSpecification> attachments) :
+            Attachments(attachments)
+        {
+        }
+
+        std::vector<FramebufferTextureSpecification> Attachments;
+    };
+
+    struct FramebufferSpecification
+    {
+        uint32_t Width = 0;
+        uint32_t Height = 0;
+
+        FramebufferAttachmentSpecification Attachments;
+        uint32_t Samples = 1;
+
+        bool SwapChainTarget = false;
     };
 
     class Framebuffer {
@@ -18,14 +57,14 @@ namespace Himii {
         virtual void Unbind() = 0;
 
         virtual void Resize(uint32_t width, uint32_t height) = 0;
-        virtual uint32_t GetColorAttachmentRendererID() const = 0; // GL texture id
-    // If picking is enabled, returns GL texture id of R32UI attachment; otherwise 0
-    virtual uint32_t GetPickingAttachmentRendererID() const { return 0; }
-    // Read one pixel from picking attachment (x,y), return uint32 id; if unsupported, returns 0
-    virtual uint32_t ReadPickingPixel(uint32_t /*x*/, uint32_t /*y*/) const { return 0; }
+        virtual int ReadPixel(uint32_t attachmentIndex, int x ,int y) = 0;
 
-        virtual const FramebufferSpecification& GetSpecification() const = 0;
+        virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
 
-        static Ref<Framebuffer> Create(const FramebufferSpecification& spec);
+        virtual uint32_t GetColorAttachmentRendererID(uint32_t index=0) const = 0; 
+
+        virtual const FramebufferSpecification &GetSpecification() const = 0;
+
+        static Ref<Framebuffer> Create(const FramebufferSpecification &spec);
     };
-}
+} // namespace Himii
