@@ -1,7 +1,7 @@
 ﻿#include "Example2D.h"
 #include "EditorLayer.h"
-#include "imgui.h"
 #include "Move2DScript.h"
+#include "imgui.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -18,6 +18,8 @@ void Example2D::OnAttach()
     // 创建离屏帧缓冲，尺寸先用窗口大小，后续由 EditorLayer 面板驱动调整
     auto &app = Himii::Application::Get();
     Himii::FramebufferSpecification fbSpec{app.GetWindow().GetWidth(), app.GetWindow().GetHeight()};
+    fbSpec.Attachments = {Himii::FramebufferFormat::RGBA8, Himii::FramebufferFormat::RED_INTEGER,
+                          Himii::FramebufferFormat::Depth};
     m_SceneFramebuffer = Himii::Framebuffer::Create(fbSpec);
 
     // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
@@ -37,14 +39,14 @@ void Example2D::OnAttach()
         tr3.Position = {-0.2f, 0.6f, 0.0f};
         e3.AddComponent<Himii::SpriteRenderer>(glm::vec4{0.3f, 0.5f, 1.0f, 1.0f});
 
-    auto e4 = m_Scene.CreateEntity("My Quad");
-    // 默认构造 SpriteRenderer（白色），或传入颜色
-    e4.AddComponent<Himii::SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-    // 绑定二维移动脚本
-    {
-        auto &nsc = e4.AddComponent<Himii::NativeScriptComponent>();
-        nsc.Bind<Move2DScript>();
-    }
+        auto e4 = m_Scene.CreateEntity("My Quad");
+        // 默认构造 SpriteRenderer（白色），或传入颜色
+        e4.AddComponent<Himii::SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+        // 绑定二维移动脚本
+        {
+            auto &nsc = e4.AddComponent<Himii::NativeScriptComponent>();
+            nsc.Bind<Move2DScript>();
+        }
     }
 }
 void Example2D::OnDetach()
@@ -59,70 +61,58 @@ void Example2D::OnUpdate(Himii::Timestep ts)
     {
         HIMII_PROFILE_SCOPE("CameraController::OnUpdate");
         m_CameraController.OnUpdate(ts);
+        m_Scene.OnUpdate(ts);
     }
+    m_SceneFramebuffer->Resize(1280, 720); // 临时写死，后续由 EditorLayer 面板驱动调整
 
     // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
     Himii::Renderer2D::ResetStats();
-    EditorLayer *editorRef = nullptr;
-    for (auto *layer: Himii::Application::Get().GetLayerStack())
-        if ((editorRef = dynamic_cast<EditorLayer *>(layer)))
-            break;
-    bool resized = false;
-    if (editorRef && m_SceneFramebuffer)
-    {
-        ImVec2 desired = editorRef->GetSceneDesiredSize();
-        uint32_t newW = (uint32_t)std::max(1.0f, desired.x);
-        uint32_t newH = (uint32_t)std::max(1.0f, desired.y);
-        auto &spec = m_SceneFramebuffer->GetSpecification();
-        if (newW != spec.Width || newH != spec.Height)
-        {
-            m_SceneFramebuffer->Resize(newW, newH);
-            // 同步相机投影，保持 1:1 比例不随视口拉伸而变形
-            m_CameraController.OnResize((float)newW, (float)newH);
-            resized = true;
-        }
-    }
-    // 渲染到离屏 FBO
-    if (m_SceneFramebuffer)
-    {
-        m_SceneFramebuffer->Bind();
-        Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
-        Himii::RenderCommand::Clear();
-    }
 
-    {
-        HIMII_PROFILE_SCOPE("Renderer Draw");
-        Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
-        m_Scene.OnUpdate(ts);
-        Himii::Renderer2D::EndScene();
-    }
+    m_SceneFramebuffer->Bind();
+    Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
+    Himii::RenderCommand::Clear();
 
-    // 解绑 FBO 并把纹理与尺寸交给 EditorLayer 展示
-    if (m_SceneFramebuffer)
-    {
-        m_SceneFramebuffer->Unbind();
-        if (editorRef)
-        {
-            editorRef->SetSceneTexture(m_SceneFramebuffer->GetColorAttachmentRendererID());
-            editorRef->SetSceneSize(m_SceneFramebuffer->GetSpecification().Width,
-                                    m_SceneFramebuffer->GetSpecification().Height);
-            // 将当前 Scene 指给编辑器，供 Hierarchy/Inspector 使用
-            if (editorRef->GetActiveScene() != &m_Scene)
-                editorRef->SetActiveScene(&m_Scene);
-        }
-    }
+    m_SceneFramebuffer->ClearAttachment(1, -1); // 1号附件清除为 -1（无实体）
+
+    HIMII_PROFILE_SCOPE("Renderer Draw");
+    Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
+    m_Scene.OnUpdate(ts);
+    Himii::Renderer2D::EndScene();
+    m_SceneFramebuffer->Unbind();
 }
 void Example2D::OnImGuiRender()
 {
     HIMII_PROFILE_FUNCTION();
-    ImGui::Begin("ECS 示例");
-    ImGui::Text("场景包含 3 个 SpriteRenderer 实体");
-    ImGui::Text("Renderer2D Stats");
-    ImGui::Text("Draw Calls: %d", Himii::Renderer2D::GetStatistics().DrawCalls);
-    ImGui::Text("Quad Count: %d", Himii::Renderer2D::GetStatistics().QuadCount);
-    ImGui::Text("Total Vertex Count: %d", Himii::Renderer2D::GetStatistics().GetTotalVertexCount());
-    ImGui::Text("Total Index Count: %d", Himii::Renderer2D::GetStatistics().GetTotalIndexCount());
-    ImGui::End();
+
+    static bool dockingEnable = true;
+
+    if (dockingEnable)
+    {
+        static bool dockspaceOpen = true;
+        static bool fullscreen_persistant = true;
+        bool fullscreen = fullscreen_persistant;
+        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+        if (fullscreen)
+        {
+            /*ImGuiViewport *viewport = ImGui::GetMainViewport();
+            ImGui::SetNextWindowPos(viewport->Pos);
+            ImGui::SetNextWindowSize(viewport->Size);
+            ImGui::SetNextWindowViewport(viewport->ID);*/
+        }
+        ImGui::Begin("ECS 示例");
+        auto stats = Himii::Renderer2D::GetStatistics();
+        ImGui::Text("Renderer2D Stats");
+        ImGui::Text("Draw Calls: %d", stats.DrawCalls);
+        ImGui::Text("Quad Count: %d", stats.QuadCount);
+        ImGui::Text("Total Vertex Count: %d", stats.GetTotalVertexCount());
+        ImGui::Text("Total Index Count: %d", stats.GetTotalIndexCount());
+
+        uint32_t textureID = m_SceneFramebuffer->GetColorAttachmentRendererID();
+        ImGui::Image((void *)textureID, ImVec2{640, 360});
+        ImGui::End();
+    }
 }
 
 void Example2D::OnEvent(Himii::Event &event)

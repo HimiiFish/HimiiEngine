@@ -40,17 +40,6 @@ void CubeLayer::OnAttach()
     // 背面剔除：为排查可见性问题，先禁用（确认正常后可再开启并校正三角形绕序）
     glDisable(GL_CULL_FACE);
 
-    // 0) 创建离屏帧缓冲（Scene/Game），初始尺寸给一个合理默认，后续由 Editor 面板驱动 Resize
-    {
-        Himii::FramebufferSpecification fbSpec;
-        fbSpec.Width = 1280; fbSpec.Height = 720;
-        m_Framebuffer = Himii::Framebuffer::Create(fbSpec);
-        m_GameFramebuffer = Himii::Framebuffer::Create(fbSpec);
-    // picking FBO
-    Himii::FramebufferSpecification pickSpec = fbSpec; pickSpec.EnablePicking = true;
-    m_PickingFramebuffer = Himii::Framebuffer::Create(pickSpec);
-    }
-
     // 1) 加载着色器与纹理资源
     {
         // 着色器位于 TemplateProject/assets/shaders
@@ -205,8 +194,6 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
         // 天空盒跟随主摄像机（若存在）
         entt::entity camEntity = entt::null;
         auto viewCam = m_Scene.Registry().view<Himii::Transform, Himii::CameraComponent>();
-        for (auto e : viewCam) { if (viewCam.get<Himii::CameraComponent>(e).primary) { camEntity = e; break; } }
-        if (camEntity == entt::null && viewCam.begin() != viewCam.end()) camEntity = *viewCam.begin();
         if (m_SkyboxEntity && camEntity != entt::null)
         {
             auto &trSky = m_SkyboxEntity.GetComponent<Himii::Transform>();
@@ -255,18 +242,6 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
             auto meshView = m_Scene.Registry().view<Himii::Transform, Himii::MeshRenderer>(entt::exclude<Himii::SkyboxTag>);
             s_Picking->Bind();
             s_Picking->SetMat4("u_ViewProjection", viewProj);
-            for (auto e : meshView)
-            {
-                auto &tr = meshView.get<Himii::Transform>(e);
-                auto &mr = meshView.get<Himii::MeshRenderer>(e);
-                if (!mr.vertexArray) continue;
-                uint32_t id = 0;
-                if (m_TerrainEntity && e == m_TerrainEntity.Raw()) id = m_TerrainPickID;
-                else if (m_SkyboxEntity && e == m_SkyboxEntity.Raw()) id = m_SkyboxPickID; // excluded by view
-                else id = (uint32_t)(uint64_t)e; // fallback: use entt handle
-                s_Picking->SetInt("u_EntityID", (int)id);
-                Himii::Renderer::Submit(s_Picking, mr.vertexArray, tr.GetTransform());
-            }
         }
         m_PickingFramebuffer->Unbind();
 
@@ -279,20 +254,6 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
             // Trigger selection on left mouse click within Scene image
             if (editorRef->GetSceneMousePixel(texW, texH, px, py) && Himii::Input::IsMouseButtonPressed(Himii::Mouse::ButtonLeft))
             {
-                uint32_t id = m_PickingFramebuffer->ReadPickingPixel(px, py);
-            if (id != 0)
-            {
-                // map id to entity
-                entt::entity picked = entt::null;
-                if (id == m_TerrainPickID) picked = m_TerrainEntity.Raw();
-                // skybox intentionally excluded
-                else picked = (entt::entity)(uint32_t)id;
-                if (picked != entt::null && m_Scene.Registry().valid(picked))
-                {
-                        if (editorRef->GetActiveScene() != &m_Scene) editorRef->SetActiveScene(&m_Scene);
-                        editorRef->SetSelectedEntity(picked);
-                }
-            }
             }
         }
     }

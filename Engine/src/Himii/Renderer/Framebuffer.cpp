@@ -1,5 +1,6 @@
-#include "Himii/Renderer/Framebuffer.h"
+#pragma
 #include "Hepch.h"
+#include "Himii/Renderer/Framebuffer.h"
 #include "Himii/Renderer/Renderer.h"
 #include "Platform/OpenGL/OpenGLFramebuffer.h"
 

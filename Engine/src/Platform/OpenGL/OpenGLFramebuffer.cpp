@@ -1,6 +1,5 @@
-#include "Platform/OpenGL/OpenGLFramebuffer.h"
 #include "Hepch.h"
-#include "Himii/Core/Log.h"
+#include "Platform/OpenGL/OpenGLFramebuffer.h"
 #include "glad/glad.h"
 
 namespace Himii
