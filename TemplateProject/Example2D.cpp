@@ -61,7 +61,6 @@ void Example2D::OnUpdate(Himii::Timestep ts)
     {
         HIMII_PROFILE_SCOPE("CameraController::OnUpdate");
         m_CameraController.OnUpdate(ts);
-        m_Scene.OnUpdate(ts);
     }
     m_SceneFramebuffer->Resize(1280, 720); // 临时写死，后续由 EditorLayer 面板驱动调整
 
@@ -89,19 +88,59 @@ void Example2D::OnImGuiRender()
     if (dockingEnable)
     {
         static bool dockspaceOpen = true;
-        static bool fullscreen_persistant = true;
-        bool fullscreen = fullscreen_persistant;
+        static bool  opt_fullscreen = true;
+        static bool opt_padding = false;
         static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
 
         ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (fullscreen)
+        if (opt_fullscreen)
         {
-            /*ImGuiViewport *viewport = ImGui::GetMainViewport();
+            const ImGuiViewport *viewport = ImGui::GetMainViewport();
             ImGui::SetNextWindowPos(viewport->Pos);
             ImGui::SetNextWindowSize(viewport->Size);
-            ImGui::SetNextWindowViewport(viewport->ID);*/
+            ImGui::SetNextWindowViewport(viewport->ID);
+
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                            ImGuiWindowFlags_NoMove;
+            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
         }
-        ImGui::Begin("ECS 示例");
+
+        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+            window_flags |= ImGuiWindowFlags_NoBackground;
+
+        if (!opt_padding)
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+        ImGui::Begin("DockSpace Demo", &dockspaceOpen, window_flags);
+        if (!opt_padding)
+            ImGui::PopStyleVar();
+
+        if (opt_fullscreen)
+            ImGui::PopStyleVar(2);
+
+        // DockSpace
+        ImGuiIO &io = ImGui::GetIO();
+
+        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+        {
+            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+        }
+
+        if (ImGui::BeginMenuBar())
+        {
+            if (ImGui::BeginMenu("选项"))
+            {
+                if (ImGui::MenuItem("退出"))
+                    Himii::Application::Get().Close();
+                ImGui::EndMenu();
+            }
+            ImGui::EndMenuBar();
+        }
+        ImGui::End();
+
+        ImGui::Begin("Setting");
         auto stats = Himii::Renderer2D::GetStatistics();
         ImGui::Text("Renderer2D Stats");
         ImGui::Text("Draw Calls: %d", stats.DrawCalls);

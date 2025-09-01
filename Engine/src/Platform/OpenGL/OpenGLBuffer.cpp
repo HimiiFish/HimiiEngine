@@ -1,5 +1,5 @@
-#include "Hepch.h"
 #include "OpenGLBuffer.h"
+#include "Hepch.h"
 
 #include "glad/glad.h"
 
@@ -48,11 +48,14 @@ namespace Himii
 
     void OpenGLVertexBuffer::SetData(const void *data, uint32_t size)
     {
-        glBindBuffer(GL_ARRAY_BUFFER,m_RendererID);
+        HIMII_PROFILE_FUNCTION();
+
+        glBindBuffer(GL_ARRAY_BUFFER, m_RendererID);
+        glBufferData(GL_ARRAY_BUFFER, size, data, GL_DYNAMIC_DRAW);
         glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
     }
 
-    //IndexBuffer//////////////////////////////////////////////////////////////////////
+    // IndexBuffer//////////////////////////////////////////////////////////////////////
 
     OpenGLIndexBuffer::OpenGLIndexBuffer(uint32_t *indices, uint32_t count) : m_Count(count)
     {
@@ -83,6 +86,4 @@ namespace Himii
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
     }
-}
-
-
+} // namespace Himii
