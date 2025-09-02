@@ -45,3 +45,4 @@ endif()
 # 添加子项目
 add_subdirectory(Engine)
 add_subdirectory(TemplateProject)
+add_subdirectory(HimiiEditor)

@@ -1,5 +1,5 @@
-#include "Hepch.h"
 #include "Himii/Renderer/OrthographicCameraController.h"
+#include "Hepch.h"
 #include "Himii/Core/Input.h"
 #include "Himii/Core/KeyCodes.h"
 
@@ -15,7 +15,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-    // WASD 移动仅用于透视相机。正交相机不使用 WASD，这里不做平移输入处理。
+        // WASD 移动仅用于透视相机。正交相机不使用 WASD，这里不做平移输入处理。
 
         if (m_Rotation)
         {
@@ -35,17 +35,17 @@ namespace Himii
 
         EventDispatcher dispatcher(e);
         dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseScrolled));
-    dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseMoved));
-    dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseButtonPressed));
-    dispatcher.Dispatch<MouseButtonReleasedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseButtonReleased));
+        dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseMoved));
+        dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseButtonPressed));
+        dispatcher.Dispatch<MouseButtonReleasedEvent>( BIND_EVENT_FN(OrthographicCameraController::OnMouseButtonReleased));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OrthographicCameraController::OnWindowResize));
     }
     void OrthographicCameraController::OnResize(float width, float height)
     {
-        m_AspectRatio=width/height;
-    m_ViewportWidth = width;
-    m_ViewportHeight = height;
-        m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel,m_ZoomLevel);
+        m_AspectRatio = width / height;
+        m_ViewportWidth = width;
+        m_ViewportHeight = height;
+        m_Camera.SetProjection(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
     }
     bool OrthographicCameraController::OnMouseScrolled(MouseScrolledEvent &e)
     {
@@ -86,7 +86,7 @@ namespace Himii
         {
             m_MiddleDragging = true;
             // 记录初始位置
-            m_LastMousePos = { Input::GetMouseX(), Input::GetMouseY() };
+            m_LastMousePos = {Input::GetMouseX(), Input::GetMouseY()};
         }
         return false;
     }

@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
     // 创建应用程序实例
     //HIMII_PROFILE_BEGIN_SESSION("Startup", "HimiiEngine_Profile-Startup.json");
     auto *app = Himii::CreateApplication();
-    //HIMII_PROFILE_END_SESSION();
+    HIMII_PROFILE_END_SESSION();
    
     // 初始化应用程序
     //app->Initialize();
