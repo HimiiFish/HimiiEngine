@@ -1,6 +1,8 @@
-#include "MainScene.h"
 #include "Engine.h"
 #include "Himii/Core/EntryPoint.h"
+
+#include "MainScene.h"
+#include "UILayer.h"
 
 #include <iostream>
 
@@ -10,7 +12,8 @@ namespace Himii
     public:
         HimiiProject()
         {
-            PushOverlay(new MainScene());
+            PushLayer(new MainScene());
+            PushOverlay(new UILayer());
         }
 
         virtual ~HimiiProject()

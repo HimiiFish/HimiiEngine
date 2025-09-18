@@ -19,6 +19,7 @@ public:
     entt::registry& Registry() { return m_Registry; }
 
     void OnUpdate(Timestep ts);
+    void OnUIUpdate(Timestep ts);
 
     // 供编辑器渲染路径设置：使用外部提供的 ViewProjection 矩阵进行一次渲染
     // 传入 nullptr 关闭外部相机覆盖

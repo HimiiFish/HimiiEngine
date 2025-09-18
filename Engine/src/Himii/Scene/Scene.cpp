@@ -155,6 +155,39 @@ void Scene::OnUpdate(Timestep ts) {
     }
 }
 
+void Scene::OnUIUpdate(Timestep ts)
+{
+#pragma region UIComponent Update
+
+    // Image更新(实际上是SpriteRenderer)
+    {
+        auto imageView = m_Registry.view<Himii::Transform, Himii::Image>();
+        for (auto e: imageView)
+        {
+            auto &tr = imageView.get<Himii::Transform>(e);
+            auto &img = imageView.get<Himii::Image>(e);
+            const glm::mat4 transform = tr.GetTransform();
+            if (img.texture)
+            {
+                if (img.uvs[0] != glm::vec2(0.0f) || img.uvs[1] != glm::vec2(1.0f, 0.0f) ||
+                    img.uvs[2] != glm::vec2(1.0f, 1.0f) || img.uvs[3] != glm::vec2(0.0f, 1.0f))
+                {
+                    Himii::Renderer2D::DrawQuadUV(transform, img.texture, img.uvs, img.tiling, img.color);
+                }
+                else
+                {
+                    Himii::Renderer2D::DrawQuad(transform, img.texture, img.tiling, img.color);
+                }
+            }
+            else
+            {
+                Himii::Renderer2D::DrawQuad(transform, img.color);
+            }
+        }
+    }
+#pragma endregion
+}
+
 void Scene::Clear() {
     // 收集后再销毁，避免遍历时失效
     std::vector<entt::entity> toDelete;

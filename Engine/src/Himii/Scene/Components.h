@@ -35,6 +35,9 @@ namespace Himii
         std::string name;
     };
 
+    /// <summary>
+    /// 移动变组件：位置、旋转（欧拉角）、缩放
+    /// </summary>
     struct Transform {
         glm::vec3 Position = {0.0f, 0.0f, 0.0f};
         glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
@@ -54,6 +57,9 @@ namespace Himii
         }
     };
 
+    /// <summary>
+    /// 精灵渲染组件：用于 Renderer2D::DrawQuad 路径
+    /// </summary>
     struct SpriteRenderer {
         glm::vec4 color{1.0f};
         Ref<Texture2D> texture{};       // 可为空，仅颜色
@@ -94,7 +100,9 @@ namespace Himii
     Himii::SceneCamera camera{};
     };
 
-    // 3D 网格渲染组件：用于 Renderer::Submit 路径
+    /// <summary>
+    /// 3D 网格渲染组件：用于 Renderer::Submit 路径
+    /// </summary>
     struct MeshRenderer {
         Ref<VertexArray> vertexArray{};
         Ref<Shader>      shader{};
@@ -104,7 +112,9 @@ namespace Himii
     // 标记组件：用于区分天空盒渲染通道
     struct SkyboxTag {};
 
-    // 脚本组件：原生 C++ 脚本挂载
+    /// <summary>
+    /// 脚本组件：原生 C++ 脚本挂载
+    /// </summary>
     struct NativeScriptComponent {
         ScriptableEntity* Instance = nullptr;
 
@@ -119,5 +129,38 @@ namespace Himii
                 delete nsc->Instance; nsc->Instance = nullptr; };
         }
     };
+
+
+#pragma region UIComponent
+
+    struct Image {
+        Ref<Texture2D> texture{}; // 可为空，仅颜色
+        glm::vec4 color{1.0f};
+        std::array<glm::vec2, 4> uvs{// 默认全贴图 UV
+                                     glm::vec2{0.0f, 0.0f}, glm::vec2{1.0f, 0.0f}, glm::vec2{1.0f, 1.0f},
+                                     glm::vec2{0.0f, 1.0f}};
+        float tiling = 1.0f;
+        Image() = default;
+        Image(const Ref<Texture2D> &tex, const glm::vec4 &tint, float tilingFactor) :
+            color(tint), texture(tex), tiling(tilingFactor)
+        {
+        }
+        // 提供纹理 + 自定义 UV + 平铺 + 色调 的构造
+        Image(const Ref<Texture2D> &tex, const std::array<glm::vec2, 4> &customUVs, float tilingFactor,
+              const glm::vec4 &tint) : color(tint), texture(tex), uvs(customUVs), tiling(tilingFactor)
+        {
+        }
+    };
+
+    struct Button {
+        std::function<void()> onClick; // 点击回调
+        glm::vec4 hoverColor{0.8f, 0.8f, 0.8f, 1.0f};
+        glm::vec4 normalColor{1.0f, 1.0f, 1.0f, 1.0f};
+        glm::vec4 pressColor{0.6f, 0.6f, 0.6f, 1.0f};
+        bool isPressed = false; // 当前是否按下
+        bool isHovered = false; // 当前是否悬停
+    };
+
+#pragma endregion
 
 } // namespace Himii
