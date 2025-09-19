@@ -40,19 +40,27 @@ void CubeLayer::OnAttach()
 
     // 2) 地形索引缓冲稍后由 BuildTerrainMesh 生成
 
-    // 3) 载入贴图、着色器（沿用 Texture.glsl）
+    // 3) 载入贴图、着色器
     m_Atlas = Himii::Texture2D::Create("assets/textures/blocks.png");
     // 如需 Pixel 模式可在此读取像素尺寸：m_Atlas->GetWidth()/GetHeight()
     m_TextureShader = m_ShaderLibrary.Load("assets/shaders/Texture.glsl");
+    m_LitShader     = m_ShaderLibrary.Load("assets/shaders/LitTexture.glsl");
+    m_SkyboxShader  = m_ShaderLibrary.Load("assets/shaders/Skybox.glsl");
+
     m_TextureShader->Bind();
     // 设置采样器数组 [0..31]，确保 v_TexIndex=0 时能采样到纹理槽0
     int samplers[32];
     for (int i = 0; i < 32; ++i)
         samplers[i] = i;
     m_TextureShader->SetIntArray("u_Texture", samplers, 32);
+    m_LitShader->Bind();
+    m_LitShader->SetIntArray("u_Texture", samplers, 32);
 
-    // 4) 基于柏林噪声生成 30x30x10 的体素地形网格
+    // 4) 基于柏林噪声生成体素地形网格
     BuildTerrainMesh();
+
+    // 4.5) 构建天空盒
+    BuildSkybox();
 
     // 5) 设置一个能看见地形的默认相机位置与朝向（避免出生在方块内部）
     m_CamPos = { m_TerrainW * 0.5f, m_TerrainH * 1.2f, m_TerrainD + m_TerrainH * 1.0f };
@@ -150,11 +158,38 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
     glm::mat4 viewProj = proj * view;
 
-    // 提交绘制
+    // 提交绘制：先天空盒，再地形
     Himii::Renderer::BeginScene(viewProj);
+
+    // 天空盒：深度函数 LEQUAL，禁用深度写
+    glDepthFunc(GL_LEQUAL);
+    glDepthMask(GL_FALSE);
+    if (m_SkyboxVA)
+    {
+        // 将天空盒平移到相机位置以抵消视图矩阵的平移，适当放大以避免裁剪边
+        glm::mat4 skyTransform = glm::translate(glm::mat4(1.0f), m_CamPos) * glm::scale(glm::mat4(1.0f), glm::vec3(m_FarZ * 0.5f));
+        m_SkyboxShader->Bind();
+        m_SkyboxShader->SetFloat3("u_TopColor",     {0.24f, 0.52f, 0.88f});
+        m_SkyboxShader->SetFloat3("u_HorizonColor", {0.85f, 0.90f, 0.98f});
+        m_SkyboxShader->SetFloat3("u_BottomColor",  {0.95f, 0.95f, 1.00f});
+        Himii::Renderer::Submit(m_SkyboxShader, m_SkyboxVA, skyTransform);
+    }
+    glDepthMask(GL_TRUE);
+    glDepthFunc(GL_LESS);
+
+    // 地形：使用光照着色器
     m_Atlas->Bind(0);
     if (m_TerrainVA)
-        Himii::Renderer::Submit(m_TextureShader, m_TerrainVA, transform);
+    {
+        m_LitShader->Bind();
+        // 设置光照 uniform
+        m_LitShader->SetFloat3("u_AmbientColor", m_AmbientColor);
+        m_LitShader->SetFloat("u_AmbientIntensity", m_AmbientIntensity);
+        m_LitShader->SetFloat3("u_LightDir", m_LightDir);
+        m_LitShader->SetFloat3("u_LightColor", m_LightColor);
+        m_LitShader->SetFloat("u_LightIntensity", m_LightIntensity);
+        Himii::Renderer::Submit(m_LitShader, m_TerrainVA, transform);
+    }
     Himii::Renderer::EndScene();
 }
 
@@ -362,6 +397,13 @@ void CubeLayer::OnImGuiRender()
     nChanged |= ImGui::DragFloat("Mountain Weight", &m_Noise.mountainWeight, 0.01f, 0.0f, 1.0f);
     if (nChanged && m_AutoRebuild)
         BuildTerrainMesh();
+
+    ImGui::SeparatorText("Lighting");
+    ImGui::ColorEdit3("Ambient Color", &m_AmbientColor.x);
+    ImGui::DragFloat("Ambient Intensity", &m_AmbientIntensity, 0.01f, 0.0f, 2.0f);
+    ImGui::DragFloat3("Light Dir", &m_LightDir.x, 0.01f, -1.0f, 1.0f);
+    ImGui::ColorEdit3("Light Color", &m_LightColor.x);
+    ImGui::DragFloat("Light Intensity", &m_LightIntensity, 0.01f, 0.0f, 4.0f);
     ImGui::End();
 }
 
@@ -449,10 +491,11 @@ void CubeLayer::BuildTerrainMesh()
 
     std::vector<float> vertices;
     std::vector<uint32_t> indices;
-    vertices.reserve(W * D * H * 6 * 11 / 2);
+    // 每顶点属性：pos(3) normal(3) color(4) uv(2) texIndex(1) tiling(1) => 14 floats
+    vertices.reserve(W * D * H * 6 * 14 / 2);
     indices.reserve(W * D * H * 6);
 
-    auto pushFace = [&](const glm::vec3 v[4], const std::array<glm::vec2, 4> &uv, uint32_t &baseIdx)
+    auto pushFace = [&](const glm::vec3 v[4], const std::array<glm::vec2, 4> &uv, uint32_t &baseIdx, const glm::vec3& normal)
     {
         const float rC = 1.0f, gC = 1.0f, bC = 1.0f, aC = 1.0f, texIndex = 0.0f, tiling = 1.0f;
         for (int i = 0; i < 4; ++i)
@@ -460,6 +503,10 @@ void CubeLayer::BuildTerrainMesh()
             vertices.push_back(v[i].x);
             vertices.push_back(v[i].y);
             vertices.push_back(v[i].z);
+            // normal
+            vertices.push_back(normal.x);
+            vertices.push_back(normal.y);
+            vertices.push_back(normal.z);
             vertices.push_back(rC);
             vertices.push_back(gC);
             vertices.push_back(bC);
@@ -548,18 +595,12 @@ void CubeLayer::BuildTerrainMesh()
                                     {cx + s, cy - s, cz + s},
                                     {cx - s, cy - s, cz + s}};
 
-                if (posZ)
-                    pushFace(vF, uvFor(bt, 0), baseIdx);
-                if (negZ)
-                    pushFace(vB, uvFor(bt, 1), baseIdx);
-                if (negX)
-                    pushFace(vL, uvFor(bt, 2), baseIdx);
-                if (posX)
-                    pushFace(vR, uvFor(bt, 3), baseIdx);
-                if (top)
-                    pushFace(vT, uvFor(bt, 4), baseIdx);
-                if (down)
-                    pushFace(vD_, uvFor(bt, 5), baseIdx);
+                if (posZ)  pushFace(vF,  uvFor(bt, 0), baseIdx, { 0.0f,  0.0f,  1.0f});
+                if (negZ)  pushFace(vB,  uvFor(bt, 1), baseIdx, { 0.0f,  0.0f, -1.0f});
+                if (negX)  pushFace(vL,  uvFor(bt, 2), baseIdx, {-1.0f,  0.0f,  0.0f});
+                if (posX)  pushFace(vR,  uvFor(bt, 3), baseIdx, { 1.0f,  0.0f,  0.0f});
+                if (top)   pushFace(vT,  uvFor(bt, 4), baseIdx, { 0.0f,  1.0f,  0.0f});
+                if (down)  pushFace(vD_, uvFor(bt, 5), baseIdx, { 0.0f, -1.0f,  0.0f});
             }
         }
 
@@ -568,13 +609,40 @@ void CubeLayer::BuildTerrainMesh()
 
     auto vb = Himii::VertexBuffer::Create(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
     Himii::BufferLayout layout = {
-            {Himii::ShaderDataType::Float3, "a_Position"},    {Himii::ShaderDataType::Float4, "a_Color"},
-            {Himii::ShaderDataType::Float2, "a_TexCoord"},    {Himii::ShaderDataType::Float, "a_TexIndex"},
-            {Himii::ShaderDataType::Float, "a_TilingFactor"},
+        {Himii::ShaderDataType::Float3, "a_Position"},
+        {Himii::ShaderDataType::Float3, "a_Normal"},
+        {Himii::ShaderDataType::Float4, "a_Color"},
+        {Himii::ShaderDataType::Float2, "a_TexCoord"},
+        {Himii::ShaderDataType::Float,  "a_TexIndex"},
+        {Himii::ShaderDataType::Float,  "a_TilingFactor"},
     };
     vb->SetLayout(layout);
     m_TerrainVA->AddVertexBuffer(vb);
 
     auto ib = Himii::IndexBuffer::Create(indices.data(), static_cast<uint32_t>(indices.size()));
     m_TerrainVA->SetIndexBuffer(ib);
+}
+
+void CubeLayer::BuildSkybox()
+{
+    // 一个单位立方体，位置在原点，放大由着色器矩阵控制；仅位置属性
+    m_SkyboxVA = Himii::VertexArray::Create();
+    const float s = 1.0f;
+    const glm::vec3 p[] = {
+        {-s,-s, s},{ s,-s, s},{ s, s, s},{-s, s, s}, // front
+        { s,-s,-s},{-s,-s,-s},{-s, s,-s},{ s, s,-s}, // back
+        {-s,-s,-s},{-s,-s, s},{-s, s, s},{-s, s,-s}, // left
+        { s,-s, s},{ s,-s,-s},{ s, s,-s},{ s, s, s}, // right
+        {-s, s, s},{ s, s, s},{ s, s,-s},{-s, s,-s}, // top
+        {-s,-s,-s},{ s,-s,-s},{ s,-s, s},{-s,-s, s}  // bottom
+    };
+    std::vector<float> verts; verts.reserve(24*3);
+    for (auto &v : p) { verts.push_back(v.x); verts.push_back(v.y); verts.push_back(v.z); }
+    std::vector<uint32_t> idx;
+    for (uint32_t f=0; f<6; ++f){ uint32_t b=f*4; idx.insert(idx.end(), {b+0,b+1,b+2,b+2,b+3,b+0}); }
+    auto vb = Himii::VertexBuffer::Create(verts.data(), (uint32_t)(verts.size()*sizeof(float)));
+    vb->SetLayout({{Himii::ShaderDataType::Float3, "a_Position"}});
+    m_SkyboxVA->AddVertexBuffer(vb);
+    auto ib = Himii::IndexBuffer::Create(idx.data(), (uint32_t)idx.size());
+    m_SkyboxVA->SetIndexBuffer(ib);
 }
