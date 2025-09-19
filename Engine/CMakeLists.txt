@@ -70,6 +70,7 @@ set(ENGINE_ALL_SOURCES
 # 添加源文件和头文件到Engine库
 # 不需指定SHARED或STATIC，因为CMake会根据BUILD_SHARED_LIBS变量自动处理
 add_library(Engine STATIC ${ENGINE_ALL_SOURCES})
+# 若是共享库则可能是：add_library(Engine SHARED ${ENGINE_SOURCES})
 
 # 在Windows上，如果使用共享库，启用导出所有符号
 if(WIN32 AND BUILD_SHARED_LIBS)
@@ -87,3 +88,5 @@ target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)
 if(MSVC)
     target_compile_options(Engine PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> $<$<C_COMPILER_ID:MSVC>:/utf-8>)
 endif()
+
+himii_set_output_dirs(Engine)

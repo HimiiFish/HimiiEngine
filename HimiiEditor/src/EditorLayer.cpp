@@ -23,28 +23,9 @@ namespace Himii
 
         // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
         {
-            auto e1 = m_Scene.CreateEntity("Red Quad");
-            auto &tr1 = e1.GetComponent<Transform>();
-            tr1.Position = {-0.5f, -0.5f, 0.0f};
-            e1.AddComponent<SpriteRenderer>(glm::vec4{0.9f, 0.2f, 0.3f, 1.0f});
-
-            auto e2 = m_Scene.CreateEntity("Green Quad");
-            auto &tr2 = e2.GetComponent<Transform>();
-            tr2.Position = {0.3f, 0.1f, 0.0f};
-            e2.AddComponent<SpriteRenderer>(glm::vec4{0.2f, 0.8f, 0.4f, 1.0f});
-
-            auto e3 = m_Scene.CreateEntity("Blue Quad");
-            auto &tr3 = e3.GetComponent<Himii::Transform>();
-            tr3.Position = {-0.2f, 0.6f, 0.0f};
-            e3.AddComponent<SpriteRenderer>(glm::vec4{0.3f, 0.5f, 1.0f, 1.0f});
-
             auto e4 = m_Scene.CreateEntity("My Quad");
             // 默认构造 SpriteRenderer（白色），或传入颜色
             e4.AddComponent<SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-            // 绑定二维移动脚本
-            {
-                auto &nsc = e4.AddComponent<NativeScriptComponent>();
-            }
         }
     }
     void EditorLayer::OnDetach()
@@ -66,7 +47,7 @@ namespace Himii
             m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
         }
        
-        m_Framebuffer->Resize(1280, 720); // 临时写死，后续由 EditorLayer 面板驱动调整
+        //m_Framebuffer->Resize(1280, 720); // 临时写死，后续由 EditorLayer 面板驱动调整
 
         // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
         Renderer2D::ResetStats();

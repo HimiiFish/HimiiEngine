@@ -30,7 +30,8 @@ class BuildScript:
                 "debug": "build-x64-debug-win",
                 "release": "build-x64-release-win"
             }
-            self.executable_names = ["TemplateProject.exe"]
+            # 同时查找两个可执行
+            self.executable_names = ["HimiiEditor.exe", "TemplateProject.exe"]
         elif self.is_linux:
             self.configure_presets = {
                 "debug": "linux-debug",
@@ -124,18 +125,27 @@ class BuildScript:
     def find_executable(self, build_type):
         """查找生成的可执行文件"""
         configure_preset = self.configure_presets[build_type.lower()]
+        exe_base = self.script_dir / "build" / configure_preset / "bin"
 
-        # if self.is_windows:
-        #     executable_base_path = self.script_dir / "build" / configure_preset / "bin"
-        # else:
-        #     executable_base_path = self.script_dir / "build" / configure_preset / "bin"
+        # 多配置目录名
+        cfg = "Debug" if build_type.lower() == "debug" else "Release"
 
-        executable_base_path = self.script_dir / "build" / configure_preset / "bin"
+        # 依次尝试新旧布局：
+        # 1) bin/<Target>/<Config>/<exe>
+        # 2) bin/<Target>/<exe>（单配置生成器）
+        # 3) bin/<exe>（旧布局）
+        candidates = []
+        for name in self.executable_names:
+            target = Path(name).stem  # HimiiEditor, TemplateProject
+            candidates += [
+                exe_base / target / cfg / name,
+                exe_base / target / name,
+                exe_base / name
+            ]
 
-        for exe_name in self.executable_names:
-            exe_path = executable_base_path / exe_name
-            if exe_path.exists():
-                return exe_path
+        for p in candidates:
+            if p.exists():
+                return p
 
         return None
 

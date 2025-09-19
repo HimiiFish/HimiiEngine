@@ -13,36 +13,39 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # OFF -> 构建静态库
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
-# 为所有目标设置输出目录
-# 单配置生成器（例如 Makefiles）使用这些通用路径
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-
-# 多配置生成器（例如 Visual Studio）使用这些特定于配置的路径
-foreach(config ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${config} config_upper)
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/lib)
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/bin)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${config_upper} ${CMAKE_BINARY_DIR}/bin)
-endforeach()
-
 # 确保 Visual Studio 的输出目录存在，以避免链接器错误
 if(MSVC)
     # 让 MSVC 以 UTF-8 读取/编译源文件，消除 C4828 警告
     add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>" "$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 
-    # 兼容某些包含文件：显式声明源文件编码为 UTF-8（全局生效）
-    set(CMAKE_C_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_C_STANDARD_INCLUDE_DIRECTORIES})
-    set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES})
-
+    # 可保留或移除这个目录创建；目标级路径会按需创建
     file(MAKE_DIRECTORY
         ${CMAKE_BINARY_DIR}/bin
         ${CMAKE_BINARY_DIR}/lib
     )
 endif()
 
+# 统一每个目标的输出目录：多配置与单配置生成器均兼容
+function(himii_set_output_dirs target_name)
+    # 单配置生成器或兜底
+    set_target_properties(${target_name} PROPERTIES
+        RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${target_name}"
+        LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin/${target_name}"
+        ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/lib/${target_name}"
+    )
+
+    # 多配置生成器下按配置分别指定
+    foreach(cfg Debug Release RelWithDebInfo MinSizeRel)
+        string(TOUPPER ${cfg} CFG_UPPER)
+        set_target_properties(${target_name} PROPERTIES
+            RUNTIME_OUTPUT_DIRECTORY_${CFG_UPPER} "${CMAKE_BINARY_DIR}/bin/${target_name}/${cfg}"
+            LIBRARY_OUTPUT_DIRECTORY_${CFG_UPPER} "${CMAKE_BINARY_DIR}/bin/${target_name}/${cfg}"
+            ARCHIVE_OUTPUT_DIRECTORY_${CFG_UPPER} "${CMAKE_BINARY_DIR}/lib/${target_name}/${cfg}"
+        )
+    endforeach()
+endfunction()
+
 # 添加子项目
 add_subdirectory(Engine)
-add_subdirectory(TemplateProject)
 add_subdirectory(HimiiEditor)
+add_subdirectory(TemplateProject)
