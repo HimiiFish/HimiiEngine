@@ -20,7 +20,7 @@ namespace Himii
         bool OnMouseButtonPressed(MouseButtonPressedEvent &e);
 
     private:
-        Himii::Scene m_Scene;
+        Himii::Scene m_ActiveScene;
         Himii::OrthographicCameraController m_CameraController;
 
         // 可选：后续可扩展纹理/渲染资源，这里最小示例仅用颜色方块

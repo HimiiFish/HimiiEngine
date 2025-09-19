@@ -122,22 +122,10 @@ void Scene::OnUpdate(Timestep ts) {
     }
 
     // 2D SpriteRenderer 实体：Renderer2D 批渲染
-    auto group = m_Registry.group<Himii::Transform>(entt::get<Himii::SpriteRenderer>);
+    auto group = m_Registry.group<Transform>(entt::get<SpriteRenderer>);
     for (auto entity : group) {
-        auto &tr = group.get<Himii::Transform>(entity);
-        if (auto *sr = m_Registry.try_get<Himii::SpriteRenderer>(entity)) {
-            const glm::mat4 transform = tr.GetTransform();
-            if (sr->texture) {
-                if (sr->uvs[0] != glm::vec2(0.0f) || sr->uvs[1] != glm::vec2(1.0f, 0.0f)
-                    || sr->uvs[2] != glm::vec2(1.0f, 1.0f) || sr->uvs[3] != glm::vec2(0.0f, 1.0f)) {
-                    Himii::Renderer2D::DrawQuadUV(transform, sr->texture, sr->uvs, sr->tiling, sr->color);
-                } else {
-                    Himii::Renderer2D::DrawQuad(transform, sr->texture, sr->tiling, sr->color);
-                }
-            } else {
-                Himii::Renderer2D::DrawQuad(transform, sr->color);
-            }
-        }
+        auto [tr, sr] = group.get<Transform, SpriteRenderer>(entity);
+        Himii::Renderer2D::DrawSprite(tr.GetTransform(), sr,(int)entity);
     }
 
     // 原生脚本更新

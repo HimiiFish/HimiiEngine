@@ -23,7 +23,7 @@ namespace Himii
 
         // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
         {
-            auto e4 = m_Scene.CreateEntity("My Quad");
+            auto e4 = m_ActiveScene.CreateEntity("My Quad");
             // 默认构造 SpriteRenderer（白色），或传入颜色
             e4.AddComponent<SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
         }
@@ -58,7 +58,7 @@ namespace Himii
 
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Renderer2D::BeginScene(m_CameraController.GetCamera());
-        m_Scene.OnUpdate(ts);
+        m_ActiveScene.OnUpdate(ts);
         Renderer2D::EndScene();
         m_Framebuffer->Unbind();
     }

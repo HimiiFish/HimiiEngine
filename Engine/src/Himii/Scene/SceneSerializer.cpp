@@ -75,7 +75,6 @@ bool SceneSerializer::Serialize(const std::string& filepath) const {
         if (auto* sr = reg.try_get<SpriteRenderer>(e)) {
             out << YAML::Key << "SpriteRenderer" << YAML::Value << YAML::BeginMap;
             out << YAML::Key << "Color" << YAML::Value << sr->color;
-            out << YAML::Key << "Tiling" << YAML::Value << sr->tiling;
             out << YAML::EndMap;
         }
 
@@ -134,7 +133,6 @@ bool SceneSerializer::Deserialize(const std::string& filepath) {
             if (!e.HasComponent<SpriteRenderer>()) e.AddComponent<SpriteRenderer>();
             auto& sr = e.GetComponent<SpriteRenderer>();
             sr.color  = srNode["Color"].as<glm::vec4>(sr.color);
-            sr.tiling = srNode["Tiling"].as<float>(sr.tiling);
         }
         if (auto camNode = entNode["Camera"]) {
             if (!e.HasComponent<CameraComponent>()) e.AddComponent<CameraComponent>();

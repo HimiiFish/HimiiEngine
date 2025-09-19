@@ -59,7 +59,7 @@ namespace Himii
         HIMII_PROFILE_FUNCTION();
 
         s_Data.QuadVertexArray = VertexArray::Create();
-        // �������㻺����
+        // 锟斤拷锟斤拷锟斤拷锟姐缓锟斤拷锟斤拷
         s_Data.QuadVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(QuadVertex));
 
         s_Data.QuadVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
@@ -100,7 +100,7 @@ namespace Himii
         for (uint32_t i = 0; i < s_Data.MaxTextureSlots; i++)
             samplers[i] = i;
 
-        //  ������ɫ������
+        //  锟斤拷锟斤拷锟斤拷色锟斤拷锟斤拷锟斤拷
         s_Data.QuadShader = Shader::Create("assets/shaders/Texture.glsl");
         s_Data.QuadShader->Bind();
         s_Data.QuadShader->SetIntArray("u_Texture", samplers, s_Data.MaxTextureSlots);
@@ -168,7 +168,7 @@ namespace Himii
         StartBatch();
     }
 
-    //-----------------------------------�����ı���----------------------------//
+    //-----------------------------------锟斤拷锟斤拷锟侥憋拷锟斤拷----------------------------//
     void Renderer2D::DrawQuad(const glm::vec2 &position, const glm::vec2 &size, const glm::vec4 &color)
     {
         DrawQuad(glm::vec3(position, 0.0f), size, color);
@@ -416,7 +416,7 @@ namespace Himii
         s_Data.Stats.QuadCount++;
     }
 
-    //---------------------------------������ת�ı���------------------------------//
+    //---------------------------------锟斤拷锟斤拷锟斤拷转锟侥憋拷锟斤拷------------------------------//
     void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,
                                      const glm::vec4 &color)
     {
@@ -534,6 +534,17 @@ namespace Himii
 
         s_Data.Stats.QuadCount++;
     }
+
+
+    void Renderer2D::DrawSprite(const glm::mat4 &transform, SpriteRenderer &sprite, int entityID)
+    {
+        if (sprite.texture)
+            DrawQuad(transform, sprite.texture, sprite.tilingFactor, sprite.color, entityID);
+        else
+            DrawQuad(transform, sprite.color, entityID);
+    }
+
+
     void Renderer2D::ResetStats()
     {
         memset(&s_Data.Stats, 0, sizeof(Statistics));
