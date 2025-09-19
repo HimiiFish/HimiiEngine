@@ -198,7 +198,7 @@ namespace Himii
     {
         if (width == 0 || height == 0 || width > s_MaxFramebufferSize || height > s_MaxFramebufferSize)
         {
-            HIMII_CORE_WARNING("Attempted to rezize framebuffer to {0}, {1}", width, height);
+            HIMII_CORE_WARNING("Attempted to resize framebuffer to {0}, {1}", width, height);
             return;
         }
         m_Specification.Width = width;

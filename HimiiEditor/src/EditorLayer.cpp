@@ -46,8 +46,6 @@ namespace Himii
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
         }
-       
-        //m_Framebuffer->Resize(1280, 720); // 临时写死，后续由 EditorLayer 面板驱动调整
 
         // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
         Renderer2D::ResetStats();
@@ -138,11 +136,9 @@ namespace Himii
 
             ImGui::Begin("ViewPort");
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
-            if (m_ViewportSize != *((glm::vec2 *)(&viewportPanelSize)))
+            if (m_ViewportSize != *((glm::vec2 *)&viewportPanelSize))
             {
-                m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
                 m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
-                m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }
 
             uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
