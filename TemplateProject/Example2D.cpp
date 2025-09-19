@@ -1,7 +1,6 @@
 ﻿#include "Example2D.h"
 #include "imgui.h"
 
-#include "EditorLayer.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
@@ -14,9 +13,12 @@ void Example2D::OnAttach()
 {
     HIMII_PROFILE_FUNCTION();
 
-    m_SpriteSheet = Himii::Texture2D::Create("assets/textures/blocks.png");
+    m_GrassTexture = Himii::Texture2D::Create("assets/textures/grass.png");
+    m_MudTexture = Himii::Texture2D::Create("assets/textures/mud.png");
 
-    m_SceneFramebuffer = Himii::Framebuffer::Create({1280, 720});
+    //m_Terrain = Himii::CreateRef<Terrain>(200,40);//
+
+    //m_Terrain->GenerateTerrain();
 }
 void Example2D::OnDetach()
 {
@@ -40,15 +42,35 @@ void Example2D::OnUpdate(Himii::Timestep ts)
     }
     
     {
+
         static float rotation = 0.0f;
         rotation += ts * 20.0f;
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Himii::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
-        Himii::Renderer2D::DrawQuad({0.5, 0.5}, {0.5, 0.5}, m_SpriteSheet);
+        Himii::Renderer2D::DrawQuad({0.5, 0.5}, {0.5, 0.5}, m_GrassTexture);
         Himii::Renderer2D::DrawQuad({-0.5, 0.5}, {0.5, 0.5}, {0.12, 0.45, 0.62, 1.0});
-        Himii::Renderer2D::DrawRotatedQuad({0.5, -0.5}, {0.5, 0.5}, rotation, {0.25, 0.56, 0.56, 1.0});
+        Himii::Renderer2D::DrawRotatedQuad({-0.5, -0.5}, {0.5, 0.5}, 45.0f, m_MudTexture, 10.0f);
+        Himii::Renderer2D::DrawRotatedQuad({0.5, -0.5}, {0.5, 0.5}, rotation, {0.25,0.56,0.56,1.0});
         Himii::Renderer2D::DrawQuad({0, 0}, {0.2, 0.2}, glm::vec4{0.25, 0.13, 0.26, 1.0});
+
+//#pragma region testTerrain
+//        const auto &blocks = m_Terrain->GetBlocks();
+//        const float tileSize = 0.2f;
+//
+//         使用 m_Terrain->getHeight() 和 m_Terrain->GetWidth() 确保渲染尺寸正确
+//        for (int y = 0; y < m_Terrain->getHeight(); ++y)
+//        {
+//            for (int x = 0; x < m_Terrain->GetWidth(); ++x)
+//            {
+//                BlockType block = blocks[y][x];
+//                if (block != AIR) // 只绘制非空气区块
+//                {
+//                    Himii::Renderer2D::DrawQuad({x * tileSize, y * tileSize}, {tileSize, tileSize}, blockColors[block]);
+//                }
+//            }
+//        }
+//#pragma endregion
 
         Himii::Renderer2D::EndScene();
 

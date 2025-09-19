@@ -6,8 +6,7 @@ layout(location = 2) in vec2 a_TexCoord;
 layout(location = 3) in float a_TexIndex;
 layout(location = 4) in float a_TilingFactor;
 
-uniform mat4 u_ViewProjection; // 视图投影矩阵
-uniform mat4 u_Transform;      // 模型变换矩阵（新增，默认为单位矩阵）
+uniform mat4 u_ViewProjection; // ��ͼͶӰ����
 
 out vec4 v_Color;
 out vec2 v_TexCoord;
@@ -20,7 +19,7 @@ void main()
     v_TexCoord=a_TexCoord;
     v_TexIndex=a_TexIndex;
     v_TilingFactor=a_TilingFactor;
-    gl_Position = u_ViewProjection * u_Transform * vec4(a_Position, 1.0);
+    gl_Position = u_ViewProjection* vec4(a_Position, 1.0);
 }
 
 #type fragment
@@ -33,7 +32,7 @@ in vec2 v_TexCoord;
 in float v_TexIndex;
 in float v_TilingFactor;
 
-uniform sampler2D u_Texture[32]; // ��ɫ
+uniform sampler2D u_Texture[32]; // ��ɫ
 
 void main()
 {

@@ -3,8 +3,7 @@
 
 namespace Himii
 {
-    Layer::Layer(const std::string& debugName)
-        : m_DebugName(debugName)
+    Layer::Layer(const std::string &debugName) : m_DebugName(debugName)
     {
     }
-} // namespace Himii
+} // namespace Hazel

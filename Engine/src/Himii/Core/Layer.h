@@ -1,24 +1,40 @@
 #pragma once
 #include "Himii/Events/Event.h"
 #include "Himii/Core/Timestep.h"
-#include <string>
 
 namespace Himii
 {
     class Layer {
     public:
-        explicit Layer(const std::string& name = "Layer");
-        virtual ~Layer() = default;
+        Layer(const std::string& name = "Layer");
+        virtual ~Layer()=default;
 
-        virtual void OnAttach() {}
-        virtual void OnDetach() {}
-        virtual void OnUpdate(Timestep ts) {}
-        virtual void OnImGuiRender() {}
-        virtual void OnEvent(Event& event) {}
+        virtual void OnAttach()
+        {
+        }
 
-        const std::string& GetName() const noexcept { return m_DebugName; }
+        virtual void OnDetach()
+        {
+        }
+        
+        virtual void OnUpdate(Timestep ts)
+        {
+        }
 
-    protected:
+        virtual void OnImGuiRender()
+        {
+        }
+
+        virtual void OnEvent(Event& event)
+        {
+        }
+
+        const std::string &GetName() const
+        {
+            return m_DebugName;
+        }
+
+    private:
         std::string m_DebugName;
     };
-} // namespace Himii
+} // namespace Core
