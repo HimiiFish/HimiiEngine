@@ -12,7 +12,7 @@ public:
     void OnDetach() override;
     void OnUpdate(Himii::Timestep ts) override;
     void OnImGuiRender() override;
-    void OnEvent(Himii::Event& e) override;
+    virtual void OnEvent(Himii::Event& e) override;
 
 private:
     // 简单的图集参数：按网格切分
@@ -64,13 +64,49 @@ private:
     float m_LastMouseY = 0.0f;
 
     // 地形参数（体素体积大小）
-    int m_TerrainW = 30;
-    int m_TerrainD = 30;
-    int m_TerrainH = 10;
+    int m_TerrainW = 128;
+    int m_TerrainD = 128;
+    int m_TerrainH = 32;
+    bool m_AutoRebuild = true; // 实时重建开关
+
+        // 噪声参数（fBm + Ridged + Domain Warp，可在 ImGui 中调整）
+        struct NoiseSettings {
+            uint32_t seed = 1337;
+            // 生物群落混合（低频）
+            float biomeScale = 0.02f; // 越小越大片区
+            // 大尺度大陆感
+            float continentScale = 0.008f;   // 大地貌尺度（越小越大块）
+            float continentStrength = 0.6f;  // 对高度的影响强度 0..1
+            // 平原（fBm）
+            float plainsScale = 0.10f;
+            int    plainsOctaves = 5;
+            float plainsLacunarity = 2.0f;
+            float plainsGain = 0.5f;
+            // 山地（Ridged）
+            float mountainScale = 0.06f;
+            int    mountainOctaves = 5;
+            float mountainLacunarity = 2.0f;
+            float mountainGain = 0.5f;
+            float ridgeSharpness = 1.5f;     // 山脊锐度（>1 更尖）
+            // Domain Warp（坐标扰动）
+            float warpScale = 0.15f;
+            float warpAmp = 2.5f;
+            // 细节层
+            float detailScale = 0.25f;       // 细节频率
+            float detailAmp = 0.15f;         // 细节振幅 0..1
+            // 高度整形
+            float heightMul = 1.0f;  // 相对 H 的倍数（最终再乘以 m_TerrainH-1）
+            float plateau = 0.15f;   // 平滑台地强度 [0..1]
+            int   stepLevels = 4;     // 台地层数 >=1
+            float curveExponent = 1.1f; // 高度分布指数（>1 提升高区占比）
+            float valleyDepth = 0.05f; // 谷地下切（0..0.4）
+            float seaLevel = 0.0f;   // 0..1 归一海平面
+            float mountainWeight = 0.56f; // 群落混合偏向山地
+        } m_Noise;
 
     // 各方块类型的 UV 映射（留空供你按图集填写）
     struct BlockUV { AtlasTile top{}, bottom{}, side{}; };
-    BlockUV m_GrassUV{{0, 0}, {0, 0}, {0, 0}}; // 草方块：top/side/bottom
-    BlockUV m_DirtUV{{0, 0}, {0, 0}, {0, 0}};  // 泥土：一般三面相同，可只用 side
-    BlockUV m_StoneUV{{0, 0}, {0, 0}, {0, 0}}; // 石头：三面相同，可只用 side
+    BlockUV m_GrassUV{{2, 12}, {1, 14}, {1, 12}}; // 草方块：top/side/bottom
+    BlockUV m_DirtUV{{1, 13}, {1, 13}, {1, 13}};  // 泥土：一般三面相同，可只用 side
+    BlockUV m_StoneUV{{7, 8}, {7, 8}, {7, 8}}; // 石头：三面相同，可只用 side
 };
