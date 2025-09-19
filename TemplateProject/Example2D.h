@@ -16,6 +16,8 @@ class Example2D: public Himii::Layer
 	private:
         Himii::OrthographicCameraController m_CameraController;
 
+        Himii::Ref<Himii::Texture2D> m_GrassTexture, m_MudTexture;
+
         Himii::Ref<Himii::Shader> m_Shader;
         Himii::Ref<Himii::VertexArray> m_SquareVA;
         Himii::Ref<Himii::Texture2D> m_SpriteSheet;

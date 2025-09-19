@@ -40,6 +40,9 @@ namespace Himii
         }
 
         void Run();
+
+    // 暴露 LayerStack 只读访问（用于层间简单通信）
+    const LayerStack& GetLayerStack() const { return m_LayerStack; }
     private:
         bool OnWindowClosed(WindowCloseEvent &e);
         bool OnWindowResize(WindowResizeEvent &e);

@@ -1,11 +1,15 @@
 #include "CubeLayer.h"
-#include <array>
 #include <algorithm>
-#include "Himii/Events/ApplicationEvent.h"
+#include <array>
+#include "EditorLayer.h"
+#include "Himii/Core/Application.h"
 #include "Himii/Core/Log.h"
+#include "Himii/Events/ApplicationEvent.h"
+#include "Himii/Renderer/Framebuffer.h"
 #include "Himii/Renderer/RenderCommand.h"
 #include "Terrain.h"
 #include "glad/glad.h"
+#include "glm/ext/matrix_clip_space.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 
@@ -44,8 +48,8 @@ void CubeLayer::OnAttach()
     m_Atlas = Himii::Texture2D::Create("assets/textures/blocks.png");
     // 如需 Pixel 模式可在此读取像素尺寸：m_Atlas->GetWidth()/GetHeight()
     m_TextureShader = m_ShaderLibrary.Load("assets/shaders/Texture.glsl");
-    m_LitShader     = m_ShaderLibrary.Load("assets/shaders/LitTexture.glsl");
-    m_SkyboxShader  = m_ShaderLibrary.Load("assets/shaders/Skybox.glsl");
+    m_LitShader = m_ShaderLibrary.Load("assets/shaders/LitTexture.glsl");
+    m_SkyboxShader = m_ShaderLibrary.Load("assets/shaders/Skybox.glsl");
 
     m_TextureShader->Bind();
     // 设置采样器数组 [0..31]，确保 v_TexIndex=0 时能采样到纹理槽0
@@ -63,9 +67,16 @@ void CubeLayer::OnAttach()
     BuildSkybox();
 
     // 5) 设置一个能看见地形的默认相机位置与朝向（避免出生在方块内部）
-    m_CamPos = { m_TerrainW * 0.5f, m_TerrainH * 1.2f, m_TerrainD + m_TerrainH * 1.0f };
-    m_CamTarget = { m_TerrainW * 0.5f, m_TerrainH * 0.5f, m_TerrainD * 0.5f };
+    m_CamPos = {m_TerrainW * 0.5f, m_TerrainH * 1.2f, m_TerrainD + m_TerrainH * 1.0f};
+    m_CamTarget = {m_TerrainW * 0.5f, m_TerrainH * 0.5f, m_TerrainD * 0.5f};
     m_OrientInitialized = false; // 让 UpdateCamera 基于新的目标重算 yaw/pitch
+    // 6) 创建离屏帧缓冲（初始给窗口大小，稍后由 EditorLayer 面板驱动调整）
+    auto &app = Himii::Application::Get();
+    uint32_t winW = app.GetWindow().GetWidth();
+    uint32_t winH = app.GetWindow().GetHeight();
+    Himii::FramebufferSpecification fbSpec{winW, winH};
+    m_Framebuffer = Himii::Framebuffer::Create(fbSpec);
+    m_GameFramebuffer = Himii::Framebuffer::Create(fbSpec);
 }
 
 void CubeLayer::RebuildVB()
@@ -141,56 +152,119 @@ void CubeLayer::OnDetach()
 
 void CubeLayer::OnUpdate(Himii::Timestep ts)
 {
-    // 渲染准备：清颜色与深度缓冲
-    Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
-    Himii::RenderCommand::Clear();
+    // 离屏渲染由下方 renderTo 分别处理 Scene/Game
 
-    // 相机输入更新
-    UpdateCamera(ts);
-
-    // 停止旋转，保持每个方块原位
-    glm::mat4 transform(1.0f);
-
-    // 计算透视投影与视图矩阵
-    const float fovYRad = glm::radians(m_FovYDeg);
-    glm::mat4 proj = glm::perspective(fovYRad, m_Aspect, m_NearZ, m_FarZ);
-    // GLM 的透视默认生成的矩阵期望 NDC 的 Y 向上，Z in [-1,1]（OpenGL），无需倒置 Y
-    glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
-    glm::mat4 viewProj = proj * view;
-
-    // 提交绘制：先天空盒，再地形
-    Himii::Renderer::BeginScene(viewProj);
-
-    // 天空盒：深度函数 LEQUAL，禁用深度写
-    glDepthFunc(GL_LEQUAL);
-    glDepthMask(GL_FALSE);
-    if (m_SkyboxVA)
+    // 从 EditorLayer 获取 Scene 期望尺寸，驱动 FBO Resize 和相机宽高
+    Himii::Application &appRef = Himii::Application::Get();
+    EditorLayer *editorRef = nullptr;
+    for (auto *layer: appRef.GetLayerStack())
+        if ((editorRef = dynamic_cast<EditorLayer *>(layer)))
+            break;
+    uint32_t sceneW = 0, sceneH = 0, gameW = 0, gameH = 0;
+    float aspectScene = m_Aspect, aspectGame = m_Aspect;
+    if (editorRef && m_Framebuffer)
     {
-        // 将天空盒平移到相机位置以抵消视图矩阵的平移，适当放大以避免裁剪边
-        glm::mat4 skyTransform = glm::translate(glm::mat4(1.0f), m_CamPos) * glm::scale(glm::mat4(1.0f), glm::vec3(m_FarZ * 0.5f));
-        m_SkyboxShader->Bind();
-        m_SkyboxShader->SetFloat3("u_TopColor",     {0.24f, 0.52f, 0.88f});
-        m_SkyboxShader->SetFloat3("u_HorizonColor", {0.85f, 0.90f, 0.98f});
-        m_SkyboxShader->SetFloat3("u_BottomColor",  {0.95f, 0.95f, 1.00f});
-        Himii::Renderer::Submit(m_SkyboxShader, m_SkyboxVA, skyTransform);
+        ImVec2 desired = editorRef->GetSceneDesiredSize();
+        uint32_t newW = (uint32_t)std::max(1.0f, desired.x);
+        uint32_t newH = (uint32_t)std::max(1.0f, desired.y);
+        auto &spec = m_Framebuffer->GetSpecification();
+        if (newW != spec.Width || newH != spec.Height)
+        {
+            m_Framebuffer->Resize(newW, newH);
+            aspectScene = (float)newW / (float)newH;
+        }
+        sceneW = m_Framebuffer->GetSpecification().Width;
+        sceneH = m_Framebuffer->GetSpecification().Height;
     }
-    glDepthMask(GL_TRUE);
-    glDepthFunc(GL_LESS);
-
-    // 地形：使用光照着色器
-    m_Atlas->Bind(0);
-    if (m_TerrainVA)
+    if (editorRef && m_GameFramebuffer)
     {
-        m_LitShader->Bind();
-        // 设置光照 uniform
-        m_LitShader->SetFloat3("u_AmbientColor", m_AmbientColor);
-        m_LitShader->SetFloat("u_AmbientIntensity", m_AmbientIntensity);
-        m_LitShader->SetFloat3("u_LightDir", m_LightDir);
-        m_LitShader->SetFloat3("u_LightColor", m_LightColor);
-        m_LitShader->SetFloat("u_LightIntensity", m_LightIntensity);
-        Himii::Renderer::Submit(m_LitShader, m_TerrainVA, transform);
+        ImVec2 desired = editorRef->GetGameDesiredSize();
+        uint32_t newW = (uint32_t)std::max(1.0f, desired.x);
+        uint32_t newH = (uint32_t)std::max(1.0f, desired.y);
+        auto &spec = m_GameFramebuffer->GetSpecification();
+        if (newW != spec.Width || newH != spec.Height)
+        {
+            m_GameFramebuffer->Resize(newW, newH);
+            aspectGame = (float)newW / (float)newH;
+        }
+        gameW = m_GameFramebuffer->GetSpecification().Width;
+        gameH = m_GameFramebuffer->GetSpecification().Height;
     }
-    Himii::Renderer::EndScene();
+
+    // 相机输入更新：仅在 Scene 面板聚焦/悬停时接收输入
+    if (!editorRef || editorRef->IsSceneHovered() || editorRef->IsSceneFocused())
+        UpdateCamera(ts);
+
+    // 渲染函数：把一帧画到指定帧缓冲
+    auto renderTo = [this](Himii::Ref<Himii::Framebuffer> fb, float aspect)
+    {
+        if (!fb)
+            return;
+        fb->Bind();
+        Himii::RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
+        Himii::RenderCommand::Clear();
+
+        glm::mat4 transform(1.0f);
+        // 计算透视投影与视图矩阵（使用传入 aspect）
+        const float fovYRad = glm::radians(m_FovYDeg);
+        glm::mat4 projection = glm::perspective<float>(fovYRad, aspect, m_NearZ, m_FarZ);
+        glm::mat4 view = glm::lookAt(m_CamPos, m_CamTarget, m_CamUp);
+        glm::mat4 viewProj = projection * view;
+
+        // 提交绘制：先天空盒，再地形
+        Himii::Renderer::BeginScene(viewProj);
+        glDepthFunc(GL_LEQUAL);
+        glDepthMask(GL_FALSE);
+        if (m_SkyboxVA)
+        {
+            glm::mat4 skyTransform =
+                    glm::translate(glm::mat4(1.0f), m_CamPos) * glm::scale(glm::mat4(1.0f), glm::vec3(m_FarZ * 0.5f));
+            m_SkyboxShader->Bind();
+            m_SkyboxShader->SetFloat3("u_TopColor", {0.24f, 0.52f, 0.88f});
+            m_SkyboxShader->SetFloat3("u_HorizonColor", {0.85f, 0.90f, 0.98f});
+            m_SkyboxShader->SetFloat3("u_BottomColor", {0.95f, 0.95f, 1.00f});
+            Himii::Renderer::Submit(m_SkyboxShader, m_SkyboxVA, skyTransform);
+        }
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+
+        m_Atlas->Bind(0);
+        if (m_TerrainVA)
+        {
+            m_LitShader->Bind();
+            m_LitShader->SetFloat3("u_AmbientColor", m_AmbientColor);
+            m_LitShader->SetFloat("u_AmbientIntensity", m_AmbientIntensity);
+            m_LitShader->SetFloat3("u_LightDir", m_LightDir);
+            m_LitShader->SetFloat3("u_LightColor", m_LightColor);
+            m_LitShader->SetFloat("u_LightIntensity", m_LightIntensity);
+            Himii::Renderer::Submit(m_LitShader, m_TerrainVA, transform);
+        }
+        Himii::Renderer::EndScene();
+        fb->Unbind();
+    };
+
+    // 渲染到两个目标
+    renderTo(m_Framebuffer, aspectScene > 0.0f ? aspectScene : m_Aspect);
+    renderTo(m_GameFramebuffer, aspectGame > 0.0f ? aspectGame : m_Aspect);
+    // 这里简单地遍历 LayerStack 找到 EditorLayer 并传值
+    auto &app2 = Himii::Application::Get();
+    for (auto *layer: app2.GetLayerStack())
+    {
+        if (auto *editor = dynamic_cast<EditorLayer *>(layer))
+        {
+            if (m_Framebuffer)
+            {
+                editor->SetSceneTexture(m_Framebuffer->GetColorAttachmentRendererID());
+                editor->SetSceneSize(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height);
+            }
+            if (m_GameFramebuffer)
+            {
+                editor->SetGameTexture(m_GameFramebuffer->GetColorAttachmentRendererID());
+                editor->SetGameSize(m_GameFramebuffer->GetSpecification().Width,
+                                    m_GameFramebuffer->GetSpecification().Height);
+            }
+        }
+    }
 }
 
 #if 0 // disabled broken duplicate definition
@@ -219,11 +293,13 @@ void CubeLayer::OnEvent(Himii::Event &e)
 {
     using namespace Himii;
     EventDispatcher dispatcher(e);
-    dispatcher.Dispatch<WindowResizeEvent>([&](WindowResizeEvent &ev) {
-        if (ev.GetHeight() > 0)
-            m_Aspect = (float)ev.GetWidth() / (float)ev.GetHeight();
-        return false;
-    });
+    dispatcher.Dispatch<WindowResizeEvent>(
+            [&](WindowResizeEvent &ev)
+            {
+                if (ev.GetHeight() > 0)
+                    m_Aspect = (float)ev.GetWidth() / (float)ev.GetHeight();
+                return false;
+            });
 }
 void CubeLayer::UpdateCamera(Himii::Timestep ts)
 {
@@ -355,7 +431,9 @@ void CubeLayer::OnImGuiRender()
     }
     if (ImGui::Button("应用尺寸并重建"))
     {
-        m_TerrainW = w; m_TerrainD = d; m_TerrainH = h;
+        m_TerrainW = w;
+        m_TerrainD = d;
+        m_TerrainH = h;
         BuildTerrainMesh();
     }
 
@@ -432,28 +510,29 @@ void CubeLayer::BuildTerrainMesh()
             biome = std::clamp(biome * (double)m_Noise.mountainWeight, 0.0, 1.0);
 
             // 大洲层：决定“大陆-海洋”的宏观起伏
-            double continent = perlin.fbm2D(nx * (double)m_Noise.continentScale,
-                                            nz * (double)m_Noise.continentScale,
-                                            4, 2.0, 0.5); // 0..1
-            continent = (continent * 2.0 - 1.0); // [-1,1]
+            double continent = perlin.fbm2D(nx * (double)m_Noise.continentScale, nz * (double)m_Noise.continentScale, 4,
+                                            2.0, 0.5); // 0..1
+            continent = (continent * 2.0 - 1.0);       // [-1,1]
             continent = std::clamp(continent * (double)m_Noise.continentStrength, -1.0, 1.0);
             // 映射至 0..1，正值抬升，负值压低
             double continentLift = (continent + 1.0) * 0.5; // 0..1
 
             // 平原（柔和）与山地（脊状）两套噪声
             double plains = perlin.fbm2D(wx * (double)m_Noise.plainsScale, wz * (double)m_Noise.plainsScale,
-                                         m_Noise.plainsOctaves, (double)m_Noise.plainsLacunarity, (double)m_Noise.plainsGain); // 0..1
+                                         m_Noise.plainsOctaves, (double)m_Noise.plainsLacunarity,
+                                         (double)m_Noise.plainsGain); // 0..1
             double mountain = perlin.ridged2D(wx * (double)m_Noise.mountainScale, wz * (double)m_Noise.mountainScale,
-                                              m_Noise.mountainOctaves, (double)m_Noise.mountainLacunarity, (double)m_Noise.mountainGain); // 0..1
+                                              m_Noise.mountainOctaves, (double)m_Noise.mountainLacunarity,
+                                              (double)m_Noise.mountainGain); // 0..1
             // 山脊锐度提升
             mountain = std::pow(std::clamp(mountain, 0.0, 1.0), 1.0 / std::max(0.1, (double)m_Noise.ridgeSharpness));
 
             // 按群落混合
             // 细节层（打花纹 & 小起伏）
-            double detail = perlin.fbm2D(wx * (double)m_Noise.detailScale, wz * (double)m_Noise.detailScale,
-                                         3, 2.0, 0.5);
+            double detail =
+                    perlin.fbm2D(wx * (double)m_Noise.detailScale, wz * (double)m_Noise.detailScale, 3, 2.0, 0.5);
             // 核心高度合成
-            double h01 = plains * (1.0 - biome) + mountain * biome; // 0..1
+            double h01 = plains * (1.0 - biome) + mountain * biome;       // 0..1
             h01 = h01 + (detail - 0.5) * 2.0 * (double)m_Noise.detailAmp; // [-detailAmp, +detailAmp]
             h01 = std::clamp(h01, 0.0, 1.0);
             // 注入大陆大尺度抬升/压低
@@ -495,7 +574,8 @@ void CubeLayer::BuildTerrainMesh()
     vertices.reserve(W * D * H * 6 * 14 / 2);
     indices.reserve(W * D * H * 6);
 
-    auto pushFace = [&](const glm::vec3 v[4], const std::array<glm::vec2, 4> &uv, uint32_t &baseIdx, const glm::vec3& normal)
+    auto pushFace =
+            [&](const glm::vec3 v[4], const std::array<glm::vec2, 4> &uv, uint32_t &baseIdx, const glm::vec3 &normal)
     {
         const float rC = 1.0f, gC = 1.0f, bC = 1.0f, aC = 1.0f, texIndex = 0.0f, tiling = 1.0f;
         for (int i = 0; i < 4; ++i)
@@ -595,12 +675,18 @@ void CubeLayer::BuildTerrainMesh()
                                     {cx + s, cy - s, cz + s},
                                     {cx - s, cy - s, cz + s}};
 
-                if (posZ)  pushFace(vF,  uvFor(bt, 0), baseIdx, { 0.0f,  0.0f,  1.0f});
-                if (negZ)  pushFace(vB,  uvFor(bt, 1), baseIdx, { 0.0f,  0.0f, -1.0f});
-                if (negX)  pushFace(vL,  uvFor(bt, 2), baseIdx, {-1.0f,  0.0f,  0.0f});
-                if (posX)  pushFace(vR,  uvFor(bt, 3), baseIdx, { 1.0f,  0.0f,  0.0f});
-                if (top)   pushFace(vT,  uvFor(bt, 4), baseIdx, { 0.0f,  1.0f,  0.0f});
-                if (down)  pushFace(vD_, uvFor(bt, 5), baseIdx, { 0.0f, -1.0f,  0.0f});
+                if (posZ)
+                    pushFace(vF, uvFor(bt, 0), baseIdx, {0.0f, 0.0f, 1.0f});
+                if (negZ)
+                    pushFace(vB, uvFor(bt, 1), baseIdx, {0.0f, 0.0f, -1.0f});
+                if (negX)
+                    pushFace(vL, uvFor(bt, 2), baseIdx, {-1.0f, 0.0f, 0.0f});
+                if (posX)
+                    pushFace(vR, uvFor(bt, 3), baseIdx, {1.0f, 0.0f, 0.0f});
+                if (top)
+                    pushFace(vT, uvFor(bt, 4), baseIdx, {0.0f, 1.0f, 0.0f});
+                if (down)
+                    pushFace(vD_, uvFor(bt, 5), baseIdx, {0.0f, -1.0f, 0.0f});
             }
         }
 
@@ -609,12 +695,9 @@ void CubeLayer::BuildTerrainMesh()
 
     auto vb = Himii::VertexBuffer::Create(vertices.data(), (uint32_t)(vertices.size() * sizeof(float)));
     Himii::BufferLayout layout = {
-        {Himii::ShaderDataType::Float3, "a_Position"},
-        {Himii::ShaderDataType::Float3, "a_Normal"},
-        {Himii::ShaderDataType::Float4, "a_Color"},
-        {Himii::ShaderDataType::Float2, "a_TexCoord"},
-        {Himii::ShaderDataType::Float,  "a_TexIndex"},
-        {Himii::ShaderDataType::Float,  "a_TilingFactor"},
+            {Himii::ShaderDataType::Float3, "a_Position"}, {Himii::ShaderDataType::Float3, "a_Normal"},
+            {Himii::ShaderDataType::Float4, "a_Color"},    {Himii::ShaderDataType::Float2, "a_TexCoord"},
+            {Himii::ShaderDataType::Float, "a_TexIndex"},  {Himii::ShaderDataType::Float, "a_TilingFactor"},
     };
     vb->SetLayout(layout);
     m_TerrainVA->AddVertexBuffer(vb);
@@ -629,18 +712,28 @@ void CubeLayer::BuildSkybox()
     m_SkyboxVA = Himii::VertexArray::Create();
     const float s = 1.0f;
     const glm::vec3 p[] = {
-        {-s,-s, s},{ s,-s, s},{ s, s, s},{-s, s, s}, // front
-        { s,-s,-s},{-s,-s,-s},{-s, s,-s},{ s, s,-s}, // back
-        {-s,-s,-s},{-s,-s, s},{-s, s, s},{-s, s,-s}, // left
-        { s,-s, s},{ s,-s,-s},{ s, s,-s},{ s, s, s}, // right
-        {-s, s, s},{ s, s, s},{ s, s,-s},{-s, s,-s}, // top
-        {-s,-s,-s},{ s,-s,-s},{ s,-s, s},{-s,-s, s}  // bottom
+            {-s, -s, s},  {s, -s, s},   {s, s, s},   {-s, s, s},  // front
+            {s, -s, -s},  {-s, -s, -s}, {-s, s, -s}, {s, s, -s},  // back
+            {-s, -s, -s}, {-s, -s, s},  {-s, s, s},  {-s, s, -s}, // left
+            {s, -s, s},   {s, -s, -s},  {s, s, -s},  {s, s, s},   // right
+            {-s, s, s},   {s, s, s},    {s, s, -s},  {-s, s, -s}, // top
+            {-s, -s, -s}, {s, -s, -s},  {s, -s, s},  {-s, -s, s}  // bottom
     };
-    std::vector<float> verts; verts.reserve(24*3);
-    for (auto &v : p) { verts.push_back(v.x); verts.push_back(v.y); verts.push_back(v.z); }
+    std::vector<float> verts;
+    verts.reserve(24 * 3);
+    for (auto &v: p)
+    {
+        verts.push_back(v.x);
+        verts.push_back(v.y);
+        verts.push_back(v.z);
+    }
     std::vector<uint32_t> idx;
-    for (uint32_t f=0; f<6; ++f){ uint32_t b=f*4; idx.insert(idx.end(), {b+0,b+1,b+2,b+2,b+3,b+0}); }
-    auto vb = Himii::VertexBuffer::Create(verts.data(), (uint32_t)(verts.size()*sizeof(float)));
+    for (uint32_t f = 0; f < 6; ++f)
+    {
+        uint32_t b = f * 4;
+        idx.insert(idx.end(), {b + 0, b + 1, b + 2, b + 2, b + 3, b + 0});
+    }
+    auto vb = Himii::VertexBuffer::Create(verts.data(), (uint32_t)(verts.size() * sizeof(float)));
     vb->SetLayout({{Himii::ShaderDataType::Float3, "a_Position"}});
     m_SkyboxVA->AddVertexBuffer(vb);
     auto ib = Himii::IndexBuffer::Create(idx.data(), (uint32_t)idx.size());
