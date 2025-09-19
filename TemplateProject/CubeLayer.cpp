@@ -191,6 +191,9 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     // broken block removed
 }
 #endif
+void CubeLayer::OnEvent(Himii::Event & e)
+{
+}
 
 void CubeLayer::UpdateCamera(Himii::Timestep ts)
 {
