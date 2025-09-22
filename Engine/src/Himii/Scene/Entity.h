@@ -11,8 +11,15 @@ namespace Himii
     public:
         Entity() = default;
         Entity(entt::entity handle, Scene *scene);
+        Entity(const Entity &other) = default;
 
-        // Convenience aliases with correct spelling
+        /// <summary>
+        /// 添加组件，完美转发参数
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="...Args"></typeparam>
+        /// <param name="...args"></param>
+        /// <returns></returns>
         template<typename T, typename... Args>
         decltype(auto) AddComponent(Args &&...args)
         {
@@ -23,11 +30,23 @@ namespace Himii
                 return m_Scene->Registry().emplace<T>(m_EntityHandle, std::forward<Args>(args)...);
             }
         }
+
+        /// <summary>
+        /// 检测是否含有组件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         template<typename T>
         bool HasComponent() const
         {
             return m_Scene->Registry().all_of<T>(m_EntityHandle);
         }
+
+        /// <summary>
+        /// 获取组件引用
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
         template<typename T>
         decltype(auto) GetComponent()
         {
@@ -38,6 +57,11 @@ namespace Himii
                 return m_Scene->Registry().get<T>(m_EntityHandle);
             }
         }
+
+        /// <summary>
+        /// 移除组件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
         template<typename T>
         void RemoveComponent()
         {

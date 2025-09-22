@@ -25,7 +25,7 @@ namespace Himii
         {
             auto e4 = m_ActiveScene.CreateEntity("My Quad");
             // 默认构造 SpriteRenderer（白色），或传入颜色
-            e4.AddComponent<SpriteRenderer>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+            e4.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
         }
     }
     void EditorLayer::OnDetach()

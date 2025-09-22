@@ -43,7 +43,6 @@ namespace Himii
         Renderer2D::Statistics Stats;
     };
 
-
     static Renderer2DData s_Data;
 
     // 计算当前批次是否需要换批（由调用者在类方法内触发 NextBatch）

@@ -35,33 +35,26 @@ namespace Himii
         std::string name;
     };
 
-    struct Transform {
-        glm::vec3 Position = {0.0f, 0.0f, 0.0f};
-        glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
-        glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
+    struct TransformComponent {
+        glm::mat4 Transform{1.0f};
 
-        Transform() = default;
-        Transform(const Transform&) = default;
-        Transform(const glm::vec3 &translation) : Position(translation)
+        TransformComponent() = default;
+        TransformComponent(const TransformComponent&) = default;
+        TransformComponent(const glm::mat4 &transform) : Transform(transform)
         {
         }
-
-        glm::mat4 GetTransform() const
-        {
-            glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-
-            return glm::translate(glm::mat4(1.0f), Position) * rotation * glm::scale(glm::mat4(1.0f), Scale);
-        }
+        operator const glm::mat4&() { return Transform; }
+        operator const glm::mat4&() const { return Transform; }
     };
 
-    struct SpriteRenderer {
+    struct SpriteRendererComponent {
         glm::vec4 color{1.0f};
         Ref<Texture2D> texture{};
         float tilingFactor = 1.0f;
 
-        SpriteRenderer() = default;
-        SpriteRenderer(const SpriteRenderer&) = default;
-        SpriteRenderer(const glm::vec4 &color) : color(color)
+        SpriteRendererComponent() = default;
+        SpriteRendererComponent(const SpriteRendererComponent&) = default;
+        SpriteRendererComponent(const glm::vec4 &color) : color(color)
         {
         }
     };

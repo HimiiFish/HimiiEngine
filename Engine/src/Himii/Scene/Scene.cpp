@@ -15,7 +15,7 @@ Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name) {
     // 先默认构造 ID，再赋值，避免依赖特定构造函数签名
     auto &id = entity.AddComponent<ID>();
     id.id = uuid;
-    entity.AddComponent<Transform>();
+    entity.AddComponent<TransformComponent>();
     auto &tag = entity.AddComponent<Tag>();
     tag.name = name.empty() ? "Entity" : name;
 
@@ -46,47 +46,49 @@ void Scene::DestroyEntity(entt::entity e) {
 void Scene::OnUpdate(Timestep ts) {
     // 选择一个主摄像机或使用外部提供的 ViewProjection
     glm::mat4 viewProj(1.0f);
-    if (m_UseExternalVP) {
-        viewProj = m_ExternalVP;
-    } else {
+    if (m_UseExternalVP)
     {
-        entt::entity camEntity = entt::null;
-        auto viewCam = m_Registry.view<Himii::Transform, Himii::CameraComponent>();
-        for (auto e : viewCam) { if (viewCam.get<Himii::CameraComponent>(e).primary) { camEntity = e; break; } }
-        if (camEntity == entt::null && viewCam.begin() != viewCam.end()) camEntity = *viewCam.begin();
-        if (camEntity != entt::null)
-        {
-            auto &tr = viewCam.get<Himii::Transform>(camEntity);
-            auto &cc = viewCam.get<Himii::CameraComponent>(camEntity);
-            // 设置投影（含正交缩放）
-            if (cc.projection == ProjectionType::Perspective) {
-                cc.camera.SetFovYDeg(cc.fovYDeg);
-            } else {
-                cc.camera.SetOrthographicBySize(cc.orthoSize, cc.nearZ, cc.farZ);
-            }
+        viewProj = m_ExternalVP;
+    }
+    //} else {
+    //{
+    //    entt::entity camEntity = entt::null;
+    //    auto viewCam = m_Registry.view<TransformComponent, Himii::CameraComponent>();
+    //    for (auto e : viewCam) { if (viewCam.get<Himii::CameraComponent>(e).primary) { camEntity = e; break; } }
+    //    if (camEntity == entt::null && viewCam.begin() != viewCam.end()) camEntity = *viewCam.begin();
+    //    if (camEntity != entt::null)
+    //    {
+    //        auto &tr = viewCam.get<Himii::TransformComponent>(camEntity);
+    //        auto &cc = viewCam.get<Himii::CameraComponent>(camEntity);
+    //        // 设置投影（含正交缩放）
+    //        if (cc.projection == ProjectionType::Perspective) {
+    //            cc.camera.SetFovYDeg(cc.fovYDeg);
+    //        } else {
+    //            cc.camera.SetOrthographicBySize(cc.orthoSize, cc.nearZ, cc.farZ);
+    //        }
 
-            // 设置视图：两种驱动方式
-            if (cc.useLookAt)
-            {
-                cc.camera.SetPosition(tr.Position);
-                // 将旋转与位置解耦，使用 lookAt 目标来构造朝向
-                glm::mat4 V = glm::lookAt(tr.Position, cc.lookAtTarget, cc.up);
-                viewProj = cc.camera.GetProjection() * V;
-            }
-            else
-            {
-                // 显式设置位置与欧拉角，不再因 SetPosition 改变旋转
-                cc.camera.SetRotationEuler(tr.Rotation);
-                cc.camera.SetPosition(tr.Position);
-                viewProj = cc.camera.GetViewProjection();
-            }
-        }
-    } }
+    //        // 设置视图：两种驱动方式
+    //        if (cc.useLookAt)
+    //        {
+    //            cc.camera.SetPosition(tr.Position);
+    //            // 将旋转与位置解耦，使用 lookAt 目标来构造朝向
+    //            glm::mat4 V = glm::lookAt(tr.Position, cc.lookAtTarget, cc.up);
+    //            viewProj = cc.camera.GetProjection() * V;
+    //        }
+    //        else
+    //        {
+    //            // 显式设置位置与欧拉角，不再因 SetPosition 改变旋转
+    //            cc.camera.SetRotationEuler(tr.Rotation);
+    //            cc.camera.SetPosition(tr.Position);
+    //            viewProj = cc.camera.GetViewProjection();
+    //        }
+    //    }
+    //} }
 
     // 如果没有可用摄像机，保留上层（例如 CubeLayer）外部调用 BeginScene 的能力
 
     // 3D MeshRenderer - Skybox pass first (depth: LEQUAL, no depth write)
-    {
+    /*{
         auto skyView = m_Registry.view<Himii::Transform, Himii::MeshRenderer, Himii::SkyboxTag>();
     if (skyView.begin() != skyView.end()) {
             if (viewProj != glm::mat4(1.0f)) Himii::Renderer::BeginScene(viewProj);
@@ -104,10 +106,10 @@ void Scene::OnUpdate(Timestep ts) {
             glDepthFunc(GL_LESS);
             if (viewProj != glm::mat4(1.0f)) Himii::Renderer::EndScene();
         }
-    }
+    }*/
 
     // 3D MeshRenderer - regular pass (exclude skybox)
-    {
+   /* {
         auto meshView = m_Registry.view<Himii::Transform, Himii::MeshRenderer>(entt::exclude<Himii::SkyboxTag>);
         if (meshView.begin() != meshView.end() && viewProj != glm::mat4(1.0f)) Himii::Renderer::BeginScene(viewProj);
         for (auto e : meshView) {
@@ -119,13 +121,13 @@ void Scene::OnUpdate(Timestep ts) {
             }
         }
         if (meshView.begin() != meshView.end() && viewProj != glm::mat4(1.0f)) Himii::Renderer::EndScene();
-    }
+    }*/
 
     // 2D SpriteRenderer 实体：Renderer2D 批渲染
-    auto group = m_Registry.group<Transform>(entt::get<SpriteRenderer>);
+    auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
     for (auto entity : group) {
-        auto [tr, sr] = group.get<Transform, SpriteRenderer>(entity);
-        Himii::Renderer2D::DrawSprite(tr.GetTransform(), sr,(int)entity);
+        auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+        Himii::Renderer2D::DrawSprite(transform, sprite, (int)entity);
     }
 
     // 原生脚本更新
@@ -146,7 +148,7 @@ void Scene::OnUpdate(Timestep ts) {
 void Scene::Clear() {
     // 收集后再销毁，避免遍历时失效
     std::vector<entt::entity> toDelete;
-    auto view = m_Registry.view<Transform>();
+    auto view = m_Registry.view<TransformComponent>();
     for (auto e : view) toDelete.push_back(e);
     for (auto e : toDelete) DestroyEntity(e);
 }
