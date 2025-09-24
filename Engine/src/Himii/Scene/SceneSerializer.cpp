@@ -55,15 +55,15 @@ bool SceneSerializer::Serialize(const std::string& filepath) const {
 
     auto& reg = m_Scene->Registry();
     // 仅迭代拥有 Transform 的实体（保证最小有效实体）
-    auto view = reg.view<Transform>();
+    auto view = reg.view<TransformComponent>();
     for (auto e : view) {
         out << YAML::BeginMap; // Entity
         // UUID（如果有）
         if (auto* id = reg.try_get<ID>(e)) out << YAML::Key << "ID" << YAML::Value << (uint64_t)id->id;
-        if (auto* tag = reg.try_get<Tag>(e)) out << YAML::Key << "Tag" << YAML::Value << tag->name;
+        if (auto* tag = reg.try_get<TagComponent>(e)) out << YAML::Key << "Tag" << YAML::Value << tag->name;
 
         // Transform
-        if (auto* t = reg.try_get<Transform>(e)) {
+        if (auto* t = reg.try_get<TransformComponent>(e)) {
             out << YAML::Key << "Transform" << YAML::Value << YAML::BeginMap;
             out << YAML::Key << "Position" << YAML::Value << t->Position;
             out << YAML::Key << "Rotation" << YAML::Value << t->Rotation;
@@ -72,7 +72,7 @@ bool SceneSerializer::Serialize(const std::string& filepath) const {
         }
 
         // SpriteRenderer
-        if (auto* sr = reg.try_get<SpriteRenderer>(e)) {
+        if (auto* sr = reg.try_get<SpriteRendererComponent>(e)) {
             out << YAML::Key << "SpriteRenderer" << YAML::Value << YAML::BeginMap;
             out << YAML::Key << "Color" << YAML::Value << sr->color;
             out << YAML::EndMap;
@@ -82,14 +82,6 @@ bool SceneSerializer::Serialize(const std::string& filepath) const {
         if (auto* cc = reg.try_get<CameraComponent>(e)) {
             out << YAML::Key << "Camera" << YAML::Value << YAML::BeginMap;
             out << YAML::Key << "Primary" << YAML::Value << cc->primary;
-            out << YAML::Key << "Projection" << YAML::Value << (cc->projection == ProjectionType::Perspective ? "Perspective" : "Orthographic");
-            out << YAML::Key << "FovYDeg" << YAML::Value << cc->fovYDeg;
-            out << YAML::Key << "OrthoSize" << YAML::Value << cc->orthoSize;
-            out << YAML::Key << "NearZ" << YAML::Value << cc->nearZ;
-            out << YAML::Key << "FarZ" << YAML::Value << cc->farZ;
-            out << YAML::Key << "UseLookAt" << YAML::Value << cc->useLookAt;
-            out << YAML::Key << "LookAtTarget" << YAML::Value << cc->lookAtTarget;
-            out << YAML::Key << "Up" << YAML::Value << cc->up;
             out << YAML::EndMap;
         }
 
@@ -124,14 +116,15 @@ bool SceneSerializer::Deserialize(const std::string& filepath) {
         }();
 
         if (auto tNode = entNode["Transform"]) {
-            auto& t = e.GetComponent<Transform>();
+            auto& t = e.GetComponent<TransformComponent>();
             t.Position = tNode["Position"].as<glm::vec3>(t.Position);
             t.Rotation = tNode["Rotation"].as<glm::vec3>(t.Rotation);
             t.Scale    = tNode["Scale"].as<glm::vec3>(t.Scale);
         }
         if (auto srNode = entNode["SpriteRenderer"]) {
-            if (!e.HasComponent<SpriteRenderer>()) e.AddComponent<SpriteRenderer>();
-            auto& sr = e.GetComponent<SpriteRenderer>();
+            if (!e.HasComponent<SpriteRendererComponent>())
+                e.AddComponent<SpriteRendererComponent>();
+            auto &sr = e.GetComponent<SpriteRendererComponent>();
             sr.color  = srNode["Color"].as<glm::vec4>(sr.color);
         }
         if (auto camNode = entNode["Camera"]) {
@@ -139,14 +132,6 @@ bool SceneSerializer::Deserialize(const std::string& filepath) {
             auto& cc = e.GetComponent<CameraComponent>();
             cc.primary     = camNode["Primary"].as<bool>(cc.primary);
             std::string projStr = camNode["Projection"].as<std::string>("Perspective");
-            cc.projection  = (projStr=="Orthographic") ? ProjectionType::Orthographic : ProjectionType::Perspective;
-            cc.fovYDeg     = camNode["FovYDeg"].as<float>(cc.fovYDeg);
-            cc.orthoSize   = camNode["OrthoSize"].as<float>(cc.orthoSize);
-            cc.nearZ       = camNode["NearZ"].as<float>(cc.nearZ);
-            cc.farZ        = camNode["FarZ"].as<float>(cc.farZ);
-            cc.useLookAt   = camNode["UseLookAt"].as<bool>(cc.useLookAt);
-            cc.lookAtTarget= camNode["LookAtTarget"].as<glm::vec3>(cc.lookAtTarget);
-            cc.up          = camNode["Up"].as<glm::vec3>(cc.up);
         }
     }
     return true;

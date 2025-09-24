@@ -32,10 +32,12 @@ public:
 
 private:
     entt::registry m_Registry;
-    // 只存句柄，避免头文件循环和不完整类型
-    std::unordered_map<UUID, entt::entity> m_EntityMap; // 用于快速查找实体
-    // 外部相机覆盖
+    std::unordered_map<UUID, entt::entity> m_EntityMap; 
     bool m_UseExternalVP{false};
     glm::mat4 m_ExternalVP{1.0f};
+
+    friend class Entity;
+    friend class SceneSerializer;
+    friend class SceneHierarchyPanel;
 };
 } // namespace Himii

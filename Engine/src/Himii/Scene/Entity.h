@@ -67,20 +67,33 @@ namespace Himii
         {
             m_Scene->Registry().remove<T>(m_EntityHandle);
         }
-
-        bool Valid() const
-        {
-            if (!m_Scene)
-                return false;
-            return m_Scene->Registry().valid(m_EntityHandle);
-        }
         entt::entity Raw() const
         {
             return m_EntityHandle;
         }
-        explicit operator bool() const
+        operator bool() const
         {
-            return Valid();
+            return m_EntityHandle != entt::null;
+        }
+
+        operator uint32_t() const
+        {
+            return (uint32_t)m_EntityHandle;
+        }
+
+        operator entt::entity() const
+        {
+            return m_EntityHandle;
+        }
+
+        bool operator==(const Entity &other) const
+        {
+            return m_EntityHandle == other.m_EntityHandle && m_Scene == other.m_Scene;
+        }
+
+        bool operator!=(const Entity &other) const
+        {
+            return !(*this == other);
         }
 
     private:

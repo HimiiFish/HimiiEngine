@@ -41,6 +41,11 @@ namespace Himii
 
 
         Renderer2D::Statistics Stats;
+
+        struct CameraData {
+            glm::mat4 ViewProjection;
+        };
+        CameraData CameraBuffer;
     };
 
     static Renderer2DData s_Data;
@@ -130,6 +135,13 @@ namespace Himii
 
         s_Data.TextureSlotIndex = 1;
     }
+
+    void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
+    {
+        HIMII_PROFILE_FUNCTION();
+        s_Data.CameraBuffer.ViewProjection = camera.GetProjection()*glm::inverse(transform);
+    }
+
     void Renderer2D::EndScene()
     {
         HIMII_PROFILE_FUNCTION();
@@ -535,7 +547,7 @@ namespace Himii
     }
 
 
-    void Renderer2D::DrawSprite(const glm::mat4 &transform, SpriteRenderer &sprite, int entityID)
+    void Renderer2D::DrawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int entityID)
     {
         if (sprite.texture)
             DrawQuad(transform, sprite.texture, sprite.tilingFactor, sprite.color, entityID);

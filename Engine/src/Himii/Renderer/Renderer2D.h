@@ -13,6 +13,7 @@ namespace Himii
         static void Shutdown();
 
         static void BeginScene(const OrthographicCamera &camera);
+        static void BeginScene(const Camera &camera,const glm::mat4& transform);
         static void EndScene();
 
         static void Flush();
@@ -30,7 +31,7 @@ namespace Himii
         static void DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size,float rotation, const Ref<Texture2D>& texture,float tilingFactor=1.0f,const glm::vec4& tintColor=glm::vec4(1.0f));
         static void DrawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size,float rotation, const Ref<Texture2D>& texture,float tilingFactor=1.0f,const glm::vec4& tintColor=glm::vec4(1.0f));
 
-        static void DrawSprite(const glm::mat4 &transform, SpriteRenderer& sprite,int entityID=-1);
+        static void DrawSprite(const glm::mat4 &transform, SpriteRendererComponent& sprite,int entityID=-1);
 
 
     // Atlas helpers: draw a quad textured with custom UVs (e.g., from a sprite atlas)

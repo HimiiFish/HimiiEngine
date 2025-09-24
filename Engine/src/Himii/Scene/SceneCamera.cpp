@@ -1,82 +1,32 @@
 #include "Himii/Scene/SceneCamera.h"
 
-namespace Himii {
-
-void SceneCamera::SetPerspective(float fovYDeg, float aspect, float nearZ, float farZ) {
-    m_Type = ProjectionType::Perspective;
-    m_FovYDeg = fovYDeg; m_Aspect = aspect; m_Near = nearZ; m_Far = farZ;
-    m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
-}
-
-void SceneCamera::SetOrthographic(float left, float right, float bottom, float top, float nearZ, float farZ) {
-    m_Type = ProjectionType::Orthographic;
-    m_Near = nearZ; m_Far = farZ;
-    m_Projection = glm::ortho(left, right, bottom, top, nearZ, farZ);
-}
-
-void SceneCamera::SetOrthographicBySize(float orthoSize, float aspect, float nearZ, float farZ) {
-    m_Type = ProjectionType::Orthographic;
-    m_OrthoSize = orthoSize; m_Aspect = aspect; m_Near = nearZ; m_Far = farZ;
-    float halfH = m_OrthoSize * 0.5f;
-    float halfW = halfH * m_Aspect;
-    m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
-}
-
-void SceneCamera::SetViewport(float width, float height) {
-    m_Aspect = (height > 0.0f) ? (width / height) : m_Aspect;
-    if (m_Type == ProjectionType::Perspective) {
-        m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
-    } else {
-        float halfH = m_OrthoSize * 0.5f;
-        float halfW = halfH * m_Aspect;
-        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+namespace Himii
+{
+    SceneCamera::SceneCamera()
+    {
+        RecalculateProjection();
     }
-}
 
-void SceneCamera::SetClip(float nearZ, float farZ) {
-    m_Near = nearZ; m_Far = farZ;
-    if (m_Type == ProjectionType::Perspective) {
-        m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
-    } else {
-        float halfH = m_OrthoSize * 0.5f;
-        float halfW = halfH * m_Aspect;
-        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    void SceneCamera::SetOrthographic(float size, float nearClip, float farClip)
+    {
+        m_OrthographicSize = size;
+        m_OrthographicNear = nearClip;
+        m_OrthographicFar = farClip;
+        RecalculateProjection();
     }
-}
 
-void SceneCamera::SetProjectionType(ProjectionType type) {
-    m_Type = type;
-    if (m_Type == ProjectionType::Perspective) {
-        m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
-    } else {
-        float halfH = m_OrthoSize * 0.5f;
-        float halfW = halfH * m_Aspect;
-        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    void SceneCamera::SetViewportSize(uint32_t width, uint32_t height)
+    {
+        m_AspectRatio = (height > 0) ? (float)width / (float)height : 1.0f;
+        RecalculateProjection();
     }
-}
 
-void SceneCamera::SetFovYDeg(float fovYDeg) {
-    m_FovYDeg = fovYDeg;
-    if (m_Type == ProjectionType::Perspective)
-        m_Projection = glm::perspective(glm::radians(m_FovYDeg), m_Aspect, m_Near, m_Far);
-}
-
-void SceneCamera::SetOrthoSize(float orthoSize) {
-    m_OrthoSize = orthoSize;
-    if (m_Type == ProjectionType::Orthographic) {
-        float halfH = m_OrthoSize * 0.5f;
-        float halfW = halfH * m_Aspect;
-        m_Projection = glm::ortho(-halfW, halfW, -halfH, halfH, m_Near, m_Far);
+    void SceneCamera::RecalculateProjection()
+    {
+        float orthoLeft = -m_OrthographicSize * m_AspectRatio * 0.5f;
+        float orthoRight = m_OrthographicSize * m_AspectRatio * 0.5f;
+        float orthoBottom = -m_OrthographicSize * 0.5f;
+        float orthoTop = m_OrthographicSize * 0.5f;
+        m_Projection = glm::ortho(orthoLeft, orthoRight, orthoBottom, orthoTop, m_OrthographicNear, m_OrthographicFar);
     }
-}
-
-void SceneCamera::SetPosition(const glm::vec3& pos) { m_Position = pos; RecalculateView(); }
-void SceneCamera::SetRotationEuler(const glm::vec3& eulerRadians) { m_RotationEuler = eulerRadians; RecalculateView(); }
-
-void SceneCamera::RecalculateView() {
-    glm::mat4 rot = glm::toMat4(glm::quat(m_RotationEuler));
-    glm::mat4 world = glm::translate(glm::mat4(1.0f), m_Position) * rot;
-    m_View = glm::inverse(world);
-}
-
 } // namespace Himii

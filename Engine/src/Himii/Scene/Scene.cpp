@@ -10,21 +10,22 @@
 
 namespace Himii {
 
-Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name) {
+Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string& name) 
+{
     Entity entity(m_Registry.create(), this);
-    // 先默认构造 ID，再赋值，避免依赖特定构造函数签名
-    auto &id = entity.AddComponent<ID>();
-    id.id = uuid;
+
+    entity.AddComponent<ID>(uuid);
     entity.AddComponent<TransformComponent>();
-    auto &tag = entity.AddComponent<Tag>();
+    auto &tag = entity.AddComponent<TagComponent>();
     tag.name = name.empty() ? "Entity" : name;
 
-    m_EntityMap[uuid] = entity.Raw();
+    m_EntityMap[uuid] = entity;
 
     return entity;
 }
 
-Entity Scene::CreateEntity(const std::string& name) {
+Entity Scene::CreateEntity(const std::string& name) 
+{
     return CreateEntityWithUUID(UUID(), name);
 }
 
@@ -44,46 +45,34 @@ void Scene::DestroyEntity(entt::entity e) {
 }
 
 void Scene::OnUpdate(Timestep ts) {
-    // 选择一个主摄像机或使用外部提供的 ViewProjection
-    glm::mat4 viewProj(1.0f);
-    if (m_UseExternalVP)
+    
+    Camera *mainCamera = nullptr;
+    glm::mat4 *cameraTransform = nullptr;
     {
-        viewProj = m_ExternalVP;
+        
+        auto group = m_Registry.group<TransformComponent, CameraComponent>();
+        for (auto entity : group)
+        {
+            auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
+            if (camera.primary)
+            {
+                mainCamera = &camera.camera;
+                cameraTransform = &transform.GetTransform();
+            }
+        }
     }
-    //} else {
-    //{
-    //    entt::entity camEntity = entt::null;
-    //    auto viewCam = m_Registry.view<TransformComponent, Himii::CameraComponent>();
-    //    for (auto e : viewCam) { if (viewCam.get<Himii::CameraComponent>(e).primary) { camEntity = e; break; } }
-    //    if (camEntity == entt::null && viewCam.begin() != viewCam.end()) camEntity = *viewCam.begin();
-    //    if (camEntity != entt::null)
-    //    {
-    //        auto &tr = viewCam.get<Himii::TransformComponent>(camEntity);
-    //        auto &cc = viewCam.get<Himii::CameraComponent>(camEntity);
-    //        // 设置投影（含正交缩放）
-    //        if (cc.projection == ProjectionType::Perspective) {
-    //            cc.camera.SetFovYDeg(cc.fovYDeg);
-    //        } else {
-    //            cc.camera.SetOrthographicBySize(cc.orthoSize, cc.nearZ, cc.farZ);
-    //        }
 
-    //        // 设置视图：两种驱动方式
-    //        if (cc.useLookAt)
-    //        {
-    //            cc.camera.SetPosition(tr.Position);
-    //            // 将旋转与位置解耦，使用 lookAt 目标来构造朝向
-    //            glm::mat4 V = glm::lookAt(tr.Position, cc.lookAtTarget, cc.up);
-    //            viewProj = cc.camera.GetProjection() * V;
-    //        }
-    //        else
-    //        {
-    //            // 显式设置位置与欧拉角，不再因 SetPosition 改变旋转
-    //            cc.camera.SetRotationEuler(tr.Rotation);
-    //            cc.camera.SetPosition(tr.Position);
-    //            viewProj = cc.camera.GetViewProjection();
-    //        }
-    //    }
-    //} }
+    if (mainCamera)
+    {
+        Renderer2D::BeginScene(mainCamera->GetProjection(), *cameraTransform);
+        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+        for (auto entity: group)
+        {
+            auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+            Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+        }
+        Renderer2D::EndScene();
+    }
 
     // 如果没有可用摄像机，保留上层（例如 CubeLayer）外部调用 BeginScene 的能力
 
@@ -124,24 +113,22 @@ void Scene::OnUpdate(Timestep ts) {
     }*/
 
     // 2D SpriteRenderer 实体：Renderer2D 批渲染
-    auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-    for (auto entity : group) {
-        auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-        Himii::Renderer2D::DrawSprite(transform, sprite, (int)entity);
-    }
+    
 
     // 原生脚本更新
     {
-        auto viewScript = m_Registry.view<NativeScriptComponent>();
-        for (auto e : viewScript) {
-            auto &nsc = viewScript.get<NativeScriptComponent>(e);
-            if (!nsc.Instance && nsc.InstantiateScript) {
-                nsc.Instance = nsc.InstantiateScript();
-                nsc.Instance->m_Entity = Entity(e, this);
-                nsc.Instance->OnCreate();
+        m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto &nsc) {
+            // 如果没有实例化，尝试实例化
+            if (!nsc.Instance) {
+                    nsc.Instance = nsc.InstantiateScript();
+                    nsc.Instance->m_Entity = Entity{entity, this};
+                    nsc.Instance->OnCreate();
             }
-            if (nsc.Instance) nsc.Instance->OnUpdate(ts);
-        }
+            // 更新
+            if (nsc.Instance) {
+                nsc.Instance->OnUpdate(ts);
+            }
+        });
     }
 }
 

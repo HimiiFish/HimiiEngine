@@ -20,7 +20,6 @@ target_include_directories(HimiiEditor PRIVATE
     ${CMAKE_SOURCE_DIR}/Engine/src
 )
 
-# 寮哄埗 MSVC 浠� UTF-8 缂栬瘧姝ょ洰鏍囷紝杩涗竴姝ユ秷闄� C4828
 if(MSVC)
     target_compile_options(HimiiEditor PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> $<$<C_COMPILER_ID:MSVC>:/utf-8>)
 endif()

@@ -20,12 +20,11 @@ namespace Himii
         FramebufferSpecification fbSpec{app.GetWindow().GetWidth(), app.GetWindow().GetHeight()};
         fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER,FramebufferFormat::Depth};
         m_Framebuffer = Framebuffer::Create(fbSpec);
-
         // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
         {
-            auto e4 = m_ActiveScene.CreateEntity("My Quad");
+            m_SquareEntity = m_ActiveScene.CreateEntity("My Quad");
             // 默认构造 SpriteRenderer（白色），或传入颜色
-            e4.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+            m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
         }
     }
     void EditorLayer::OnDetach()
@@ -36,6 +35,8 @@ namespace Himii
     void EditorLayer::OnUpdate(Timestep ts)
     {
         HIMII_PROFILE_FUNCTION();
+
+        //m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
         m_CameraController.OnUpdate(ts);
 
@@ -55,6 +56,16 @@ namespace Himii
         RenderCommand::Clear();
 
         m_Framebuffer->ClearAttachment(1, -1); // 1号附件清除为 -1（无实体）
+
+        if (Input::IsKeyPressed(Key::A))
+            m_SquareEntity.GetComponent<TransformComponent>().Position.x -= 0.05f;
+        if (Input::IsKeyPressed(Key::D))
+            m_SquareEntity.GetComponent<TransformComponent>().Position.x += 0.05f;
+        if (Input::IsKeyPressed(Key::W))
+            m_SquareEntity.GetComponent<TransformComponent>().Position.y += 0.05f;
+        if (Input::IsKeyPressed(Key::S))
+            m_SquareEntity.GetComponent<TransformComponent>().Position.y -= 0.05f;
+
 
         HIMII_PROFILE_SCOPE("Renderer Draw");
         Renderer2D::BeginScene(m_CameraController.GetCamera());
@@ -135,6 +146,9 @@ namespace Himii
             ImGui::End();
 
             ImGui::Begin("ViewPort");
+
+           // m_SceneHierarchyPanel.OnImGuiRender();
+
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             if (m_ViewportSize != *((glm::vec2 *)&viewportPanelSize))
             {

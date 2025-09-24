@@ -31,20 +31,31 @@ namespace Himii
     };
 
     // 可读名称（在编辑器层显示/重命名）
-    struct Tag {
+    struct TagComponent {
         std::string name;
+
+        TagComponent() = default;
+        TagComponent(const TagComponent &) = default;
+        TagComponent(const std::string &name) : name(name)
+        {
+        }
     };
 
     struct TransformComponent {
-        glm::mat4 Transform{1.0f};
+        glm::vec3 Position{0.0f};
+        glm::vec3 Rotation{0.0f}; // Euler angles in radians
+        glm::vec3 Scale{1.0f};
 
         TransformComponent() = default;
         TransformComponent(const TransformComponent&) = default;
-        TransformComponent(const glm::mat4 &transform) : Transform(transform)
+        TransformComponent(const glm::vec3 &position) : Position(position)
         {
         }
-        operator const glm::mat4&() { return Transform; }
-        operator const glm::mat4&() const { return Transform; }
+        glm::mat4 GetTransform() const
+        {
+            glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
+            return glm::translate(glm::mat4(1.0f), Position) * rotation * glm::scale(glm::mat4(1.0f), Scale);
+        }
     };
 
     struct SpriteRendererComponent {
@@ -61,19 +72,14 @@ namespace Himii
 
     // 可选：作为主摄像机使用（暂不用于渲染主循环，留作扩展）
     struct CameraComponent {
-        bool primary = false; // 是否为主摄像机
-        ProjectionType projection = ProjectionType::Perspective;
-        float fovYDeg = 45.0f; // 仅透视用
-        float nearZ = 0.1f;
-        float farZ = 100.0f;
-    // 正交相机的可视高度（用于缩放/zoom），保持垂直尺寸不变，水平按纵横比自适应
-    float orthoSize = 10.0f;
-    // 控制方式：是否使用 LookAt 目标（否则使用 Transform 的欧拉旋转）。默认关闭以便旋转独立。
-    bool useLookAt = false;
-        glm::vec3 lookAtTarget{0.0f, 0.0f, 0.0f};
-        glm::vec3 up{0.0f, 1.0f, 0.0f};
-    // 运行时场景相机对象
-    Himii::SceneCamera camera{};
+        Camera camera;
+        bool primary = true; // 主摄像机标记
+
+        CameraComponent() = default;
+        CameraComponent(const CameraComponent &) = default;
+        CameraComponent(const glm::mat4 &projection) : camera(projection)
+        {
+        }
     };
 
     // 3D 网格渲染组件：用于 Renderer::Submit 路径
@@ -83,16 +89,12 @@ namespace Himii
         Ref<Texture2D>   texture{}; // 可选：供 shader 取样
     };
 
-    // 标记组件：用于区分天空盒渲染通道
-    struct SkyboxTag {};
-
     // 脚本组件：原生 C++ 脚本挂载
     struct NativeScriptComponent {
         ScriptableEntity* Instance = nullptr;
 
-        // 工厂函数与生命周期回调
-        ScriptableEntity* (*InstantiateScript)() = nullptr;
-        void (*DestroyScript)(NativeScriptComponent*) = nullptr;
+        ScriptableEntity* (*InstantiateScript)();
+        void (*DestroyScript)(NativeScriptComponent*);
 
         template<typename T>
         void Bind() {
