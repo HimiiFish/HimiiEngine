@@ -47,9 +47,8 @@ void Scene::DestroyEntity(entt::entity e) {
 void Scene::OnUpdate(Timestep ts) {
     
     Camera *mainCamera = nullptr;
-    glm::mat4 *cameraTransform = nullptr;
+    glm::mat4 cameraTransform{1.0f};
     {
-        
         auto group = m_Registry.group<TransformComponent, CameraComponent>();
         for (auto entity : group)
         {
@@ -57,14 +56,14 @@ void Scene::OnUpdate(Timestep ts) {
             if (camera.primary)
             {
                 mainCamera = &camera.camera;
-                cameraTransform = &transform.GetTransform();
+                cameraTransform = transform.GetTransform();
             }
         }
     }
 
     if (mainCamera)
     {
-        Renderer2D::BeginScene(mainCamera->GetProjection(), *cameraTransform);
+        Renderer2D::BeginScene(*mainCamera, cameraTransform);
         auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
         for (auto entity: group)
         {

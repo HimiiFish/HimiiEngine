@@ -16,15 +16,16 @@ namespace Himii
         HIMII_PROFILE_FUNCTION();
 
         // 创建离屏帧缓冲，尺寸先用窗口大小，后续由 EditorLayer 面板驱动调整
-        auto &app = Application::Get();
-        FramebufferSpecification fbSpec{app.GetWindow().GetWidth(), app.GetWindow().GetHeight()};
+        FramebufferSpecification fbSpec{1280, 720};
         fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER,FramebufferFormat::Depth};
         m_Framebuffer = Framebuffer::Create(fbSpec);
         // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
         {
             m_SquareEntity = m_ActiveScene.CreateEntity("My Quad");
+            m_SquareEntity.AddComponent<CameraComponent>(glm::ortho(-16.0,16.0,-9.0,9.0,1.0,-1.0));
             // 默认构造 SpriteRenderer（白色），或传入颜色
             m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+
         }
     }
     void EditorLayer::OnDetach()
