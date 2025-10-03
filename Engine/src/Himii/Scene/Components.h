@@ -72,14 +72,12 @@ namespace Himii
 
     // 可选：作为主摄像机使用（暂不用于渲染主循环，留作扩展）
     struct CameraComponent {
-        Camera camera;
+        SceneCamera camera;
         bool primary = true; // 主摄像机标记
+        bool fixedAspectRatio = false;
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent &) = default;
-        CameraComponent(const glm::mat4 &projection) : camera(projection)
-        {
-        }
     };
 
     // 3D 网格渲染组件：用于 Renderer::Submit 路径

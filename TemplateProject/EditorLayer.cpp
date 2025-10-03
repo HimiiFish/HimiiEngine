@@ -399,7 +399,6 @@ void EditorLayer::OnImGuiRender()
             {
                 auto &sr = reg.get<Himii::SpriteRenderer>(m_SelectedEntity);
                 ImGui::ColorEdit4("Color", &sr.color.x);
-                ImGui::DragFloat("Tiling", &sr.tiling, 0.01f, 0.1f, 100.0f);
 
                 ImGui::Separator();
                 ImGui::TextUnformatted("Texture");
@@ -437,13 +436,6 @@ void EditorLayer::OnImGuiRender()
 
                 ImGui::Separator();
                 ImGui::TextUnformatted("UV");
-                if (ImGui::Button("Reset UV (0..1)"))
-                {
-                    sr.uvs[0] = {0.0f, 0.0f};
-                    sr.uvs[1] = {1.0f, 0.0f};
-                    sr.uvs[2] = {1.0f, 1.0f};
-                    sr.uvs[3] = {0.0f, 1.0f};
-                }
 
                 ImGui::TextUnformatted("Grid UV (cols/rows/col/row)");
                 static int cols = 1, rows = 1, col = 0, row = 0;
@@ -456,10 +448,6 @@ void EditorLayer::OnImGuiRender()
                 ImGui::InputInt("Row", &row);
                 ImGui::DragFloat("Padding (norm)", &padNorm, 0.001f, 0.0f, 0.25f);
                 bool canGrid = sr.texture && cols > 0 && rows > 0 && col >= 0 && row >= 0;
-                if (ImGui::Button("Apply Grid UV") && canGrid)
-                {
-                    sr.uvs = sr.texture->GetUVFromGrid(col, row, cols, rows, padNorm);
-                }
                 if (!sr.texture)
                     ImGui::TextDisabled("(需要先加载纹理)");
 
@@ -476,21 +464,9 @@ void EditorLayer::OnImGuiRender()
                 ImGui::SameLine();
                 ImGui::InputFloat("PadY", &padY);
                 bool canPx = sr.texture && maxX > minX && maxY > minY;
-                if (ImGui::Button("Apply Pixels UV") && canPx)
-                {
-                    sr.uvs = sr.texture->GetUVFromPixels({minX, minY}, {maxX, maxY}, {padX, padY});
-                }
 
                 ImGui::Separator();
                 ImGui::TextUnformatted("Manual UV (0..1)");
-                float uv0[2] = {sr.uvs[0].x, sr.uvs[0].y};
-                float uv1[2] = {sr.uvs[1].x, sr.uvs[1].y};
-                float uv2[2] = {sr.uvs[2].x, sr.uvs[2].y};
-                float uv3[2] = {sr.uvs[3].x, sr.uvs[3].y};
-                if (ImGui::InputFloat2("UV0", uv0)) sr.uvs[0] = {uv0[0], uv0[1]};
-                if (ImGui::InputFloat2("UV1", uv1)) sr.uvs[1] = {uv1[0], uv1[1]};
-                if (ImGui::InputFloat2("UV2", uv2)) sr.uvs[2] = {uv2[0], uv2[1]};
-                if (ImGui::InputFloat2("UV3", uv3)) sr.uvs[3] = {uv3[0], uv3[1]};
             }
         }
     if (reg.any_of<Himii::MeshRenderer>(m_SelectedEntity))

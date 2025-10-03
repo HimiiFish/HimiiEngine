@@ -49,14 +49,14 @@ void Scene::OnUpdate(Timestep ts) {
     Camera *mainCamera = nullptr;
     glm::mat4 cameraTransform{1.0f};
     {
-        auto group = m_Registry.group<TransformComponent, CameraComponent>();
-        for (auto entity : group)
+        auto view = m_Registry.view<TransformComponent, CameraComponent>();
+        for (auto [entity,transform,camera]: view.each())
         {
-            auto [transform, camera] = group.get<TransformComponent, CameraComponent>(entity);
             if (camera.primary)
             {
                 mainCamera = &camera.camera;
                 cameraTransform = transform.GetTransform();
+                break;
             }
         }
     }
@@ -124,10 +124,25 @@ void Scene::OnUpdate(Timestep ts) {
                     nsc.Instance->OnCreate();
             }
             // 更新
-            if (nsc.Instance) {
-                nsc.Instance->OnUpdate(ts);
-            }
+            nsc.Instance->OnUpdate(ts);
         });
+    }
+}
+
+void Scene::OnViewportResize(uint32_t width, uint32_t height)
+{
+    if (m_ViewportWidth == width && m_ViewportHeight == height)
+        return;
+
+    m_ViewportWidth = width;
+    m_ViewportHeight = height;
+
+    auto view = m_Registry.view<CameraComponent>();
+    for (auto entity: view)
+    {
+        auto &cameraComponent = view.get<CameraComponent>(entity);
+        if (!cameraComponent.fixedAspectRatio)
+            cameraComponent.camera.SetViewportSize(width, height);
     }
 }
 

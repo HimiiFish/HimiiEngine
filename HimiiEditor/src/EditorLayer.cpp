@@ -4,6 +4,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "CamerController.h"
+
 namespace Himii
 {
     EditorLayer::EditorLayer() :
@@ -19,12 +21,14 @@ namespace Himii
         FramebufferSpecification fbSpec{1280, 720};
         fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER,FramebufferFormat::Depth};
         m_Framebuffer = Framebuffer::Create(fbSpec);
-        // 最小 ECS 场景：创建几个彩色方块实体（使用 Entity 包装）
         {
             m_SquareEntity = m_ActiveScene.CreateEntity("My Quad");
-            m_SquareEntity.AddComponent<CameraComponent>(glm::ortho(-16.0,16.0,-9.0,9.0,1.0,-1.0));
-            // 默认构造 SpriteRenderer（白色），或传入颜色
             m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+            m_SquareEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
+
+            m_CameraEntity = m_ActiveScene.CreateEntity("Camera Entity");
+            m_CameraEntity.AddComponent<CameraComponent>();
+            // 默认构造 SpriteRenderer（白色），或传入颜色
 
         }
     }
@@ -47,6 +51,8 @@ namespace Himii
         {
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+
+            m_ActiveScene.OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
         // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
@@ -57,15 +63,6 @@ namespace Himii
         RenderCommand::Clear();
 
         m_Framebuffer->ClearAttachment(1, -1); // 1号附件清除为 -1（无实体）
-
-        if (Input::IsKeyPressed(Key::A))
-            m_SquareEntity.GetComponent<TransformComponent>().Position.x -= 0.05f;
-        if (Input::IsKeyPressed(Key::D))
-            m_SquareEntity.GetComponent<TransformComponent>().Position.x += 0.05f;
-        if (Input::IsKeyPressed(Key::W))
-            m_SquareEntity.GetComponent<TransformComponent>().Position.y += 0.05f;
-        if (Input::IsKeyPressed(Key::S))
-            m_SquareEntity.GetComponent<TransformComponent>().Position.y -= 0.05f;
 
 
         HIMII_PROFILE_SCOPE("Renderer Draw");

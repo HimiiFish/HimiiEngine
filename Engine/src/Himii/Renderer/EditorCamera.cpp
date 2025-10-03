@@ -2,22 +2,6 @@
 
 namespace Himii {
 
-void EditorCamera::SetViewport(float width, float height) {
-    m_Aspect = (height > 0.0f) ? (width / height) : m_Aspect;
-    RebuildProjection();
-}
-
-void EditorCamera::SetClip(float nearZ, float farZ) {
-    m_Near = nearZ; m_Far = farZ; RebuildProjection();
-}
-
-void EditorCamera::SetProjectionType(ProjectionType type) {
-    m_Type = type; RebuildProjection();
-}
-
-void EditorCamera::SetPosition(const glm::vec3& pos) { m_Position = pos; RecalculateView(); }
-void EditorCamera::SetRotationEuler(const glm::vec3& eulerRadians) { m_RotationEuler = eulerRadians; RecalculateView(); }
-
 void EditorCamera::SetLookAt(const glm::vec3& pos, const glm::vec3& target, const glm::vec3& up) {
     m_Position = pos;
     // 由目标方向反推出当前欧拉角（忽略 roll）

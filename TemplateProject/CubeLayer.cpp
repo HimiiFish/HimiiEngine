@@ -93,7 +93,14 @@ void CubeLayer::OnUpdate(Himii::Timestep ts)
     EditorLayer *editorRef = nullptr;
     for (auto *layer: appRef.GetLayerStack())
         if ((editorRef = dynamic_cast<EditorLayer *>(layer)))
-            break;
+        {
+            if (m_Framebuffer)
+        {
+            editorRef->SetSceneTexture(m_Framebuffer->GetColorAttachmentRendererID());
+            editorRef->SetSceneSize(m_Framebuffer->GetSpecification().Width, m_Framebuffer->GetSpecification().Height);
+        }
+        }
+            
     // 确保 EditorLayer 持有当前场景（避免启动顺序导致的空指针）
     if (editorRef && editorRef->GetActiveScene() != &m_Scene)
         editorRef->SetActiveScene(&m_Scene);

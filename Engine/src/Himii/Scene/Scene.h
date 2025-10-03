@@ -27,11 +27,15 @@ public:
         else { m_UseExternalVP = false; }
     }
 
+    void OnViewportResize(uint32_t width, uint32_t hieght);
+
     // 清空场景：安全销毁所有实体（走 DestroyEntity，确保脚本生命周期与映射清理）
     void Clear();
 
+
 private:
     entt::registry m_Registry;
+    uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
     std::unordered_map<UUID, entt::entity> m_EntityMap; 
     bool m_UseExternalVP{false};
     glm::mat4 m_ExternalVP{1.0f};

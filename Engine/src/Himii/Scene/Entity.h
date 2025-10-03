@@ -71,6 +71,7 @@ namespace Himii
         {
             return m_EntityHandle;
         }
+
         operator bool() const
         {
             return m_EntityHandle != entt::null;
