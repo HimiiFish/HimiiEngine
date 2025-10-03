@@ -1,6 +1,6 @@
 #pragma once
 #include "Engine.h"
-//#include "panel/SceneHierarchyPanel.h"
+#include "panel/SceneHierarchyPanel.h"
 
 namespace Himii
 {
@@ -21,7 +21,7 @@ namespace Himii
         bool OnMouseButtonPressed(MouseButtonPressedEvent &e);
 
     private:
-        Scene m_ActiveScene;
+        Ref<Scene> m_ActiveScene;
 
         Entity m_SquareEntity;
         Entity m_CameraEntity;
@@ -37,6 +37,6 @@ namespace Himii
         glm::vec4 m_SquareColor = {0.5f, 0.26f, 0.56f, 1.0f};
 
 
-        //SceneHierarchyPanel m_SceneHierarchyPanel;
+        SceneHierarchyPanel m_SceneHierarchyPanel;
     };
 }
