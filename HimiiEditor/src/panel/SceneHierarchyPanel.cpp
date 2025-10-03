@@ -84,5 +84,65 @@ namespace Himii
                 ImGui::TreePop();
             }
         }
+        if (entity.HasComponent<CameraComponent>())
+        {
+            if (ImGui::TreeNodeEx((void *)typeid(CameraComponent).hash_code(), ImGuiTreeNodeFlags_DefaultOpen,
+                                  "Camera"))
+            {
+                auto &cameraComponent = entity.GetComponent<CameraComponent>();
+                auto &camera = cameraComponent.camera;
+
+                ImGui::Checkbox("Primary", &cameraComponent.primary);
+
+                const char *projectionTypeStrings[] = {"Perspective", "Orthographic"};
+                const char *currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
+                if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
+                {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+                        if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+                        {
+                            currentProjectionTypeString = projectionTypeStrings[i];
+                            camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+                {
+                    float perspectiveFOV = glm::degrees(camera.GetPerspectiveVerticalFOV());
+                    if (ImGui::DragFloat("Vertical FOV", &perspectiveFOV))
+                        camera.SetPerspectiveVerticalFOV(glm::radians(perspectiveFOV));
+
+                    float perspectiveNear = camera.GetPerspectiveNearClip();
+                    if (ImGui::DragFloat("Near", &perspectiveNear))
+                        camera.SetPerspectiveNearClip(perspectiveNear);
+
+                    float perspectiveFar = camera.GetPerspectiveFarClip();
+                    if (ImGui::DragFloat("Far", &perspectiveFar))
+                        camera.SetPerspectiveFarClip(perspectiveFar);
+                }
+                if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
+                {
+                    float orthographicSize = camera.GetOrthographicSize();
+                    if (ImGui::DragFloat("Size", &orthographicSize))
+                        camera.SetOrthographicSize(orthographicSize);
+
+                    float orthographicNear = camera.GetOrthographicNearClip();
+                    if (ImGui::DragFloat("Near", &orthographicNear))
+                        camera.SetOrthographicNearClip(orthographicNear);
+
+                    float orthographicFar = camera.GetOrthographicFarClip();
+                    if (ImGui::DragFloat("Far", &orthographicFar))
+                        camera.SetOrthographicFarClip(orthographicFar);
+
+                    ImGui::Checkbox("Fixed Aspect Ratio", &cameraComponent.fixedAspectRatio);
+                }
+                ImGui::TreePop();
+            }
+        }
     }
 } // namespace Himii
