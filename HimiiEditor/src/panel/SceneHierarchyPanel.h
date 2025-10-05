@@ -12,6 +12,7 @@ namespace Himii
         void SetContext(const Ref<Scene> &context);
 
         void OnImGuiRender();
+
         Entity GetSelectedEntity()
         {
             return m_SelectionContext;
@@ -22,6 +23,9 @@ namespace Himii
         }
 
     private:
+        template<typename T>
+        void DisplayAddComponentEntry(const std::string &entryName);
+
         void DrawEntityNode(Entity entity);
         void DrawComponents(Entity entity);
 

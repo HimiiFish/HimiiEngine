@@ -32,6 +32,9 @@ public:
     // 清空场景：安全销毁所有实体（走 DestroyEntity，确保脚本生命周期与映射清理）
     void Clear();
 
+private:
+    template<typename T>
+    void OnComponentAdded(Entity entity, T &component);
 
 private:
     entt::registry m_Registry;

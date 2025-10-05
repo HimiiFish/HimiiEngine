@@ -22,7 +22,7 @@
 namespace Himii
 {
 
-    // 稳定 ID（用于引用、序列化）
+    // 稳定 ID
     struct ID {
         UUID id;
 
@@ -30,7 +30,6 @@ namespace Himii
         ID(const ID&) = default;
     };
 
-    // 可读名称（在编辑器层显示/重命名）
     struct TagComponent {
         std::string name;
 
@@ -58,6 +57,14 @@ namespace Himii
         }
     };
 
+    struct CameraComponent {
+        SceneCamera camera;
+        bool primary = true; // 主摄像机标记
+        bool fixedAspectRatio = false;
+
+        CameraComponent() = default;
+        CameraComponent(const CameraComponent &) = default;
+    };
     struct SpriteRendererComponent {
         glm::vec4 color{1.0f};
         Ref<Texture2D> texture{};
@@ -70,24 +77,13 @@ namespace Himii
         }
     };
 
-    // 可选：作为主摄像机使用（暂不用于渲染主循环，留作扩展）
-    struct CameraComponent {
-        SceneCamera camera;
-        bool primary = true; // 主摄像机标记
-        bool fixedAspectRatio = false;
 
-        CameraComponent() = default;
-        CameraComponent(const CameraComponent &) = default;
-    };
-
-    // 3D 网格渲染组件：用于 Renderer::Submit 路径
     struct MeshRenderer {
         Ref<VertexArray> vertexArray{};
         Ref<Shader>      shader{};
-        Ref<Texture2D>   texture{}; // 可选：供 shader 取样
+        Ref<Texture2D>   texture{};
     };
 
-    // 脚本组件：原生 C++ 脚本挂载
     struct NativeScriptComponent {
         ScriptableEntity* Instance = nullptr;
 
