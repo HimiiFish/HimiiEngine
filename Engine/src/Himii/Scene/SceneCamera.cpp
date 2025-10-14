@@ -7,6 +7,11 @@ namespace Himii
         RecalculateProjection();
     }
 
+    void SceneCamera::SetTarget(Entity target)
+    {
+        m_Target = target;
+    }
+
     void SceneCamera::SetOrthographic(float size, float nearClip, float farClip)
     {
         m_OrthographicSize = size;

@@ -62,8 +62,15 @@ namespace Himii
         bool primary = true; // 主摄像机标记
         bool fixedAspectRatio = false;
 
+        Entity m_Target; // 摄像机跟随目标
+
         CameraComponent() = default;
         CameraComponent(const CameraComponent &) = default;
+
+        void SetTarget(const Entity &target)
+        {
+            m_Target = target;
+        }
     };
     struct SpriteRendererComponent {
         glm::vec4 color{1.0f};

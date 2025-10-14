@@ -68,7 +68,12 @@ namespace Himii
                 if (camera.primary)
                 {
                     mainCamera = &camera.camera;
-                    cameraTransform = transform.GetTransform();
+                    if (camera.m_Target)
+                    {
+                        cameraTransform = camera.m_Target.GetComponent<TransformComponent>().GetTransform();
+                    }
+                    else
+                        cameraTransform = transform.GetTransform();
                     break;
                 }
             }

@@ -28,12 +28,16 @@ namespace Himii
             m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
             m_SquareEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
 
-            auto m_Entity = m_ActiveScene->CreateEntity("Entity");
-            m_Entity.AddComponent<SpriteRendererComponent>(glm::vec4{0.2f, 0.3f, 0.8f, 1.0f});
-            m_Entity.GetComponent<TransformComponent>().Scale = {1.0f, 1.5f, 1.0f};
+            for (int i = -5;i < 10;i++)
+            {
+                auto m_Entity = m_ActiveScene->CreateEntity("Entity");
+                m_Entity.AddComponent<SpriteRendererComponent>(glm::vec4{0.2f, 0.3f, 0.8f, 1.0f});
+                m_Entity.GetComponent<TransformComponent>().Position = {i * 1.0f, 0.0f, 0.0f};
+            }
 
             m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity");
             m_CameraEntity.AddComponent<CameraComponent>();
+            m_CameraEntity.GetComponent<CameraComponent>().SetTarget(m_SquareEntity);
             // 默认构造 SpriteRenderer（白色），或传入颜色
 
         }
