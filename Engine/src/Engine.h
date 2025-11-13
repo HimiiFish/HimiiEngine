@@ -32,3 +32,5 @@
 #include "Himii/Scene/Components.h"
 #include "Himii/Scene/Entity.h"
 #include "Himii/Scene/Scene.h"
+#include "Himii/Scene/SceneSerializer.h"
+#include "Himii/Scene/ScriptableEntity.h"

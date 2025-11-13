@@ -1,19 +1,20 @@
 #pragma once
-#include <string>
+#include "Himii/Scene/Scene.h"
+
 namespace Himii {
-class Scene;
 
 // 简单的 YAML 场景序列化/反序列化器
 class SceneSerializer {
 public:
-    explicit SceneSerializer(Scene* scene) : m_Scene(scene) {}
+    SceneSerializer(const Ref<Scene> &scene);
 
-    // 保存到 .yaml 文件
-    bool Serialize(const std::string& filepath) const;
-    // 从 .yaml 文件读取
-    bool Deserialize(const std::string& filepath);
+    void Serialize(const std::string &filepath);
+    void SerializeRuntime(const std::string &filepath);
+
+    bool Deserialize(const std::string &filepath);
+    bool DeserializeRuntime(const std::string &filepath);
 
 private:
-    Scene* m_Scene{};
+    Ref<Scene> m_Scene{};
 };
 }

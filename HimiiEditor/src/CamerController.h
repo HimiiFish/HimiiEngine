@@ -3,7 +3,7 @@
 
 namespace Himii
 {
-    class CameraController : public ScriptableEntity 
+    class CameraController : public ScriptableEntity
     {
     protected:
 

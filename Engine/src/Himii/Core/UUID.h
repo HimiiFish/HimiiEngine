@@ -1,5 +1,9 @@
 #pragma once
 
+#include <cstdint>     // for uint64_t
+#include <cstddef>     // for std::size_t
+#include <functional>
+
 namespace Himii
 {
     class UUID

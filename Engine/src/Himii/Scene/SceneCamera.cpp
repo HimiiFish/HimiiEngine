@@ -1,15 +1,13 @@
-#include "Himii/Scene/SceneCamera.h"
+#include "Hepch.h"
+#include "SceneCamera.h"
+
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace Himii
 {
     SceneCamera::SceneCamera()
     {
         RecalculateProjection();
-    }
-
-    void SceneCamera::SetTarget(Entity target)
-    {
-        m_Target = target;
     }
 
     void SceneCamera::SetOrthographic(float size, float nearClip, float farClip)

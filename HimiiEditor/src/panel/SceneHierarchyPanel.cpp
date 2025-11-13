@@ -21,11 +21,14 @@ namespace Himii
     {
         ImGui::Begin("Scene Hierarchy");
 
-        auto view = m_Context->Registry().view<TransformComponent>();
-        for (auto e: view)
+        if (m_Context)
         {
-            Entity entity{e, m_Context.get()};
-            DrawEntityNode(entity);
+            auto &view = m_Context->m_Registry.view<TagComponent>();
+            for (auto entity: view)
+            {
+                Entity e{entity, m_Context.get()};
+                DrawEntityNode(e);
+            }
         }
 
         if (ImGui::BeginPopupContextWindow(0, 1))
@@ -68,6 +71,22 @@ namespace Himii
                 entityDeleted = true;
             }
             ImGui::EndPopup();
+        }
+
+        if (opened)
+        {
+            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+            bool opened = ImGui::TreeNodeEx((void *)9817239, flags, tag.c_str());
+            if (opened)
+                ImGui::TreePop();
+            ImGui::TreePop();
+        }
+
+        if (entityDeleted)
+        {
+            m_Context->DestroyEntity(entity);
+            if (m_SelectionContext == entity)
+                m_SelectionContext = {};
         }
     }
 
@@ -198,7 +217,7 @@ namespace Himii
             }
         }
         ImGui::SameLine();
-        ImGui::PushItemWidth(-1);
+        //ImGui::PushItemWidth(-1);
         if (ImGui::Button("Add Component"))
             ImGui::OpenPopup("AddComponent");
 

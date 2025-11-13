@@ -21,25 +21,23 @@ namespace Himii
 
         // 创建离屏帧缓冲，尺寸先用窗口大小，后续由 EditorLayer 面板驱动调整
         FramebufferSpecification fbSpec{1280, 720};
-        fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER,FramebufferFormat::Depth};
+        fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER, FramebufferFormat::Depth};
         m_Framebuffer = Framebuffer::Create(fbSpec);
         {
             m_SquareEntity = m_ActiveScene->CreateEntity("My Quad");
             m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
             m_SquareEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
 
-            for (int i = -5;i < 10;i++)
+            for (int i = -5; i < 10; i++)
             {
                 auto m_Entity = m_ActiveScene->CreateEntity("Entity");
                 m_Entity.AddComponent<SpriteRendererComponent>(glm::vec4{0.2f, 0.3f, 0.8f, 1.0f});
-                m_Entity.GetComponent<TransformComponent>().Position = {i * 1.0f, 0.0f, 0.0f};
+                m_Entity.GetComponent<TransformComponent>().Position = {i * 1.1f, 0.0f, 0.0f};
             }
 
             m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity");
             m_CameraEntity.AddComponent<CameraComponent>();
-            m_CameraEntity.GetComponent<CameraComponent>().SetTarget(m_SquareEntity);
             // 默认构造 SpriteRenderer（白色），或传入颜色
-
         }
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
@@ -135,6 +133,18 @@ namespace Himii
             {
                 if (ImGui::BeginMenu("选项"))
                 {
+                    if (ImGui::MenuItem("保存"))
+                    {
+                        SceneSerializer serializer(m_ActiveScene);
+                        serializer.Serialize("assets/scenes/Example.himii");
+                    }
+
+                    if (ImGui::MenuItem("加载"))
+                    {
+                        SceneSerializer serializer(m_ActiveScene);
+                        serializer.Deserialize("assets/scenes/Example.himii");
+                    }
+
                     if (ImGui::MenuItem("退出"))
                         Himii::Application::Get().Close();
                     ImGui::EndMenu();
@@ -177,14 +187,12 @@ namespace Himii
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
     }
 
-    bool EditorLayer::OnKeyPressed(KeyPressedEvent& e)
+    bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
     {
         if (e.IsRepeat() > 0)
             return false;
-        bool control = Input::IsKeyPressed(Key::LeftControl) ||
-                       Input::IsKeyPressed(Key::RightControl);
-        bool shift =
-                Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightControl);
+        bool control = Input::IsKeyPressed(Key::LeftControl) || Input::IsKeyPressed(Key::RightControl);
+        bool shift = Input::IsKeyPressed(Key::LeftShift) || Input::IsKeyPressed(Key::RightControl);
         switch (e.GetKeyCode())
         {
             case Key::N:
@@ -219,8 +227,8 @@ namespace Himii
         return false;
     }
 
-    bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent& e)
+    bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
     {
         return false;
     }
-}
+} // namespace Himii

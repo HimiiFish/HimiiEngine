@@ -1,33 +1,26 @@
 #pragma once
-// 基础组件定义（对标主流引擎：稳定ID、可读名称、Transform、SpriteRenderer、可选Camera）
-// 注意：这是最小可用集，后续可扩展（Hierarchy、RigidBody等）。
-#include "Hepch.h"
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/glm.hpp>
-#include "glm/gtc/quaternion.hpp" // glm::quat
-#include <glm/gtx/quaternion.hpp>  // glm::toMat4
-#include "glm/gtc/matrix_transform.hpp" // glm::translate, glm::rotate, glm::scale
-#include <array>
-#include <string>
-#include <random>
-#include "Himii/Core/Core.h"        // Ref<>
-#include "Himii/Renderer/Texture.h" // Texture2D
-#include "Himii/Renderer/VertexArray.h" // VertexArray for 3D meshes
-#include "Himii/Renderer/Shader.h"      // Shader reference
+
+#include "SceneCamera.h"
 #include "Himii/Core/UUID.h"
-#include "Himii/Renderer/Camera.h"
-#include "Himii/Scene/SceneCamera.h"
-#include "Himii/Scene/ScriptableEntity.h"
+#include "Himii/Renderer/Texture.h"
+//#include "Himii/Renderer/Font.h"
+
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
 
 namespace Himii
 {
+    class ScriptableEntity;
 
-    // 稳定 ID
-    struct ID {
+    // 绋冲畾 ID
+    struct IDComponent {
         UUID id;
 
-        ID() = default;
-        ID(const ID&) = default;
+        IDComponent() = default;
+        IDComponent(const IDComponent &) = default;
     };
 
     struct TagComponent {
@@ -59,18 +52,11 @@ namespace Himii
 
     struct CameraComponent {
         SceneCamera camera;
-        bool primary = true; // 主摄像机标记
+        bool primary = true;
         bool fixedAspectRatio = false;
-
-        Entity m_Target; // 摄像机跟随目标
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent &) = default;
-
-        void SetTarget(const Entity &target)
-        {
-            m_Target = target;
-        }
     };
     struct SpriteRendererComponent {
         glm::vec4 color{1.0f};
@@ -85,11 +71,13 @@ namespace Himii
     };
 
 
-    struct MeshRenderer {
+    /*struct MeshRenderer {
         Ref<VertexArray> vertexArray{};
         Ref<Shader>      shader{};
         Ref<Texture2D>   texture{};
-    };
+    };*/
+
+    class ScriptableEntity;
 
     struct NativeScriptComponent {
         ScriptableEntity* Instance = nullptr;

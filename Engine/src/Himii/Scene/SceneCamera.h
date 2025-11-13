@@ -1,10 +1,5 @@
 #pragma once
-#define GLM_ENABLE_EXPERIMENTAL
 #include "Himii/Renderer/Camera.h"
-#include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-#include "glm/gtx/quaternion.hpp"
-#include "Himii/Scene/Entity.h"
 
 namespace Himii
 {
@@ -19,8 +14,6 @@ namespace Himii
     public:
         SceneCamera();
         virtual ~SceneCamera() = default;
-
-        void SetTarget(Entity target);
 
         void SettPerspective(float verticalFOV, float nearClip, float farClip);
         void SetOrthographic(float size, float nearClip,float farClip);
@@ -108,7 +101,6 @@ namespace Himii
         float m_OrthographicNear = -1.0f, m_OrthographicFar = 1.0f;
 
         float m_AspectRatio = 0.0f;
-        Entity m_Target;
     };
 
 } // namespace Himii

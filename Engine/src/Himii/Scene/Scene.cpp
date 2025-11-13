@@ -1,13 +1,23 @@
-#include "Himii/Scene/Scene.h"
-#include <entt/entt.hpp>
-#include <string>
-#include <vector>
-#include "Himii/Renderer/Renderer.h"
-#include "Himii/Renderer/Renderer2D.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/Entity.h"
-#include "glad/glad.h"
+#include "hepch.h"
+#include "Scene.h"
+#include "Entity.h"
 
+#include "Components.h"
+#include "ScriptableEntity.h"
+//#include "Hazel/Scripting/ScriptEngine.h"
+#include "Himii/Renderer/Renderer2D.h"
+//#include "Himii/Physics/Physics2D.h"
+
+#include <glm/glm.hpp>
+
+#include "Entity.h"
+
+//// Box2D
+//#include "box2d/b2_world.h"
+//#include "box2d/b2_body.h"
+//#include "box2d/b2_fixture.h"
+//#include "box2d/b2_polygon_shape.h"
+//#include "box2d/b2_circle_shape.h"
 namespace Himii
 {
 
@@ -15,7 +25,7 @@ namespace Himii
     {
         Entity entity(m_Registry.create(), this);
 
-        entity.AddComponent<ID>(uuid);
+        entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
         auto &tag = entity.AddComponent<TagComponent>();
         tag.name = name.empty() ? "Entity" : name;
@@ -35,14 +45,14 @@ namespace Himii
         if (!m_Registry.valid(e))
             return;
         // 尝试移除 UUID -> entt::entity 映射，防止悬挂引用
-        if (auto *pid = m_Registry.try_get<ID>(e))
+        if (auto *pid = m_Registry.try_get<IDComponent>(e))
         {
             auto it = m_EntityMap.find(pid->id);
             if (it != m_EntityMap.end())
                 m_EntityMap.erase(it);
         }
         // 脚本析构
-        if (auto *nsc = m_Registry.try_get<NativeScriptComponent>(e))
+        if (NativeScriptComponent *nsc = m_Registry.try_get<NativeScriptComponent>(e))
         {
             if (nsc->Instance)
             {
@@ -68,12 +78,7 @@ namespace Himii
                 if (camera.primary)
                 {
                     mainCamera = &camera.camera;
-                    if (camera.m_Target)
-                    {
-                        cameraTransform = camera.m_Target.GetComponent<TransformComponent>().GetTransform();
-                    }
-                    else
-                        cameraTransform = transform.GetTransform();
+                    cameraTransform = transform.GetTransform();
                     break;
                 }
             }

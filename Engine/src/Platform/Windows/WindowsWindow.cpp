@@ -52,6 +52,7 @@ namespace Himii
 
     HIMII_PROFILE_SCOPE("glfwCreateWindow");
     // 默认最大化窗口
+    //glfwWindowHint(GLFW_DECORATED, GLFW_FALSE);
     glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
         m_Window = glfwCreateWindow((int)props.Width, props.Height, m_Data.Title.c_str(), nullptr, nullptr);
         ++s_GLFWWindwCount;
