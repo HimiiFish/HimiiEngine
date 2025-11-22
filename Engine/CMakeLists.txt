@@ -84,6 +84,12 @@ target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw ya
 # 启用 GLM 实验特性（如 gtx/component_wise），避免各 TU 单独定义宏
 target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
+if (WIN32)
+    target_compile_definitions(Engine PUBLIC
+        HIMII_PLATFORM_WINDOWS     # 你自己的平台宏
+    )
+endif()
+
 # 强制 MSVC 以 UTF-8 编译此目标，进一步消除 C4828
 if(MSVC)
     target_compile_options(Engine PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> $<$<C_COMPILER_ID:MSVC>:/utf-8>)

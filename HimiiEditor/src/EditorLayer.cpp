@@ -4,6 +4,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
+#include "Himii/Utils/PlatformUtils.h"
 #include "CamerController.h"
 
 namespace Himii
@@ -23,22 +24,22 @@ namespace Himii
         FramebufferSpecification fbSpec{1280, 720};
         fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER, FramebufferFormat::Depth};
         m_Framebuffer = Framebuffer::Create(fbSpec);
-        {
-            m_SquareEntity = m_ActiveScene->CreateEntity("My Quad");
-            m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-            m_SquareEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
+        //{
+        //    m_SquareEntity = m_ActiveScene->CreateEntity("My Quad");
+        //    m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
+        //    m_SquareEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
 
-            for (int i = -5; i < 10; i++)
-            {
-                auto m_Entity = m_ActiveScene->CreateEntity("Entity");
-                m_Entity.AddComponent<SpriteRendererComponent>(glm::vec4{0.2f, 0.3f, 0.8f, 1.0f});
-                m_Entity.GetComponent<TransformComponent>().Position = {i * 1.1f, 0.0f, 0.0f};
-            }
+        //    for (int i = -5; i < 10; i++)
+        //    {
+        //        auto m_Entity = m_ActiveScene->CreateEntity("Entity");
+        //        m_Entity.AddComponent<SpriteRendererComponent>(glm::vec4{0.2f, 0.3f, 0.8f, 1.0f});
+        //        m_Entity.GetComponent<TransformComponent>().Position = {i * 1.1f, 0.0f, 0.0f};
+        //    }
 
-            m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity");
-            m_CameraEntity.AddComponent<CameraComponent>();
-            // 默认构造 SpriteRenderer（白色），或传入颜色
-        }
+        //    m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity");
+        //    m_CameraEntity.AddComponent<CameraComponent>();
+        //    // 默认构造 SpriteRenderer（白色），或传入颜色
+        //}
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
     void EditorLayer::OnDetach()
@@ -50,7 +51,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        m_CameraController.OnUpdate(ts);
+        //m_CameraController.OnUpdate(ts);
 
         if (FramebufferSpecification spec = m_Framebuffer->GetSpecification();
             m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
@@ -73,9 +74,8 @@ namespace Himii
 
 
         HIMII_PROFILE_SCOPE("Renderer Draw");
-        Renderer2D::BeginScene(m_CameraController.GetCamera());
         m_ActiveScene->OnUpdate(ts);
-        Renderer2D::EndScene();
+
         m_Framebuffer->Unbind();
     }
     void EditorLayer::OnImGuiRender()
@@ -131,21 +131,42 @@ namespace Himii
 
             if (ImGui::BeginMenuBar())
             {
-                if (ImGui::BeginMenu("选项"))
+                if (ImGui::BeginMenu("Options"))
                 {
-                    if (ImGui::MenuItem("保存"))
+                    if (ImGui::MenuItem("New..", "Ctrl+N"))
                     {
-                        SceneSerializer serializer(m_ActiveScene);
-                        serializer.Serialize("assets/scenes/Example.himii");
+                        m_ActiveScene = CreateRef<Scene>();
+                        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+                        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
                     }
 
-                    if (ImGui::MenuItem("加载"))
+                    if (ImGui::MenuItem("Open..", "Ctrl+O"))
                     {
-                        SceneSerializer serializer(m_ActiveScene);
-                        serializer.Deserialize("assets/scenes/Example.himii");
+                        std::string filePath= FileDialog::OpenFile("Himii Scene(*.himii)\0*.himii\0");
+
+                        if (!filePath.empty())
+                        {
+                            m_ActiveScene = CreateRef<Scene>();
+                            SceneSerializer serializer(m_ActiveScene);
+                            serializer.Deserialize(filePath);
+                            //m_ActiveScene->Clear();
+                            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+                            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+                        }
                     }
 
-                    if (ImGui::MenuItem("退出"))
+                    if (ImGui::MenuItem("Save As..", "Ctrl+Shift+S"))
+                    {
+                        std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
+                        if (!filePath.empty())
+                        {
+                            SceneSerializer serializer(m_ActiveScene);
+                            serializer.Serialize(filePath);
+                        }
+                    }
+
+                    if (ImGui::MenuItem("Quit"))
                         Himii::Application::Get().Close();
                     ImGui::EndMenu();
                 }

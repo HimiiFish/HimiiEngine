@@ -1,5 +1,4 @@
 #pragma once
-
 #include "SceneCamera.h"
 #include "Himii/Core/UUID.h"
 #include "Himii/Renderer/Texture.h"
@@ -58,8 +57,9 @@ namespace Himii
         CameraComponent() = default;
         CameraComponent(const CameraComponent &) = default;
     };
+
     struct SpriteRendererComponent {
-        glm::vec4 color{1.0f};
+        glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
         Ref<Texture2D> texture{};
         float tilingFactor = 1.0f;
 

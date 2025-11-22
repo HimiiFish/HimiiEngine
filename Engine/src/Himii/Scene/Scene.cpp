@@ -1,23 +1,14 @@
-#include "hepch.h"
 #include "Scene.h"
 #include "Entity.h"
+#include "hepch.h"
 
 #include "Components.h"
 #include "ScriptableEntity.h"
-//#include "Hazel/Scripting/ScriptEngine.h"
 #include "Himii/Renderer/Renderer2D.h"
-//#include "Himii/Physics/Physics2D.h"
 
 #include <glm/glm.hpp>
 
 #include "Entity.h"
-
-//// Box2D
-//#include "box2d/b2_world.h"
-//#include "box2d/b2_body.h"
-//#include "box2d/b2_fixture.h"
-//#include "box2d/b2_polygon_shape.h"
-//#include "box2d/b2_circle_shape.h"
 namespace Himii
 {
 
@@ -44,7 +35,7 @@ namespace Himii
     {
         if (!m_Registry.valid(e))
             return;
-        // 尝试移除 UUID -> entt::entity 映射，防止悬挂引用
+        
         if (auto *pid = m_Registry.try_get<IDComponent>(e))
         {
             auto it = m_EntityMap.find(pid->id);
@@ -73,15 +64,15 @@ namespace Himii
         glm::mat4 cameraTransform{1.0f};
         {
             auto view = m_Registry.view<TransformComponent, CameraComponent>();
-            for (auto [entity, transform, camera]: view.each())
-            {
-                if (camera.primary)
-                {
-                    mainCamera = &camera.camera;
-                    cameraTransform = transform.GetTransform();
-                    break;
-                }
-            }
+            view.each(
+                    [&](entt::entity entity, TransformComponent &transform, CameraComponent &camera)
+                    {
+                        if (camera.primary)
+                        {
+                            mainCamera = &camera.camera;
+                            cameraTransform = transform.GetTransform();
+                        }
+                    });
         }
 
         if (mainCamera)
@@ -185,7 +176,7 @@ namespace Himii
 
     //
     template<typename T>
-    void Scene::OnComponentAdded(Entity emtity, T& component)
+    void Scene::OnComponentAdded(Entity emtity, T &component)
     {
         static_cast(sizeof(T) == 0);
     }

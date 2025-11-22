@@ -1,4 +1,6 @@
 #pragma once
+
+#include <memory>
 #define BIT(x) (1 << x)
 
 #define PLATFORM_WINDOWS
@@ -7,7 +9,6 @@
 
 namespace Himii
 {
-    //智能指针
     template<typename T>
     using Scope = std::unique_ptr<T>;
     template<typename T, typename... Args>
@@ -16,7 +17,6 @@ namespace Himii
         return std::make_unique<T>(std::forward<Args>(args)...);
     }
 
-    //共享指针
     template<typename T>
     using Ref = std::shared_ptr<T>;
     template<typename T, typename... Args>

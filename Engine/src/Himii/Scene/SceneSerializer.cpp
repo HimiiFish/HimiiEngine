@@ -11,6 +11,27 @@
 namespace YAML
 {
     template<>
+    struct convert<glm::vec2> {
+        static Node encode(const glm::vec2 &rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+
+        static bool decode(const Node &node, glm::vec2 &rhs)
+        {
+            if (!node.IsSequence() || node.size() != 2)
+                return false;
+
+            rhs.x = node[0].as<float>();
+            rhs.y = node[1].as<float>();
+            return true;
+        }
+    };
+    template<>
     struct convert<glm::vec3> {
         static Node encode(const glm::vec3 &v)
         {
@@ -60,7 +81,7 @@ namespace YAML
             node.push_back((uint64_t)uuid);
             return node;
         }
-        static bool decode(const Node &node, Himii::UUID uuid)
+        static bool decode(const Node &node, Himii::UUID& uuid)
         {
             uuid = node.as<uint64_t>();
             return true;
@@ -78,6 +99,13 @@ namespace Himii
         return out;
     }
 
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec4 &v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.x << v.y << v.z <<v.w<< YAML::EndSeq;
+        return out;
+    }
+
     SceneSerializer::SceneSerializer(const Ref<Scene> &scene) : m_Scene(scene)
     {
     }
@@ -87,7 +115,7 @@ namespace Himii
         HIMII_CORE_ASSERT(entity.HasComponent<IDComponent>());
 
         out << YAML::BeginMap; // Entity
-        out << YAML::Key << "Entity" << YAML::Value << (uint64_t)entity.GetUUID();
+        out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID(); 
 
         if (entity.HasComponent<TagComponent>())
         {
@@ -117,7 +145,7 @@ namespace Himii
 
             out << YAML::Key << "Camera";
             out << YAML::BeginMap;
-            // out << YAML::Key << "ProjectionType" << YAML::Value << (int)cameraComp.camera.GetProjectionType();
+            out << YAML::Key << "ProjectionType" << YAML::Value << (int)cameraComp.camera.GetProjectionType();
             out << YAML::Key << "PerspectiveFOV" << YAML::Value << cameraComp.camera.GetPerspectiveVerticalFOV();
             out << YAML::Key << "PerspectiveNear" << YAML::Value << cameraComp.camera.GetPerspectiveNearClip();
             out << YAML::Key << "PerspectiveFar" << YAML::Value << cameraComp.camera.GetPerspectiveFarClip();
@@ -201,12 +229,12 @@ namespace Himii
                     name = tagComponent["Tag"].as<std::string>();
                 HIMII_CORE_WARNING("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
-                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(UUID(uuid), name);
+                Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid,name);
 
                 auto transformComponent = entity["TransformComponent"];
                 if (transformComponent)
                 {
-                    auto &tc = deserializedEntity.AddComponent<TransformComponent>();
+                    auto &tc = deserializedEntity.GetComponent<TransformComponent>();
                     tc.Position = transformComponent["Position"].as<glm::vec3>();
                     tc.Rotation = transformComponent["Rotation"].as<glm::vec3>();
                     tc.Scale = transformComponent["Scale"].as<glm::vec3>();
@@ -218,7 +246,7 @@ namespace Himii
                     auto &cc = deserializedEntity.AddComponent<CameraComponent>();
 
                     auto cameraProps = cameraComponent["Camera"];
-                    // cc.camera.SetProjectionType((Camera::ProjectionType)cameraProps["ProjectionType"].as<int>());
+                    cc.camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
                     cc.camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
                     cc.camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
