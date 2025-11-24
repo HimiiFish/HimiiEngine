@@ -6,6 +6,7 @@
 
 #include "Himii/Utils/PlatformUtils.h"
 #include "CamerController.h"
+#include "ImGuizmo.h"
 
 namespace Himii
 {
@@ -135,35 +136,17 @@ namespace Himii
                 {
                     if (ImGui::MenuItem("New..", "Ctrl+N"))
                     {
-                        m_ActiveScene = CreateRef<Scene>();
-                        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-                        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+                        NewScene();
                     }
 
                     if (ImGui::MenuItem("Open..", "Ctrl+O"))
                     {
-                        std::string filePath= FileDialog::OpenFile("Himii Scene(*.himii)\0*.himii\0");
-
-                        if (!filePath.empty())
-                        {
-                            m_ActiveScene = CreateRef<Scene>();
-                            SceneSerializer serializer(m_ActiveScene);
-                            serializer.Deserialize(filePath);
-                            //m_ActiveScene->Clear();
-                            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-                            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-                        }
+                        OpenScene();
                     }
 
                     if (ImGui::MenuItem("Save As..", "Ctrl+Shift+S"))
                     {
-                        std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
-                        if (!filePath.empty())
-                        {
-                            SceneSerializer serializer(m_ActiveScene);
-                            serializer.Serialize(filePath);
-                        }
+                        SaveSceneAs();
                     }
 
                     if (ImGui::MenuItem("Quit"))
@@ -195,6 +178,51 @@ namespace Himii
 
             uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
             ImGui::Image((void *)textureID, ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
+
+            //gizmos
+            Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+            if (selectEntity&&m_GizmoType!=-1)
+            {
+                ImGuizmo::SetOrthographic(true);
+                ImGuizmo::SetDrawlist();
+
+                float windowWidth = ImGui::GetWindowWidth();
+                float windowHeight = ImGui::GetWindowHeight();
+                ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth,windowHeight);
+                // camera
+                auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+                const auto &camera = cameraEntity.GetComponent<CameraComponent>().camera;
+                const glm::mat4 &cameraProjection = camera.GetProjection();
+                glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+
+                //Entity transform
+                auto &transformComponent = selectEntity.GetComponent<TransformComponent>();
+                glm::mat4 transform = transformComponent.GetTransform();
+
+                //snapping
+                bool snap = Input::IsKeyPressed(Key::LeftControl);
+                float snapValue = 0.5f; // translation snap
+                if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
+                    snapValue = 45.0f; // rotation snap
+                else if (m_GizmoType == ImGuizmo::OPERATION::SCALE)
+                    snapValue = 0.5f; // scale snap
+                float snapValues[3] = {snapValue, snapValue, snapValue};
+
+                ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)m_GizmoType,
+                                     ImGuizmo::LOCAL, glm::value_ptr(transform),nullptr,snap?snapValues:nullptr);
+
+                if (ImGuizmo::IsUsing())
+                {
+                    glm::vec3 translation, rotation, scale;
+                    Math::DecomposeTransform(transform, translation, rotation, scale);
+
+                    glm::vec3 deltaRotation = rotation - transformComponent.Rotation;
+                    transformComponent.Position = translation;
+                    transformComponent.Rotation += deltaRotation;
+                    transformComponent.Scale = scale;
+                }
+            }
+
             ImGui::End();
         }
     }
@@ -220,7 +248,7 @@ namespace Himii
             {
                 if (control)
                 {
-                    HIMII_CORE_INFO("新建场景");
+                    NewScene();
                 }
                 break;
             }
@@ -228,7 +256,7 @@ namespace Himii
             {
                 if (control)
                 {
-                    HIMII_CORE_INFO("打开场景");
+                    OpenScene();
                 }
                 break;
             }
@@ -236,12 +264,38 @@ namespace Himii
             {
                 if (control && shift)
                 {
-                    HIMII_CORE_INFO("场景另存为");
+                    SaveSceneAs();
                 }
                 else if (control)
                 {
                     HIMII_CORE_INFO("保存场景");
                 }
+                break;
+            }
+
+            // Gizmo
+            case Key::Q:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = -1;
+                break;
+            }
+            case Key::W:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
+                break;
+            }
+            case Key::E:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::ROTATE;
+                break;
+            }
+            case Key::R:
+            {
+                if (!ImGuizmo::IsUsing())
+                    m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
             }
         }
@@ -251,5 +305,47 @@ namespace Himii
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
     {
         return false;
+    }
+
+    void EditorLayer::NewScene()
+    {
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::OpenScene()
+    {
+        std::string filePath = FileDialog::OpenFile("Himii Scene(*.himii)\0*.himii\0");
+
+        if (!filePath.empty())
+        {
+            m_ActiveScene = CreateRef<Scene>();
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Deserialize(filePath);
+            // m_ActiveScene->Clear();
+            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        }
+    }
+
+    void EditorLayer::SaveScene()
+    {
+        std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
+        if (!filePath.empty())
+        {
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(filePath);
+        }
+    }
+
+    void EditorLayer::SaveSceneAs()
+    {
+        std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
+        if (!filePath.empty())
+        {
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Serialize(filePath);
+        }
     }
 } // namespace Himii

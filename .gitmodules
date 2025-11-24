@@ -6,3 +6,6 @@
 	path = Engine/vender/imgui
 	url = https://github.com/HimiiFish/imgui.git
 	branch = docking
+[submodule "Engine/vender/ImGuizmo"]
+	path = Engine/vender/ImGuizmo
+	url = https://github.com/HimiiFish/ImGuizmo.git

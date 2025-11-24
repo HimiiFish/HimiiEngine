@@ -20,6 +20,11 @@ namespace Himii
         bool OnKeyPressed(KeyPressedEvent &e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent &e);
 
+        void NewScene();
+        void OpenScene();
+        void SaveScene();
+        void SaveSceneAs();
+
     private:
         Ref<Scene> m_ActiveScene;
 
@@ -27,7 +32,6 @@ namespace Himii
         Entity m_CameraEntity;
 
         OrthographicCameraController m_CameraController;
-        SceneCamera m_SceneCamera;
 
         // 可选：后续可扩展纹理/渲染资源，这里最小示例仅用颜色方块
 
@@ -37,6 +41,7 @@ namespace Himii
         glm::vec2 m_ViewportSize = {0.0f, 0.0f};
         glm::vec4 m_SquareColor = {0.5f, 0.26f, 0.56f, 1.0f};
 
+        int m_GizmoType = -1;
 
         SceneHierarchyPanel m_SceneHierarchyPanel;
     };

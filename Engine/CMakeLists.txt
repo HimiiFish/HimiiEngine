@@ -41,10 +41,14 @@ file(GLOB_RECURSE HEADERS "src/*.h")
 
 
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/imgui")
+set(IMGUIZMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/ImGuizmo")
 
 # 检查 ImGui 目录是否存在
 if (NOT EXISTS "${IMGUI_DIR}")
     message(FATAL_ERROR "ImGui directory not found at ${IMGUI_DIR}. Please check your submodule path or clone.")
+endif()
+if (NOT EXISTS "${IMGUIZMO_DIR}")
+    message(FATAL_ERROR "ImGuizmo directory not found at ${IMGUIZMO_DIR}")
 endif()
 
 # ImGui 核心源文件
@@ -56,6 +60,10 @@ set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui_demo.cpp   # 如果需要 ImGui 示例窗口，可以包含
 )
 
+set(IMGUIZMO_SOURCES
+    ${IMGUIZMO_DIR}/ImGuizmo.cpp
+)
+
 set(IMGUI_BACKENDS
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
@@ -65,6 +73,7 @@ set(ENGINE_ALL_SOURCES
     ${HEADERS}
     ${IMGUI_SOURCES}
     ${IMGUI_BACKENDS}
+    ${IMGUIZMO_SOURCES}
 )
 
 # 添加源文件和头文件到Engine库
@@ -77,7 +86,7 @@ if(WIN32 AND BUILD_SHARED_LIBS)
     set_property(TARGET Engine PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends)
+target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR})
 
 target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp)
 

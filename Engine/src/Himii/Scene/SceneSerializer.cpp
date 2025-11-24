@@ -214,7 +214,6 @@ namespace Himii
             return false;
 
         std::string sceneName = data["Scene"].as<std::string>();
-        HIMII_CORE_WARNING("Deserializing scene: {0}", sceneName);
 
         auto entities = data["Entities"];
         if (entities)
@@ -227,7 +226,6 @@ namespace Himii
                 auto tagComponent = entity["TagComponent"];
                 if (tagComponent)
                     name = tagComponent["Tag"].as<std::string>();
-                HIMII_CORE_WARNING("Deserialized entity with ID = {0}, name = {1}", uuid, name);
 
                 Entity deserializedEntity = m_Scene->CreateEntityWithUUID(uuid,name);
 

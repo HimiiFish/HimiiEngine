@@ -6,11 +6,12 @@
 #include "Himii/Core/Layer.h"
 #include "Himii/Core/LayerStack.h"
 #include "Himii/Core/Window.h"
-#include "Himii/ImGui/ImGuiLayer.h"
 #include "Himii/Core/Core.h"
 #include "Himii/Core/KeyCodes.h"
 #include "Himii/Core/MouseCodes.h"
 #include "Himii/Core/Timestep.h"
+
+#include "Himii/ImGui/ImGuiLayer.h"
 
 //---------Renderer相关-----------
 #include "Himii/Renderer/Renderer.h"
@@ -34,3 +35,5 @@
 #include "Himii/Scene/Scene.h"
 #include "Himii/Scene/SceneSerializer.h"
 #include "Himii/Scene/ScriptableEntity.h"
+
+#include "Himii/Math/Math.h"
