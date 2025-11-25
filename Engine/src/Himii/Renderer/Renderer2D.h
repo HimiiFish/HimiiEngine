@@ -3,6 +3,7 @@
 #include "Himii/Renderer/Texture.h"
 
 #include "Himii/Scene/Components.h"
+#include "Himii/Renderer/EditorCamera.h"
 
 namespace Himii
 {
@@ -13,6 +14,7 @@ namespace Himii
         static void Shutdown();
 
         static void BeginScene(const OrthographicCamera &camera);
+        static void BeginScene(const EditorCamera &camera);
         static void BeginScene(const Camera &camera,const glm::mat4& transform);
         static void EndScene();
 

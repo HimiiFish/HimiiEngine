@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "Himii/Core/Timestep.h"
 #include "Himii/Core/UUID.h"
+#include "Himii/Renderer/EditorCamera.h"
 namespace Himii
 {
     class Entity;
@@ -25,7 +26,8 @@ namespace Himii
             return m_Registry;
         }
 
-        void OnUpdate(Timestep ts);
+        void OnUpdateEditor(Timestep ts,EditorCamera &camera);
+        void OnUpdateRuntime(Timestep ts);
 
         // 供编辑器渲染路径设置：使用外部提供的 ViewProjection 矩阵进行一次渲染
         // 传入 nullptr 关闭外部相机覆盖

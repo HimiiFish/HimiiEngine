@@ -2,6 +2,8 @@
 #include "Engine.h"
 #include "panel/SceneHierarchyPanel.h"
 
+#include "Himii/Renderer/EditorCamera.h"
+
 namespace Himii
 {
     class EditorLayer : public Himii::Layer {
@@ -32,6 +34,9 @@ namespace Himii
         Entity m_CameraEntity;
 
         OrthographicCameraController m_CameraController;
+        EditorCamera m_EditorCamera;
+
+        bool m_ViewportFocused = false;
 
         // 可选：后续可扩展纹理/渲染资源，这里最小示例仅用颜色方块
 

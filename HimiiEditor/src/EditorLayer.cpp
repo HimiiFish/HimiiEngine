@@ -25,6 +25,9 @@ namespace Himii
         FramebufferSpecification fbSpec{1280, 720};
         fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER, FramebufferFormat::Depth};
         m_Framebuffer = Framebuffer::Create(fbSpec);
+
+        m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
+
         //{
         //    m_SquareEntity = m_ActiveScene->CreateEntity("My Quad");
         //    m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
@@ -60,8 +63,14 @@ namespace Himii
         {
             m_Framebuffer->Resize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
-
+            m_EditorCamera.SetViewportSize(m_ViewportSize.x, m_ViewportSize.y);
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
+        }
+
+            m_EditorCamera.OnUpdate(ts);
+        if (m_ViewportFocused)
+        {
+
         }
 
         // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
@@ -75,7 +84,7 @@ namespace Himii
 
 
         HIMII_PROFILE_SCOPE("Renderer Draw");
-        m_ActiveScene->OnUpdate(ts);
+        m_ActiveScene->OnUpdateEditor(ts,m_EditorCamera);
 
         m_Framebuffer->Unbind();
     }
@@ -183,17 +192,22 @@ namespace Himii
             Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
             if (selectEntity&&m_GizmoType!=-1)
             {
-                ImGuizmo::SetOrthographic(true);
+                ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();
 
                 float windowWidth = ImGui::GetWindowWidth();
                 float windowHeight = ImGui::GetWindowHeight();
                 ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth,windowHeight);
-                // camera
-                auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+
+                // runtime camera
+                /*auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
                 const auto &camera = cameraEntity.GetComponent<CameraComponent>().camera;
                 const glm::mat4 &cameraProjection = camera.GetProjection();
-                glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());
+                glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());*/
+
+                //editor camera
+                const glm::mat4 &cameraProjection = m_EditorCamera.GetProjection();
+                glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
                 //Entity transform
                 auto &transformComponent = selectEntity.GetComponent<TransformComponent>();
@@ -230,6 +244,7 @@ namespace Himii
     void EditorLayer::OnEvent(Himii::Event &event)
     {
         m_CameraController.OnEvent(event);
+        m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));

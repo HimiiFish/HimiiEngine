@@ -57,7 +57,19 @@ namespace Himii
         m_Registry.destroy(e);
     }
 
-    void Scene::OnUpdate(Timestep ts)
+    void Scene::OnUpdateEditor(Timestep ts, EditorCamera &camera)
+    {
+        Renderer2D::BeginScene(camera);
+        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
+        for (auto entity: group)
+        {
+            auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
+            Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
+        }
+        Renderer2D::EndScene();
+    }
+
+    void Scene::OnUpdateRuntime(Timestep ts)
     {
 
         Camera *mainCamera = nullptr;

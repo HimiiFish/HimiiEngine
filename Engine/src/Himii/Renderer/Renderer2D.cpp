@@ -136,6 +136,17 @@ namespace Himii
         s_Data.TextureSlotIndex = 1;
     }
 
+    void Renderer2D::BeginScene(const EditorCamera& camera)
+    {
+        HIMII_PROFILE_FUNCTION();
+
+        s_Data.QuadShader->Bind();
+        s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjection());
+        s_Data.QuadShader->SetMat4("u_Transform", glm::mat4(1.0f));
+
+        StartBatch();
+    }
+
     void Renderer2D::BeginScene(const Camera& camera, const glm::mat4& transform)
     {
         HIMII_PROFILE_FUNCTION();
@@ -146,10 +157,7 @@ namespace Himii
 
         s_Data.QuadShader->SetMat4("u_Transform", glm::mat4(1.0f));
 
-        s_Data.QuadIndexCount = 0;
-        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
-        s_Data.TextureSlotIndex = 1;
+        StartBatch();
     }
 
     void Renderer2D::EndScene()
@@ -164,18 +172,24 @@ namespace Himii
 
     void Renderer2D::Flush()
     {
-        for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+        if (s_Data.QuadIndexCount)
         {
-            s_Data.TextureSlots[i]->Bind(i);
+            uint32_t dataSize =
+                    (uint32_t)((uint8_t *)s_Data.QuadVertexBufferPtr - (uint8_t *)s_Data.QuadVertexBufferBase);
+            s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, dataSize);
+
+            // Bind textures
+            for (uint32_t i = 0; i < s_Data.TextureSlotIndex; i++)
+                s_Data.TextureSlots[i]->Bind(i);
+
+            s_Data.QuadShader->Bind();
+            RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
+            s_Data.Stats.DrawCalls++;
         }
 
-        // s_Data.QuadShader->Bind();
-        RenderCommand::DrawIndexed(s_Data.QuadVertexArray, s_Data.QuadIndexCount);
-        s_Data.Stats.DrawCalls++;
     }
     void Renderer2D::StartBatch()
     {
-        EndScene();
 
         s_Data.QuadIndexCount = 0;
         s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
@@ -186,6 +200,7 @@ namespace Himii
     // Some paths request a new batch when buffers/textures reach capacity
     void Renderer2D::NextBatch()
     {
+        Flush();
         StartBatch();
     }
 
