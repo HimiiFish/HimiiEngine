@@ -72,7 +72,7 @@ namespace Himii
             return false;
         }
 
-        static GLenum HimiiFBFormatToGL(FramebufferFormat format)
+        static GLenum HimiiFBTextureFormatToGL(FramebufferFormat format)
         {
             switch (format)
             {
@@ -221,7 +221,7 @@ namespace Himii
         HIMII_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size());
 
         auto &spec = m_ColorAttachmentSpecifications[attachmentIndex];
-        glClearTexImage(m_ColorAttachments[attachmentIndex], 0, Utils::HimiiFBFormatToGL(spec.TextureFormat),
+        glClearTexImage(m_ColorAttachments[attachmentIndex], 0, Utils::HimiiFBTextureFormatToGL(spec.TextureFormat),
                         GL_INT, &value);
     }
 } // namespace Himii

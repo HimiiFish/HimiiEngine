@@ -113,12 +113,12 @@ namespace Himii
             std::string &source = kv.second;
 
             GLuint shader = glCreateShader(type);
-            // ÉèÖÃ×ÅÉ«Æ÷Ô´Âë
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½Ô´ï¿½ï¿½
             const GLchar *SourceCStr = source.c_str();
             glShaderSource(shader, 1, &SourceCStr, 0);
-            // ±àÒë×ÅÉ«Æ÷
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É«ï¿½ï¿½
             glCompileShader(shader);
-            // ¼ì²é±àÒë´íÎó
+            // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             int success=0;
             glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if (success==GL_FALSE)

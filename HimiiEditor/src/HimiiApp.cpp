@@ -1,6 +1,7 @@
+#include "EditorLayer.h"
 #include "Engine.h"
 #include "Himii/Core/EntryPoint.h"
-#include "EditorLayer.h"
+
 
 #include <iostream>
 
@@ -19,8 +20,8 @@ namespace Himii
         }
     };
 
-   Application *CreateApplication()
+    Application *CreateApplication()
     {
         return new HimiiApp();
     }
-}
+} // namespace Himii

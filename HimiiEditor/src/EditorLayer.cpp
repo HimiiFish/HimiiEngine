@@ -4,8 +4,8 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include "Himii/Utils/PlatformUtils.h"
 #include "CamerController.h"
+#include "Himii/Utils/PlatformUtils.h"
 #include "ImGuizmo.h"
 
 namespace Himii
@@ -55,7 +55,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        //m_CameraController.OnUpdate(ts);
+        // m_CameraController.OnUpdate(ts);
 
         if (FramebufferSpecification spec = m_Framebuffer->GetSpecification();
             m_ViewportSize.x > 0.0f && m_ViewportSize.y > 0.0f &&
@@ -67,10 +67,9 @@ namespace Himii
             m_ActiveScene->OnViewportResize(m_ViewportSize.x, m_ViewportSize.y);
         }
 
-            m_EditorCamera.OnUpdate(ts);
+        m_EditorCamera.OnUpdate(ts);
         if (m_ViewportFocused)
         {
-
         }
 
         // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
@@ -84,7 +83,22 @@ namespace Himii
 
 
         HIMII_PROFILE_SCOPE("Renderer Draw");
-        m_ActiveScene->OnUpdateEditor(ts,m_EditorCamera);
+        m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
+
+        auto [mx, my] = ImGui::GetMousePos();
+        mx -= m_ViewportBounds[0].x;
+        my -= m_ViewportBounds[0].y;
+        glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+        my = viewportSize.y - my;
+        int mouseX = (int)mx;
+        int mouseY = (int)my;
+
+        if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
+        {
+            int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
+            HIMII_CORE_INFO("pixel data = {0}", pixelData);
+            m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
+        }
 
         m_Framebuffer->Unbind();
     }
@@ -166,6 +180,8 @@ namespace Himii
             }
             ImGui::End();
 
+            m_SceneHierarchyPanel.OnImGuiRender();
+
             ImGui::Begin("Stats");
             auto stats = Himii::Renderer2D::GetStatistics();
             ImGui::Text("Renderer2D Stats:");
@@ -175,9 +191,17 @@ namespace Himii
             ImGui::Text("Index Count: %d", stats.GetTotalIndexCount());
             ImGui::End();
 
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
             ImGui::Begin("ViewPort");
+            auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+            auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+            auto viewportOffset = ImGui::GetWindowPos();
+            m_ViewportBounds[0] = {viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y};
+            m_ViewportBounds[1] = {viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y};
 
-            m_SceneHierarchyPanel.OnImGuiRender();
+            m_ViewportFocused = ImGui::IsWindowFocused();
+            m_ViewportHovered = ImGui::IsWindowHovered();
+            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered);
 
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             if (m_ViewportSize != *((glm::vec2 *)&viewportPanelSize))
@@ -185,19 +209,20 @@ namespace Himii
                 m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
             }
 
-            uint32_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
-            ImGui::Image((void *)textureID, ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1), ImVec2(1, 0));
+            uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+            ImGui::Image(reinterpret_cast<void *>(textureID), ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1),
+                         ImVec2(1, 0));
 
-            //gizmos
+            // gizmos
             Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
-            if (selectEntity&&m_GizmoType!=-1)
+            if (selectEntity && m_GizmoType != -1)
             {
                 ImGuizmo::SetOrthographic(false);
                 ImGuizmo::SetDrawlist();
 
                 float windowWidth = ImGui::GetWindowWidth();
                 float windowHeight = ImGui::GetWindowHeight();
-                ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth,windowHeight);
+                ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
                 // runtime camera
                 /*auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
@@ -205,15 +230,15 @@ namespace Himii
                 const glm::mat4 &cameraProjection = camera.GetProjection();
                 glm::mat4 cameraView = glm::inverse(cameraEntity.GetComponent<TransformComponent>().GetTransform());*/
 
-                //editor camera
+                // editor camera
                 const glm::mat4 &cameraProjection = m_EditorCamera.GetProjection();
                 glm::mat4 cameraView = m_EditorCamera.GetViewMatrix();
 
-                //Entity transform
+                // Entity transform
                 auto &transformComponent = selectEntity.GetComponent<TransformComponent>();
                 glm::mat4 transform = transformComponent.GetTransform();
 
-                //snapping
+                // snapping
                 bool snap = Input::IsKeyPressed(Key::LeftControl);
                 float snapValue = 0.5f; // translation snap
                 if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
@@ -222,8 +247,9 @@ namespace Himii
                     snapValue = 0.5f; // scale snap
                 float snapValues[3] = {snapValue, snapValue, snapValue};
 
-                ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection), (ImGuizmo::OPERATION)m_GizmoType,
-                                     ImGuizmo::LOCAL, glm::value_ptr(transform),nullptr,snap?snapValues:nullptr);
+                ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
+                                     (ImGuizmo::OPERATION)m_GizmoType, ImGuizmo::LOCAL, glm::value_ptr(transform),
+                                     nullptr, snap ? snapValues : nullptr);
 
                 if (ImGuizmo::IsUsing())
                 {
@@ -236,6 +262,9 @@ namespace Himii
                     transformComponent.Scale = scale;
                 }
             }
+
+            // ImGui::End();
+            ImGui::PopStyleVar();
 
             ImGui::End();
         }
@@ -319,6 +348,11 @@ namespace Himii
 
     bool EditorLayer::OnMouseButtonPressed(MouseButtonPressedEvent &e)
     {
+        if (e.GetMouseButton() == Mouse::ButtonLeft)
+        {
+            if (m_ViewportHovered && !ImGuizmo::IsOver() && !Input::IsKeyPressed(Key::LeftAlt))
+                m_SceneHierarchyPanel.SetSelectedEntity(m_HoveredEntity);
+        }
         return false;
     }
 

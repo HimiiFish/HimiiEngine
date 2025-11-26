@@ -33,10 +33,12 @@ namespace Himii
         Entity m_SquareEntity;
         Entity m_CameraEntity;
 
+        Entity m_HoveredEntity;
+
         OrthographicCameraController m_CameraController;
         EditorCamera m_EditorCamera;
 
-        bool m_ViewportFocused = false;
+        bool m_ViewportFocused = false, m_ViewportHovered = false;
 
         // 可选：后续可扩展纹理/渲染资源，这里最小示例仅用颜色方块
 
@@ -44,6 +46,8 @@ namespace Himii
         Ref<Framebuffer> m_Framebuffer;
 
         glm::vec2 m_ViewportSize = {0.0f, 0.0f};
+        glm::vec2 m_ViewportBounds[2];
+
         glm::vec4 m_SquareColor = {0.5f, 0.26f, 0.56f, 1.0f};
 
         int m_GizmoType = -1;

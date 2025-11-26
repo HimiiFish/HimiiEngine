@@ -56,7 +56,7 @@ namespace Himii
         {
         }
 
-        uint32_t GetCompomentCount() const
+        uint32_t GetComponentCount() const
         {
             switch (Type)
             {

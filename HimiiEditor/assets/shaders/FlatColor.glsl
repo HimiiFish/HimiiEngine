@@ -3,8 +3,8 @@
 
 layout(location = 0) in vec3 a_Position;
 
-uniform mat4 u_ViewProjection; // ÊÓÍ¼Í¶Ó°¾ØÕó
-uniform mat4 u_Transform; // ±ä»»¾ØÕó
+uniform mat4 u_ViewProjection; // ï¿½ï¿½Í¼Í¶Ó°ï¿½ï¿½ï¿½ï¿½
+uniform mat4 u_Transform; // ï¿½ä»»ï¿½ï¿½ï¿½ï¿½
 
 out vec2 v_TexCoord;
 
@@ -18,7 +18,7 @@ void main()
 
 layout(location=0) out vec4 color;
 
-uniform vec4 u_Color; // ÑÕÉ«
+uniform vec4 u_Color; // ï¿½ï¿½É«
 
 void main()
 {
