@@ -28,6 +28,10 @@ find_package(yaml-cpp CONFIG REQUIRED)
 if(NOT yaml-cpp_FOUND)
     message(FATAL_ERROR "yaml-cpp not found. Please ensure it is installed via vcpkg.")
 endif ()
+find_package(Vulkan REQUIRED)
+if(NOT Vulkan_FOUND)
+    message(FATAL_ERROR "Vulkan not found. Please ensure it is installed via vcpkg.")
+endif ()
 
 # 设置OpenGL的首选项
 cmake_policy(SET CMP0072 NEW)
@@ -88,7 +92,7 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR})
 
-target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp)
+target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp Vulkan)
 
 # 启用 GLM 实验特性（如 gtx/component_wise），避免各 TU 单独定义宏
 target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)
