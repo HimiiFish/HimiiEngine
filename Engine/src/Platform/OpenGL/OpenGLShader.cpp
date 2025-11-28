@@ -1,29 +1,114 @@
 #include "Hepch.h"
-#include "Himii/Core/Log.h"
 #include "Platform/OpenGL/OpenGLShader.h"
+
 #include "fstream"
+#include "filesystem"
+#include "glad/glad.h"
+
 #include "glm/gtc/type_ptr.hpp"
+
+#include "shaderc/shaderc.hpp"
+#include "spirv_cross/spirv_cross.hpp"
+#include "spirv_cross/spirv_glsl.hpp"
+
+#include "Himii/Core/Timer.h"
 
 namespace Himii
 {
-    static GLenum ShaderTypeFromString(const std::string &type)
+    namespace Utils
     {
-        if (type == "vertex")
-            return GL_VERTEX_SHADER;
-        if (type == "fragment" || type == "pixel")
-            return GL_FRAGMENT_SHADER;
+        static GLenum ShaderTypeFromString(const std::string &type)
+        {
+            if (type == "vertex")
+                return GL_VERTEX_SHADER;
+            if (type == "fragment" || type == "pixel")
+                return GL_FRAGMENT_SHADER;
 
-        HIMII_CORE_ASSERT(false, "Unknown shader type!");
-        return 0;
+            HIMII_CORE_ASSERT(false, "Unknown shader type!");
+            return 0;
+        }
+
+        static shaderc_shader_kind GLShaderStageToShaderC(GLenum stage)
+        {
+            switch (stage)
+            {
+                case GL_VERTEX_SHADER:
+                    return shaderc_glsl_vertex_shader;
+                case GL_FRAGMENT_SHADER:
+                    return shaderc_glsl_fragment_shader;
+            }
+            HIMII_CORE_ASSERT(false, "Unknown GL shader type!");
+            return (shaderc_shader_kind)0;
+        }
+
+        static const char *GLShaderStageToString(GLenum stage)
+        {
+            switch (stage)
+            {
+                case GL_VERTEX_SHADER:
+                    return "GL_VERTEX_SHADER";
+                case GL_FRAGMENT_SHADER:
+                    return "GL_FRAGMENT_SHADER";
+            }
+            HIMII_CORE_ASSERT(false);
+            return nullptr;
+        }
+
+        static char *GetCacheDirectory()
+        {
+            return "assets/cache/shader/opengl";
+        }
+
+        static void CreateCacheDirectoryIfNeeded()
+        {
+            std::string cacheDirectory = GetCacheDirectory();
+            if (!std::filesystem::exists(cacheDirectory))
+                std::filesystem::create_directories(cacheDirectory);
+        }
+
+        static const char *GLShaderStageCachedOpenGLFileExtension(uint32_t stage)
+        {
+            switch (stage)
+            {
+                case GL_VERTEX_SHADER:
+                    return ".cached_opengl.vert";
+                case GL_FRAGMENT_SHADER:
+                    return ".cached_opengl.frag";
+            }
+            HIMII_CORE_ASSERT(false);
+            return "";
+        }
+
+        static const char *GLShaderStageCachedVulkanFileExtension(uint32_t stage)
+        {
+            switch (stage)
+            {
+                case GL_VERTEX_SHADER:
+                    return ".cached_vulkan.vert";
+                case GL_FRAGMENT_SHADER:
+                    return ".cached_vulkan.frag";
+            }
+            HIMII_CORE_ASSERT(false);
+            return "";
+        }
     }
 
-    OpenGLShader::OpenGLShader(const std::string &filepath)
+    OpenGLShader::OpenGLShader(const std::string &filepath) : m_FilePath(filepath)
     {
         HIMII_PROFILE_FUNCTION();
 
-        std::string shaderSource = ReadFile(filepath);
-        auto shaderSources = PreProcess(shaderSource);
-        Compile(shaderSources);
+        Utils::CreateCacheDirectoryIfNeeded();
+
+        std::string source = ReadFile(filepath);
+        auto shaderSources = PreProcess(source);
+
+        {
+            Timer timer;
+            CompileOrGetVulkanBinaries(shaderSources);
+            CompileOrGetOpenGLBinaries();
+            CreateProgram();
+            HIMII_CORE_WARNING("OpenGL shader creation took {0} ms", timer.ElapsedMillis());
+        }
 
         // Extract Name from filepath
         auto lastSlash = filepath.find_last_of("/\\");
@@ -32,6 +117,7 @@ namespace Himii
         auto count = lastDot == std::string::npos ? filepath.size() - lastSlash : lastDot - lastSlash;
         m_Name = filepath.substr(lastSlash, count);
     }
+
     OpenGLShader::OpenGLShader(const std::string &name, const std::string &vertexSource,
                                const std::string &fragmentSource) : m_Name(name)
     {
@@ -40,7 +126,10 @@ namespace Himii
         std::unordered_map<GLenum, std::string> sources;
         sources[GL_VERTEX_SHADER] = vertexSource;
         sources[GL_FRAGMENT_SHADER] = fragmentSource;
-        Compile(sources);
+        
+        CompileOrGetVulkanBinaries(sources);
+        CompileOrGetOpenGLBinaries();
+        CreateProgram();
     }
 
     OpenGLShader::~OpenGLShader()
@@ -86,85 +175,204 @@ namespace Himii
             HIMII_CORE_ASSERT(eol != std::string::npos, "Syntax error");
             size_t begin = pos + typeTokenLength + 1; // Start of shader type name (after "#type " keyword)
             std::string type = source.substr(begin, eol - begin);
-            HIMII_CORE_ASSERT(ShaderTypeFromString(type), "Invalid shader type specified");
+            HIMII_CORE_ASSERT(Utils::ShaderTypeFromString(type), "Invalid shader type specified");
 
             size_t nextLinePos =
                     source.find_first_not_of("\r\n", eol); // Start of shader code after shader type declaration line
             HIMII_CORE_ASSERT(nextLinePos != std::string::npos, "Syntax error");
             pos = source.find(typeToken, nextLinePos); // Start of next shader type declaration line
 
-            shaderSources[ShaderTypeFromString(type)] =
+            shaderSources[Utils::ShaderTypeFromString(type)] =
                     source.substr(nextLinePos, pos - (nextLinePos == std::string::npos?source.size()-1:nextLinePos));
         }
 
         return shaderSources;
     }
 
-    void OpenGLShader::Compile(std::unordered_map<GLenum, std::string> &shaderSources)
+    void OpenGLShader::CompileOrGetVulkanBinaries(const std::unordered_map<GLenum, std::string> &shaderSources)
     {
-        GLint program = glCreateProgram();
-        HIMII_CORE_ASSERT(shaderSources.size() <= 2, "We only support 2 shaders for now");
-        std::array<GLenum, 2> glShaderIDs;
-        int glShaderIDIndex = 0;
+        GLuint program = glCreateProgram();
 
-        for (auto &kv: shaderSources)
+        shaderc::Compiler compiler;
+        shaderc::CompileOptions options;
+        options.SetTargetEnvironment(shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_2);
+        const bool optimize = true;
+        if (optimize)
+            options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+        std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+
+        auto &shaderData = m_VulkanSPIRV;
+        shaderData.clear();
+        for (auto &&[stage, source]: shaderSources)
         {
-            GLenum type = kv.first;
-            std::string &source = kv.second;
+            std::filesystem::path shaderFilePath = m_FilePath;
+            std::filesystem::path cachedPath = cacheDirectory / (shaderFilePath.filename().string() +
+                                                                 Utils::GLShaderStageCachedVulkanFileExtension(stage));
 
-            GLuint shader = glCreateShader(type);
-            // ������ɫ��Դ��
-            const GLchar *SourceCStr = source.c_str();
-            glShaderSource(shader, 1, &SourceCStr, 0);
-            // ������ɫ��
-            glCompileShader(shader);
-            // ���������
-            int success=0;
-            glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-            if (success==GL_FALSE)
+            bool loadedFromCache = false;   // 引入标志位
+            auto &data = shaderData[stage]; // 创建引用
+
+            std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
+            if (in.is_open())
             {
-                GLint maxLength = 0;
-                glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+                in.seekg(0, std::ios::end);
+                auto size = in.tellg();
+                in.seekg(0, std::ios::beg);
 
-                std::vector<GLchar> infoLog(maxLength);
-                glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
-
-                glDeleteShader(shader);
-
-                HIMII_CORE_ERROR("{0}", infoLog.data());
-                HIMII_CORE_ASSERT(false, "Shader compilation failure!");
-                break;
+                auto &data = shaderData[stage];
+                data.resize(size / sizeof(uint32_t));
+                in.read((char *)data.data(), size);
             }
-            glAttachShader(program, shader);
-            glShaderIDs[glShaderIDIndex++]=shader;
+            else
+            {
+                shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(
+                        source, Utils::GLShaderStageToShaderC(stage), m_FilePath.c_str(), options);
+                if (module.GetCompilationStatus() != shaderc_compilation_status_success)
+                {
+                    HIMII_CORE_ERROR(module.GetErrorMessage());
+                    HIMII_CORE_ASSERT(false);
+                }
+
+                shaderData[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
+
+                std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
+                if (out.is_open())
+                {
+                    auto &data = shaderData[stage];
+                    out.write((char *)data.data(), data.size() * sizeof(uint32_t));
+                    out.flush();
+                    out.close();
+                }
+            }
         }
 
-        m_RendererID = program;
+        for (auto &&[stage, data]: shaderData)
+            Reflect(stage, data);
+    }
+
+    void OpenGLShader::CompileOrGetOpenGLBinaries()
+    {
+        auto &shaderData = m_OpenGLSPIRV;
+
+        shaderc::Compiler compiler;
+        shaderc::CompileOptions options;
+        options.SetTargetEnvironment(shaderc_target_env_opengl, shaderc_env_version_opengl_4_5);
+        const bool optimize = false;
+        if (optimize)
+            options.SetOptimizationLevel(shaderc_optimization_level_performance);
+
+        std::filesystem::path cacheDirectory = Utils::GetCacheDirectory();
+
+        shaderData.clear();
+        m_OpenGLSourceCode.clear();
+        for (auto &&[stage, spirv]: m_VulkanSPIRV)
+        {
+            std::filesystem::path shaderFilePath = m_FilePath;
+            std::filesystem::path cachedPath = cacheDirectory / (shaderFilePath.filename().string() +
+                                                                 Utils::GLShaderStageCachedOpenGLFileExtension(stage));
+
+            std::ifstream in(cachedPath, std::ios::in | std::ios::binary);
+            if (in.is_open())
+            {
+                in.seekg(0, std::ios::end);
+                auto size = in.tellg();
+                in.seekg(0, std::ios::beg);
+
+                auto &data = shaderData[stage];
+                data.resize(size / sizeof(uint32_t));
+                in.read((char *)data.data(), size);
+            }
+            else
+            {
+                spirv_cross::CompilerGLSL glslCompiler(spirv);
+                m_OpenGLSourceCode[stage] = glslCompiler.compile();
+                auto &source = m_OpenGLSourceCode[stage];
+
+                shaderc::SpvCompilationResult module =
+                        compiler.CompileGlslToSpv(source, Utils::GLShaderStageToShaderC(stage), m_FilePath.c_str());
+                if (module.GetCompilationStatus() != shaderc_compilation_status_success)
+                {
+                    HIMII_CORE_ERROR(module.GetErrorMessage());
+                    HIMII_CORE_ASSERT(false);
+                }
+
+                shaderData[stage] = std::vector<uint32_t>(module.cbegin(), module.cend());
+
+                std::ofstream out(cachedPath, std::ios::out | std::ios::binary);
+                if (out.is_open())
+                {
+                    auto &data = shaderData[stage];
+                    out.write((char *)data.data(), data.size() * sizeof(uint32_t));
+                    out.flush();
+                    out.close();
+                }
+            }
+        }
+    }
+
+    void OpenGLShader::CreateProgram()
+    {
+        GLuint program = glCreateProgram();
+
+        std::vector<GLuint> shaderIDs;
+        for (auto &&[stage, spirv]: m_OpenGLSPIRV)
+        {
+            GLuint shaderID = shaderIDs.emplace_back(glCreateShader(stage));
+            glShaderBinary(1, &shaderID, GL_SHADER_BINARY_FORMAT_SPIR_V, spirv.data(), spirv.size() * sizeof(uint32_t));
+            glSpecializeShader(shaderID, "main", 0, nullptr, nullptr);
+            glAttachShader(program, shaderID);
+        }
+
         glLinkProgram(program);
 
-        GLint isLinked = 0;
-        glGetProgramiv(program, GL_LINK_STATUS, (int *)&isLinked);
+        GLint isLinked;
+        glGetProgramiv(program, GL_LINK_STATUS, &isLinked);
         if (isLinked == GL_FALSE)
         {
-            GLint maxLength = 0;
+            GLint maxLength;
             glGetProgramiv(program, GL_INFO_LOG_LENGTH, &maxLength);
 
             std::vector<GLchar> infoLog(maxLength);
-            glGetProgramInfoLog(program, maxLength, &maxLength, &infoLog[0]);
+            glGetProgramInfoLog(program, maxLength, &maxLength, infoLog.data());
+            HIMII_CORE_ERROR("Shader linking failed ({0}):\n{1}", m_FilePath, infoLog.data());
 
             glDeleteProgram(program);
-            for (auto id: glShaderIDs)
-            {
+
+            for (auto id: shaderIDs)
                 glDeleteShader(id);
-            }
-            HIMII_CORE_ERROR("{0}", infoLog.data());
-            HIMII_CORE_ASSERT(false, "Shader link failure!");
-            return;
         }
 
-        for (auto id: glShaderIDs)
+        for (auto id: shaderIDs)
         {
             glDetachShader(program, id);
+            glDeleteShader(id);
+        }
+
+        m_RendererID = program;
+    }
+
+    void OpenGLShader::Reflect(GLenum stage, const std::vector<uint32_t> &shaderData)
+    {
+        spirv_cross::Compiler compiler(shaderData);
+        spirv_cross::ShaderResources resources = compiler.get_shader_resources();
+
+        HIMII_CORE_TRACE("OpenGLShader::Reflect - {0} {1}", Utils::GLShaderStageToString(stage), m_FilePath);
+        HIMII_CORE_TRACE("    {0} uniform buffers", resources.uniform_buffers.size());
+        HIMII_CORE_TRACE("    {0} resources", resources.sampled_images.size());
+
+        HIMII_CORE_TRACE("Uniform buffers:");
+        for (const auto &resource: resources.uniform_buffers)
+        {
+            const auto &bufferType = compiler.get_type(resource.base_type_id);
+            uint32_t bufferSize = compiler.get_declared_struct_size(bufferType);
+            uint32_t binding = compiler.get_decoration(resource.id, spv::DecorationBinding);
+            int memberCount = bufferType.member_types.size();
+
+            HIMII_CORE_TRACE("  {0}", resource.name);
+            HIMII_CORE_TRACE("    Size = {0}", bufferSize);
+            HIMII_CORE_TRACE("    Binding = {0}", binding);
+            HIMII_CORE_TRACE("    Members = {0}", memberCount);
         }
     }
 

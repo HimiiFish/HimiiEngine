@@ -9,6 +9,9 @@
     "stb",
     "yaml-cpp",
     "entt",
-    "vulkan"
+    "vulkan",
+    "shaderc",
+    "spirv-cross",
+    "spirv-tools"
   ]
 }

@@ -33,6 +33,14 @@ if(NOT Vulkan_FOUND)
     message(FATAL_ERROR "Vulkan not found. Please ensure it is installed via vcpkg.")
 endif ()
 
+find_package(unofficial-shaderc CONFIG REQUIRED)
+
+# SPIRV-Cross
+# vcpkg 将其拆分为不同的组件，核心和GLSL通常是必须的
+find_package(spirv_cross_core CONFIG REQUIRED)
+find_package(spirv_cross_glsl CONFIG REQUIRED)
+find_package(SPIRV-Tools CONFIG REQUIRED)
+
 # 设置OpenGL的首选项
 cmake_policy(SET CMP0072 NEW)
 set(OpenGL_GL_PREFERENCE GLVND)
@@ -92,7 +100,7 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR})
 
-target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp Vulkan)
+target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp Vulkan::Vulkan unofficial::shaderc::shaderc spirv-cross-core spirv-cross-glsl SPIRV-Tools-static)
 
 # 启用 GLM 实验特性（如 gtx/component_wise），避免各 TU 单独定义宏
 target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)

@@ -9,7 +9,7 @@ namespace Himii
 {
     class HimiiApp : public Application {
     public:
-        HimiiApp()
+        HimiiApp(ApplicationCommandLineArgs args) : Application("Himii Editor", args)
         {
             PushOverlay(new EditorLayer());
         }
@@ -20,8 +20,8 @@ namespace Himii
         }
     };
 
-    Application *CreateApplication()
+    Application *CreateApplication(ApplicationCommandLineArgs args)
     {
-        return new HimiiApp();
+        return new HimiiApp(args);
     }
 } // namespace Himii

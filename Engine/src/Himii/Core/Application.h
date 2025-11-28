@@ -11,10 +11,22 @@
 
 namespace Himii
 {
+    struct  ApplicationCommandLineArgs 
+    {
+        int Count = 0;
+        char **Args = nullptr;
+
+        const char *operator[](int index) const
+        {
+            HIMII_CORE_ASSERT(index < Count);
+            return Args[index];
+        }
+    };
+
     class Application 
     {
     public:
-        Application();
+        Application(const std::string &name = "Himii",ApplicationCommandLineArgs args=ApplicationCommandLineArgs());
         virtual ~Application();
 
         void OnEvent(Event &e);
@@ -39,6 +51,11 @@ namespace Himii
             return *s_Instance;
         }
 
+        ApplicationCommandLineArgs GetCommandLineArgs() const
+        {
+            return m_CommandLineArgs;
+        }
+
         void Run();
 
     // 暴露 LayerStack 只读访问（用于层间简单通信）
@@ -54,9 +71,10 @@ namespace Himii
         LayerStack m_LayerStack;
         Scope<Window> m_Window;
         ImGuiLayer *m_ImGuiLayer;
+        ApplicationCommandLineArgs m_CommandLineArgs;
 
     private:
         static Application *s_Instance;
     };
-    Application* CreateApplication();
+    Application* CreateApplication(ApplicationCommandLineArgs args);
 }

@@ -3,8 +3,11 @@
 #include "Himii/Renderer/Renderer2D.h"
 #include "Himii/Renderer/RenderCommand.h"
 #include "Himii/Renderer/Shader.h"
+#include "Himii/Renderer/UniformBuffer.h"
 #include "Himii/Renderer/VertexArray.h"
+
 #include "glm/gtc/matrix_transform.hpp"
+#include "glm/gtc/type_ptr.hpp"
 
 namespace Himii
 {
@@ -46,6 +49,7 @@ namespace Himii
             glm::mat4 ViewProjection;
         };
         CameraData CameraBuffer;
+        Ref<UniformBuffer> CameraUniformBuffer;
     };
 
     static Renderer2DData s_Data;
@@ -106,8 +110,6 @@ namespace Himii
 
         //  锟斤拷锟斤拷锟斤拷色锟斤拷锟斤拷锟斤拷
         s_Data.QuadShader = Shader::Create("assets/shaders/Texture.glsl");
-        s_Data.QuadShader->Bind();
-        s_Data.QuadShader->SetIntArray("u_Texture", samplers, s_Data.MaxTextureSlots);
 
         s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 
@@ -115,10 +117,13 @@ namespace Himii
         s_Data.QuadVertexPositions[1] = {0.5f, -0.5f, 0.0f, 1.0f};
         s_Data.QuadVertexPositions[2] = {0.5f, 0.5f, 0.0f, 1.0f};
         s_Data.QuadVertexPositions[3] = {-0.5f, 0.5f, 0.0f, 1.0f};
+
+        s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer2DData::CameraData), 0);
     }
     void Renderer2D::Shutdown()
     {
         HIMII_PROFILE_FUNCTION();
+
 
         delete[] s_Data.QuadVertexBufferBase;
     }
@@ -140,9 +145,8 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        s_Data.QuadShader->Bind();
-        s_Data.QuadShader->SetMat4("u_ViewProjection", camera.GetViewProjection());
-        s_Data.QuadShader->SetMat4("u_Transform", glm::mat4(1.0f));
+        s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * camera.GetViewMatrix();
+        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
         StartBatch();
     }
@@ -151,11 +155,8 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        glm::mat4 viewProj = camera.GetProjection() * glm::inverse(transform);
-        s_Data.QuadShader->Bind();
-        s_Data.QuadShader->SetMat4("u_ViewProjection", viewProj);
-
-        s_Data.QuadShader->SetMat4("u_Transform", glm::mat4(1.0f));
+        s_Data.CameraBuffer.ViewProjection = camera.GetProjection();
+        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
         StartBatch();
     }

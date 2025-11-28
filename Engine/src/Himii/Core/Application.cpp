@@ -3,16 +3,17 @@
 #include "Himii/Renderer/Renderer.h"
 #include <GLFW/glfw3.h>
 
+
 namespace Himii
 {
     Application *Application::s_Instance = nullptr;
 
-    Application::Application() 
+    Application::Application(const std::string &name, ApplicationCommandLineArgs args) : m_CommandLineArgs(args)
     {
         HIMII_PROFILE_FUNCTION();
 
         s_Instance = this;
-        m_Window = Window::Create();
+        m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();

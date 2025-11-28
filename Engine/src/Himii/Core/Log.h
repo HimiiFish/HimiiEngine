@@ -7,9 +7,11 @@
 namespace Himii
 {
     enum class LogLevel {
+        Trace,
         Info,
         Warning,
         Error,
+        Core_Trace,
         Core_Info,
         Core_Warning,
         Core_Error
@@ -54,11 +56,14 @@ namespace Himii
 } // namespace Himii
 
 // Core
+
+#define HIMII_CORE_TRACE(fmt, ...)      ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Trace, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_CORE_INFO(fmt, ...)      ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Info, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_CORE_WARNING(fmt, ...)   ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Warning, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_CORE_ERROR(fmt, ...)     ::Himii::Log::PrintFormatted(::Himii::LogLevel::Core_Error, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 
 // Client
+#define HIMII_TRACE(fmt, ...)      ::Himii::Log::PrintFormatted(::Himii::LogLevel::Trace, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_INFO(fmt, ...)           ::Himii::Log::PrintFormatted(::Himii::LogLevel::Info, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_WARNING(fmt, ...)        ::Himii::Log::PrintFormatted(::Himii::LogLevel::Warning, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_ERROR(fmt, ...)          ::Himii::Log::PrintFormatted(::Himii::LogLevel::Error, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)

@@ -45,6 +45,9 @@ namespace Himii
     {
         switch (level)
         {
+            case LogLevel::Trace:
+            case LogLevel::Core_Trace:
+                return spdlog::level::trace;
             case LogLevel::Info:
             case LogLevel::Core_Info:
                 return spdlog::level::info;

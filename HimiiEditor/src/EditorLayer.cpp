@@ -21,6 +21,14 @@ namespace Himii
 
         m_ActiveScene = CreateRef<Scene>();
 
+        auto commandLineArgs = Application::Get().GetCommandLineArgs();
+        if (commandLineArgs.Count > 1)
+        {
+            std::string sceneFilePath = commandLineArgs[1];
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Deserialize(sceneFilePath);
+        }
+
         // 创建离屏帧缓冲，尺寸先用窗口大小，后续由 EditorLayer 面板驱动调整
         FramebufferSpecification fbSpec{1280, 720};
         fbSpec.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER, FramebufferFormat::Depth};
@@ -96,7 +104,6 @@ namespace Himii
         if (mouseX >= 0 && mouseY >= 0 && mouseX < (int)viewportSize.x && mouseY < (int)viewportSize.y)
         {
             int pixelData = m_Framebuffer->ReadPixel(1, mouseX, mouseY);
-            HIMII_CORE_INFO("pixel data = {0}", pixelData);
             m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData, m_ActiveScene.get());
         }
 
@@ -370,11 +377,11 @@ namespace Himii
         if (!filePath.empty())
         {
             m_ActiveScene = CreateRef<Scene>();
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Deserialize(filePath);
-            // m_ActiveScene->Clear();
             m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
             m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+            SceneSerializer serializer(m_ActiveScene);
+            serializer.Deserialize(filePath);
         }
     }
 
