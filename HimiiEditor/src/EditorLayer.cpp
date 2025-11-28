@@ -10,6 +10,8 @@
 
 namespace Himii
 {
+    extern const std::filesystem::path s_AssetsPath;
+
     EditorLayer::EditorLayer() :
         Layer("Example2D"), m_CameraController(1280.0f / 720.0f), m_SquareColor({0.2f, 0.38f, 0.64f, 1.0f})
     {
@@ -188,6 +190,7 @@ namespace Himii
             ImGui::End();
 
             m_SceneHierarchyPanel.OnImGuiRender();
+            m_ContentBrowserPanel.OnImGuiRender();
 
             ImGui::Begin("Stats");
             auto stats = Himii::Renderer2D::GetStatistics();
@@ -220,6 +223,16 @@ namespace Himii
             ImGui::Image(reinterpret_cast<void *>(textureID), ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1),
                          ImVec2(1, 0));
 
+            if (ImGui::BeginDragDropTarget())
+            {
+                if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                {
+                    const wchar_t *path = (const wchar_t *)payload->Data;
+                    OpenScene(std::filesystem::path(s_AssetsPath) / path);
+                }
+
+                ImGui::EndDragDropTarget();
+            }
             // gizmos
             Entity selectEntity = m_SceneHierarchyPanel.GetSelectedEntity();
             if (selectEntity && m_GizmoType != -1)
@@ -376,13 +389,18 @@ namespace Himii
 
         if (!filePath.empty())
         {
-            m_ActiveScene = CreateRef<Scene>();
-            m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-            m_SceneHierarchyPanel.SetContext(m_ActiveScene);
-
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Deserialize(filePath);
+            OpenScene(filePath);
         }
+    }
+
+    void EditorLayer::OpenScene(const std::filesystem::path &path)
+    {
+        m_ActiveScene = CreateRef<Scene>();
+        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+        SceneSerializer serializer(m_ActiveScene);
+        serializer.Deserialize(path.string());
     }
 
     void EditorLayer::SaveScene()

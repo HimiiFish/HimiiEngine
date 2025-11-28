@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine.h"
 #include "panel/SceneHierarchyPanel.h"
+#include "panel/ContentBrowserPanel.h"
 
 #include "Himii/Renderer/EditorCamera.h"
 
@@ -24,6 +25,7 @@ namespace Himii
 
         void NewScene();
         void OpenScene();
+        void OpenScene(const std::filesystem::path& path);
         void SaveScene();
         void SaveSceneAs();
 
@@ -53,5 +55,6 @@ namespace Himii
         int m_GizmoType = -1;
 
         SceneHierarchyPanel m_SceneHierarchyPanel;
+        ContentBrowserPanel m_ContentBrowserPanel;
     };
 }

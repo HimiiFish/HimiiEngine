@@ -28,9 +28,14 @@ endif()
 add_custom_command(TARGET HimiiEditor POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory
             $<TARGET_FILE_DIR:HimiiEditor>/assets
+            COMMAND ${CMAKE_COMMAND} -E make_directory
+            $<TARGET_FILE_DIR:HimiiEditor>/resources
     COMMAND ${CMAKE_COMMAND} -E copy_directory
             ${CMAKE_CURRENT_SOURCE_DIR}/assets
             $<TARGET_FILE_DIR:HimiiEditor>/assets
+            COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_CURRENT_SOURCE_DIR}/resources
+            $<TARGET_FILE_DIR:HimiiEditor>/resources
     COMMENT "Copying all assets to output directory"
 )
 
