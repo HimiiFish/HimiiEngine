@@ -166,6 +166,8 @@ namespace Himii
             out << YAML::BeginMap;
             auto &spriteRenderer = entity.GetComponent<SpriteRendererComponent>();
             out << YAML::Key << "Color" << YAML::Value << spriteRenderer.color;
+            if (spriteRenderer.texture)
+                out << YAML::Key << "TexturePath" << YAML::Value << spriteRenderer.texture->GetPath();
             out << YAML::Key << "TilingFactor" << YAML::Value << spriteRenderer.tilingFactor;
             out << YAML::EndMap;
         }
@@ -263,6 +265,13 @@ namespace Himii
                 {
                     auto &src = deserializedEntity.AddComponent<SpriteRendererComponent>();
                     src.color = spriteRendererComponent["Color"].as<glm::vec4>();
+
+                    if (spriteRendererComponent["TexturePath"])
+                    {
+                        std::string texturePath = spriteRendererComponent["TexturePath"].as<std::string>();
+                        //auto path = Project::GetAssetFileSystemPath(texturePath);
+                        src.texture = Texture2D::Create(texturePath);
+                    }
                     if (spriteRendererComponent["TilingFactor"])
                     {
                         src.tilingFactor = spriteRendererComponent["TilingFactor"].as<float>();

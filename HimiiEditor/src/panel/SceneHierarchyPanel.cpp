@@ -4,11 +4,13 @@
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
+#include "filesystem"
 
 #include <glm/gtc/type_ptr.hpp>
 
 namespace Himii
 {
+    extern const std::filesystem::path s_AssetsPath;
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> &context)
     {
         SetContext(context);
@@ -300,6 +302,22 @@ namespace Himii
                                                [](auto &component)
                                                {
                                                    ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+                                                   //Texture
+                                                   ImGui::Button("Texture",ImVec2(100.0f,0.0f));
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t *path = (const wchar_t *)payload->Data;
+                            std::filesystem::path texturePath = std::filesystem::path(s_AssetsPath) / path;
+                            component.texture = Texture2D::Create(texturePath.string());
+                        }
+
+                        ImGui::EndDragDropTarget();
+
+
+                        ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
+                    }
                                                });
     }
 
