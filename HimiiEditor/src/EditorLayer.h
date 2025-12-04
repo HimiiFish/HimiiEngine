@@ -29,6 +29,11 @@ namespace Himii
         void SaveScene();
         void SaveSceneAs();
 
+        void OnScenePlay();
+        void OnSceneStop();
+
+        //UI panel
+        void UI_Toolbar();
     private:
         Ref<Scene> m_ActiveScene;
 
@@ -54,7 +59,17 @@ namespace Himii
 
         int m_GizmoType = -1;
 
+        enum class SceneState {
+            Edit = 0,
+            Play = 1,
+            Simulate = 2
+        };
         SceneHierarchyPanel m_SceneHierarchyPanel;
         ContentBrowserPanel m_ContentBrowserPanel;
+
+        Ref<Texture2D> m_IconPlay, m_IconStop;
+
+
+        SceneState m_SceneState = SceneState::Edit;
     };
 }

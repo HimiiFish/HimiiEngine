@@ -145,7 +145,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * camera.GetViewMatrix();
+        s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
         s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
         StartBatch();
@@ -155,7 +155,7 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        s_Data.CameraBuffer.ViewProjection = camera.GetProjection();
+        s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
         s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer2DData::CameraData));
 
         StartBatch();
