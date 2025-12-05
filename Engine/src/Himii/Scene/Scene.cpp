@@ -3,8 +3,8 @@
 #include "hepch.h"
 
 #include "Components.h"
-#include "ScriptableEntity.h"
 #include "Himii/Renderer/Renderer2D.h"
+#include "ScriptableEntity.h"
 
 #include <glm/glm.hpp>
 
@@ -12,12 +12,26 @@
 
 namespace Himii
 {
-    static void* ToPtr(b2BodyId id) {
-        return reinterpret_cast<void*>(*reinterpret_cast<uintptr_t*>(&id));
+    Scene::Scene()
+    {
     }
-    static b2BodyId ToBodyId(void* ptr) {
+
+    Scene::~Scene()
+    {
+        if (b2World_IsValid(m_Box2DWorld))
+        {
+            b2DestroyWorld(m_Box2DWorld);
+        }
+    }
+
+    static void *ToPtr(b2BodyId id)
+    {
+        return reinterpret_cast<void *>(*reinterpret_cast<uintptr_t *>(&id));
+    }
+    static b2BodyId ToBodyId(void *ptr)
+    {
         uintptr_t val = reinterpret_cast<uintptr_t>(ptr);
-        return *reinterpret_cast<b2BodyId*>(&val);
+        return *reinterpret_cast<b2BodyId *>(&val);
     }
 
     Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string &name)
@@ -43,7 +57,7 @@ namespace Himii
     {
         if (!m_Registry.valid(e))
             return;
-        
+
         if (auto *pid = m_Registry.try_get<IDComponent>(e))
         {
             auto it = m_EntityMap.find(pid->id);
@@ -67,12 +81,12 @@ namespace Himii
 
     void Scene::OnRuntimeStart()
     {
-        b2WorldDef worldDef=b2DefaultWorldDef();
-        worldDef.gravity= b2Vec2{0.0f,-9.8f};
-        m_Box2DWorld=b2CreateWorld(&worldDef);
+        b2WorldDef worldDef = b2DefaultWorldDef();
+        worldDef.gravity = b2Vec2{0.0f, -9.8f};
+        m_Box2DWorld = b2CreateWorld(&worldDef);
 
         auto view = m_Registry.view<Rigidbody2DComponent>();
-        for (auto e : view)
+        for (auto e: view)
         {
             Entity entity = {e, this};
             auto &transform = entity.GetComponent<TransformComponent>();
@@ -93,10 +107,10 @@ namespace Himii
                     break;
             }
 
-            bodyDef.position = { transform.Position.x, transform.Position.y };
+            bodyDef.position = {transform.Position.x, transform.Position.y};
             bodyDef.rotation = b2MakeRot(transform.Rotation.z);
             bodyDef.fixedRotation = rigidbody2D.FixedRotation;
-            bodyDef.userData = (void*)(uintptr_t)(uint32_t)entity; // 存储 Entity ID
+            bodyDef.userData = (void *)(uintptr_t)(uint32_t)entity; // 存储 Entity ID
 
             b2BodyId bodyId = b2CreateBody(m_Box2DWorld, &bodyDef);
             rigidbody2D.RuntimeBody = ToPtr(bodyId);
@@ -104,7 +118,7 @@ namespace Himii
             // 3. 添加碰撞体
             if (entity.HasComponent<BoxCollider2DComponent>())
             {
-                auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+                auto &bc2d = entity.GetComponent<BoxCollider2DComponent>();
 
                 b2ShapeDef shapeDef = b2DefaultShapeDef();
                 shapeDef.density = bc2d.Density;
@@ -118,7 +132,7 @@ namespace Himii
 
                 b2Polygon polygon = b2MakeBox(hx, hy);
                 // 应用 Offset
-                polygon.centroid = { bc2d.Offset.x, bc2d.Offset.y };
+                polygon.centroid = {bc2d.Offset.x, bc2d.Offset.y};
 
                 b2CreatePolygonShape(bodyId, &shapeDef, &polygon);
             }
@@ -137,12 +151,9 @@ namespace Himii
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera &camera)
     {
         Renderer2D::BeginScene(camera);
-        auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-        for (auto entity: group)
-        {
-            auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-            Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-        }
+        auto view = m_Registry.view<TransformComponent, SpriteRendererComponent>();
+        view.each([&](entt::entity entity, TransformComponent &transform, SpriteRendererComponent &sprite)
+                  { Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity); });
         Renderer2D::EndScene();
     }
 
@@ -166,7 +177,7 @@ namespace Himii
 
         // Box2D 物理更新
         {
-            const int32_t subStepCount = 4;
+            const int32_t subStepCount = 2;
             b2World_Step(m_Box2DWorld, ts, subStepCount);
 
             auto view = m_Registry.view<Rigidbody2DComponent>();
@@ -210,12 +221,9 @@ namespace Himii
         if (mainCamera)
         {
             Renderer2D::BeginScene(*mainCamera, cameraTransform);
-            auto group = m_Registry.group<TransformComponent>(entt::get<SpriteRendererComponent>);
-            for (auto entity: group)
-            {
-                auto [transform, sprite] = group.get<TransformComponent, SpriteRendererComponent>(entity);
-                Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity);
-            }
+            auto view = m_Registry.view<TransformComponent, SpriteRendererComponent>();
+            view.each([&](entt::entity entity, TransformComponent &transform, SpriteRendererComponent &sprite)
+                      { Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity); });
             Renderer2D::EndScene();
         }
 
@@ -260,7 +268,82 @@ namespace Himii
 
 
         // 原生脚本更新
-        
+    }
+
+    template<typename Component>
+    static void CopyComponent(entt::registry &dst, entt::registry &src,
+                              const std::unordered_map<UUID, entt::entity> &enttMap)
+    {
+        auto view = src.view<Component>();
+        for (auto e: view)
+        {
+            UUID uuid = src.get<IDComponent>(e).id;
+            // Find target entity by UUID
+            if (enttMap.find(uuid) == enttMap.end())
+                continue;
+
+            entt::entity dstEnttID = enttMap.at(uuid);
+            auto &component = src.get<Component>(e);
+            dst.emplace_or_replace<Component>(dstEnttID, component);
+        }
+    }
+
+    Ref<Scene> Scene::Copy(Ref<Scene> other)
+    {
+        Ref<Scene> newScene = CreateRef<Scene>();
+
+        newScene->m_ViewportWidth = other->m_ViewportWidth;
+        newScene->m_ViewportHeight = other->m_ViewportHeight;
+
+        auto &srcSceneRegistry = other->m_Registry;
+        auto &dstSceneRegistry = newScene->m_Registry;
+        std::unordered_map<UUID, entt::entity> enttMap;
+
+        // Create entities in new scene
+        auto idView = srcSceneRegistry.view<IDComponent>();
+        for (auto e: idView)
+        {
+            UUID uuid = srcSceneRegistry.get<IDComponent>(e).id;
+            const auto &name = srcSceneRegistry.get<TagComponent>(e).name;
+            Entity newEntity = newScene->CreateEntityWithUUID(uuid, name);
+            enttMap[uuid] = (entt::entity)newEntity;
+        }
+
+        // Copy components
+        CopyComponent<TransformComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<Rigidbody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+
+        return newScene;
+    }
+
+    Entity Scene::DuplicateEntity(Entity entity)
+    {
+        std::string name = entity.GetName();
+        Entity newEntity = CreateEntity(name);
+
+        if (entity.HasComponent<TransformComponent>())
+            newEntity.GetComponent<TransformComponent>() = entity.GetComponent<TransformComponent>();
+
+        if (entity.HasComponent<SpriteRendererComponent>())
+            newEntity.AddComponent<SpriteRendererComponent>(entity.GetComponent<SpriteRendererComponent>());
+
+        if (entity.HasComponent<CameraComponent>())
+            newEntity.AddComponent<CameraComponent>(entity.GetComponent<CameraComponent>());
+
+        if (entity.HasComponent<NativeScriptComponent>())
+            newEntity.AddComponent<NativeScriptComponent>(entity.GetComponent<NativeScriptComponent>());
+
+        if (entity.HasComponent<Rigidbody2DComponent>())
+            newEntity.AddComponent<Rigidbody2DComponent>(entity.GetComponent<Rigidbody2DComponent>());
+
+        if (entity.HasComponent<BoxCollider2DComponent>())
+            newEntity.AddComponent<BoxCollider2DComponent>(entity.GetComponent<BoxCollider2DComponent>());
+
+        return newEntity;
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -309,7 +392,7 @@ namespace Himii
     template<typename T>
     void Scene::OnComponentAdded(Entity emtity, T &component)
     {
-        static_cast(sizeof(T) == 0);
+        static_assert(sizeof(T) == 0);
     }
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent &component)
@@ -318,6 +401,41 @@ namespace Himii
         {
             component.camera.SetViewportSize(m_ViewportWidth, m_ViewportHeight);
         }
+    }
+
+    template<>
+    void Scene::OnComponentAdded<IDComponent>(Entity entity, IDComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<Rigidbody2DComponent>(Entity entity, Rigidbody2DComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent &component)
+    {
     }
 
 } // namespace Himii

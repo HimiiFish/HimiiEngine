@@ -15,7 +15,10 @@ namespace Himii
 
     class Scene {
     public:
-        Scene() = default;
+        Scene();
+        ~Scene();
+
+        static Ref<Scene> Copy(Ref<Scene> other);
 
         Entity CreateEntityWithUUID(UUID uuid, const std::string &name);
         Entity CreateEntity(const std::string &name);
@@ -48,6 +51,8 @@ namespace Himii
         }
 
         void OnViewportResize(uint32_t width, uint32_t hieght);
+
+        Entity DuplicateEntity(Entity entity);
 
         // 清空场景：安全销毁所有实体（走 DestroyEntity，确保脚本生命周期与映射清理）
         void Clear();

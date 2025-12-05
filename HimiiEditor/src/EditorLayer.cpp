@@ -353,11 +353,19 @@ namespace Himii
                 }
                 else if (control)
                 {
-                    HIMII_CORE_INFO("保存场景");
+                    SaveScene();
                 }
                 break;
             }
-
+            // Scene Command
+            case Key::D:
+            {
+                if (control)
+                {
+                    OnDuplicateEntity();
+                }
+                break;
+            }
             // Gizmo
             case Key::Q:
             {
@@ -415,6 +423,8 @@ namespace Himii
         m_ActiveScene = CreateRef<Scene>();
         m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+        m_EditorScenePath = std::filesystem::path();
     }
 
     void EditorLayer::OpenScene()
@@ -429,21 +439,33 @@ namespace Himii
 
     void EditorLayer::OpenScene(const std::filesystem::path &path)
     {
-        m_ActiveScene = CreateRef<Scene>();
-        m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+        if (m_SceneState != SceneState::Edit)
+        {
+            OnSceneStop();
+        }
 
-        SceneSerializer serializer(m_ActiveScene);
-        serializer.Deserialize(path.string());
+        Ref<Scene> newScene = CreateRef<Scene>();
+        SceneSerializer serializer(newScene);
+        if (serializer.Deserialize(path.string()))
+        {
+            m_EditorScene = newScene;
+            m_SceneHierarchyPanel.SetContext(m_EditorScene);
+            m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+
+            m_ActiveScene = m_EditorScene;
+            m_EditorScenePath = path;
+        }
     }
 
     void EditorLayer::SaveScene()
     {
-        std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
-        if (!filePath.empty())
+        if (!m_EditorScenePath.empty())
         {
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Serialize(filePath);
+            SerializeScene(m_ActiveScene, m_EditorScenePath);
+        }
+        else
+        {
+            SaveSceneAs();
         }
     }
 
@@ -452,21 +474,53 @@ namespace Himii
         std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
         if (!filePath.empty())
         {
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Serialize(filePath);
+            SerializeScene(m_ActiveScene, filePath);
+
+            m_EditorScenePath = filePath;
         }
+    }
+
+    void EditorLayer::SerializeScene(Ref<Scene> scene, const std::filesystem::path &path)
+    {
+        SceneSerializer serializer(scene);
+        serializer.Serialize(path.string());
     }
 
     void EditorLayer::OnScenePlay()
     {
-        m_ActiveScene->OnRuntimeStart();
         m_SceneState = SceneState::Play;
+
+        m_ActiveScene = Scene::Copy(m_EditorScene);
+        m_ActiveScene->OnRuntimeStart();
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
 
     void EditorLayer::OnSceneStop()
     {
-        m_ActiveScene->OnRuntimeStop();
+        HIMII_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
+
+        if (m_SceneState == SceneState::Play)
+            m_ActiveScene->OnRuntimeStop();
+
         m_SceneState = SceneState::Edit;
+
+        m_ActiveScene = m_EditorScene;
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::OnDuplicateEntity()
+    {
+        if (m_SceneState != SceneState::Edit)
+            return;
+
+        Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+        if (selectedEntity)
+        {
+            Entity newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
+            m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
+        }
     }
 
     void EditorLayer::UI_Toolbar()
