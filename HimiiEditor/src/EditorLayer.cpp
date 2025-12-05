@@ -280,11 +280,10 @@ namespace Himii
 
                 // snapping
                 bool snap = Input::IsKeyPressed(Key::LeftControl);
-                float snapValue = 0.5f; // translation snap
+                float snapValue = 0.5f; // Snap to 0.5m for translation/scale
+                // Snap to 45 degrees for rotation
                 if (m_GizmoType == ImGuizmo::OPERATION::ROTATE)
-                    snapValue = 45.0f; // rotation snap
-                else if (m_GizmoType == ImGuizmo::OPERATION::SCALE)
-                    snapValue = 0.5f; // scale snap
+                    snapValue = 45.0f;
                 float snapValues[3] = {snapValue, snapValue, snapValue};
 
                 ImGuizmo::Manipulate(glm::value_ptr(cameraView), glm::value_ptr(cameraProjection),
@@ -384,6 +383,19 @@ namespace Himii
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
             }
+            case Key::Delete:
+            {
+                if (Application::Get().GetImGuiLayer()->GetActiveWidgetID() == 0)
+				{
+					Entity selectedEntity = m_SceneHierarchyPanel.GetSelectedEntity();
+					if (selectedEntity)
+					{
+						m_SceneHierarchyPanel.SetSelectedEntity({});
+						m_ActiveScene->DestroyEntity(selectedEntity);
+					}
+				}
+				break;
+            }
         }
         return false;
     }
@@ -447,11 +459,13 @@ namespace Himii
 
     void EditorLayer::OnScenePlay()
     {
+        m_ActiveScene->OnRuntimeStart();
         m_SceneState = SceneState::Play;
     }
 
     void EditorLayer::OnSceneStop()
     {
+        m_ActiveScene->OnRuntimeStop();
         m_SceneState = SceneState::Edit;
     }
 

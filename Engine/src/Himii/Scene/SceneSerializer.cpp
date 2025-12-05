@@ -91,6 +91,12 @@ namespace YAML
 
 namespace Himii
 {
+    YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec2 &v)
+    {
+        out << YAML::Flow;
+        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+        return out;
+    }
 
     YAML::Emitter &operator<<(YAML::Emitter &out, const glm::vec3 &v)
     {
@@ -169,6 +175,28 @@ namespace Himii
             if (spriteRenderer.texture)
                 out << YAML::Key << "TexturePath" << YAML::Value << spriteRenderer.texture->GetPath();
             out << YAML::Key << "TilingFactor" << YAML::Value << spriteRenderer.tilingFactor;
+            out << YAML::EndMap;
+        }
+        if (entity.HasComponent<Rigidbody2DComponent>())
+        {
+            out << YAML::Key << "Rigidbody2DComponent";
+            out << YAML::BeginMap;
+            auto &rigidbody2D = entity.GetComponent<Rigidbody2DComponent>();
+            out << YAML::Key << "BodyType" << YAML::Value << (int)rigidbody2D.Type;
+            out << YAML::Key << "FixedRotation" << YAML::Value << rigidbody2D.FixedRotation;
+            out << YAML::EndMap;
+        }
+        if (entity.HasComponent<BoxCollider2DComponent>())
+        {
+            out << YAML::Key << "BoxCollider2DComponent";
+            out << YAML::BeginMap;
+            auto &boxCollider2D = entity.GetComponent<BoxCollider2DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << boxCollider2D.Offset;
+            out << YAML::Key << "Size" << YAML::Value << boxCollider2D.Size;
+            out << YAML::Key << "Density" << YAML::Value << boxCollider2D.Density;
+            out << YAML::Key << "Friction" << YAML::Value << boxCollider2D.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << boxCollider2D.Restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << boxCollider2D.RestitutionThreshold;
             out << YAML::EndMap;
         }
         out << YAML::EndMap;
@@ -276,6 +304,24 @@ namespace Himii
                     {
                         src.tilingFactor = spriteRendererComponent["TilingFactor"].as<float>();
                     }
+                }
+                auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
+                if (rigidbody2DComponent)
+                {
+                    auto &rbc = deserializedEntity.AddComponent<Rigidbody2DComponent>();
+                    rbc.Type = (Rigidbody2DComponent::BodyType)rigidbody2DComponent["BodyType"].as<int>();
+                    rbc.FixedRotation = rigidbody2DComponent["FixedRotation"].as<bool>();
+                }
+                auto boxCollider2DComponent = entity["BoxCollider2DComponent"];
+                if (boxCollider2DComponent)
+                {
+                    auto &bcc = deserializedEntity.AddComponent<BoxCollider2DComponent>();
+                    bcc.Offset = boxCollider2DComponent["Offset"].as<glm::vec2>();
+                    bcc.Size = boxCollider2DComponent["Size"].as<glm::vec2>();
+                    bcc.Density = boxCollider2DComponent["Density"].as<float>();
+                    bcc.Friction = boxCollider2DComponent["Friction"].as<float>();
+                    bcc.Restitution = boxCollider2DComponent["Restitution"].as<float>();
+                    bcc.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
                 }
             }
             return true;

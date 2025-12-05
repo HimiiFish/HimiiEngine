@@ -12,6 +12,7 @@
     "vulkan",
     "shaderc",
     "spirv-cross",
-    "spirv-tools"
+    "spirv-tools",
+    "box2d"
   ]
 }

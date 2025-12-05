@@ -6,13 +6,13 @@
 #include "Himii/Core/Timestep.h"
 #include "Himii/Core/UUID.h"
 #include "Himii/Renderer/EditorCamera.h"
-namespace Himii
-{
-    class Entity;
-}
+
+#include "box2d/box2d.h"
 
 namespace Himii
 {
+    class Entity;
+
     class Scene {
     public:
         Scene() = default;
@@ -25,6 +25,9 @@ namespace Himii
         {
             return m_Registry;
         }
+
+        void OnRuntimeStart();
+        void OnRuntimeStop();
 
         void OnUpdateEditor(Timestep ts,EditorCamera &camera);
         void OnUpdateRuntime(Timestep ts);
@@ -63,5 +66,7 @@ namespace Himii
         friend class Entity;
         friend class SceneSerializer;
         friend class SceneHierarchyPanel;
+
+        b2WorldId m_Box2DWorld;
     };
 } // namespace Himii

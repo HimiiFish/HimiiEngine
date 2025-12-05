@@ -9,8 +9,16 @@
 #include <glm/glm.hpp>
 
 #include "Entity.h"
+
 namespace Himii
 {
+    static void* ToPtr(b2BodyId id) {
+        return reinterpret_cast<void*>(*reinterpret_cast<uintptr_t*>(&id));
+    }
+    static b2BodyId ToBodyId(void* ptr) {
+        uintptr_t val = reinterpret_cast<uintptr_t>(ptr);
+        return *reinterpret_cast<b2BodyId*>(&val);
+    }
 
     Entity Scene::CreateEntityWithUUID(UUID uuid, const std::string &name)
     {
@@ -57,6 +65,75 @@ namespace Himii
         m_Registry.destroy(e);
     }
 
+    void Scene::OnRuntimeStart()
+    {
+        b2WorldDef worldDef=b2DefaultWorldDef();
+        worldDef.gravity= b2Vec2{0.0f,-9.8f};
+        m_Box2DWorld=b2CreateWorld(&worldDef);
+
+        auto view = m_Registry.view<Rigidbody2DComponent>();
+        for (auto e : view)
+        {
+            Entity entity = {e, this};
+            auto &transform = entity.GetComponent<TransformComponent>();
+            auto &rigidbody2D = entity.GetComponent<Rigidbody2DComponent>();
+
+            b2BodyDef bodyDef = b2DefaultBodyDef();
+
+            switch (rigidbody2D.Type)
+            {
+                case Rigidbody2DComponent::BodyType::Static:
+                    bodyDef.type = b2BodyType::b2_staticBody;
+                    break;
+                case Rigidbody2DComponent::BodyType::Dynamic:
+                    bodyDef.type = b2BodyType::b2_dynamicBody;
+                    break;
+                case Rigidbody2DComponent::BodyType::Kinematic:
+                    bodyDef.type = b2BodyType::b2_kinematicBody;
+                    break;
+            }
+
+            bodyDef.position = { transform.Position.x, transform.Position.y };
+            bodyDef.rotation = b2MakeRot(transform.Rotation.z);
+            bodyDef.fixedRotation = rigidbody2D.FixedRotation;
+            bodyDef.userData = (void*)(uintptr_t)(uint32_t)entity; // 存储 Entity ID
+
+            b2BodyId bodyId = b2CreateBody(m_Box2DWorld, &bodyDef);
+            rigidbody2D.RuntimeBody = ToPtr(bodyId);
+
+            // 3. 添加碰撞体
+            if (entity.HasComponent<BoxCollider2DComponent>())
+            {
+                auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = bc2d.Density;
+                shapeDef.material.friction = bc2d.Friction;
+                shapeDef.material.restitution = bc2d.Restitution;
+                shapeDef.material.rollingResistance = bc2d.RestitutionThreshold;
+
+                // Box2D v3 b2MakeBox 参数是半宽/半高
+                float hx = bc2d.Size.x * transform.Scale.x * 0.5f;
+                float hy = bc2d.Size.y * transform.Scale.y * 0.5f;
+
+                b2Polygon polygon = b2MakeBox(hx, hy);
+                // 应用 Offset
+                polygon.centroid = { bc2d.Offset.x, bc2d.Offset.y };
+
+                b2CreatePolygonShape(bodyId, &shapeDef, &polygon);
+            }
+        }
+    }
+
+    void Scene::OnRuntimeStop()
+    {
+        if (b2World_IsValid(m_Box2DWorld))
+        {
+            b2DestroyWorld(m_Box2DWorld);
+            m_Box2DWorld = {0}; // Reset ID
+        }
+    }
+
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera &camera)
     {
         Renderer2D::BeginScene(camera);
@@ -71,6 +148,49 @@ namespace Himii
 
     void Scene::OnUpdateRuntime(Timestep ts)
     {
+        {
+            m_Registry.view<NativeScriptComponent>().each(
+                    [=](auto entity, auto &nsc)
+                    {
+                        // 如果没有实例化，尝试实例化
+                        if (!nsc.Instance)
+                        {
+                            nsc.Instance = nsc.InstantiateScript();
+                            nsc.Instance->m_Entity = Entity{entity, this};
+                            nsc.Instance->OnCreate();
+                        }
+                        // 更新
+                        nsc.Instance->OnUpdate(ts);
+                    });
+        }
+
+        // Box2D 物理更新
+        {
+            const int32_t subStepCount = 4;
+            b2World_Step(m_Box2DWorld, ts, subStepCount);
+
+            auto view = m_Registry.view<Rigidbody2DComponent>();
+            for (auto e: view)
+            {
+                Entity entity = {e, this};
+                auto &transform = entity.GetComponent<TransformComponent>();
+                auto &rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+                if (rb2d.RuntimeBody)
+                {
+                    b2BodyId bodyId = ToBodyId(rb2d.RuntimeBody);
+                    if (b2Body_IsValid(bodyId))
+                    {
+                        b2Vec2 position = b2Body_GetPosition(bodyId);
+                        transform.Position.x = position.x;
+                        transform.Position.y = position.y;
+
+                        b2Rot rotation = b2Body_GetRotation(bodyId);
+                        transform.Rotation.z = b2Rot_GetAngle(rotation);
+                    }
+                }
+            }
+        }
 
         Camera *mainCamera = nullptr;
         glm::mat4 cameraTransform{1.0f};
@@ -140,21 +260,7 @@ namespace Himii
 
 
         // 原生脚本更新
-        {
-            m_Registry.view<NativeScriptComponent>().each(
-                    [=](auto entity, auto &nsc)
-                    {
-                        // 如果没有实例化，尝试实例化
-                        if (!nsc.Instance)
-                        {
-                            nsc.Instance = nsc.InstantiateScript();
-                            nsc.Instance->m_Entity = Entity{entity, this};
-                            nsc.Instance->OnCreate();
-                        }
-                        // 更新
-                        nsc.Instance->OnUpdate(ts);
-                    });
-        }
+        
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)

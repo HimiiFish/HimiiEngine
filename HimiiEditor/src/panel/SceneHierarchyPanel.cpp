@@ -219,7 +219,7 @@ namespace Himii
             }
         }
         ImGui::SameLine();
-        //ImGui::PushItemWidth(-1);
+        // ImGui::PushItemWidth(-1);
         if (ImGui::Button("Add Component"))
             ImGui::OpenPopup("AddComponent");
 
@@ -227,6 +227,8 @@ namespace Himii
         {
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
+            DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
 
             ImGui::EndPopup();
         }
@@ -246,7 +248,7 @@ namespace Himii
                                        {
                                            auto &camera = component.camera;
 
-                                           ImGui::Checkbox("Primary",&component.primary);
+                                           ImGui::Checkbox("Primary", &component.primary);
                                            const char *projectionTypeStrings[] = {"Perspective", "Orthographic"};
                                            const char *currentProjectionTypeString =
                                                    projectionTypeStrings[(int)camera.GetProjectionType()];
@@ -298,12 +300,13 @@ namespace Himii
                                            }
                                        });
 
-        DrawComponent<SpriteRendererComponent>("Sprite Renderer", entity,
-                                               [](auto &component)
-                                               {
-                                                   ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
-                                                   //Texture
-                                                   ImGui::Button("Texture",ImVec2(100.0f,0.0f));
+        DrawComponent<SpriteRendererComponent>(
+                "Sprite Renderer", entity,
+                [](auto &component)
+                {
+                    ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+                    // Texture
+                    ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
                     if (ImGui::BeginDragDropTarget())
                     {
                         if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -318,7 +321,44 @@ namespace Himii
 
                         ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
                     }
-                                               });
+                });
+
+        DrawComponent<Rigidbody2DComponent>("Rigidbody2D", entity,
+                                            [](auto &component)
+                                            {
+                                                const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
+                                                const char *currentBodyTypeString =
+                                                        bodyTypeStrings[(int)component.Type];
+                                                if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+                                                {
+                                                    for (int i = 0; i < 3; i++)
+                                                    {
+                                                        bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+                                                        if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+                                                        {
+                                                            currentBodyTypeString = bodyTypeStrings[i];
+                                                            component.Type = (Rigidbody2DComponent::BodyType)i;
+                                                        }
+                                                        if (isSelected)
+                                                            ImGui::SetItemDefaultFocus();
+                                                    }
+                                                    ImGui::EndCombo();
+                                                }
+
+                                                ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+                                            });
+
+        DrawComponent<BoxCollider2DComponent>(
+                "Box Collider2D", entity,
+                [](auto &component)
+                {
+                    ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
+                    ImGui::DragFloat2("Size", glm::value_ptr(component.Size), 0.1f);
+                    ImGui::DragFloat("Density", &component.Density, 0.1f);
+                    ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
+                    ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.1f);
+                });
     }
 
     template<typename T>
