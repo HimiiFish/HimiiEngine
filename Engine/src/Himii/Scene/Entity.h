@@ -67,12 +67,12 @@ namespace Himii
 
         UUID GetUUID()
         {
-            return GetComponent<IDComponent>().id;
+            return GetComponent<IDComponent>().ID;
         }
 
         const std::string &GetName()
         {
-            return GetComponent<TagComponent>().name;
+            return GetComponent<TagComponent>().Tag;
         }
 
         bool operator==(const Entity &other) const

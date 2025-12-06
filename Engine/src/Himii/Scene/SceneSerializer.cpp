@@ -128,7 +128,7 @@ namespace Himii
             out << YAML::Key << "TagComponent";
             out << YAML::BeginMap;
             auto &tag = entity.GetComponent<TagComponent>();
-            out << YAML::Key << "Tag" << YAML::Value << tag.name;
+            out << YAML::Key << "Tag" << YAML::Value << tag.Tag;
             out << YAML::EndMap;
 			
         }
@@ -151,17 +151,17 @@ namespace Himii
 
             out << YAML::Key << "Camera";
             out << YAML::BeginMap;
-            out << YAML::Key << "ProjectionType" << YAML::Value << (int)cameraComp.camera.GetProjectionType();
-            out << YAML::Key << "PerspectiveFOV" << YAML::Value << cameraComp.camera.GetPerspectiveVerticalFOV();
-            out << YAML::Key << "PerspectiveNear" << YAML::Value << cameraComp.camera.GetPerspectiveNearClip();
-            out << YAML::Key << "PerspectiveFar" << YAML::Value << cameraComp.camera.GetPerspectiveFarClip();
-            out << YAML::Key << "OrthographicSize" << YAML::Value << cameraComp.camera.GetOrthographicSize();
-            out << YAML::Key << "OrthographicNear" << YAML::Value << cameraComp.camera.GetOrthographicNearClip();
-            out << YAML::Key << "OrthographicFar" << YAML::Value << cameraComp.camera.GetOrthographicFarClip();
+            out << YAML::Key << "ProjectionType" << YAML::Value << (int)cameraComp.Camera.GetProjectionType();
+            out << YAML::Key << "PerspectiveFOV" << YAML::Value << cameraComp.Camera.GetPerspectiveVerticalFOV();
+            out << YAML::Key << "PerspectiveNear" << YAML::Value << cameraComp.Camera.GetPerspectiveNearClip();
+            out << YAML::Key << "PerspectiveFar" << YAML::Value << cameraComp.Camera.GetPerspectiveFarClip();
+            out << YAML::Key << "OrthographicSize" << YAML::Value << cameraComp.Camera.GetOrthographicSize();
+            out << YAML::Key << "OrthographicNear" << YAML::Value << cameraComp.Camera.GetOrthographicNearClip();
+            out << YAML::Key << "OrthographicFar" << YAML::Value << cameraComp.Camera.GetOrthographicFarClip();
             out << YAML::EndMap;
 
-            out << YAML::Key << "Primary" << YAML::Value << cameraComp.primary;
-            out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComp.fixedAspectRatio;
+            out << YAML::Key << "Primary" << YAML::Value << cameraComp.Primary;
+            out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComp.FixedAspectRatio;
 
             out << YAML::EndMap;
 			
@@ -171,10 +171,20 @@ namespace Himii
             out << YAML::Key << "SpriteRendererComponent";
             out << YAML::BeginMap;
             auto &spriteRenderer = entity.GetComponent<SpriteRendererComponent>();
-            out << YAML::Key << "Color" << YAML::Value << spriteRenderer.color;
-            if (spriteRenderer.texture)
-                out << YAML::Key << "TexturePath" << YAML::Value << spriteRenderer.texture->GetPath();
-            out << YAML::Key << "TilingFactor" << YAML::Value << spriteRenderer.tilingFactor;
+            out << YAML::Key << "Color" << YAML::Value << spriteRenderer.Color;
+            if (spriteRenderer.Texture)
+                out << YAML::Key << "TexturePath" << YAML::Value << spriteRenderer.Texture->GetPath();
+            out << YAML::Key << "TilingFactor" << YAML::Value << spriteRenderer.TilingFactor;
+            out << YAML::EndMap;
+        }
+        if (entity.HasComponent<CircleRendererComponent>())
+        {
+            out << YAML::Key << "CircleRendererComponent";
+            out << YAML::BeginMap;
+            auto &circleRenderer = entity.GetComponent<CircleRendererComponent>();
+            out << YAML::Key << "Color" << YAML::Value << circleRenderer.Color;
+            out << YAML::Key << "Thickness" << YAML::Value << circleRenderer.Thickness;
+            out << YAML::Key << "Fade" << YAML::Value << circleRenderer.Fade;
             out << YAML::EndMap;
         }
         if (entity.HasComponent<Rigidbody2DComponent>())
@@ -274,37 +284,46 @@ namespace Himii
                     auto &cc = deserializedEntity.AddComponent<CameraComponent>();
 
                     auto cameraProps = cameraComponent["Camera"];
-                    cc.camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
+                    cc.Camera.SetProjectionType((SceneCamera::ProjectionType)cameraProps["ProjectionType"].as<int>());
 
-                    cc.camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
-                    cc.camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
-                    cc.camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
+                    cc.Camera.SetPerspectiveVerticalFOV(cameraProps["PerspectiveFOV"].as<float>());
+                    cc.Camera.SetPerspectiveNearClip(cameraProps["PerspectiveNear"].as<float>());
+                    cc.Camera.SetPerspectiveFarClip(cameraProps["PerspectiveFar"].as<float>());
+                       
+                    cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
+                    cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
+                    cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
 
-                    cc.camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
-                    cc.camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
-                    cc.camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
-
-                    cc.primary = cameraComponent["Primary"].as<bool>();
-                    cc.fixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+                    cc.Primary = cameraComponent["Primary"].as<bool>();
+                    cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
                 }
 
                 auto spriteRendererComponent = entity["SpriteRendererComponent"];
                 if (spriteRendererComponent)
                 {
                     auto &src = deserializedEntity.AddComponent<SpriteRendererComponent>();
-                    src.color = spriteRendererComponent["Color"].as<glm::vec4>();
+                    src.Color = spriteRendererComponent["Color"].as<glm::vec4>();
 
                     if (spriteRendererComponent["TexturePath"])
                     {
                         std::string texturePath = spriteRendererComponent["TexturePath"].as<std::string>();
                         //auto path = Project::GetAssetFileSystemPath(texturePath);
-                        src.texture = Texture2D::Create(texturePath);
+                        src.Texture = Texture2D::Create(texturePath);
                     }
                     if (spriteRendererComponent["TilingFactor"])
                     {
-                        src.tilingFactor = spriteRendererComponent["TilingFactor"].as<float>();
+                        src.TilingFactor = spriteRendererComponent["TilingFactor"].as<float>();
                     }
                 }
+                auto circleRendererComponent = entity["CircleRendererComponent"];
+                if (circleRendererComponent)
+                {
+                    auto &crc = deserializedEntity.AddComponent<CircleRendererComponent>();
+                    crc.Color = circleRendererComponent["Color"].as<glm::vec4>();
+                    crc.Thickness = circleRendererComponent["Thickness"].as<float>();
+                    crc.Fade = circleRendererComponent["Fade"].as<float>();
+                }
+
                 auto rigidbody2DComponent = entity["Rigidbody2DComponent"];
                 if (rigidbody2DComponent)
                 {

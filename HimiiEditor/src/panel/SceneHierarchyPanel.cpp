@@ -54,7 +54,7 @@ namespace Himii
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
     {
-        auto &tag = entity.GetComponent<TagComponent>().name;
+        auto &tag = entity.GetComponent<TagComponent>().Tag;
 
         ImGuiTreeNodeFlags flags =
                 ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
@@ -207,7 +207,7 @@ namespace Himii
     {
         if (entity.HasComponent<TagComponent>())
         {
-            auto &tag = entity.GetComponent<TagComponent>().name;
+            auto &tag = entity.GetComponent<TagComponent>().Tag;
 
             char buffer[256];
             memset(buffer, 0, sizeof(buffer));
@@ -227,6 +227,7 @@ namespace Himii
         {
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+            DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
 
@@ -246,9 +247,9 @@ namespace Himii
         DrawComponent<CameraComponent>("Camera", entity,
                                        [](auto &component)
                                        {
-                                           auto &camera = component.camera;
+                                           auto &camera = component.Camera;
 
-                                           ImGui::Checkbox("Primary", &component.primary);
+                                           ImGui::Checkbox("Primary", &component.Primary);
                                            const char *projectionTypeStrings[] = {"Perspective", "Orthographic"};
                                            const char *currentProjectionTypeString =
                                                    projectionTypeStrings[(int)camera.GetProjectionType()];
@@ -296,7 +297,7 @@ namespace Himii
                                                if (ImGui::DragFloat("Far", &orthographicFar))
                                                    camera.SetOrthographicFarClip(orthographicFar);
 
-                                               ImGui::Checkbox("Fixed Aspect Ratio", &component.fixedAspectRatio);
+                                               ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
                                            }
                                        });
 
@@ -304,7 +305,7 @@ namespace Himii
                 "Sprite Renderer", entity,
                 [](auto &component)
                 {
-                    ImGui::ColorEdit4("Color", glm::value_ptr(component.color));
+                    ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
                     // Texture
                     ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
                     if (ImGui::BeginDragDropTarget())
@@ -313,15 +314,23 @@ namespace Himii
                         {
                             const wchar_t *path = (const wchar_t *)payload->Data;
                             std::filesystem::path texturePath = std::filesystem::path(s_AssetsPath) / path;
-                            component.texture = Texture2D::Create(texturePath.string());
+                            component.Texture = Texture2D::Create(texturePath.string());
                         }
 
                         ImGui::EndDragDropTarget();
 
 
-                        ImGui::DragFloat("Tiling Factor", &component.tilingFactor, 0.1f, 0.0f, 100.0f);
+                        ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.0f);
                     }
                 });
+
+        DrawComponent<CircleRendererComponent>("Circle Renderer", entity,
+                                               [](auto &component)
+                                               {
+                                                   ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+                                                   ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f,1.0f);
+                                                   ImGui::DragFloat("Fade", &component.Fade, 0.0003f, 0.0f,1.0f);
+                                               });
 
         DrawComponent<Rigidbody2DComponent>("Rigidbody2D", entity,
                                             [](auto &component)

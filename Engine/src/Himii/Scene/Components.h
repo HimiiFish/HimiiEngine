@@ -17,18 +17,18 @@ namespace Himii
 
     // 绋冲畾 ID
     struct IDComponent {
-        UUID id;
+        UUID ID;
 
         IDComponent() = default;
         IDComponent(const IDComponent &) = default;
     };
 
     struct TagComponent {
-        std::string name;
+        std::string Tag;
 
         TagComponent() = default;
         TagComponent(const TagComponent &) = default;
-        TagComponent(const std::string &name) : name(name)
+        TagComponent(const std::string &name) : Tag(name)
         {
         }
     };
@@ -51,24 +51,34 @@ namespace Himii
     };
 
     struct CameraComponent {
-        SceneCamera camera;
-        bool primary = true;
-        bool fixedAspectRatio = false;
+        SceneCamera Camera;
+        bool Primary = true;
+        bool FixedAspectRatio = false;
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent &) = default;
     };
 
     struct SpriteRendererComponent {
-        glm::vec4 color{1.0f, 1.0f, 1.0f, 1.0f};
-        Ref<Texture2D> texture{};
-        float tilingFactor = 1.0f;
+        glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+        Ref<Texture2D> Texture{};
+        float TilingFactor = 1.0f;
 
         SpriteRendererComponent() = default;
         SpriteRendererComponent(const SpriteRendererComponent&) = default;
-        SpriteRendererComponent(const glm::vec4 &color) : color(color)
+        SpriteRendererComponent(const glm::vec4 &color) : Color(color)
         {
         }
+    };
+    
+    struct CircleRendererComponent {
+        glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+        float Radius = 0.5f;
+        float Thickness = 1.0f;
+        float Fade = 0.005f;
+
+        CircleRendererComponent() = default;
+        CircleRendererComponent(const CircleRendererComponent &) = default;
     };
 
     class ScriptableEntity;

@@ -22,6 +22,17 @@ namespace Himii
         int EntityID;
     };
 
+    struct CircleVertex
+    {
+        glm::vec3 WorldPosition;
+        glm::vec3 LocalPosition;
+        glm::vec4 Color;
+        float Thickness;
+        float Fade;
+
+        int EntityID;
+    };
+
     struct Renderer2DData {
         static const uint32_t MaxQuads = 20000;
         static const uint32_t MaxVertices = MaxQuads * 4;
@@ -33,9 +44,17 @@ namespace Himii
         Ref<Shader> QuadShader;
         Ref<Texture2D> WhiteTexture;
 
+        Ref<VertexArray> CircleVertexArray;
+        Ref<VertexBuffer> CircleVertexBuffer;
+        Ref<Shader> CircleShader;
+
         uint32_t QuadIndexCount = 0;
         QuadVertex *QuadVertexBufferBase = nullptr;
         QuadVertex *QuadVertexBufferPtr = nullptr;
+
+        uint32_t CircleIndexCount = 0;
+        CircleVertex *CircleVertexBufferBase = nullptr;
+        CircleVertex *CircleVertexBufferPtr = nullptr;
 
         std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
         uint32_t TextureSlotIndex = 1;
@@ -96,7 +115,23 @@ namespace Himii
             offset += 4;
         }
 
+        //Circle
+        s_Data.CircleVertexArray = VertexArray::Create();
+        // 锟斤拷锟斤拷锟斤拷锟姐缓锟斤拷锟斤拷
+        s_Data.CircleVertexBuffer = VertexBuffer::Create(s_Data.MaxVertices * sizeof(CircleVertex));
+
+        s_Data.CircleVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_WorldPosition"},
+                                              {ShaderDataType::Float3, "a_LocalPosition"},
+                                            {ShaderDataType::Float4, "a_Color"},
+                                            {ShaderDataType::Float, "a_Thickness"},
+                                            {ShaderDataType::Float, "a_Fade"},
+                                            {ShaderDataType::Int, "a_EntityID"}});
+        s_Data.CircleVertexArray->AddVertexBuffer(s_Data.CircleVertexBuffer);
+
+        s_Data.CircleVertexBufferBase = new CircleVertex[s_Data.MaxVertices];
+
         Ref<IndexBuffer> quadIB = IndexBuffer::Create(quadIndices, s_Data.MaxIndices);
+        s_Data.CircleVertexArray->SetIndexBuffer(quadIB);
         s_Data.QuadVertexArray->SetIndexBuffer(quadIB);
         delete[] quadIndices;
 
@@ -109,7 +144,8 @@ namespace Himii
             samplers[i] = i;
 
         //  锟斤拷锟斤拷锟斤拷色锟斤拷锟斤拷锟斤拷
-        s_Data.QuadShader = Shader::Create("assets/shaders/Texture.glsl");
+        s_Data.QuadShader = Shader::Create("assets/shaders/Renderer2D_Quad.glsl");
+        s_Data.CircleShader = Shader::Create("assets/shaders/Renderer2D_Circle.glsl");
 
         s_Data.TextureSlots[0] = s_Data.WhiteTexture;
 
@@ -171,6 +207,18 @@ namespace Himii
         Flush();
     }
 
+    void Renderer2D::StartBatch()
+    {
+
+        s_Data.QuadIndexCount = 0;
+        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+
+        s_Data.CircleIndexCount = 0;
+        s_Data.CircleVertexBufferPtr = s_Data.CircleVertexBufferBase;
+
+        s_Data.TextureSlotIndex = 1; // 0 reserved for white texture
+    }
+
     void Renderer2D::Flush()
     {
         if (s_Data.QuadIndexCount)
@@ -188,14 +236,17 @@ namespace Himii
             s_Data.Stats.DrawCalls++;
         }
 
-    }
-    void Renderer2D::StartBatch()
-    {
+        if (s_Data.CircleIndexCount)
+        {
+            uint32_t dataSize =
+                    (uint32_t)((uint8_t *)s_Data.CircleVertexBufferPtr - (uint8_t *)s_Data.CircleVertexBufferBase);
+            s_Data.CircleVertexBuffer->SetData(s_Data.CircleVertexBufferBase, dataSize);
 
-        s_Data.QuadIndexCount = 0;
-        s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+            s_Data.CircleShader->Bind();
+            RenderCommand::DrawIndexed(s_Data.CircleVertexArray, s_Data.CircleIndexCount);
+            s_Data.Stats.DrawCalls++;
+        }
 
-        s_Data.TextureSlotIndex = 1; // 0 reserved for white texture
     }
 
     // Some paths request a new batch when buffers/textures reach capacity
@@ -463,122 +514,58 @@ namespace Himii
                                      const glm::vec4 &color)
     {
         HIMII_PROFILE_FUNCTION();
-        if (NeedsNewBatch(4, 6))
-            NextBatch();
-        const float textureIndex = 0.0f;
-        const float tilingFactor = 1.0f;
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
                               glm::rotate(glm::mat4(1.0f), glm::radians(rotation), {0.0f, 0.0f, 1.0f}) *
                               glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 0.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
-
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 0.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
-
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 1.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
-
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 1.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
-
-        s_Data.QuadIndexCount += 6;
-
-        s_Data.Stats.QuadCount++;
+        DrawQuad(transform, color);
     }
+
     void Renderer2D::DrawRotatedQuad(const glm::vec2 &position, const glm::vec2 &size, float rotation,
                                      const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
         DrawRotatedQuad(glm::vec3(position, 0.0f), size, rotation, texture, tilingFactor, tintColor);
     }
+
     void Renderer2D::DrawRotatedQuad(const glm::vec3 &position, const glm::vec2 &size, float rotation,
                                      const Ref<Texture2D> &texture, float tilingFactor, const glm::vec4 &tintColor)
     {
         HIMII_PROFILE_FUNCTION();
-        if (NeedsNewBatch(4, 6))
-            NextBatch();
-        constexpr glm::vec4 color = {1.0f, 1.0f, 1.0f, 1.0f};
-
-        float textureIndex = 0.0f;
-
-        for (uint32_t i = 1; i < s_Data.TextureSlotIndex; i++)
-        {
-            if (*s_Data.TextureSlots[i].get() == *texture.get())
-            {
-                textureIndex = (float)i;
-                break;
-            }
-        }
-
-        if (textureIndex == 0.0f)
-        {
-            textureIndex = (float)s_Data.TextureSlotIndex;
-            s_Data.TextureSlots[s_Data.TextureSlotIndex] = texture;
-            ++s_Data.TextureSlotIndex;
-        }
 
         glm::mat4 transform = glm::translate(glm::mat4(1.0f), position) *
                               glm::rotate(glm::mat4(1.0f), glm::radians(rotation), {0.0f, 0.0f, 1.0f}) *
                               glm::scale(glm::mat4(1.0f), {size.x, size.y, 1.0f});
 
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[0];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 0.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
+        DrawQuad(transform, texture, tilingFactor, tintColor);
+    }
 
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[1];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 0.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
+    void Renderer2D::DrawCircle(const glm::mat4& transform, const glm::vec4 color, float thickness , float fade , int entityID)
+    {
+        HIMII_PROFILE_FUNCTION();
 
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[2];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {1.0f, 1.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
+        for (size_t i = 0; i < 4; i++)
+        {
+            s_Data.CircleVertexBufferPtr->WorldPosition = transform * s_Data.QuadVertexPositions[i];
+            s_Data.CircleVertexBufferPtr->LocalPosition = s_Data.QuadVertexPositions[i]*2.0f;
+            s_Data.CircleVertexBufferPtr->Color = color;
+            s_Data.CircleVertexBufferPtr->Thickness = thickness;
+            s_Data.CircleVertexBufferPtr->Fade = fade;
+            s_Data.CircleVertexBufferPtr->EntityID = entityID;
+            s_Data.CircleVertexBufferPtr++;
+        }
 
-        s_Data.QuadVertexBufferPtr->Position = transform * s_Data.QuadVertexPositions[3];
-        s_Data.QuadVertexBufferPtr->Color = color;
-        s_Data.QuadVertexBufferPtr->TexCoord = {0.0f, 1.0f};
-        s_Data.QuadVertexBufferPtr->TexIndex = textureIndex;
-        s_Data.QuadVertexBufferPtr->TilingFactor = tilingFactor;
-        s_Data.QuadVertexBufferPtr++;
-
-        s_Data.QuadIndexCount += 6;
+        s_Data.CircleIndexCount += 6;
 
         s_Data.Stats.QuadCount++;
     }
 
-
     void Renderer2D::DrawSprite(const glm::mat4 &transform, SpriteRendererComponent &sprite, int entityID)
     {
-        if (sprite.texture)
-            DrawQuad(transform, sprite.texture, sprite.tilingFactor, sprite.color, entityID);
+        if (sprite.Texture)
+            DrawQuad(transform, sprite.Texture, sprite.TilingFactor, sprite.Color, entityID);
         else
-            DrawQuad(transform, sprite.color, entityID);
+            DrawQuad(transform, sprite.Color, entityID);
     }
 
 
