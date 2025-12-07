@@ -209,6 +209,19 @@ namespace Himii
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << boxCollider2D.RestitutionThreshold;
             out << YAML::EndMap;
         }
+        if (entity.HasComponent<CircleCollider2DComponent>())
+        {
+            out << YAML::Key << "CircleCollider2DComponent";
+            out << YAML::BeginMap;
+            auto &circleCollider2D = entity.GetComponent<CircleCollider2DComponent>();
+            out << YAML::Key << "Offset" << YAML::Value << circleCollider2D.Offset;
+            out << YAML::Key << "Radius" << YAML::Value << circleCollider2D.Radius;
+            out << YAML::Key << "Density" << YAML::Value << circleCollider2D.Density;
+            out << YAML::Key << "Friction" << YAML::Value << circleCollider2D.Friction;
+            out << YAML::Key << "Restitution" << YAML::Value << circleCollider2D.Restitution;
+            out << YAML::Key << "RestitutionThreshold" << YAML::Value << circleCollider2D.RestitutionThreshold;
+            out << YAML::EndMap;
+        }
         out << YAML::EndMap;
     }
 
@@ -341,6 +354,17 @@ namespace Himii
                     bcc.Friction = boxCollider2DComponent["Friction"].as<float>();
                     bcc.Restitution = boxCollider2DComponent["Restitution"].as<float>();
                     bcc.RestitutionThreshold = boxCollider2DComponent["RestitutionThreshold"].as<float>();
+                }
+                auto circleCollider2DComponent = entity["CircleCollider2DComponent"];
+                if (circleCollider2DComponent)
+                {
+                    auto &ccc = deserializedEntity.AddComponent<CircleCollider2DComponent>();
+                    ccc.Offset = circleCollider2DComponent["Offset"].as<glm::vec2>();
+                    ccc.Radius = circleCollider2DComponent["Radius"].as<float>();
+                    ccc.Density = circleCollider2DComponent["Density"].as<float>();
+                    ccc.Friction = circleCollider2DComponent["Friction"].as<float>();
+                    ccc.Restitution = circleCollider2DComponent["Restitution"].as<float>();
+                    ccc.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
                 }
             }
             return true;

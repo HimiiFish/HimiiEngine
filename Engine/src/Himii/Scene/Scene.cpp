@@ -136,6 +136,25 @@ namespace Himii
 
                 b2CreatePolygonShape(bodyId, &shapeDef, &polygon);
             }
+
+            if (entity.HasComponent<CircleCollider2DComponent>())
+            {
+                auto &cc2d = entity.GetComponent<CircleCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = cc2d.Density;
+                shapeDef.material.friction = cc2d.Friction;
+                shapeDef.material.restitution = cc2d.Restitution;
+                shapeDef.material.rollingResistance = cc2d.RestitutionThreshold;
+
+                b2Circle circle;
+                // 应用 Offset
+                circle.center = {cc2d.Offset.x*transform.Scale.x, cc2d.Offset.y*transform.Scale.y};
+                float maxScale = std::max(transform.Scale.x, transform.Scale.y);
+                circle.radius = cc2d.Radius*maxScale;
+
+                b2CreateCircleShape(bodyId, &shapeDef, &circle);
+            }
         }
     }
 
@@ -164,6 +183,10 @@ namespace Himii
                                                       circle.Fade, (int)entity);
                     });
         }
+
+        Renderer2D::DrawLine(glm::vec3(0, 0, 0), glm::vec3(5, 0, 0), glm::vec4(1, 0, 1, 1), 1);
+        Renderer2D::DrawRect(glm::vec3(0.0f), glm::vec2(5.0f), glm::vec4(1, 0, 1, 1), 1);
+
         Renderer2D::EndScene();
     }
 
@@ -295,6 +318,7 @@ namespace Himii
         CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<Rigidbody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
         return newScene;
     }
@@ -324,6 +348,9 @@ namespace Himii
 
         if (entity.HasComponent<BoxCollider2DComponent>())
             newEntity.AddComponent<BoxCollider2DComponent>(entity.GetComponent<BoxCollider2DComponent>());
+
+        if (entity.HasComponent<CircleCollider2DComponent>())
+            newEntity.AddComponent<CircleCollider2DComponent>(entity.GetComponent<CircleCollider2DComponent>());
 
         return newEntity;
     }
@@ -422,6 +449,11 @@ namespace Himii
 
     template<>
     void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent &component)
     {
     }
 
