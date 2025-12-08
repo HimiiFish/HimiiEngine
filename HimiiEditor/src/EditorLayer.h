@@ -23,6 +23,8 @@ namespace Himii
         bool OnKeyPressed(KeyPressedEvent &e);
         bool OnMouseButtonPressed(MouseButtonPressedEvent &e);
 
+        void OnOverlayRender();
+
         void NewScene();
         void OpenScene();
         void OpenScene(const std::filesystem::path& path);
@@ -65,6 +67,8 @@ namespace Himii
         glm::vec4 m_SquareColor = {0.5f, 0.26f, 0.56f, 1.0f};
 
         int m_GizmoType = -1;
+
+        bool m_ShowPhysicsColliders = false;
 
         enum class SceneState {
             Edit = 0,

@@ -35,8 +35,6 @@ namespace Himii
         void OnUpdateEditor(Timestep ts,EditorCamera &camera);
         void OnUpdateRuntime(Timestep ts);
 
-        // 供编辑器渲染路径设置：使用外部提供的 ViewProjection 矩阵进行一次渲染
-        // 传入 nullptr 关闭外部相机覆盖
         void SetExternalViewProjection(const glm::mat4 *vp)
         {
             if (vp)
@@ -57,6 +55,12 @@ namespace Himii
         // 清空场景：安全销毁所有实体（走 DestroyEntity，确保脚本生命周期与映射清理）
         void Clear();
         Entity GetPrimaryCameraEntity();
+
+        template<typename... Components> 
+        auto GetAllEntitiesWith()
+        {
+            return m_Registry.view<Components...>();
+        }
     private:
         template<typename T>
         void OnComponentAdded(Entity entity, T &component);
@@ -74,4 +78,4 @@ namespace Himii
 
         b2WorldId m_Box2DWorld;
     };
-} // namespace Himii
+}
