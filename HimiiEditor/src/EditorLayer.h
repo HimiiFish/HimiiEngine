@@ -34,6 +34,7 @@ namespace Himii
         void SerializeScene(Ref<Scene> scene, const std::filesystem::path &path);
 
         void OnScenePlay();
+        void OnSceneSimulate();
         void OnSceneStop();
 
         void OnDuplicateEntity();
@@ -78,7 +79,7 @@ namespace Himii
         SceneHierarchyPanel m_SceneHierarchyPanel;
         ContentBrowserPanel m_ContentBrowserPanel;
 
-        Ref<Texture2D> m_IconPlay, m_IconStop;
+        Ref<Texture2D> m_IconPlay, m_IconStop, m_IconSimulate;
 
 
         SceneState m_SceneState = SceneState::Edit;

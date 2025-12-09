@@ -13,6 +13,7 @@
     "shaderc",
     "spirv-cross",
     "spirv-tools",
-    "box2d"
+    "box2d",
+    "nethost"
   ]
 }

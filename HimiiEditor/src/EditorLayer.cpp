@@ -21,10 +21,12 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        m_IconPlay = Texture2D::Create("resources/icons/player.png");
+        m_IconPlay = Texture2D::Create("resources/icons/play.png");
         m_IconStop = Texture2D::Create("resources/icons/stop.png");
+        m_IconSimulate = Texture2D::Create("resources/icons/simulate.png");
 
-        m_ActiveScene = CreateRef<Scene>();
+        m_EditorScene = CreateRef<Scene>();
+        m_ActiveScene = m_EditorScene;
 
         auto commandLineArgs = Application::Get().GetCommandLineArgs();
         if (commandLineArgs.Count > 1)
@@ -41,22 +43,6 @@ namespace Himii
 
         m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
 
-        //{
-        //    m_SquareEntity = m_ActiveScene->CreateEntity("My Quad");
-        //    m_SquareEntity.AddComponent<SpriteRendererComponent>(glm::vec4{1.0f, 1.0f, 1.0f, 1.0f});
-        //    m_SquareEntity.AddComponent<NativeScriptComponent>().Bind<CameraController>();
-
-        //    for (int i = -5; i < 10; i++)
-        //    {
-        //        auto m_Entity = m_ActiveScene->CreateEntity("Entity");
-        //        m_Entity.AddComponent<SpriteRendererComponent>(glm::vec4{0.2f, 0.3f, 0.8f, 1.0f});
-        //        m_Entity.GetComponent<TransformComponent>().Position = {i * 1.1f, 0.0f, 0.0f};
-        //    }
-
-        //    m_CameraEntity = m_ActiveScene->CreateEntity("Camera Entity");
-        //    m_CameraEntity.AddComponent<CameraComponent>();
-        //    // 默认构造 SpriteRenderer（白色），或传入颜色
-        //}
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
     void EditorLayer::OnDetach()
@@ -103,6 +89,8 @@ namespace Himii
                 break;
             }
             case SceneState::Simulate:
+                m_EditorCamera.OnUpdate(ts);
+                m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
                 break;
             default:
                 break;
@@ -555,10 +543,26 @@ namespace Himii
 
     void EditorLayer::OnScenePlay()
     {
+        if (m_SceneState == SceneState::Simulate)
+            OnSceneStop();
+
         m_SceneState = SceneState::Play;
 
         m_ActiveScene = Scene::Copy(m_EditorScene);
         m_ActiveScene->OnRuntimeStart();
+
+        m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+    }
+
+    void EditorLayer::OnSceneSimulate()
+    {
+        if (m_SceneState == SceneState::Play)
+            OnSceneStop();
+
+        m_SceneState = SceneState::Simulate;
+
+        m_ActiveScene = Scene::Copy(m_EditorScene);
+        m_ActiveScene->OnSimulationStart();
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
@@ -569,6 +573,8 @@ namespace Himii
 
         if (m_SceneState == SceneState::Play)
             m_ActiveScene->OnRuntimeStop();
+        else if (m_SceneState == SceneState::Simulate)
+            m_ActiveScene->OnSimulationStop();
 
         m_SceneState = SceneState::Edit;
 
@@ -604,17 +610,34 @@ namespace Himii
         ImGui::Begin("##toolbar", nullptr,
                      ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-        float size = ImGui::GetWindowHeight() - 4.0f;
-        Ref<Texture2D> icon = m_SceneState == SceneState::Edit ? m_IconPlay : m_IconStop;
-        ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
-        if (ImGui::ImageButton("state", (ImTextureID)icon->GetRendererID(), ImVec2(size, size) ,ImVec2(0,0),ImVec2(1,1)))
-        {
-            if (m_SceneState == SceneState::Edit)
-                OnScenePlay();
-            else if (m_SceneState == SceneState::Play)
-                OnSceneStop();
-        }
+        bool toolbarEnable = (bool)m_ActiveScene;
 
+        ImVec4 tintColor = ImVec4(1, 1, 1, 1);
+
+        float size = ImGui::GetWindowHeight() - 4.0f;
+        {
+            Ref<Texture2D> icon = (m_SceneState == SceneState::Edit||m_SceneState==SceneState::Simulate) ? m_IconPlay : m_IconStop;
+            ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+            if (ImGui::ImageButton("state", (ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0),ImVec2(1, 1),ImVec4(0.0f,0.0f,0.0f,0.0f),tintColor)&&toolbarEnable)
+            {
+                if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Simulate)
+                    OnScenePlay();
+                else if (m_SceneState == SceneState::Play)
+                    OnSceneStop();
+            }
+        }
+        ImGui::SameLine();
+        {
+            Ref<Texture2D> icon = (m_SceneState == SceneState::Edit||m_SceneState==SceneState::Play) ? m_IconSimulate : m_IconStop;
+            //ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
+            if (ImGui::ImageButton("state1", (ImTextureID)icon->GetRendererID(), ImVec2(size, size), ImVec2(0, 0),ImVec2(1, 1),ImVec4(0.0f,0.0f,0.0f,0.0f),tintColor)&&toolbarEnable)
+            {
+                if (m_SceneState == SceneState::Edit || m_SceneState == SceneState::Play)
+                    OnSceneSimulate();
+                else if (m_SceneState == SceneState::Simulate)
+                    OnSceneStop();
+            }
+        }
         ImGui::PopStyleVar(2);
         ImGui::PopStyleColor(3);
         ImGui::End();

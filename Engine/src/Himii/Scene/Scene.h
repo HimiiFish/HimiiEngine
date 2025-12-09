@@ -30,10 +30,13 @@ namespace Himii
         }
 
         void OnRuntimeStart();
+        void OnSimulationStart();
         void OnRuntimeStop();
+        void OnSimulationStop();
 
         void OnUpdateEditor(Timestep ts,EditorCamera &camera);
         void OnUpdateRuntime(Timestep ts);
+        void OnUpdateSimulation(Timestep ts,EditorCamera &camera);
 
         void SetExternalViewProjection(const glm::mat4 *vp)
         {
@@ -65,6 +68,10 @@ namespace Himii
         template<typename T>
         void OnComponentAdded(Entity entity, T &component);
 
+        void OnPhysics2DStart();
+        void OnPhysics2DStop();
+
+        void RenderScene(EditorCamera &camera);
     private:
         entt::registry m_Registry;
         uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;

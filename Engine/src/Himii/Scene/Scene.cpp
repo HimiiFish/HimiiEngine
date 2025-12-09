@@ -81,110 +81,27 @@ namespace Himii
 
     void Scene::OnRuntimeStart()
     {
-        b2WorldDef worldDef = b2DefaultWorldDef();
-        worldDef.gravity = b2Vec2{0.0f, -9.8f};
-        m_Box2DWorld = b2CreateWorld(&worldDef);
+        OnPhysics2DStart();
+    }
 
-        auto view = m_Registry.view<Rigidbody2DComponent>();
-        for (auto e: view)
-        {
-            Entity entity = {e, this};
-            auto &transform = entity.GetComponent<TransformComponent>();
-            auto &rigidbody2D = entity.GetComponent<Rigidbody2DComponent>();
+    void Scene::OnSimulationStart()
+    {
+        OnPhysics2DStart();
+    }
 
-            b2BodyDef bodyDef = b2DefaultBodyDef();
-
-            switch (rigidbody2D.Type)
-            {
-                case Rigidbody2DComponent::BodyType::Static:
-                    bodyDef.type = b2BodyType::b2_staticBody;
-                    break;
-                case Rigidbody2DComponent::BodyType::Dynamic:
-                    bodyDef.type = b2BodyType::b2_dynamicBody;
-                    break;
-                case Rigidbody2DComponent::BodyType::Kinematic:
-                    bodyDef.type = b2BodyType::b2_kinematicBody;
-                    break;
-            }
-
-            bodyDef.position = {transform.Position.x, transform.Position.y};
-            bodyDef.rotation = b2MakeRot(transform.Rotation.z);
-            bodyDef.fixedRotation = rigidbody2D.FixedRotation;
-            bodyDef.userData = (void *)(uintptr_t)(uint32_t)entity; // 存储 Entity ID
-
-            b2BodyId bodyId = b2CreateBody(m_Box2DWorld, &bodyDef);
-            rigidbody2D.RuntimeBody = ToPtr(bodyId);
-
-            // 3. 添加碰撞体
-            if (entity.HasComponent<BoxCollider2DComponent>())
-            {
-                auto &bc2d = entity.GetComponent<BoxCollider2DComponent>();
-
-                b2ShapeDef shapeDef = b2DefaultShapeDef();
-                shapeDef.density = bc2d.Density;
-                shapeDef.material.friction = bc2d.Friction;
-                shapeDef.material.restitution = bc2d.Restitution;
-                shapeDef.material.rollingResistance = bc2d.RestitutionThreshold;
-
-                // Box2D v3 b2MakeBox 参数是半宽/半高
-                float hx = bc2d.Size.x * transform.Scale.x * 0.5f;
-                float hy = bc2d.Size.y * transform.Scale.y * 0.5f;
-
-                b2Polygon polygon = b2MakeBox(hx, hy);
-                // 应用 Offset
-                polygon.centroid = {bc2d.Offset.x, bc2d.Offset.y};
-
-                b2CreatePolygonShape(bodyId, &shapeDef, &polygon);
-            }
-
-            if (entity.HasComponent<CircleCollider2DComponent>())
-            {
-                auto &cc2d = entity.GetComponent<CircleCollider2DComponent>();
-
-                b2ShapeDef shapeDef = b2DefaultShapeDef();
-                shapeDef.density = cc2d.Density;
-                shapeDef.material.friction = cc2d.Friction;
-                shapeDef.material.restitution = cc2d.Restitution;
-                shapeDef.material.rollingResistance = cc2d.RestitutionThreshold;
-
-                b2Circle circle;
-                // 应用 Offset
-                circle.center = {cc2d.Offset.x*transform.Scale.x, cc2d.Offset.y*transform.Scale.y};
-                float maxScale = std::max(transform.Scale.x, transform.Scale.y);
-                circle.radius = cc2d.Radius*maxScale;
-
-                b2CreateCircleShape(bodyId, &shapeDef, &circle);
-            }
-        }
+    void Scene::OnSimulationStop()
+    {
+        OnPhysics2DStop();
     }
 
     void Scene::OnRuntimeStop()
     {
-        if (b2World_IsValid(m_Box2DWorld))
-        {
-            b2DestroyWorld(m_Box2DWorld);
-            m_Box2DWorld = {0}; // Reset ID
-        }
+        OnPhysics2DStop();
     }
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera &camera)
     {
-        Renderer2D::BeginScene(camera);
-        {
-            auto view = m_Registry.view<TransformComponent, SpriteRendererComponent>();
-            view.each([&](entt::entity entity, TransformComponent &transform, SpriteRendererComponent &sprite)
-                      { Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity); });
-        }
-        {
-            auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
-            view.each(
-                    [&](entt::entity entity, TransformComponent &transform, CircleRendererComponent &circle) {
-                        Himii::Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness,
-                                                      circle.Fade, (int)entity);
-                    });
-        }
-
-        Renderer2D::EndScene();
+        RenderScene(camera);
     }
 
     void Scene::OnUpdateRuntime(Timestep ts)
@@ -266,6 +183,39 @@ namespace Himii
             }
             Renderer2D::EndScene();
         }
+    }
+
+    void Scene::OnUpdateSimulation(Timestep ts,EditorCamera& camera)
+    {
+        // Box2D 物理更新
+        {
+            const int32_t subStepCount = 2;
+            b2World_Step(m_Box2DWorld, ts, subStepCount);
+
+            auto view = m_Registry.view<Rigidbody2DComponent>();
+            for (auto e: view)
+            {
+                Entity entity = {e, this};
+                auto &transform = entity.GetComponent<TransformComponent>();
+                auto &rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+                if (rb2d.RuntimeBody)
+                {
+                    b2BodyId bodyId = ToBodyId(rb2d.RuntimeBody);
+                    if (b2Body_IsValid(bodyId))
+                    {
+                        b2Vec2 position = b2Body_GetPosition(bodyId);
+                        transform.Position.x = position.x;
+                        transform.Position.y = position.y;
+
+                        b2Rot rotation = b2Body_GetRotation(bodyId);
+                        transform.Rotation.z = b2Rot_GetAngle(rotation);
+                    }
+                }
+            }
+        }
+
+        RenderScene(camera);
     }
 
     template<typename Component>
@@ -392,6 +342,118 @@ namespace Himii
             }
         }
         return {};
+    }
+
+    void Scene::OnPhysics2DStart()
+    {
+        b2WorldDef worldDef = b2DefaultWorldDef();
+        worldDef.gravity = b2Vec2{0.0f, -9.8f};
+        m_Box2DWorld = b2CreateWorld(&worldDef);
+
+        auto view = m_Registry.view<Rigidbody2DComponent>();
+        for (auto e: view)
+        {
+            Entity entity = {e, this};
+            auto &transform = entity.GetComponent<TransformComponent>();
+            auto &rigidbody2D = entity.GetComponent<Rigidbody2DComponent>();
+
+            b2BodyDef bodyDef = b2DefaultBodyDef();
+
+            switch (rigidbody2D.Type)
+            {
+                case Rigidbody2DComponent::BodyType::Static:
+                    bodyDef.type = b2BodyType::b2_staticBody;
+                    break;
+                case Rigidbody2DComponent::BodyType::Dynamic:
+                    bodyDef.type = b2BodyType::b2_dynamicBody;
+                    break;
+                case Rigidbody2DComponent::BodyType::Kinematic:
+                    bodyDef.type = b2BodyType::b2_kinematicBody;
+                    break;
+            }
+
+            bodyDef.position = {transform.Position.x, transform.Position.y};
+            bodyDef.rotation = b2MakeRot(transform.Rotation.z);
+            bodyDef.fixedRotation = rigidbody2D.FixedRotation;
+            bodyDef.userData = (void *)(uintptr_t)(uint32_t)entity; // 存储 Entity ID
+
+            b2BodyId bodyId = b2CreateBody(m_Box2DWorld, &bodyDef);
+            rigidbody2D.RuntimeBody = ToPtr(bodyId);
+
+            // 3. 添加碰撞体
+            if (entity.HasComponent<BoxCollider2DComponent>())
+            {
+                auto &bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = bc2d.Density;
+                shapeDef.material.friction = bc2d.Friction;
+                shapeDef.material.restitution = bc2d.Restitution;
+                shapeDef.material.rollingResistance = bc2d.RestitutionThreshold;
+
+                // Box2D v3 b2MakeBox 参数是半宽/半高
+                float hx = bc2d.Size.x * transform.Scale.x * 0.5f;
+                float hy = bc2d.Size.y * transform.Scale.y * 0.5f;
+
+                b2Polygon polygon = b2MakeBox(hx, hy);
+                // 应用 Offset
+                polygon.centroid = {bc2d.Offset.x, bc2d.Offset.y};
+
+                b2CreatePolygonShape(bodyId, &shapeDef, &polygon);
+            }
+
+            if (entity.HasComponent<CircleCollider2DComponent>())
+            {
+                auto &cc2d = entity.GetComponent<CircleCollider2DComponent>();
+
+                b2ShapeDef shapeDef = b2DefaultShapeDef();
+                shapeDef.density = cc2d.Density;
+                shapeDef.material.friction = cc2d.Friction;
+                shapeDef.material.restitution = cc2d.Restitution;
+                shapeDef.material.rollingResistance = cc2d.RestitutionThreshold;
+
+                b2Circle circle;
+                // 应用 Offset
+                circle.center = {cc2d.Offset.x * transform.Scale.x, cc2d.Offset.y * transform.Scale.y};
+                float maxScale = std::max(transform.Scale.x, transform.Scale.y);
+                circle.radius = cc2d.Radius * maxScale;
+
+                b2CreateCircleShape(bodyId, &shapeDef, &circle);
+            }
+        }
+    }
+
+    void Scene::OnPhysics2DStop()
+    {
+        if (b2World_IsValid(m_Box2DWorld))
+        {
+            b2DestroyWorld(m_Box2DWorld);
+            m_Box2DWorld = {0}; // Reset ID
+        }
+    }
+
+    void Scene::RenderScene(EditorCamera &camera)
+    {
+        Renderer2D::BeginScene(camera);
+
+        //Draw Sprites
+        {
+            auto view = m_Registry.view<TransformComponent, SpriteRendererComponent>();
+            view.each([&](entt::entity entity, TransformComponent &transform, SpriteRendererComponent &sprite)
+                      { Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity); });
+        }
+
+        //Draw Circles
+        {
+            auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
+            view.each(
+                    [&](entt::entity entity, TransformComponent &transform, CircleRendererComponent &circle) {
+                        Himii::Renderer2D::DrawCircle(transform.GetTransform(), circle.Color, circle.Thickness,
+                                                      circle.Fade, (int)entity);
+                    });
+        }
+
+        Renderer2D::EndScene();
     }
 
     //
