@@ -55,8 +55,9 @@ namespace Himii
 
         Entity DuplicateEntity(Entity entity);
 
-        // 清空场景：安全销毁所有实体（走 DestroyEntity，确保脚本生命周期与映射清理）
-        void Clear();
+        Entity FindEntityByName(const std::string &name);
+        Entity GetEntityByUUID(UUID uuid);
+
         Entity GetPrimaryCameraEntity();
 
         template<typename... Components> 

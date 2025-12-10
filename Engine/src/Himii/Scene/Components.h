@@ -81,6 +81,13 @@ namespace Himii
         CircleRendererComponent(const CircleRendererComponent &) = default;
     };
 
+    struct ScriptComponent {
+        std::string ClassName;
+
+        ScriptComponent() = default;
+        ScriptComponent(const ScriptComponent &) = default;
+    };
+
     class ScriptableEntity;
 
     struct NativeScriptComponent {

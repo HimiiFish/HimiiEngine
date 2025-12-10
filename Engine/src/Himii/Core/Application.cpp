@@ -4,6 +4,8 @@
 #include <GLFW/glfw3.h>
 
 
+#include "Himii/Scripting/ScriptEngine.h"
+
 namespace Himii
 {
     Application *Application::s_Instance = nullptr;
@@ -17,6 +19,8 @@ namespace Himii
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();
+        ScriptEngine::Init();
+
         m_ImGuiLayer = new ImGuiLayer();
         PushOverlay(m_ImGuiLayer);
     }
@@ -24,6 +28,8 @@ namespace Himii
     Application::~Application()
     {
         HIMII_PROFILE_FUNCTION();
+
+        ScriptEngine::Shutdown();
         s_Instance = nullptr;
     }
 

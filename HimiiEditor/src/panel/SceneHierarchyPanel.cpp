@@ -1,6 +1,8 @@
 #pragma once
 #include "SceneHierarchyPanel.h"
 
+#include "Himii/Scripting/ScriptEngine.h"
+
 #include <imgui.h>
 #include <imgui_internal.h>
 #include <misc/cpp/imgui_stdlib.h>
@@ -226,6 +228,7 @@ namespace Himii
         if (ImGui::BeginPopup("AddComponent"))
         {
             DisplayAddComponentEntry<CameraComponent>("Camera");
+            DisplayAddComponentEntry<ScriptComponent>("Script Component");
             DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
             DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
@@ -301,6 +304,63 @@ namespace Himii
                                                ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
                                            }
                                        });
+
+        #include <cstdlib> // for system()
+
+        // ...
+
+        DrawComponent<ScriptComponent>(
+                "Script", entity,
+                [entity, scene = m_Context](auto &component) mutable
+                {
+                    bool scriptClassExists = ScriptEngine::EntityClassExists(component.ClassName);
+
+                    ImGui::Text("Class Name");
+                    ImGui::SameLine();
+
+                    if (ImGui::InputText("##ClassName", &component.ClassName))
+                    {
+                        // 输入修改逻辑
+                    }
+
+                    if (!scriptClassExists)
+                    {
+                        ImGui::TextColored(ImVec4(0.9f, 0.2f, 0.2f, 1.0f), "Invalid Script Class!");
+                    }
+                    else
+                    {
+                        // --- 新增：打开 IDE 逻辑 ---
+                        ImGui::SameLine();
+                        if (ImGui::Button("Edit"))
+                        {
+                            // 1. 简单的路径推断逻辑
+                            // 假设类名 "Player" 对应的文件在 "Assets/Scripts/Player.cs"
+                            // 实际项目中，你需要一个 AssetManager 来根据类名查找文件 GUID 再找到路径
+                            std::string scriptFolder = "assets/scripts/";
+
+                            // 处理命名空间：Himii.Player -> Player.cs
+                            std::string fileName = component.ClassName;
+                            size_t lastDot = fileName.find_last_of('.');
+                            if (lastDot != std::string::npos)
+                                fileName = fileName.substr(lastDot + 1);
+
+                            std::filesystem::path scriptPath = std::filesystem::path(scriptFolder) / (fileName + ".cs");
+
+                            if (std::filesystem::exists(scriptPath))
+                            {
+                                // 调用系统命令打开 VS Code (code) 或 默认编辑器
+                                // Windows 下可以使用 "start" 或 "code"
+                                std::string cmd = "code " + scriptPath.string();
+                                system(cmd.c_str());
+                            }
+                            else
+                            {
+                                // 如果文件不存在，可以提示创建
+                                HIMII_WARNING("Script file not found: {0}", scriptPath.string());
+                            }
+                        }
+                    }
+                });
 
         DrawComponent<SpriteRendererComponent>(
                 "Sprite Renderer", entity,

@@ -13,18 +13,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # OFF -> 构建静态库
 option(BUILD_SHARED_LIBS "Build shared libraries" OFF)
 
-# 确保 Visual Studio 的输出目录存在，以避免链接器错误
-if(MSVC)
-    # 让 MSVC 以 UTF-8 读取/编译源文件，消除 C4828 警告
-    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>" "$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-
-    # 可保留或移除这个目录创建；目标级路径会按需创建
-    file(MAKE_DIRECTORY
-        ${CMAKE_BINARY_DIR}/bin
-        ${CMAKE_BINARY_DIR}/lib
-    )
-endif()
-
 # 统一每个目标的输出目录：多配置与单配置生成器均兼容
 function(himii_set_output_dirs target_name)
     # 单配置生成器或兜底
@@ -45,7 +33,15 @@ function(himii_set_output_dirs target_name)
     endforeach()
 endfunction()
 
+# MSVC 特定设置
+if(MSVC)
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>" "$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+endif()
+
 # 添加子项目
+add_subdirectory(ScriptCore)
 add_subdirectory(Engine)
 add_subdirectory(HimiiEditor)
 add_subdirectory(TemplateProject)
+
+add_dependencies(HimiiEditor ScriptCore_Build)

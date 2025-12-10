@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<!-- 使用 .NET 8.0 -->
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<!-- 生成 .runtimeconfig.json，这对 nethost 很重要 -->
+		<EnableDynamicLoading>true</EnableDynamicLoading>
+	</PropertyGroup>
+</Project>

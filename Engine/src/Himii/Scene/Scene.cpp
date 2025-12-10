@@ -5,6 +5,7 @@
 #include "Components.h"
 #include "Himii/Renderer/Renderer2D.h"
 #include "ScriptableEntity.h"
+#include "Himii/Scripting/ScriptEngine.h"
 
 #include <glm/glm.hpp>
 
@@ -107,19 +108,25 @@ namespace Himii
     void Scene::OnUpdateRuntime(Timestep ts)
     {
         {
-            m_Registry.view<NativeScriptComponent>().each(
-                    [=](auto entity, auto &nsc)
-                    {
-                        // 如果没有实例化，尝试实例化
-                        if (!nsc.Instance)
-                        {
-                            nsc.Instance = nsc.InstantiateScript();
-                            nsc.Instance->m_Entity = Entity{entity, this};
-                            nsc.Instance->OnCreate();
-                        }
-                        // 更新
-                        nsc.Instance->OnUpdate(ts);
-                    });
+            auto view = m_Registry.view<ScriptComponent>();
+            for (auto e: view)
+            {
+                Entity entity = {e, this};
+                ScriptEngine::OnUpdateScript(entity, ts);
+            }
+
+            m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+					{
+						// TODO: Move to Scene::OnScenePlay
+						if (!nsc.Instance)
+						{
+							nsc.Instance = nsc.InstantiateScript();
+							nsc.Instance->m_Entity = Entity{ entity, this };
+							nsc.Instance->OnCreate();
+						}
+
+						nsc.Instance->OnUpdate(ts);
+					});
         }
 
         // Box2D 物理更新
@@ -290,6 +297,9 @@ namespace Himii
         if (entity.HasComponent<NativeScriptComponent>())
             newEntity.AddComponent<NativeScriptComponent>(entity.GetComponent<NativeScriptComponent>());
 
+        if (entity.HasComponent<ScriptComponent>())
+            newEntity.AddComponent<ScriptComponent>(entity.GetComponent<ScriptComponent>());
+
         if (entity.HasComponent<Rigidbody2DComponent>())
             newEntity.AddComponent<Rigidbody2DComponent>(entity.GetComponent<Rigidbody2DComponent>());
 
@@ -300,6 +310,27 @@ namespace Himii
             newEntity.AddComponent<CircleCollider2DComponent>(entity.GetComponent<CircleCollider2DComponent>());
 
         return newEntity;
+    }
+
+    Entity Scene::FindEntityByName(const std::string& name)
+    {
+        auto view = m_Registry.view<TagComponent>();
+        for (auto entity: view)
+        {
+            const TagComponent &tc = view.get<TagComponent>(entity);
+            if (tc.Tag == name)
+                return Entity{entity, this};
+        }
+        return {};
+    }
+
+    Entity Scene::GetEntityByUUID(UUID uuid)
+    {
+        // TODO(Yan): Maybe should be assert
+        if (m_EntityMap.find(uuid) != m_EntityMap.end())
+            return {m_EntityMap.at(uuid), this};
+
+        return {};
     }
 
     void Scene::OnViewportResize(uint32_t width, uint32_t height)
@@ -317,17 +348,6 @@ namespace Himii
             if (!cameraComponent.FixedAspectRatio)
                 cameraComponent.Camera.SetViewportSize(width, height);
         }
-    }
-
-    void Scene::Clear()
-    {
-        // 收集后再销毁，避免遍历时失效
-        std::vector<entt::entity> toDelete;
-        auto view = m_Registry.view<TransformComponent>();
-        for (auto e: view)
-            toDelete.push_back(e);
-        for (auto e: toDelete)
-            DestroyEntity(e);
     }
 
     Entity Scene::GetPrimaryCameraEntity()
@@ -487,7 +507,7 @@ namespace Himii
     }
 
     template<>
-    void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent &component)
+    void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent &component)
     {
     }
 

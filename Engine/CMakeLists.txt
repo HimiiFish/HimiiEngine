@@ -64,6 +64,7 @@ set(IMGUIZMO_SOURCES
 set(IMGUI_BACKENDS
     ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
     ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
+    ${IMGUI_DIR}/misc/cpp/imgui_stdlib.cpp
 )
 set(ENGINE_ALL_SOURCES
     ${SOURCES}
@@ -85,7 +86,7 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR})
 
-target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp Vulkan::Vulkan unofficial::shaderc::shaderc spirv-cross-core spirv-cross-glsl SPIRV-Tools-static box2d::box2d unofficial-nethost)
+target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp::yaml-cpp Vulkan::Vulkan unofficial::shaderc::shaderc spirv-cross-core spirv-cross-glsl SPIRV-Tools-static box2d::box2d unofficial::nethost::nethost)
 
 # 启用 GLM 实验特性（如 gtx/component_wise），避免各 TU 单独定义宏
 target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)
