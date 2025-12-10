@@ -200,6 +200,30 @@ namespace Himii {
 
     }
 
+	void ScriptEngine::CompileAndReloadAppAssembly(const std::filesystem::path& projectPath)
+	{
+		std::string command = "dotnet build \"" + projectPath.string() + "\"";
+		int result = std::system(command.c_str());
+
+		if (result == 0)
+		{
+			std::filesystem::path searchDir = projectPath.parent_path();
+			for (auto const& dir_entry : std::filesystem::recursive_directory_iterator{searchDir})
+			{
+				if (dir_entry.path().filename() == "GameAssembly.dll")
+				{
+					LoadAppAssembly(dir_entry.path());
+					return;
+				}
+			}
+			std::cerr << "[ScriptEngine] Could not find compiled assembly!" << std::endl;
+		}
+		else
+		{
+			std::cerr << "[ScriptEngine] Failed to compile C# project!" << std::endl;
+		}
+	}
+
     void ScriptEngine::LoadAppAssembly(const std::filesystem::path &filepath)
     {
         if (s_LoadGameAssembly)

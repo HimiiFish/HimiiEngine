@@ -62,7 +62,17 @@ namespace Himii
                 {
                     m_CurrentDirectory /= path.filename();
                 }
-                
+                else
+                {
+                    // Open the file with the default application
+					#ifdef _WIN32
+						std::system(("start \"\" \"" + path.string() + "\"").c_str());
+					#elif __APPLE__
+						std::system(("open \"" + path.string() + "\"").c_str());
+					#else
+						std::system(("xdg-open \"" + path.string() + "\"").c_str());
+					#endif
+                }
             }
             ImGui::TextWrapped(fileNameString.c_str());
             ImGui::PopID();

@@ -17,6 +17,7 @@ namespace Himii {
 		static void Shutdown();
 
 		static void LoadAssembly(const std::filesystem::path& filepath);
+		static void CompileAndReloadAppAssembly(const std::filesystem::path& projectPath);
 		static void LoadAppAssembly(const std::filesystem::path& filepath);
 
 		// 运行时生命周期
