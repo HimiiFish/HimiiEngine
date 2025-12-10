@@ -1,5 +1,6 @@
 ﻿#include "EditorLayer.h"
 #include "imgui.h"
+#include "Himii/Scripting/ScriptEngine.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -44,6 +45,10 @@ namespace Himii
         m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
+
+        std::filesystem::path rootDir = HIMII_ROOT_DIR;
+        m_CSharpProjectPath = rootDir / "HimiiEditor"/"assets"/"GameAssembly.csproj";
+        CompileAndReloadScripts();
     }
     void EditorLayer::OnDetach()
     {
@@ -188,6 +193,14 @@ namespace Himii
 
                     if (ImGui::MenuItem("Quit"))
                         Himii::Application::Get().Close();
+                    ImGui::EndMenu();
+                }
+                if (ImGui::BeginMenu("Script"))
+                {
+                    if (ImGui::MenuItem("Compile and Reload"))
+                    {
+                        CompileAndReloadScripts();
+                    }
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenuBar();
@@ -594,6 +607,11 @@ namespace Himii
             Entity newEntity = m_EditorScene->DuplicateEntity(selectedEntity);
             m_SceneHierarchyPanel.SetSelectedEntity(newEntity);
         }
+    }
+
+    void EditorLayer::CompileAndReloadScripts()
+    {
+        ScriptEngine::CompileAndReloadAppAssembly(m_CSharpProjectPath);
     }
 
     void EditorLayer::UI_Toolbar()

@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		
+		<OutputPath>..\..\build\x64-debug\bin\HimiiEditor\Debug\</OutputPath>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+
+		<EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\ScriptCore\ScriptCore.csproj">
+			<Private>false</Private>
+		</ProjectReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<Compile Include="scripts\**\*.cs" />
+	</ItemGroup>
+</Project>

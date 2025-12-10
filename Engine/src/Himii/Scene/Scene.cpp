@@ -82,7 +82,17 @@ namespace Himii
 
     void Scene::OnRuntimeStart()
     {
+        ScriptEngine::OnRuntimeStart(this);
         OnPhysics2DStart();
+        // 3. 实例化所有拥有 ScriptComponent 的实体
+        {
+            auto view = m_Registry.view<ScriptComponent>();
+            for (auto e: view)
+            {
+                Entity entity = {e, this};
+                ScriptEngine::OnCreateEntity(entity); // <--- 新增这行调用
+            }
+        }
     }
 
     void Scene::OnSimulationStart()
@@ -98,6 +108,7 @@ namespace Himii
     void Scene::OnRuntimeStop()
     {
         OnPhysics2DStop();
+        ScriptEngine::OnRuntimeStop();
     }
 
     void Scene::OnUpdateEditor(Timestep ts, EditorCamera &camera)
@@ -269,6 +280,7 @@ namespace Himii
         CopyComponent<SpriteRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CircleRendererComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CameraComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<ScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<NativeScriptComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<Rigidbody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);

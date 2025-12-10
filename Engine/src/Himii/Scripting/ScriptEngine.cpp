@@ -36,7 +36,7 @@ namespace Himii {
 
 	Scene* ScriptEngine::s_SceneContext = nullptr;
 
-	typedef void(CORECLR_DELEGATE_CALLTYPE *OnCreateFn)(uint64_t entityID, const char_t *className);
+	typedef void(CORECLR_DELEGATE_CALLTYPE *OnCreateFn)(uint64_t entityID, const char *className);
     typedef void(CORECLR_DELEGATE_CALLTYPE *OnUpdateFn)(uint64_t entityID, float ts);
     typedef void(CORECLR_DELEGATE_CALLTYPE *LoadAssemblyFn)(const char *filepath);
     typedef bool(CORECLR_DELEGATE_CALLTYPE *ClassExistsFn)(const char *className);
@@ -200,6 +200,43 @@ namespace Himii {
 
     }
 
+    void ScriptEngine::CompileAndReloadAppAssembly(const std::filesystem::path &projectPath)
+    {
+        std::string command = "dotnet build \"" + projectPath.string() + "\" -c Debug";
+        int result = std::system(command.c_str());
+
+        if (result == 0)
+        {
+            std::filesystem::path dllPath = "GameAssembly.dll";
+
+            if (std::filesystem::exists(dllPath))
+            {
+                LoadAppAssembly(dllPath);
+            }
+            else
+            {
+                // 如果找不到，尝试构建完整路径（调试用）
+                // 假设 exe 在 .../Debug/
+                std::filesystem::path debugPath = std::filesystem::current_path() / "GameAssembly.dll";
+                if (std::filesystem::exists(debugPath))
+                {
+                    LoadAppAssembly(debugPath);
+                }
+                else
+                {
+                    std::cerr << "[ScriptEngine] DLL not found! Expected at: " << std::filesystem::absolute(dllPath)
+                              << std::endl;
+                    // 打印一下当前目录，帮你定位问题
+                    std::cerr << "Current Dir: " << std::filesystem::current_path() << std::endl;
+                }
+            }
+        }
+        else
+        {
+            std::cerr << "[ScriptEngine] Failed to compile C# project!" << std::endl;
+        }
+    }
+
     void ScriptEngine::LoadAppAssembly(const std::filesystem::path &filepath)
     {
         if (s_LoadGameAssembly)
@@ -209,7 +246,19 @@ namespace Himii {
         }
     }
 
-    void ScriptEngine::OnRuntimeStart(Scene* scene)
+    void ScriptEngine::OnCreateEntity(Entity entity)
+    {
+        const auto &sc = entity.GetComponent<ScriptComponent>();
+        if (ScriptEngine::EntityClassExists(sc.ClassName))
+        {
+            UUID entityID = entity.GetUUID();
+            // 调用 C# 的 OnCreateEntity，传入 ID 和类名
+            if (s_OnCreate)
+                s_OnCreate(entityID, sc.ClassName.c_str());
+        }
+    }
+
+    void ScriptEngine::OnRuntimeStart(Scene *scene)
     {
         s_SceneContext = scene;
     }

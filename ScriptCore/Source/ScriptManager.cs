@@ -9,10 +9,8 @@ namespace Himii
 {
     public class ScriptManager
     {
-        // 存储 EntityID -> 脚本实例
         private static Dictionary<ulong, Entity> _instances = new Dictionary<ulong, Entity>();
 
-        // 缓存所有继承自 Entity 的类型: TypeName -> Type
         private static Dictionary<string, Type> _entityClasses = new Dictionary<string, Type>();
 
         [UnmanagedCallersOnly]
@@ -23,25 +21,26 @@ namespace Himii
 
             try
             {
-                // 加载用户的 DLL
-                // 注意：在 .NET Core 中，重复加载同名程序集需要 AssemblyLoadContext，这里简化处理，假设每次都是新的或通过 ALC 处理
+                byte[] assemblyData = File.ReadAllBytes(assemblyPath);
                 Assembly gameAssembly = Assembly.LoadFrom(assemblyPath);
 
                 _entityClasses.Clear();
+                _instances.Clear();
 
                 // 扫描 ScriptCore (自身) 和 GameAssembly 中的所有 Entity 子类
                 var assemblies = new List<Assembly> { typeof(ScriptManager).Assembly, gameAssembly };
-
                 foreach (var asm in assemblies)
                 {
                     foreach (var type in asm.GetTypes())
                     {
                         if (type.IsSubclassOf(typeof(Entity)) && !type.IsAbstract)
                         {
-                            // Key 存储为 "Namespace.ClassName"
-                            string fullName = type.FullName;
-                            _entityClasses[fullName] = type;
-                            Console.WriteLine($"[C#] Found Entity Class: {fullName}");
+                            _entityClasses[type.FullName] = type;
+                            // 如果用户输入的类名不带命名空间，我们也存一份以便查找
+                            if (type.FullName != type.Name)
+                                _entityClasses[type.Name] = type;
+
+                            Console.WriteLine($"[C#] Registered Class: {type.FullName}");
                         }
                     }
                 }

@@ -38,6 +38,7 @@ namespace Himii
         void OnSceneStop();
 
         void OnDuplicateEntity();
+        void CompileAndReloadScripts();
 
         //UI panel
         void UI_Toolbar();
@@ -46,6 +47,7 @@ namespace Himii
         Ref<Scene> m_EditorScene;
 
         std::filesystem::path m_EditorScenePath;
+        std::filesystem::path m_CSharpProjectPath;
 
         Entity m_SquareEntity;
         Entity m_CameraEntity;
