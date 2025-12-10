@@ -3,16 +3,10 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<OutputPath>Assets/Bin</OutputPath>
+		<OutputPath>bin/$(Configuration)</OutputPath>
 	</PropertyGroup>
 
 	<ItemGroup>
-		<Reference Include="ScriptCore">
-			<HintPath>path/to/ScriptCore.dll</HintPath>
-		</Reference>
-	</ItemGroup>
-
-	<ItemGroup>
-		<Compile Include="assets/scripts/**/*.cs" />
+		<ProjectReference Include="../../../ScriptCore/ScriptCore.csproj" />
 	</ItemGroup>
 </Project>
