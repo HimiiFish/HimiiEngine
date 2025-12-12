@@ -11,6 +11,7 @@ namespace Himii
 
         void OnImGuiRender();
 
+        void Refresh();
     private:
         std::filesystem::path m_BaseDirectory;
         std::filesystem::path m_CurrentDirectory;

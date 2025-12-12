@@ -1,13 +1,14 @@
 #include "Hepch.h"
 #include "ContentBrowserPanel.h"
+#include "Himii/Project/Project.h"
 
 #include <imgui.h>
 
 namespace Himii
 {
-    extern const std::filesystem::path s_AssetsPath = "assets";
+    //extern const std::filesystem::path s_AssetsPath = "assets";
 
-    ContentBrowserPanel::ContentBrowserPanel() : m_CurrentDirectory(s_AssetsPath)
+    ContentBrowserPanel::ContentBrowserPanel() : m_CurrentDirectory("")
     {
         m_DirectoryIcon = Texture2D::Create("resources/icons/Folder.png");
         m_FileIcon = Texture2D::Create("resources/icons/doc.png");
@@ -17,7 +18,20 @@ namespace Himii
     {
         ImGui::Begin("Content Browser");
         
-        if (m_CurrentDirectory != std::filesystem::path(s_AssetsPath))
+        if (!Project::GetActive())
+        {
+            ImGui::Text("Please open a project.");
+            ImGui::End();
+            return;
+        }
+
+        const std::filesystem::path &assetsPath = Project::GetAssetDirectory();
+
+        // 防止 m_CurrentDirectory 无效或未初始化
+        if (m_CurrentDirectory.empty() || !std::filesystem::exists(m_CurrentDirectory))
+            m_CurrentDirectory = assetsPath;
+
+        if (m_CurrentDirectory != assetsPath)
         {
             if (ImGui::Button("<"))
             {
@@ -39,7 +53,8 @@ namespace Himii
         for (auto& directoryEntry : std::filesystem::directory_iterator(m_CurrentDirectory))
         {
             const auto &path = directoryEntry.path();
-            auto relativePath= std::filesystem::relative(path, s_AssetsPath);
+
+            auto relativePath= std::filesystem::relative(path, assetsPath);
             std::string fileNameString = relativePath.filename().string();
             
             Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
@@ -75,5 +90,12 @@ namespace Himii
         ImGui::SliderFloat("Padding", &padding, 0, 32);
 
         ImGui::End();
+    }
+    void ContentBrowserPanel::Refresh()
+    {
+        if (Project::GetActive())
+        {
+            m_CurrentDirectory = Project::GetAssetDirectory();
+        }
     }
 } // namespace Himii

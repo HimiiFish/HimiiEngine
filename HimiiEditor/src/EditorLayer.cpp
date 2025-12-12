@@ -1,6 +1,7 @@
 ﻿#include "EditorLayer.h"
 #include "imgui.h"
 #include "Himii/Scripting/ScriptEngine.h"
+#include "Himii/Project/Project.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -11,7 +12,7 @@
 
 namespace Himii
 {
-    extern const std::filesystem::path s_AssetsPath;
+    //extern const std::filesystem::path s_AssetsPath;
 
     EditorLayer::EditorLayer() :
         Layer("Example2D"), m_CameraController(1280.0f / 720.0f), m_SquareColor({0.2f, 0.38f, 0.64f, 1.0f})
@@ -29,13 +30,6 @@ namespace Himii
         m_EditorScene = CreateRef<Scene>();
         m_ActiveScene = m_EditorScene;
 
-        auto commandLineArgs = Application::Get().GetCommandLineArgs();
-        if (commandLineArgs.Count > 1)
-        {
-            std::string sceneFilePath = commandLineArgs[1];
-            SceneSerializer serializer(m_ActiveScene);
-            serializer.Deserialize(sceneFilePath);
-        }
 
         // 创建离屏帧缓冲，尺寸先用窗口大小，后续由 EditorLayer 面板驱动调整
         FramebufferSpecification fbSpec{1280, 720};
@@ -46,9 +40,23 @@ namespace Himii
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
-        std::filesystem::path rootDir = HIMII_ROOT_DIR;
-        m_CSharpProjectPath = rootDir / "HimiiEditor"/"assets"/"GameAssembly.csproj";
-        CompileAndReloadScripts();
+        auto commandLineArgs = Application::Get().GetCommandLineArgs();
+        if (commandLineArgs.Count > 1)
+        {
+            OpenProject(commandLineArgs.Args[1]);
+        }
+        else
+        {
+            // 2. 开发模式：如果有 HIMII_ROOT_DIR，自动打开 Sandbox
+#ifdef HIMII_ROOT_DIR
+            // 自动打开源码目录下的测试项目
+            std::filesystem::path root(HIMII_ROOT_DIR);
+            std::filesystem::path sandboxProject = root / "Sandbox" / "Sandbox.hproj"; // 假设你有这个
+            if (std::filesystem::exists(sandboxProject))
+                OpenProject(sandboxProject);
+#endif
+            // 如果都不是，什么都不做，ContentBrowser 会显示 "Please open project"
+        }
     }
     void EditorLayer::OnDetach()
     {
@@ -174,19 +182,37 @@ namespace Himii
 
             if (ImGui::BeginMenuBar())
             {
+                if (ImGui::BeginMenu("File"))
+                {
+                    // --- 新建项目 ---
+                    if (ImGui::MenuItem("New Project..."))
+                    {
+                        NewProject();
+                    }
+
+                    // --- 打开项目 ---
+                    if (ImGui::MenuItem("Open Project..."))
+                    {
+                        std::string filepath = FileDialog::OpenFile("Himii Project (*.hproj)\0*.hproj\0");
+                        if (!filepath.empty())
+                            OpenProject(filepath);
+                    }
+                    // ...
+                    ImGui::EndMenu();
+                }
                 if (ImGui::BeginMenu("Options"))
                 {
-                    if (ImGui::MenuItem("New..", "Ctrl+N"))
+                    if (ImGui::MenuItem("New Scene..", "Ctrl+N"))
                     {
                         NewScene();
                     }
 
-                    if (ImGui::MenuItem("Open..", "Ctrl+O"))
+                    if (ImGui::MenuItem("Open Scene..", "Ctrl+O"))
                     {
                         OpenScene();
                     }
 
-                    if (ImGui::MenuItem("Save As..", "Ctrl+Shift+S"))
+                    if (ImGui::MenuItem("Save Scene As..", "Ctrl+Shift+S"))
                     {
                         SaveSceneAs();
                     }
@@ -253,7 +279,7 @@ namespace Himii
                 if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                 {
                     const wchar_t *path = (const wchar_t *)payload->Data;
-                    OpenScene(std::filesystem::path(s_AssetsPath) / path);
+                    OpenScene(std::filesystem::path(Project::GetAssetDirectory()) / path);
                 }
 
                 ImGui::EndDragDropTarget();
@@ -484,6 +510,79 @@ namespace Himii
         }
 
         Renderer2D::EndScene();
+    }
+
+    void EditorLayer::NewProject()
+    {
+        std::string filepath = FileDialog::SaveFile("Himii Project (*.hproj)\0*.hproj\0");
+
+        if (!filepath.empty())
+        {
+            std::filesystem::path path(filepath);
+
+            // 我们希望为每个新项目创建一个独立的文件夹
+            // 如果用户选的文件名是 "MyRPG.hproj"，我们应该在那个位置创建一个叫 "MyRPG" 的文件夹
+            // 然后把文件放在里面：.../MyRPG/MyRPG.hproj
+
+            // 获取用户选择的目录 (HimiiEditor/assets/Project)
+            std::filesystem::path parentDir = path.parent_path();
+            // 获取项目名 (MyRPG)
+            std::string projectName = path.stem().string();
+
+            // 构建最终的项目文件夹路径: HimiiEditor/assets/Project/MyRPG
+            std::filesystem::path newProjectDir = parentDir / projectName;
+
+            // 更新 .hproj 的最终路径
+            std::filesystem::path newProjectFilePath = newProjectDir / (projectName + ".hproj");
+
+            // --- 开始生成 ---
+
+            // 1. 生成物理文件 (csproj 和 assets 文件夹)
+            Project::CreateProjectFiles(projectName, newProjectDir);
+
+            // 2. 在内存中配置 Project 对象
+            Ref<Project> newProject = Project::New();
+            newProject->GetConfig().Name = projectName;
+            newProject->GetConfig().AssetDirectory = "assets"; // 相对路径
+            newProject->GetConfig().ScriptModulePath = "assets/scripts/bin/GameAssembly.dll";
+
+            // 3. 序列化 .hproj 文件
+            Project::SaveActive(newProjectFilePath);
+
+            // 4. 立即加载这个新项目
+            OpenProject(newProjectFilePath);
+
+            HIMII_CORE_INFO("New project created and loaded: {0}", newProjectFilePath.string());
+        }
+    }
+
+    void EditorLayer::OpenProject(const std::filesystem::path &path)
+    {
+        if (Project::Load(path))
+        {
+            auto projectDir = Project::GetProjectDirectory();
+
+            // 假设 csproj 就在项目根目录
+            // 如果你的结构是 csproj 在 assets 下，则改为 projectDir / "assets" / "GameAssembly.csproj"
+            m_CSharpProjectPath = projectDir / "GameAssembly.csproj";
+
+            // 编译脚本
+            CompileAndReloadScripts();
+
+            // 重置 ContentBrowser 面板
+            m_ContentBrowserPanel.Refresh();
+
+            // 加载默认场景 (StartScene)
+            auto startScenePath = Project::GetAssetDirectory() / Project::GetConfig().StartScene;
+            if (!Project::GetConfig().StartScene.empty() && std::filesystem::exists(startScenePath))
+            {
+                OpenScene(startScenePath);
+            }
+            else
+            {
+                NewScene();
+            }
+        }
     }
 
     void EditorLayer::NewScene()

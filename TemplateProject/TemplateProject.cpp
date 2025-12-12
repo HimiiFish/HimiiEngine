@@ -26,7 +26,4 @@ public:
     }
 };
 
-Himii::Application *Himii::CreateApplication()
-{
-    return new TemplateProject();
-}
+

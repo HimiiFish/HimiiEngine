@@ -17,6 +17,8 @@ namespace Himii
             }
         }
 
+        
+
         public virtual void OnCreate() { }
         public virtual void OnUpdate(float ts) { }
     }

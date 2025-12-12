@@ -1,5 +1,6 @@
 #pragma once
 #include "SceneHierarchyPanel.h"
+#include "Himii/Project/Project.h"
 
 #include "Himii/Scripting/ScriptEngine.h"
 
@@ -333,30 +334,32 @@ namespace Himii
                         ImGui::SameLine();
                         if (ImGui::Button("Edit"))
                         {
-                            // 1. 简单的路径推断逻辑
-                            // 假设类名 "Player" 对应的文件在 "Assets/Scripts/Player.cs"
-                            // 实际项目中，你需要一个 AssetManager 来根据类名查找文件 GUID 再找到路径
-                            std::string scriptFolder = "assets/scripts/";
-
-                            // 处理命名空间：Himii.Player -> Player.cs
-                            std::string fileName = component.ClassName;
-                            size_t lastDot = fileName.find_last_of('.');
-                            if (lastDot != std::string::npos)
-                                fileName = fileName.substr(lastDot + 1);
-
-                            std::filesystem::path scriptPath = std::filesystem::path(scriptFolder) / (fileName + ".cs");
-
-                            if (std::filesystem::exists(scriptPath))
+                            // 1. 获取当前激活的项目
+                            if (auto project = Project::GetActive())
                             {
-                                // 调用系统命令打开 VS Code (code) 或 默认编辑器
-                                // Windows 下可以使用 "start" 或 "code"
-                                std::string cmd = "code " + scriptPath.string();
-                                system(cmd.c_str());
-                            }
-                            else
-                            {
-                                // 如果文件不存在，可以提示创建
-                                HIMII_WARNING("Script file not found: {0}", scriptPath.string());
+                                // 2. 获取项目目录 (例如 E:/MyGame)
+                                auto projectDir = Project::GetProjectDirectory();
+
+                                // 3. 处理类名 (MyGame.Player -> Player)
+                                std::string fileName = component.ClassName;
+                                size_t lastDot = fileName.find_last_of('.');
+                                if (lastDot != std::string::npos)
+                                    fileName = fileName.substr(lastDot + 1);
+
+                                // 4. 拼接路径：ProjectDir/assets/scripts/Player.cs
+                                // 注意：这里假设用户的脚本都在 assets/scripts 下，你也可以从 Config 里读取脚本路径配置
+                                std::filesystem::path scriptPath =
+                                        projectDir / "assets" / "scripts" / (fileName + ".cs");
+
+                                if (std::filesystem::exists(scriptPath))
+                                {
+                                    std::string cmd = "code \"" + scriptPath.string() + "\"";
+                                    system(cmd.c_str());
+                                }
+                                else
+                                {
+                                    HIMII_WARNING("Script file not found at: {0}", scriptPath.string());
+                                }
                             }
                         }
                     }
@@ -374,8 +377,16 @@ namespace Himii
                         if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                         {
                             const wchar_t *path = (const wchar_t *)payload->Data;
-                            std::filesystem::path texturePath = std::filesystem::path(s_AssetsPath) / path;
-                            component.Texture = Texture2D::Create(texturePath.string());
+
+                            // 关键修改：利用 Project::GetAssetDirectory() 拼接完整路径
+                            // path 是 "textures/player.png"
+                            // GetAssetDirectory 是 "E:/MyGame/assets"
+                            std::filesystem::path texturePath = Project::GetAssetDirectory() / path;
+
+                            if (std::filesystem::exists(texturePath))
+                                component.Texture = Texture2D::Create(texturePath.string());
+                            else
+                                HIMII_CORE_WARNING("Texture not found: {0}", texturePath.string());
                         }
 
                         ImGui::EndDragDropTarget();

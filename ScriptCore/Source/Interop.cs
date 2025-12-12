@@ -29,4 +29,12 @@ namespace Himii
             Console.WriteLine("[C#] Interop initialized. Functions bound.");
         }
     }
+
+    public static class Debug
+    {
+        public static void Log(string msg)
+        {
+            Interop.NativeLog(Marshal.StringToHGlobalAnsi(msg));
+        }
+    }
 }
