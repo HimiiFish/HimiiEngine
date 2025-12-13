@@ -7,6 +7,8 @@ Entities:
       Position: [0, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1.00999999, 1.00999999, 1.00999999]
+    ScriptComponent:
+      ClassName: Player
     SpriteRendererComponent:
       Color: [0.743362844, 0.174328461, 0.174328461, 1]
       TilingFactor: 1
@@ -44,9 +46,9 @@ Entities:
     TagComponent:
       Tag: Camera
     TransformComponent:
-      Position: [0, 0, 0]
+      Position: [0, 0, 11.6000004]
       Rotation: [0, 0, 0]
-      Scale: [0.00100000005, 1, 1]
+      Scale: [1, 1, 1]
     CameraComponent:
       Camera:
         ProjectionType: 0

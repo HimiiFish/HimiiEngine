@@ -153,7 +153,7 @@ namespace Himii {
 
 		// 6. 调用 C# 的 Interop.Initialize
 		// 格式: Namespace.Class, AssemblyName
-		const char_t* dotnet_type = STR("Himii.Interop, ScriptCore");
+		const char_t* dotnet_type = STR("Himii.InternalCalls, ScriptCore");
 		const char_t* dotnet_type_method = STR("Initialize");
 
 		int rc = load_assembly_and_get_function_pointer(

@@ -683,6 +683,8 @@ namespace Himii
     {
         HIMII_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
 
+        m_SceneHierarchyPanel.SetSelectedEntity({});
+
         if (m_SceneState == SceneState::Play)
             m_ActiveScene->OnRuntimeStop();
         else if (m_SceneState == SceneState::Simulate)
