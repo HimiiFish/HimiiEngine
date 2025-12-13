@@ -3,17 +3,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OutputPath>bin/</OutputPath>
+	<OutputPath>bin\$(Configuration)\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- 这里假设你把项目创建在 HimiiEditor/assets/Project/ 下，所以回退3层找到 ScriptCore -->
-    <!-- 如果以后位置变了，这里的路径生成逻辑也需要变 -->
-    <ProjectReference Include="..\..\..\ScriptCore\ScriptCore.csproj">
-      <Private>false</Private>
-    </ProjectReference>
+	  <Reference Include="ScriptCore">
+		  <HintPath>$(HIMII_DIR)\ScriptCore.dll</HintPath>
+		  <Private>false</Private>
+	  </Reference>
   </ItemGroup>
 
   <ItemGroup>

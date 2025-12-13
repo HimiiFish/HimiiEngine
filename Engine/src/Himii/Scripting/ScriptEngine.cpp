@@ -1,5 +1,6 @@
 #include "ScriptEngine.h"
 #include "ScriptGlue.h"
+#include "Himii/Project/Project.h"
 
 #include <iostream>
 #include <filesystem>
@@ -207,7 +208,7 @@ namespace Himii {
 
         if (result == 0)
         {
-            std::filesystem::path dllPath = "GameAssembly.dll";
+            std::filesystem::path dllPath = Project::GetProjectDirectory() / Project::GetConfig().ScriptModulePath;
 
             if (std::filesystem::exists(dllPath))
             {
@@ -217,7 +218,8 @@ namespace Himii {
             {
                 // 如果找不到，尝试构建完整路径（调试用）
                 // 假设 exe 在 .../Debug/
-                std::filesystem::path debugPath = std::filesystem::current_path() / "GameAssembly.dll";
+
+                std::filesystem::path debugPath = Project::GetProjectDirectory() / Project::GetConfig().ScriptModulePath;
                 if (std::filesystem::exists(debugPath))
                 {
                     LoadAppAssembly(debugPath);

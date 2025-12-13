@@ -21,7 +21,9 @@ target_include_directories(HimiiEditor PRIVATE
 )
 
 file(TO_CMAKE_PATH "${CMAKE_SOURCE_DIR}" PROJECT_ROOT_PATH)
-target_compile_definitions(HimiiEditor PRIVATE HIMII_ROOT_DIR="${PROJECT_ROOT_PATH}")
+target_compile_definitions(HimiiEditor PRIVATE 
+    HIMII_ROOT_DIR="${PROJECT_ROOT_PATH}")
+
 
 if(MSVC)
     target_compile_options(HimiiEditor PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> $<$<C_COMPILER_ID:MSVC>:/utf-8>)

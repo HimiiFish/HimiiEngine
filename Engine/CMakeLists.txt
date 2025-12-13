@@ -91,6 +91,12 @@ target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw ya
 # 启用 GLM 实验特性（如 gtx/component_wise），避免各 TU 单独定义宏
 target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)
 
+target_compile_definitions(Engine PUBLIC 
+    # 根据构建配置自动定义宏
+    $<$<CONFIG:Debug>:HIMII_DEBUG>
+    $<$<CONFIG:Release>:HIMII_RELEASE>
+)
+
 if (WIN32)
     target_compile_definitions(Engine PUBLIC
         HIMII_PLATFORM_WINDOWS     # 你自己的平台宏

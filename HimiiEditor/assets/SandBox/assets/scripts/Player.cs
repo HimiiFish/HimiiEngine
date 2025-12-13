@@ -17,7 +17,7 @@ public class Player : Entity
             if (HasComponent<Rigidbody2DComponent>())
             {
                 var rb = GetComponent<Rigidbody2DComponent>();
-                rb.ApplyLinearImpulseToCenter(new Vector2(0, 10.0f), true);
+                rb.ApplyLinearImpulseToCenter(new Vector2(0, 1.0f), true);
             }
         }
     }

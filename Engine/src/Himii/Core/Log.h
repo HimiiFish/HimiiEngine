@@ -68,18 +68,9 @@ namespace Himii
 #define HIMII_WARNING(fmt, ...)        ::Himii::Log::PrintFormatted(::Himii::LogLevel::Warning, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 #define HIMII_ERROR(fmt, ...)          ::Himii::Log::PrintFormatted(::Himii::LogLevel::Error, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 
-#ifdef HIMII_DEBUG
-#define HIMII_ASSERT(condition, msg) \
-    do { if (!(condition)) ::Himii::Log::Assert(false, msg, __FILE__, __FUNCTION__, __LINE__); } while (0)
-#define HIMII_ASSERT_F(condition, fmt, ...) \
-    do { if (!(condition)) ::Himii::Log::AssertFormatted(false, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); } while (0)
-#define HIMII_CORE_ASSERT(condition, msg) \
-    do { if (!(condition)) { LOG_CORE_ERROR(fmt::format("断言失败: {}", msg)); ::Himii::Log::Assert(false, msg, __FILE__, __FUNCTION__, __LINE__); } } while (0)
-#define HIMII_CORE_ASSERT_F(condition, fmt, ...) \
-    do { if (!(condition)) { std::string msg = fmt::format(fmt, ##__VA_ARGS__); LOG_CORE_ERROR(fmt::format("断言失败: {}", msg)); ::Himii::Log::AssertFormatted(false, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__); } } while (0)
-#else
+
 #define HIMII_ASSERT(condition, msg) ((void)0)
 #define HIMII_ASSERT_F(condition, fmt, ...) ((void)0)
 #define HIMII_CORE_ASSERT(condition, msg) ((void)0)
 #define HIMII_CORE_ASSERT_F(condition, fmt, ...) ((void)0)
-#endif
+

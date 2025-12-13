@@ -564,7 +564,7 @@ namespace Himii
 
             // 假设 csproj 就在项目根目录
             // 如果你的结构是 csproj 在 assets 下，则改为 projectDir / "assets" / "GameAssembly.csproj"
-            m_CSharpProjectPath = projectDir / "GameAssembly.csproj";
+            m_CSharpProjectPath = projectDir /Project::GetProjectDirectory()/ "GameAssembly.csproj";
 
             // 编译脚本
             CompileAndReloadScripts();
@@ -681,7 +681,7 @@ namespace Himii
 
     void EditorLayer::OnSceneStop()
     {
-        HIMII_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
+        //HIMII_CORE_ASSERT(m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate);
 
         m_SceneHierarchyPanel.SetSelectedEntity({});
 

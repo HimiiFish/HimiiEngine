@@ -14,6 +14,8 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
+
+        SetEnvironmentVariables();
         s_Instance = this;
         m_Window = Window::Create(WindowProps(name));
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
@@ -67,6 +69,35 @@ namespace Himii
             if (e.Handled)
                 break;
             (*it)->OnEvent(e);
+        }
+    }
+
+    void Application::SetEnvironmentVariables()
+    {
+        //获取引擎根目录
+        std::string engineDir;
+
+#if defined(HIMII_DEBUG) && defined(HIMII_ROOT_DIR)
+        // 开发模式：直接指向源码目录 E:\HimiiEngine
+        engineDir = HIMII_ROOT_DIR;
+#else
+        // 发布模式：假设结构是 Bin/HimiiEditor.exe，那么根目录就是上一级
+        // 注意：这取决于你的安装目录结构，假设 Release 包解压后就是根目录
+        auto exePath = std::filesystem::current_path(); // 或者用 GetModuleFileName 获取更准
+        engineDir = exePath.string();
+        // 如果 exe 在 bin 下，可能需要 engineDir = exePath.parent_path().string();
+#endif
+
+        // 2. 设置环境变量 HIMII_DIR
+        // Windows 专用 API，跨平台可以用 setenv
+        // 格式：变量名，变量值
+        if (_putenv_s("HIMII_DIR", engineDir.c_str()) == 0)
+        {
+            HIMII_CORE_INFO("Set environment variable HIMII_DIR = {0}", engineDir);
+        }
+        else
+        {
+            HIMII_CORE_ERROR("Failed to set HIMII_DIR environment variable!");
         }
     }
 

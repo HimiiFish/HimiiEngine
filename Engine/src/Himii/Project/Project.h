@@ -14,7 +14,7 @@ namespace Himii
 		std::filesystem::path StartScene;
 
 		std::filesystem::path AssetDirectory = "assets";
-        std::filesystem::path ScriptModulePath = "assets/scripts/bin/GameAssembly.dll";
+        std::filesystem::path ScriptModulePath = "bin/Debug/GameAssembly.dll";
 	};
 
 	class Project {
