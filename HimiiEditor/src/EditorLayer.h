@@ -28,6 +28,8 @@ namespace Himii
         void NewProject();
         void OpenProject(const std::filesystem::path &path);
 
+        void OpenCSProject();
+
         void NewScene();
         void OpenScene();
         void OpenScene(const std::filesystem::path& path);

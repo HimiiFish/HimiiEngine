@@ -57,17 +57,17 @@ namespace Himii
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <OutputPath>bin\&(Configuration)</OutputPath>
+    <OutputPath>bin\$(Configuration)</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="ScriptCore" Condition="Exists('$(HIMII_DIR)\bin\ScriptCore.dll')>
-      <HintPath>$(HIMII_DIR)\bin\ScriptCore.dll</HintPath>
+    <Reference Include="ScriptCore" Condition="Exists('$(HIMII_DIR)\ScriptCore.dll')>
+      <HintPath>$(HIMII_DIR)\ScriptCore.dll</HintPath>
       <Private>false</Private>
     </Reference>
-    <ProjectReference Include="..\..\..\..\ScriptCore\ScriptCore.csproj" Condition="!Exists('$(HIMII_DIR)\bin\ScriptCore.dll')>
+    <ProjectReference Include="..\..\..\ScriptCore\ScriptCore.dll" Condition="!Exists('$(HIMII_DIR)\ScriptCore.dll')>
       <Private>false</Private>
     </ProjectReference>
   </ItemGroup>
@@ -86,6 +86,59 @@ namespace Himii
         // 这一步比较复杂，需要 SceneSerializer 支持保存空场景，暂时跳过
 
         HIMII_CORE_INFO("Created new project structure at {0}", projectDir.string());
+
+        std::stringstream ss1;
+
+        // SLN 文件头
+        ss1 << "Microsoft Visual Studio Solution File, Format Version 12.00\n";
+        ss1 << "# Visual Studio Version 17\n";
+        ss1 << "VisualStudioVersion = 17.0.31903.59\n";
+        ss1 << "MinimumVisualStudioVersion = 10.0.40219.1\n";
+
+        // 1. 定义 GameAssembly 项目
+        // GUID 可以是随机生成的，这里为了演示暂时硬编码 (但在实际引擎中最好动态生成)
+        std::string gameAssemblyGUID = "{52962852-2567-41C2-B358-132717009043}";
+        ss1 << "Project(\"{9A19103F-16F7-4668-BE54-9A1E7A4F7556}\") = \"GameAssembly\", \"GameAssembly.csproj\", \""
+           << gameAssemblyGUID << "\"\n";
+        ss1 << "EndProject\n";
+
+        // 2. 定义 ScriptCore 项目 (方便查看引擎源码)
+        // 这里的路径需要回退 4 层找到 ScriptCore
+        std::string scriptCorePath =  "ScriptCore.csproj";
+        std::string scriptCoreGUID = "{45962852-2567-41C2-B358-132717009044}"; // 随便编一个不同的
+        ss1 << "Project(\"{9A19103F-16F7-4668-BE54-9A1E7A4F7556}\") = \"ScriptCore\", \"" << scriptCorePath << "\", \""
+           << scriptCoreGUID << "\"\n";
+        ss1 << "EndProject\n";
+
+        // 3. 定义全局配置 (Debug/Release)
+        ss1 << "Global\n";
+        ss1 << "\tGlobalSection(SolutionConfigurationPlatforms) = preSolution\n";
+        ss1 << "\t\tDebug|Any CPU = Debug|Any CPU\n";
+        ss1 << "\t\tRelease|Any CPU = Release|Any CPU\n";
+        ss1 << "\tEndGlobalSection\n";
+
+        // 4. 关联项目配置
+        ss1 << "\tGlobalSection(ProjectConfigurationPlatforms) = postSolution\n";
+        // GameAssembly
+        ss1 << "\t\t" << gameAssemblyGUID << ".Debug|Any CPU.ActiveCfg = Debug|Any CPU\n";
+        ss1 << "\t\t" << gameAssemblyGUID << ".Debug|Any CPU.Build.0 = Debug|Any CPU\n";
+        ss1 << "\t\t" << gameAssemblyGUID << ".Release|Any CPU.ActiveCfg = Release|Any CPU\n";
+        ss1 << "\t\t" << gameAssemblyGUID << ".Release|Any CPU.Build.0 = Release|Any CPU\n";
+        // ScriptCore
+        ss1 << "\t\t" << scriptCoreGUID << ".Debug|Any CPU.ActiveCfg = Debug|Any CPU\n";
+        ss1 << "\t\t" << scriptCoreGUID << ".Debug|Any CPU.Build.0 = Debug|Any CPU\n";
+        ss1 << "\t\t" << scriptCoreGUID << ".Release|Any CPU.ActiveCfg = Release|Any CPU\n";
+        ss1 << "\t\t" << scriptCoreGUID << ".Release|Any CPU.Build.0 = Release|Any CPU\n";
+        ss1 << "\tEndGlobalSection\n";
+        ss1 << "EndGlobal\n";
+
+        // 写入 .sln 文件 (文件名通常和项目名一致，例如 Sandbox.sln)
+        std::ofstream slnFile(projectDir / (name + ".sln"));
+        if (slnFile.is_open())
+        {
+            slnFile << ss1.str();
+            slnFile.close();
+        }
     }
 
 } // namespace Himii

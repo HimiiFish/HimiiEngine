@@ -3,16 +3,19 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-	<OutputPath>bin\$(Configuration)\</OutputPath>
+    <OutputPath>bin\$(Configuration)</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
   <ItemGroup>
-	  <Reference Include="ScriptCore">
+	  <Reference Include="ScriptCore" Condition="Exists('$(HIMII_DIR)\ScriptCore.dll')">
 		  <HintPath>$(HIMII_DIR)\ScriptCore.dll</HintPath>
 		  <Private>false</Private>
 	  </Reference>
+    <ProjectReference Include="..\..\..\ScriptCore\ScriptCore.csproj" Condition="!Exists('$(HIMII_DIR)\ScriptCore.dll')">
+      <Private>false</Private>
+    </ProjectReference>
   </ItemGroup>
 
   <ItemGroup>

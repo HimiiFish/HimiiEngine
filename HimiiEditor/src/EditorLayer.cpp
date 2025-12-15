@@ -227,6 +227,10 @@ namespace Himii
                     {
                         CompileAndReloadScripts();
                     }
+                    if (ImGui::MenuItem("Open C# Solution"))
+                    {
+                        OpenCSProject();
+                    }
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenuBar();
@@ -582,6 +586,37 @@ namespace Himii
             {
                 NewScene();
             }
+        }
+    }
+
+    void EditorLayer::OpenCSProject()
+    {
+        if (!Project::GetActive())
+            return;
+
+        auto projectDir = Project::GetProjectDirectory();
+        std::string projectName = Project::GetConfig().Name;
+
+        // 方案 A: 打开 .sln (推荐，VS 和 Rider 会直接识别，VS Code 也会提示打开工作区)
+        std::filesystem::path slnPath = projectDir / (projectName + ".sln");
+
+        if (std::filesystem::exists(slnPath))
+        {
+            // Windows: 使用 shell execute 打开关联程序
+            // system(("start \"\" \"" + slnPath.string() + "\"").c_str());
+            // 为了兼容性，也可以直接调用 code
+
+            // 方案 B (针对 VS Code 优化): 直接用 code 打开文件夹
+            // 这样 VS Code 会加载文件夹下的 .sln 和 .csproj
+            std::string cmd = "code \"" + projectDir.string() + "\"";
+            system(cmd.c_str());
+
+            HIMII_CORE_INFO("Opening C# Project: {0}", projectDir.string());
+        }
+        else
+        {
+            HIMII_CORE_WARNING("Solution file not found! Please regenerate project.");
+            // 可以补一个 Project::CreateProjectFiles 的调用来重新生成
         }
     }
 

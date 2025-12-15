@@ -1,5 +1,5 @@
 Project:
   Name: SandBox
-  StartScene: "assets/scenes/Debug.himii"
+  StartScene: ""
   AssetDirectory: assets
   ScriptModulePath: bin/Debug/GameAssembly.dll

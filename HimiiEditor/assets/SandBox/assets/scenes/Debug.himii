@@ -1,6 +1,6 @@
 Scene: Untitled
 Entities:
-  - Entity: 9932940614449918011
+  - Entity: 17897623771997089293
     TagComponent:
       Tag: Camera
     TransformComponent:
@@ -18,13 +18,13 @@ Entities:
         OrthographicFar: 1
       Primary: true
       FixedAspectRatio: false
-  - Entity: 4080664170184153667
+  - Entity: 16438059247553754927
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
-      Position: [0, -1.21192527, 0]
+      Position: [0, -1.6830616, 0]
       Rotation: [0, 0, 0]
-      Scale: [11.6436605, 0.458190948, 1]
+      Scale: [7.41365194, 0.471948266, 1]
     SpriteRendererComponent:
       Color: [1, 1, 1, 1]
       TilingFactor: 1
@@ -38,7 +38,7 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 14043676995128317595
+  - Entity: 608956294989338576
     TagComponent:
       Tag: Empty Entity
     TransformComponent:
@@ -48,7 +48,7 @@ Entities:
     ScriptComponent:
       ClassName: Player
     SpriteRendererComponent:
-      Color: [0.761061966, 0.383898526, 0.383898526, 1]
+      Color: [1, 1, 1, 1]
       TilingFactor: 1
     Rigidbody2DComponent:
       BodyType: 1

@@ -1,25 +1,25 @@
-﻿using System;
 using Himii;
 
-
-public class Player : Entity
+class Player:Entity
 {
-    public override void OnCreate()
-    {
-        Console.WriteLine("Player entity created.");
-    }
-
+    public float speed = 1.0f;
     public override void OnUpdate(float ts)
     {
-        if (Input.IsKeyDown(KeyCode.Space))
+        if(Input.IsKeyDown(KeyCode.A))
         {
-            Console.WriteLine("Jump!");
-            if (HasComponent<Rigidbody2DComponent>())
+            Position -= new Vector3(-speed, 0, 0);
+        }
+        if(Input.IsKeyDown(KeyCode.D))
+        {
+            Position += new Vector3(speed, 0, 0);
+        }
+        if(Input.IsKeyDown(KeyCode.Space))
+        {
+            if(HasComponent<Rigidbody2DComponent>())
             {
-                var rb = GetComponent<Rigidbody2DComponent>();
-                rb.ApplyLinearImpulseToCenter(new Vector2(0, 1.0f), true);
+                var rigidbody2D = GetComponent<Rigidbody2DComponent>();
+                rigidbody2D.ApplyLinearImpulseToCenter(new Vector2(0, 1.0f), true);
             }
         }
     }
 }
-

@@ -337,28 +337,20 @@ namespace Himii
                             // 1. 获取当前激活的项目
                             if (auto project = Project::GetActive())
                             {
-                                // 2. 获取项目目录 (例如 E:/MyGame)
                                 auto projectDir = Project::GetProjectDirectory();
-
-                                // 3. 处理类名 (MyGame.Player -> Player)
-                                std::string fileName = component.ClassName;
-                                size_t lastDot = fileName.find_last_of('.');
-                                if (lastDot != std::string::npos)
-                                    fileName = fileName.substr(lastDot + 1);
-
-                                // 4. 拼接路径：ProjectDir/assets/scripts/Player.cs
-                                // 注意：这里假设用户的脚本都在 assets/scripts 下，你也可以从 Config 里读取脚本路径配置
+                                // ... (文件名解析代码) ...
                                 std::filesystem::path scriptPath =
-                                        projectDir / "assets" / "scripts" / (fileName + ".cs");
+                                        projectDir / "assets" / "scripts" / (component.ClassName + ".cs");
 
                                 if (std::filesystem::exists(scriptPath))
                                 {
-                                    std::string cmd = "code \"" + scriptPath.string() + "\"";
+                                    // VS Code 技巧：
+                                    // "code folder file" 会打开文件夹并在其中打开文件
+
+                                    // 组合命令：code "E:/Project/Sandbox" "E:/Project/Sandbox/assets/scripts/Player.cs"
+                                    std::string cmd =
+                                            "code \"" + projectDir.string() + "\" \"" + scriptPath.string() + "\"";
                                     system(cmd.c_str());
-                                }
-                                else
-                                {
-                                    HIMII_WARNING("Script file not found at: {0}", scriptPath.string());
                                 }
                             }
                         }
