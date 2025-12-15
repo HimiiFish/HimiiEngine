@@ -1,5 +1,6 @@
 #include "Project.h"
 #include "hepch.h"
+#include "Himii/Core/Application.h"
 
 #include "ProjectSerializer.h"
 
@@ -49,8 +50,20 @@ namespace Himii
         std::filesystem::create_directories(projectDir / "assets" / "scripts");
         std::filesystem::create_directories(projectDir / "assets" / "textures");
 
+        auto engineDir = Application::GetEngineDir();
+        std::filesystem::path scriptCorePath = engineDir / "ScriptCore.dll";
+
+        //if (!std::filesystem::exists(scriptCorePath))
+        //{
+        //    // 这是一个fallback，根据你的实际目录结构调整
+        //    scriptCorePath = engineDir / "ScriptCore" / "bin" / "Debug" / "net8.0" / "ScriptCore.dll";
+        //}
+
+        std::string scriptCorePathStr = scriptCorePath.string();
+        // 简单的替换 / 为 \ (如果需要)
+        std::replace(scriptCorePathStr.begin(), scriptCorePathStr.end(), '/', '\\');
+
         // 2. 自动生成 GameAssembly.csproj
-        // 我们把 XML 内容直接写死在代码里（作为模板）
         std::stringstream ss;
         ss << R"(<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
@@ -63,17 +76,17 @@ namespace Himii
   </PropertyGroup>
 
   <ItemGroup>
-    <Reference Include="ScriptCore" Condition="Exists('$(HIMII_DIR)\ScriptCore.dll')>
-      <HintPath>$(HIMII_DIR)\ScriptCore.dll</HintPath>
-      <Private>false</Private>
-    </Reference>
-    <ProjectReference Include="..\..\..\ScriptCore\ScriptCore.dll" Condition="!Exists('$(HIMII_DIR)\ScriptCore.dll')>
-      <Private>false</Private>
-    </ProjectReference>
+    <Compile Include="assets\scripts\**\*.cs" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Include="assets\scripts\**\*.cs" />
+<ItemGroup>)";
+
+        // 核心修改：直接注入绝对路径，不再依赖环境变量
+        ss << "\n    <Reference Include=\"ScriptCore\">\n";
+        ss << "      <HintPath>" << scriptCorePathStr << "</HintPath>\n";
+        ss << "    </Reference>\n";
+
+        ss << R"(
   </ItemGroup>
 </Project>
 )";
@@ -102,14 +115,6 @@ namespace Himii
            << gameAssemblyGUID << "\"\n";
         ss1 << "EndProject\n";
 
-        // 2. 定义 ScriptCore 项目 (方便查看引擎源码)
-        // 这里的路径需要回退 4 层找到 ScriptCore
-        std::string scriptCorePath =  "ScriptCore.csproj";
-        std::string scriptCoreGUID = "{45962852-2567-41C2-B358-132717009044}"; // 随便编一个不同的
-        ss1 << "Project(\"{9A19103F-16F7-4668-BE54-9A1E7A4F7556}\") = \"ScriptCore\", \"" << scriptCorePath << "\", \""
-           << scriptCoreGUID << "\"\n";
-        ss1 << "EndProject\n";
-
         // 3. 定义全局配置 (Debug/Release)
         ss1 << "Global\n";
         ss1 << "\tGlobalSection(SolutionConfigurationPlatforms) = preSolution\n";
@@ -124,12 +129,7 @@ namespace Himii
         ss1 << "\t\t" << gameAssemblyGUID << ".Debug|Any CPU.Build.0 = Debug|Any CPU\n";
         ss1 << "\t\t" << gameAssemblyGUID << ".Release|Any CPU.ActiveCfg = Release|Any CPU\n";
         ss1 << "\t\t" << gameAssemblyGUID << ".Release|Any CPU.Build.0 = Release|Any CPU\n";
-        // ScriptCore
-        ss1 << "\t\t" << scriptCoreGUID << ".Debug|Any CPU.ActiveCfg = Debug|Any CPU\n";
-        ss1 << "\t\t" << scriptCoreGUID << ".Debug|Any CPU.Build.0 = Debug|Any CPU\n";
-        ss1 << "\t\t" << scriptCoreGUID << ".Release|Any CPU.ActiveCfg = Release|Any CPU\n";
-        ss1 << "\t\t" << scriptCoreGUID << ".Release|Any CPU.Build.0 = Release|Any CPU\n";
-        ss1 << "\tEndGlobalSection\n";
+        
         ss1 << "EndGlobal\n";
 
         // 写入 .sln 文件 (文件名通常和项目名一致，例如 Sandbox.sln)

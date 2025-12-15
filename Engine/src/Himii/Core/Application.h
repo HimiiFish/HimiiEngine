@@ -1,18 +1,18 @@
 ﻿#pragma once
+#include "Himii/Core/Timestep.h"
+#include "Himii/Core/Window.h"
 #include "Himii/Events/Event.h"
+#include "Himii/ImGui/ImGuiLayer.h"
+#include "Himii/Renderer/Buffer.h"
+#include "Himii/Renderer/Shader.h"
+#include "Himii/Renderer/VertexArray.h"
+#include <filesystem>
 #include "Layer.h"
 #include "LayerStack.h"
-#include "Himii/Core/Window.h"
-#include "Himii/ImGui/ImGuiLayer.h"
-#include "Himii/Core/Timestep.h"
-#include "Himii/Renderer/Shader.h"
-#include "Himii/Renderer/Buffer.h"
-#include "Himii/Renderer/VertexArray.h"
 
 namespace Himii
 {
-    struct  ApplicationCommandLineArgs 
-    {
+    struct ApplicationCommandLineArgs {
         int Count = 0;
         char **Args = nullptr;
 
@@ -23,10 +23,9 @@ namespace Himii
         }
     };
 
-    class Application 
-    {
+    class Application {
     public:
-        Application(const std::string &name = "Himii",ApplicationCommandLineArgs args=ApplicationCommandLineArgs());
+        Application(const std::string &name = "Himii", ApplicationCommandLineArgs args = ApplicationCommandLineArgs());
         virtual ~Application();
 
         void OnEvent(Event &e);
@@ -59,12 +58,22 @@ namespace Himii
 
         void Run();
 
-    // 暴露 LayerStack 只读访问（用于层间简单通信）
-    const LayerStack& GetLayerStack() const { return m_LayerStack; }
+        // 暴露 LayerStack 只读访问（用于层间简单通信）
+        const LayerStack &GetLayerStack() const
+        {
+            return m_LayerStack;
+        }
+
+        const static std::filesystem::path &GetEngineDir()
+        {
+            return s_Instance->m_EngineDir;
+        }
+
     private:
         void SetEnvironmentVariables();
         bool OnWindowClosed(WindowCloseEvent &e);
         bool OnWindowResize(WindowResizeEvent &e);
+
     private:
         bool m_Running = true;
         bool m_Minimized = false;
@@ -75,8 +84,10 @@ namespace Himii
         ImGuiLayer *m_ImGuiLayer;
         ApplicationCommandLineArgs m_CommandLineArgs;
 
+        std::filesystem::path m_EngineDir;
+
     private:
         static Application *s_Instance;
     };
-    Application* CreateApplication(ApplicationCommandLineArgs args);
-}
+    Application *CreateApplication(ApplicationCommandLineArgs args);
+} // namespace Himii

@@ -524,31 +524,41 @@ namespace Himii
         {
             std::filesystem::path path(filepath);
 
-            // 我们希望为每个新项目创建一个独立的文件夹
-            // 如果用户选的文件名是 "MyRPG.hproj"，我们应该在那个位置创建一个叫 "MyRPG" 的文件夹
-            // 然后把文件放在里面：.../MyRPG/MyRPG.hproj
-
-            // 获取用户选择的目录 (HimiiEditor/assets/Project)
             std::filesystem::path parentDir = path.parent_path();
-            // 获取项目名 (MyRPG)
             std::string projectName = path.stem().string();
 
-            // 构建最终的项目文件夹路径: HimiiEditor/assets/Project/MyRPG
+            // 1. 构建目录路径
             std::filesystem::path newProjectDir = parentDir / projectName;
-
-            // 更新 .hproj 的最终路径
             std::filesystem::path newProjectFilePath = newProjectDir / (projectName + ".hproj");
 
-            // --- 开始生成 ---
-
-            // 1. 生成物理文件 (csproj 和 assets 文件夹)
+            // 2. 生成物理文件 (csproj 和 assets 文件夹)
             Project::CreateProjectFiles(projectName, newProjectDir);
+
+            //创建临时场景
+            Ref<Scene> startScene = CreateRef<Scene>();
+            startScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
+
+            {
+                Entity cameraEntity = startScene->CreateEntity("Main Camera");
+                auto &cc = cameraEntity.AddComponent<CameraComponent>();
+                cc.Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
+                cameraEntity.GetComponent<TransformComponent>().Position = {0.0f, 0.0f, 10.0f};
+            }
+
+            std::filesystem::path relativeScenePath = "scenes/Start.himii";
+            std::filesystem::path fullScenePath = newProjectDir / "assets" / relativeScenePath;
+
+            SceneSerializer sceneSerializer(startScene);
+            sceneSerializer.Serialize(fullScenePath.string());
+
+            HIMII_CORE_INFO("Created default scene at {0}", fullScenePath.string());
 
             // 2. 在内存中配置 Project 对象
             Ref<Project> newProject = Project::New();
             newProject->GetConfig().Name = projectName;
             newProject->GetConfig().AssetDirectory = "assets"; // 相对路径
-            newProject->GetConfig().ScriptModulePath = "assets/scripts/bin/GameAssembly.dll";
+            newProject->GetConfig().StartScene = relativeScenePath;
+            newProject->GetConfig().ScriptModulePath = "bin/Debug/GameAssembly.dll";
 
             // 3. 序列化 .hproj 文件
             Project::SaveActive(newProjectFilePath);
@@ -622,6 +632,9 @@ namespace Himii
 
     void EditorLayer::NewScene()
     {
+        m_SceneHierarchyPanel.SetSelectedEntity({});
+        m_HoveredEntity = {};
+
         m_ActiveScene = CreateRef<Scene>();
         m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
@@ -645,6 +658,9 @@ namespace Himii
         {
             OnSceneStop();
         }
+
+        m_SceneHierarchyPanel.SetSelectedEntity({});
+        m_HoveredEntity = {};
 
         Ref<Scene> newScene = CreateRef<Scene>();
         SceneSerializer serializer(newScene);

@@ -91,6 +91,7 @@ namespace Himii
         // 2. 设置环境变量 HIMII_DIR
         // Windows 专用 API，跨平台可以用 setenv
         // 格式：变量名，变量值
+        m_EngineDir = engineDir;
         if (_putenv_s("HIMII_DIR", engineDir.c_str()) == 0)
         {
             HIMII_CORE_INFO("Set environment variable HIMII_DIR = {0}", engineDir);
