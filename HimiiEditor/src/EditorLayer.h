@@ -27,6 +27,7 @@ namespace Himii
 
         void NewProject();
         void OpenProject(const std::filesystem::path &path);
+        void BuildProject();
 
         void OpenCSProject();
 

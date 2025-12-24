@@ -1,5 +1,0 @@
-Project:
-  Name: SandBox
-  StartScene: ""
-  AssetDirectory: assets
-  ScriptModulePath: bin/Debug/GameAssembly.dll
