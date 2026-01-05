@@ -53,12 +53,6 @@ namespace Himii
         auto engineDir = Application::GetEngineDir();
         std::filesystem::path scriptCorePath = engineDir / "ScriptCore.dll";
 
-        //if (!std::filesystem::exists(scriptCorePath))
-        //{
-        //    // 这是一个fallback，根据你的实际目录结构调整
-        //    scriptCorePath = engineDir / "ScriptCore" / "bin" / "Debug" / "net8.0" / "ScriptCore.dll";
-        //}
-
         std::string scriptCorePathStr = scriptCorePath.string();
         // 简单的替换 / 为 \ (如果需要)
         std::replace(scriptCorePathStr.begin(), scriptCorePathStr.end(), '/', '\\');

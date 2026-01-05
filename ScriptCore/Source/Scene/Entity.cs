@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 
 namespace Himii
 {
@@ -10,6 +11,32 @@ namespace Himii
 
         internal Entity(ulong id) { ID = id; }
 
+        public static Entity Create(string name)
+        {
+            IntPtr namePtr = Marshal.StringToCoTaskMemUTF8(name);
+            ulong id = InternalCalls.Scene_CreateEntity(namePtr);
+            Marshal.FreeCoTaskMem(namePtr);
+            return new Entity(id);
+        }
+
+        public static void Destroy(Entity entity)
+        {
+            if (entity != null)
+                InternalCalls.Scene_DestroyEntity(entity.ID);
+        }
+
+        public static Entity Find(string name)
+        {
+            IntPtr namePtr = Marshal.StringToCoTaskMemUTF8(name);
+            ulong id = InternalCalls.Scene_FindEntityByName(namePtr);
+            Marshal.FreeCoTaskMem(namePtr);
+
+            if (id == 0) return null;
+            return new Entity(id);
+        }
+
+        // --- Component Accessors ---
+
         public Vector3 Position
         {
             get
@@ -19,6 +46,26 @@ namespace Himii
             }
             set => InternalCalls.Transform_SetTranslation(ID, ref value);
         }
+
+        // 缓存 Transform 实例，避免每次访问 entity.Transform 都产生垃圾回收 (GC)
+        private Transform _transform;
+
+        public Transform Transform
+        {
+            get
+            {
+                if (_transform == null)
+                {
+                    // 这里我们手动创建 Transform 而不调用 GetComponent<Transform>
+                    // 因为每个 Entity 必定有 Transform，且 GetComponent 通常会创建一个新对象
+                    _transform = new Transform();
+                    _transform.Entity = this;
+                }
+                return _transform;
+            }
+        }
+
+
 
         public bool HasComponent<T>() where T : Component, new()
         {

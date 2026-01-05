@@ -37,7 +37,6 @@ int main(int argc, char **argv)
 //
 //int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
 //{
-//    // 直接调用上面的 main，传入 MSVC 提供的全局变量 __argc 和 __argv
 //    return main(__argc, __argv);
 //}
 

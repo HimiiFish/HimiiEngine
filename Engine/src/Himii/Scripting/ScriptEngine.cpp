@@ -216,9 +216,6 @@ namespace Himii {
             }
             else
             {
-                // 如果找不到，尝试构建完整路径（调试用）
-                // 假设 exe 在 .../Debug/
-
                 std::filesystem::path debugPath = Project::GetProjectDirectory() / Project::GetConfig().ScriptModulePath;
                 if (std::filesystem::exists(debugPath))
                 {
