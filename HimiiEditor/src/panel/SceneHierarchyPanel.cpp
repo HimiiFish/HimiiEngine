@@ -51,6 +51,19 @@ namespace Himii
         if (m_SelectionContext)
         {
             DrawComponents(m_SelectionContext);
+
+            if (ImGui::BeginPopupContextWindow(0, 1))
+            {
+                DisplayAddComponentEntry<CameraComponent>("Camera");
+                DisplayAddComponentEntry<ScriptComponent>("Script Component");
+                DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
+                DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
+                DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
+                DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
+                DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
+
+                ImGui::EndPopup();
+            }
         }
         ImGui::End();
     }

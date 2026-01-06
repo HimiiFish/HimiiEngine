@@ -9,6 +9,7 @@
 #include "CamerController.h"
 #include "Himii/Utils/PlatformUtils.h"
 #include "ImGuizmo.h"
+#include "yaml-cpp/yaml.h"
 
 namespace Himii
 {
@@ -40,6 +41,8 @@ namespace Himii
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
+        LoadRecentProjects();
+
         auto commandLineArgs = Application::Get().GetCommandLineArgs();
         if (commandLineArgs.Count > 1)
         {
@@ -47,15 +50,19 @@ namespace Himii
         }
         else
         {
-            // 2. 开发模式：如果有 HIMII_ROOT_DIR，自动打开 Sandbox
+            // 2. 开发模式：如果有 HIMII_ROOT_DIR 且用户没有特别设置，是否自动打开？
+            // 为了展示 Hub，这里修改为：如果不强制要求，默认不打开。
+            // 如果确实需要自动打开用于调试，可以取消下面的注释，或者加个 Engine 配置。
+/*
 #ifdef HIMII_ROOT_DIR
             // 自动打开源码目录下的测试项目
             std::filesystem::path root(HIMII_ROOT_DIR);
-            std::filesystem::path sandboxProject = root / "Sandbox" / "Sandbox.hproj"; // 假设你有这个
+            std::filesystem::path sandboxProject = root / "Sandbox" / "Sandbox.hproj"; 
             if (std::filesystem::exists(sandboxProject))
                 OpenProject(sandboxProject);
 #endif
-            // 如果都不是，什么都不做，ContentBrowser 会显示 "Please open project"
+*/
+            // 保持无 Project 状态，以显示 Hub
         }
     }
     void EditorLayer::OnDetach()
@@ -133,6 +140,13 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
+        // 如果没有 Active Project，显示 Project Hub
+        if (!Project::GetActive())
+        {
+            DrawProjectHub();
+            return;
+        }
+
         static bool dockingEnable = true;
 
         if (dockingEnable)
@@ -184,21 +198,6 @@ namespace Himii
             {
                 if (ImGui::BeginMenu("File"))
                 {
-                    // --- 新建项目 ---
-                    if (ImGui::MenuItem("New Project..."))
-                    {
-                        NewProject();
-                    }
-
-                    // --- 打开项目 ---
-                    if (ImGui::MenuItem("Open Project..."))
-                    {
-                        std::string filepath = FileDialog::OpenFile("Himii Project (*.hproj)\0*.hproj\0");
-                        if (!filepath.empty())
-                            OpenProject(filepath);
-                    }
-                    // ...
-                    ImGui::Separator();
 
                     if (ImGui::MenuItem("Build Project..."))
                     {
@@ -361,6 +360,7 @@ namespace Himii
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
     }
+
 
     bool EditorLayer::OnKeyPressed(KeyPressedEvent &e)
     {
@@ -582,6 +582,26 @@ namespace Himii
         {
             auto projectDir = Project::GetProjectDirectory();
 
+            // 更新最近项目列表
+            {
+                std::string projectName = Project::GetConfig().Name;
+                std::string projectPath = path.string();
+                
+                // remove existing if present
+                auto it = std::remove_if(m_RecentProjects.begin(), m_RecentProjects.end(), [&](const RecentProject& p){
+                    return p.FilePath == projectPath;
+                });
+                m_RecentProjects.erase(it, m_RecentProjects.end());
+
+                m_RecentProjects.insert(m_RecentProjects.begin(), {projectName, projectPath, std::time(nullptr)});
+                
+                // keep max 5?
+                if(m_RecentProjects.size() > 5)
+                    m_RecentProjects.resize(5);
+
+                SaveRecentProjects();
+            }
+
             // 假设 csproj 就在项目根目录
             // 如果你的结构是 csproj 在 assets 下，则改为 projectDir / "assets" / "GameAssembly.csproj"
             m_CSharpProjectPath = projectDir /Project::GetProjectDirectory()/ "GameAssembly.csproj";
@@ -739,15 +759,49 @@ namespace Himii
 
         if (std::filesystem::exists(slnPath))
         {
-            std::string cmd = "code \"" + projectDir.string() + "\"";
-            system(cmd.c_str());
+            // 尝试1: 环境变量中的 code
+            // 使用 where code (Windows)检测是否存在
+            bool hasCodeInPath = system("where code >nul 2>nul") == 0;
 
+            std::string cmd;
+            if (hasCodeInPath) 
+            {
+                 cmd = "code \"" + projectDir.string() + "\"";
+            }
+            else
+            {
+                // 尝试2: 常见安装路径
+                std::vector<std::string> vscodePaths = {
+                    "\"C:\\Users\\" + std::string(getenv("USERNAME")) + "\\AppData\\Local\\Programs\\Microsoft VS Code\\bin\\code.cmd\"",
+                    "\"C:\\Program Files\\Microsoft VS Code\\bin\\code.cmd\"",
+                    "\"C:\\Program Files (x86)\\Microsoft VS Code\\bin\\code.cmd\""
+                };
+                
+                bool found = false;
+                for(const auto& path : vscodePaths) {
+                    // 去掉引号判断是否存在
+                    std::string rawPath = path.substr(1, path.length() - 2);
+                    if(std::filesystem::exists(rawPath)) {
+                        cmd = path + " \"" + projectDir.string() + "\"";
+                        found = true;
+                        break;
+                    }
+                }
+
+                if(!found) {
+                     // 实在找不到，只能尝试 explorer 打开文件夹，让用户自己拖
+                     HIMII_CORE_ERROR("VS Code not found in PATH or default locations.");
+                     system(("explorer \"" + projectDir.string() + "\"").c_str());
+                     return;
+                }
+            }
+            
+            system(cmd.c_str());
             HIMII_CORE_INFO("Opening C# Project: {0}", projectDir.string());
         }
         else
         {
             HIMII_CORE_WARNING("Solution file not found! Please regenerate project.");
-            // 可以补一个 Project::CreateProjectFiles 的调用来重新生成
         }
     }
 
@@ -761,6 +815,124 @@ namespace Himii
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
         m_EditorScenePath = std::filesystem::path();
+    }
+
+    void EditorLayer::LoadRecentProjects()
+    {
+        m_RecentProjects.clear();
+        std::filesystem::path recentProjectsPath = "recent_projects.yaml";
+        if (std::filesystem::exists(recentProjectsPath))
+        {
+            try
+            {
+                YAML::Node data = YAML::LoadFile(recentProjectsPath.string());
+                auto projects = data["RecentProjects"];
+                if (projects)
+                {
+                    for (auto project : projects)
+                    {
+                        RecentProject p;
+                        p.Name = project["Name"].as<std::string>();
+                        p.FilePath = project["FilePath"].as<std::string>();
+                        p.LastOpened = project["LastOpened"].as<long long>();
+
+                        // Filter out non-existing projects
+                        if(std::filesystem::exists(p.FilePath))
+                            m_RecentProjects.push_back(p);
+                    }
+                }
+            }
+            catch (YAML::ParserException &e)
+            {
+                HIMII_CORE_ERROR("Failed to load recent projects: {0}", e.what());
+            }
+        }
+        // sort by last opened descending
+         std::sort(m_RecentProjects.begin(), m_RecentProjects.end(), [](const RecentProject& a, const RecentProject& b) {
+            return a.LastOpened > b.LastOpened;
+        });
+    }
+
+    void EditorLayer::SaveRecentProjects()
+    {
+        YAML::Emitter out;
+        out << YAML::BeginMap;
+        out << YAML::Key << "RecentProjects" << YAML::Value << YAML::BeginSeq;
+        for (const auto &project : m_RecentProjects)
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "Name" << YAML::Value << project.Name;
+            out << YAML::Key << "FilePath" << YAML::Value << project.FilePath;
+            out << YAML::Key << "LastOpened" << YAML::Value << project.LastOpened;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+        out << YAML::EndMap;
+
+        std::ofstream fout("recent_projects.yaml");
+        fout << out.c_str();
+    }
+
+    void EditorLayer::DrawProjectHub()
+    {
+        ImGuiViewport *viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->Pos);
+        ImGui::SetNextWindowSize(viewport->Size);
+        ImGui::SetNextWindowViewport(viewport->ID);
+
+        ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                                        ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                                        ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                        ImGuiWindowFlags_NoNavFocus;
+
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(20.0f, 20.0f));
+
+        ImGui::Begin("Project Hub", nullptr, window_flags);
+        ImGui::PopStyleVar(3);
+
+        // Center content
+        // ImGui::SetCursorPosX((ImGui::GetWindowWidth() - 600) * 0.5f);
+        
+        ImGui::Text("Himii Engine - Project Hub");
+        ImGui::Separator();
+        
+        ImGui::Columns(2, nullptr, false);
+        ImGui::SetColumnWidth(0, 300.0f);
+
+        // Left Column: Actions
+        if (ImGui::Button("Create New Project", ImVec2(280, 50)))
+        {
+            NewProject();
+        }
+        ImGui::Dummy(ImVec2(0, 10));
+        if (ImGui::Button("Open Project", ImVec2(280, 50)))
+        {
+             std::string filepath = FileDialog::OpenFile("Himii Project (*.hproj)\0*.hproj\0");
+             if (!filepath.empty())
+                 OpenProject(filepath);
+        }
+
+        ImGui::NextColumn();
+
+        // Right Column: Recent Projects
+        ImGui::Text("Recent Projects");
+        ImGui::Separator();
+        
+        ImGui::BeginChild("RecentProjectsList");
+        for (const auto& project : m_RecentProjects)
+        {
+            std::string label = project.Name + " (" + project.FilePath + ")";
+            if (ImGui::Button(label.c_str(), ImVec2(-1, 40)))
+            {
+                OpenProject(project.FilePath);
+            }
+        }
+        ImGui::EndChild();
+
+        ImGui::Columns(1);
+        ImGui::End();
     }
 
     void EditorLayer::OpenScene()

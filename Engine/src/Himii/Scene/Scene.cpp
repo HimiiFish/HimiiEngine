@@ -300,7 +300,7 @@ namespace Himii
         if (entity.HasComponent<SpriteRendererComponent>())
             newEntity.AddComponent<SpriteRendererComponent>(entity.GetComponent<SpriteRendererComponent>());
 
-        if (entity.HasComponent<SpriteRendererComponent>())
+        if (entity.HasComponent<CircleRendererComponent>())
             newEntity.AddComponent<CircleRendererComponent>(entity.GetComponent<CircleRendererComponent>());
 
         if (entity.HasComponent<CameraComponent>())

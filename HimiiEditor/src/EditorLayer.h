@@ -91,5 +91,19 @@ namespace Himii
 
 
         SceneState m_SceneState = SceneState::Edit;
+        std::string m_Clipboard;
+
+    private:
+        struct RecentProject
+        {
+            std::string Name;
+            std::string FilePath;
+            long long LastOpened;
+        };
+        std::vector<RecentProject> m_RecentProjects;
+
+        void LoadRecentProjects();
+        void SaveRecentProjects();
+        void DrawProjectHub();
     };
 }
