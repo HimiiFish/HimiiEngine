@@ -3,9 +3,12 @@
 #include "hepch.h"
 
 #include "Components.h"
+#include "Himii/Asset/AssetManager.h"
+#include "Himii/Project/Project.h"
 #include "Himii/Renderer/Renderer2D.h"
-#include "ScriptableEntity.h"
+#include "Himii/Scene/SpriteAnimation.h"
 #include "Himii/Scripting/ScriptEngine.h"
+#include "ScriptableEntity.h"
 
 #include <glm/glm.hpp>
 
@@ -42,7 +45,7 @@ namespace Himii
         entity.AddComponent<IDComponent>(uuid);
         entity.AddComponent<TransformComponent>();
         auto &tag = entity.AddComponent<TagComponent>();
-        tag.Tag= name.empty() ? "Entity" : name;
+        tag.Tag = name.empty() ? "Entity" : name;
 
         m_EntityMap[uuid] = entity;
 
@@ -126,18 +129,68 @@ namespace Himii
                 ScriptEngine::OnUpdateScript(entity, ts);
             }
 
-            m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-					{
-						// TODO: Move to Scene::OnScenePlay
-						if (!nsc.Instance)
-						{
-							nsc.Instance = nsc.InstantiateScript();
-							nsc.Instance->m_Entity = Entity{ entity, this };
-							nsc.Instance->OnCreate();
-						}
+            m_Registry.view<NativeScriptComponent>().each(
+                    [=](auto entity, auto &nsc)
+                    {
+                        // TODO: Move to Scene::OnScenePlay
+                        if (!nsc.Instance)
+                        {
+                            nsc.Instance = nsc.InstantiateScript();
+                            nsc.Instance->m_Entity = Entity{entity, this};
+                            nsc.Instance->OnCreate();
+                        }
 
-						nsc.Instance->OnUpdate(ts);
-					});
+                        nsc.Instance->OnUpdate(ts);
+                    });
+        }
+
+        // Animation Update
+        {
+            auto view = m_Registry.group<SpriteAnimationComponent, SpriteRendererComponent>();
+
+            // 获取 AssetManager
+            auto assetManager = Project::GetAssetManager();
+
+            for (auto e: view)
+            {
+                auto [animComponent, spriteComponent] = view.get<SpriteAnimationComponent, SpriteRendererComponent>(e);
+
+                // 确保有有效的动画资产句柄
+                if (animComponent.AnimationHandle != 0 && animComponent.Playing)
+                {
+                    // 从 AssetManager 获取动画数据
+                    if (assetManager->IsAssetHandleValid(animComponent.AnimationHandle))
+                    {
+                        Ref<SpriteAnimation> animation = std::static_pointer_cast<SpriteAnimation>(
+                                assetManager->GetAsset(animComponent.AnimationHandle));
+
+                        if (animation && animation->GetFrameCount() > 0)
+                        {
+                            // 计时器逻辑
+                            animComponent.Timer += ts;
+                            float frameDuration = 1.0f / animComponent.FrameRate;
+
+                            if (animComponent.Timer >= frameDuration)
+                            {
+                                animComponent.Timer -= frameDuration;
+                                animComponent.CurrentFrame =
+                                        (animComponent.CurrentFrame + 1) % animation->GetFrameCount();
+                            }
+
+                            // 获取当前帧的纹理句柄
+                            AssetHandle textureHandle = animation->GetFrame(animComponent.CurrentFrame);
+
+                            // 将纹理应用到 SpriteRenderer
+                            if (assetManager->IsAssetHandleValid(textureHandle))
+                            {
+                                Ref<Texture2D> texture =
+                                        std::static_pointer_cast<Texture2D>(assetManager->GetAsset(textureHandle));
+                                spriteComponent.Texture = texture;
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         // Box2D 物理更新
@@ -203,7 +256,7 @@ namespace Himii
         }
     }
 
-    void Scene::OnUpdateSimulation(Timestep ts,EditorCamera& camera)
+    void Scene::OnUpdateSimulation(Timestep ts, EditorCamera &camera)
     {
         // Box2D 物理更新
         {
@@ -285,6 +338,7 @@ namespace Himii
         CopyComponent<Rigidbody2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<BoxCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
         CopyComponent<CircleCollider2DComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
+        CopyComponent<SpriteAnimationComponent>(dstSceneRegistry, srcSceneRegistry, enttMap);
 
         return newScene;
     }
@@ -321,10 +375,13 @@ namespace Himii
         if (entity.HasComponent<CircleCollider2DComponent>())
             newEntity.AddComponent<CircleCollider2DComponent>(entity.GetComponent<CircleCollider2DComponent>());
 
+        if (entity.HasComponent<SpriteAnimationComponent>())
+            newEntity.AddComponent<SpriteAnimationComponent>(entity.GetComponent<SpriteAnimationComponent>());
+
         return newEntity;
     }
 
-    Entity Scene::FindEntityByName(const std::string& name)
+    Entity Scene::FindEntityByName(const std::string &name)
     {
         auto view = m_Registry.view<TagComponent>();
         for (auto entity: view)
@@ -468,14 +525,14 @@ namespace Himii
     {
         Renderer2D::BeginScene(camera);
 
-        //Draw Sprites
+        // Draw Sprites
         {
             auto view = m_Registry.view<TransformComponent, SpriteRendererComponent>();
             view.each([&](entt::entity entity, TransformComponent &transform, SpriteRendererComponent &sprite)
                       { Himii::Renderer2D::DrawSprite(transform.GetTransform(), sprite, (int)entity); });
         }
 
-        //Draw Circles
+        // Draw Circles
         {
             auto view = m_Registry.view<TransformComponent, CircleRendererComponent>();
             view.each(
@@ -492,7 +549,6 @@ namespace Himii
     template<typename T>
     void Scene::OnComponentAdded(Entity emtity, T &component)
     {
-        
     }
     template<>
     void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent &component)
@@ -545,6 +601,11 @@ namespace Himii
 
     template<>
     void Scene::OnComponentAdded<CircleCollider2DComponent>(Entity entity, CircleCollider2DComponent &component)
+    {
+    }
+
+    template<>
+    void Scene::OnComponentAdded<SpriteAnimationComponent>(Entity entity, SpriteAnimationComponent &component)
     {
     }
 

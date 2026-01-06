@@ -2,6 +2,7 @@
 #include "Engine.h"
 #include "panel/SceneHierarchyPanel.h"
 #include "panel/ContentBrowserPanel.h"
+#include "panel/AnimationPanel.h"
 
 #include "Himii/Renderer/EditorCamera.h"
 
@@ -27,6 +28,7 @@ namespace Himii
 
         void NewProject();
         void OpenProject(const std::filesystem::path &path);
+        void SaveProject();
         void BuildProject();
 
         void OpenCSProject();
@@ -86,6 +88,9 @@ namespace Himii
         };
         SceneHierarchyPanel m_SceneHierarchyPanel;
         ContentBrowserPanel m_ContentBrowserPanel;
+
+        AnimationPanel m_AnimationPanel;
+        bool m_ShowAnimationPanel = false;
 
         Ref<Texture2D> m_IconPlay, m_IconStop, m_IconSimulate;
 

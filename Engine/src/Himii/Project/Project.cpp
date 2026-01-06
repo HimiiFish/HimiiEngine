@@ -10,18 +10,21 @@ namespace Himii
     Ref<Project> Project::New()
     {
         s_ActiveProject = CreateRef<Project>();
+        s_ActiveProject->m_AssetManager = CreateRef<AssetManager>();
+        s_ActiveProject->m_AssetManager->DeserializeAssetRegistry();
         return s_ActiveProject;
     }
 
     Ref<Project> Project::Load(const std::filesystem::path &path)
     {
         Ref<Project> project = CreateRef<Project>();
-
+        project->m_AssetManager = CreateRef<AssetManager>();
         ProjectSerializer serializer(project);
         if (serializer.Deserialize(path))
         {
             project->m_ProjectDirectory = path.parent_path();
             s_ActiveProject = project;
+            s_ActiveProject->m_AssetManager->DeserializeAssetRegistry();
             return s_ActiveProject;
         }
 
@@ -34,6 +37,8 @@ namespace Himii
         if (serializer.Serialize(path))
         {
             s_ActiveProject->m_ProjectDirectory = path.parent_path();
+            if (s_ActiveProject->m_AssetManager)
+                s_ActiveProject->m_AssetManager->SerializeAssetRegistry();
             return true;
         }
 

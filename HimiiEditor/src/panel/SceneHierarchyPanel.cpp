@@ -248,6 +248,7 @@ namespace Himii
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
             DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider2D");
+            DisplayAddComponentEntry<SpriteAnimationComponent>("Sprite Animation");
 
             ImGui::EndPopup();
         }
@@ -455,6 +456,40 @@ namespace Himii
                     ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
                     ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.1f);
+                });
+        DrawComponent<SpriteAnimationComponent>(
+                "Sprite Animation", entity,
+                [](auto &component)
+                {
+                    ImGui::Text("Asset Handle: %llu", (uint64_t)component.AnimationHandle);
+
+                    ImGui::Button("Animation Asset", ImVec2(100.0f, 0.0f));
+                    if (ImGui::BeginDragDropTarget())
+                    {
+                        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        {
+                            const wchar_t *path = (const wchar_t *)payload->Data;
+                            std::filesystem::path assetPath = path;
+
+                            if (assetPath.extension() == ".anim")
+                            {
+                                // 获取 AssetManager (需要 #include "Himii/Project/Project.h")
+                                auto assetManager = Project::GetAssetManager();
+                                if (assetManager)
+                                {
+                                    AssetHandle handle = assetManager->ImportAsset(assetPath);
+                                    if (handle != 0)
+                                        component.AnimationHandle = handle;
+                                }
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+
+                    ImGui::DragFloat("Frame Rate", &component.FrameRate, 0.1f, 0.0f, 60.0f);
+                    ImGui::Checkbox("Playing", &component.Playing);
+                    ImGui::Text("Current Frame: %d", component.CurrentFrame);
+                    ImGui::Text("Timer: %.2f", component.Timer);
                 });
     }
 

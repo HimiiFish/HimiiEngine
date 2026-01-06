@@ -125,7 +125,7 @@ namespace Himii
     struct BoxCollider2DComponent
     {
         glm::vec2 Offset = {0.0f, 0.0f};
-        glm::vec2 Size = {0.5f, 0.5f};
+        glm::vec2 Size = {1.0f, 1.0f};
 
         float Density = 1.0f;
         float Friction = 0.5f;
@@ -153,5 +153,17 @@ namespace Himii
 
         CircleCollider2DComponent() = default;
         CircleCollider2DComponent(const CircleCollider2DComponent &) = default;
+    };
+
+    struct SpriteAnimationComponent {
+        AssetHandle AnimationHandle = 0; // 引用 SpriteAnimation 资产
+
+        float Timer = 0.0f;
+        int CurrentFrame = 0;
+        float FrameRate = 10.0f; // 默认 10 帧/秒
+        bool Playing = true;
+
+        SpriteAnimationComponent() = default;
+        SpriteAnimationComponent(const SpriteAnimationComponent &) = default;
     };
 }

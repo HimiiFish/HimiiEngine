@@ -3,6 +3,7 @@
 #include <array>
 #include "glm/vec2.hpp"
 #include "Himii/Core/Core.h"
+#include "Himii/Asset/Asset.h"
 
 namespace Himii
 {
@@ -22,7 +23,7 @@ namespace Himii
         bool GenerateMips = false;
     };
 
-    class Texture 
+    class Texture : public Asset
     {
     public:
         virtual ~Texture() = default;
@@ -42,6 +43,11 @@ namespace Himii
         virtual bool IsLoaded() const = 0;
 
         virtual bool operator==(const Texture &other) const=0;
+
+        virtual AssetType GetType() const override
+        {
+            return AssetType::Texture2D;
+        }
     private:
     };
 

@@ -231,6 +231,16 @@ namespace Himii
             out << YAML::Key << "RestitutionThreshold" << YAML::Value << circleCollider2D.RestitutionThreshold;
             out << YAML::EndMap;
         }
+        if (entity.HasComponent<SpriteAnimationComponent>())
+        {
+            out << YAML::Key << "SpriteAnimationComponent";
+            out << YAML::BeginMap;
+            auto &anim = entity.GetComponent<SpriteAnimationComponent>();
+            out << YAML::Key << "AnimationHandle" << YAML::Value << (uint64_t)anim.AnimationHandle;
+            out << YAML::Key << "FrameRate" << YAML::Value << anim.FrameRate;
+            out << YAML::Key << "Playing" << YAML::Value << anim.Playing;
+            out << YAML::EndMap;
+        }
         out << YAML::EndMap;
     }
 
@@ -389,6 +399,16 @@ namespace Himii
             ccc.Friction = circleCollider2DComponent["Friction"].as<float>();
             ccc.Restitution = circleCollider2DComponent["Restitution"].as<float>();
             ccc.RestitutionThreshold = circleCollider2DComponent["RestitutionThreshold"].as<float>();
+        }
+        auto spriteAnimationComponent = entity["SpriteAnimationComponent"];
+        if (spriteAnimationComponent)
+        {
+            auto &sac = deserializedEntity.AddComponent<SpriteAnimationComponent>();
+            sac.AnimationHandle = spriteAnimationComponent["AnimationHandle"].as<uint64_t>();
+            if (spriteAnimationComponent["FrameRate"])
+                sac.FrameRate = spriteAnimationComponent["FrameRate"].as<float>();
+            if (spriteAnimationComponent["Playing"])
+                sac.Playing = spriteAnimationComponent["Playing"].as<bool>();
         }
     }
     

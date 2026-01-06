@@ -2,7 +2,7 @@
 #include <string>
 #include <filesystem>
 #include <Himii/Core/Core.h>
-
+#include "Himii/Asset/AssetManager.h" 
 #include "Himii/Core/Log.h"
 
 namespace Himii
@@ -10,9 +10,7 @@ namespace Himii
 	struct ProjectConfig
 	{
         std::string Name = "Untitled";
-
 		std::filesystem::path StartScene;
-
 		std::filesystem::path AssetDirectory = "assets";
         std::filesystem::path ScriptModulePath = "bin/Debug/GameAssembly.dll";
 	};
@@ -48,6 +46,19 @@ namespace Himii
             return s_ActiveProject;
         }
 
+        static Ref<AssetManager> GetAssetManager()
+        {
+            HIMII_CORE_ASSERT(s_ActiveProject);
+            return s_ActiveProject->m_AssetManager;
+        }
+
+        static std::filesystem::path GetAssetRegistryPath()
+        {
+            HIMII_CORE_ASSERT(s_ActiveProject);
+            // 保存为 ProjectDir/AssetRegistry.yaml
+            return s_ActiveProject->m_ProjectDirectory / "AssetRegistry.yaml";
+        }
+
         static Ref<Project> New();
         static Ref<Project> Load(const std::filesystem::path &path);
         static bool SaveActive(const std::filesystem::path &path);
@@ -57,6 +68,7 @@ namespace Himii
     private:
         ProjectConfig m_Config;
         std::filesystem::path m_ProjectDirectory;
+        Ref<AssetManager> m_AssetManager;
 
         inline static Ref<Project> s_ActiveProject;
         friend class ProjectSerializer; 

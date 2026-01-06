@@ -198,7 +198,10 @@ namespace Himii
             {
                 if (ImGui::BeginMenu("File"))
                 {
-
+                    if (ImGui::MenuItem("Save Project"))
+                    {
+                        SaveProject();
+                    }
                     if (ImGui::MenuItem("Build Project..."))
                     {
                         BuildProject();
@@ -238,12 +241,20 @@ namespace Himii
                     }
                     ImGui::EndMenu();
                 }
+                if (ImGui::BeginMenu("Window"))
+                {
+                    ImGui::MenuItem("Animation Editor", nullptr, &m_ShowAnimationPanel);
+                    ImGui::EndMenu();
+                }
                 ImGui::EndMenuBar();
             }
             ImGui::End();
 
             m_SceneHierarchyPanel.OnImGuiRender();
             m_ContentBrowserPanel.OnImGuiRender();
+            m_AnimationPanel.OnImGuiRender(m_ShowAnimationPanel);
+
+            
 
             ImGui::Begin("Stats");
             auto stats = Himii::Renderer2D::GetStatistics();
@@ -394,7 +405,7 @@ namespace Himii
                 }
                 else if (control)
                 {
-                    SaveScene();
+                    SaveProject();
                 }
                 break;
             }
@@ -980,6 +991,29 @@ namespace Himii
         }
     }
 
+    void EditorLayer::SaveProject()
+    {
+        // Save Project Settings (including Asset Registry)
+        auto project = Project::GetActive();
+        if(!project) return;
+        
+        auto projectDir = Project::GetProjectDirectory();
+        auto appName = project->GetConfig().Name;
+        std::filesystem::path projectFile = projectDir / (appName + ".hproj");
+        
+        if (Project::SaveActive(projectFile))
+        {
+            HIMII_CORE_INFO("Project saved successfully to {0}", projectFile.string());
+        }
+        else
+        {
+            HIMII_CORE_ERROR("Failed to save project to {0}", projectFile.string());
+        }
+
+        // Save Scene
+        SaveScene();
+    }
+    
     void EditorLayer::SaveSceneAs()
     {
         std::string filePath = FileDialog::SaveFile("Himii Scene(*.himii)\0*.himii\0");
