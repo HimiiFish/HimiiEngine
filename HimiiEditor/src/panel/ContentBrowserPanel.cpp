@@ -12,6 +12,8 @@ namespace Himii
     {
         m_DirectoryIcon = Texture2D::Create("resources/icons/Folder.png");
         m_FileIcon = Texture2D::Create("resources/icons/doc.png");
+        m_ScriptIcon = Texture2D::Create("resources/icons/Script.png");
+        m_SceneIcon = Texture2D::Create("resources/icons/Scene.png");
     }
 
     void ContentBrowserPanel::OnImGuiRender()
@@ -57,7 +59,19 @@ namespace Himii
             auto relativePath= std::filesystem::relative(path, assetsPath);
             std::string fileNameString = relativePath.filename().string();
             
-            Ref<Texture2D> icon = directoryEntry.is_directory() ? m_DirectoryIcon : m_FileIcon;
+            Ref<Texture2D> icon = m_FileIcon;
+            if (directoryEntry.is_directory())
+                icon = m_DirectoryIcon;
+            else if (path.extension() == ".cs")
+                icon = m_ScriptIcon;
+            else if (path.extension() == ".himii")
+                icon = m_SceneIcon;
+            else if (path.extension() == ".png" || path.extension() == ".jpg")
+            {
+                 // Optional: Generate thumbnail or use image icon
+                 // For now stick to file icon or if we have an image icon
+                 // icon = m_FileIcon; 
+            }
             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
             ImGui::PushID(fileNameString.c_str()); 
             ImGui::ImageButton("BtnId",(ImTextureID)icon->GetRendererID(), {thumbnailSize, thumbnailSize}, {0, 1}, {1, 0});

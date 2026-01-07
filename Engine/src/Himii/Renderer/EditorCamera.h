@@ -14,7 +14,7 @@ namespace Himii {
         EditorCamera() = default;
         EditorCamera(float fov,float aspectRatio,float nearClip,float farClip);
         
-        void OnUpdate(Timestep ts);
+        void OnUpdate(Timestep ts, bool allowInput = true);
         void OnEvent(Event &event);
 
         inline float GetDistance() const
@@ -25,6 +25,7 @@ namespace Himii {
         inline float SetDistance(float distance)
         {
             m_Distance = distance;
+            return m_Distance;
         }
 
         inline void SetViewportSize(float width, float height)
@@ -92,6 +93,10 @@ namespace Himii {
         float m_Pitch = 0.0f, m_Yaw = 0.0f;
 
         float m_ViewportWidth = 1280, m_ViewportHeight = 720;
+        float m_MoveSpeed = 1.0f; // New: Camera movement speed
+        
+        // Is the camera currently being moved?
+        bool m_IsActive = false;
     };
 
 } // namespace Himii

@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Engine.h"
+#include "Himii/Renderer/Texture.h"
+#include <unordered_map>
 
 namespace Himii
 {
@@ -32,5 +34,6 @@ namespace Himii
     private:
         Ref<Scene> m_Context;
         Entity m_SelectionContext;
+        std::unordered_map<std::string, Ref<Texture2D>> m_ComponentIcons;
     };
 }

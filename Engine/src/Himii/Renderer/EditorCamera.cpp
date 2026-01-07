@@ -60,20 +60,57 @@ namespace Himii
         return speed;
     }
 
-    void EditorCamera::OnUpdate(Timestep ts)
+    void EditorCamera::OnUpdate(Timestep ts, bool allowInput)
     {
-        if (Input::IsKeyPressed(Key::LeftAlt))
+        const glm::vec2 &mouse{Input::GetMouseX(), Input::GetMouseY()};
+        
+        // Right Click for Look/Move, Middle Click for Zoom
+        bool isRight = Input::IsMouseButtonPressed(Mouse::ButtonRight);
+        bool isMiddle = Input::IsMouseButtonPressed(Mouse::ButtonMiddle);
+
+        bool isAnyMouseButtonPressed = isRight || isMiddle;
+
+        if (isAnyMouseButtonPressed)
         {
-            const glm::vec2 &mouse{Input::GetMouseX(), Input::GetMouseY()};
+            if (!m_IsActive && allowInput)
+            {
+                m_IsActive = true;
+                m_InitialMousePosition = mouse;
+            }
+        }
+        else
+        {
+            m_IsActive = false;
+        }
+
+        if (m_IsActive)
+        {
             glm::vec2 delta = (mouse - m_InitialMousePosition) * 0.003f;
             m_InitialMousePosition = mouse;
 
-            if (Input::IsMouseButtonPressed(Mouse::ButtonMiddle))
-                MousePan(delta);
-            else if (Input::IsMouseButtonPressed(Mouse::ButtonLeft))
+            if (isRight)
+            {
                 MouseRotate(delta);
-            else if (Input::IsMouseButtonPressed(Mouse::ButtonRight))
-                MouseZoom(delta.y);
+                
+                // WASD Movement (Classic Fly Mode)
+                glm::vec3 direction(0.0f);
+                if (Input::IsKeyPressed(Key::W)) direction += GetForwardDirection();
+                if (Input::IsKeyPressed(Key::S)) direction -= GetForwardDirection();
+                if (Input::IsKeyPressed(Key::A)) direction -= GetRightDirection();
+                if (Input::IsKeyPressed(Key::D)) direction += GetRightDirection();
+                if (Input::IsKeyPressed(Key::Q)) direction -= GetUpDirection();
+                if (Input::IsKeyPressed(Key::E)) direction += GetUpDirection();
+                
+                if (glm::length(direction) > 0.0f)
+                    m_FocalPoint += direction * m_MoveSpeed * (float)ts;
+            }
+            else if (isMiddle)
+            {
+                if (Input::IsKeyPressed(Key::LeftShift))
+                    MouseZoom(delta.y);
+                else
+                    MousePan(delta);
+            }
         }
 
         UpdateView();
@@ -88,7 +125,11 @@ namespace Himii
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent &e)
     {
         float delta = e.GetYOffset() * 0.1f;
-        MouseZoom(delta);
+        
+        // Scroll now controls speed instead of zoom
+        m_MoveSpeed += delta * 5.0f; // Scale factor for speed adjustment
+        if (m_MoveSpeed < 0.1f) m_MoveSpeed = 0.1f;
+        
         UpdateView();
         return false;
     }

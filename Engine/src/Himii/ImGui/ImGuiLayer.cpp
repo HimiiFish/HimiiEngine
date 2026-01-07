@@ -104,35 +104,61 @@ namespace Himii
 
     void ImGuiLayer::SetDarkThemeColors()
     {
-        auto &colors = ImGui::GetStyle().Colors;
-        colors[ImGuiCol_WindowBg] = ImVec4{0.1f, 0.105f, 0.11f, 1.0f};
+        auto &style = ImGui::GetStyle();
+        auto &colors = style.Colors;
 
+        style.WindowRounding = 5.0f;  // Subtle rounding
+        style.FrameRounding = 4.0f;   // Boxy but soft
+        style.PopupRounding = 3.0f;
+        style.ScrollbarRounding = 10.0f;
+        style.GrabRounding = 8.0f;
+        style.TabRounding = 4.0f;     // Tabs look better with more rounding on top
+
+        style.WindowBorderSize = 0.0f; // Subtle border
+        style.FrameBorderSize = 0.0f;
+        style.PopupBorderSize = 1.0f;
+        
+        // Backgrounds (Softer Dark Grey)
+        colors[ImGuiCol_WindowBg] = ImVec4{0.2f, 0.2f, 0.2f, 1.0f};
+        colors[ImGuiCol_PopupBg] = ImVec4{0.14f, 0.14f, 0.14f, 0.94f};
+        
         // Headers
-        colors[ImGuiCol_Header] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_HeaderHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_HeaderActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        colors[ImGuiCol_Header] = ImVec4{0.26f, 0.26f, 0.26f, 1.0f};
+        colors[ImGuiCol_HeaderHovered] = ImVec4{0.34f, 0.34f, 0.34f, 1.0f};
+        colors[ImGuiCol_HeaderActive] = ImVec4{0.30f, 0.30f, 0.30f, 1.0f};
 
         // Buttons
-        colors[ImGuiCol_Button] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_ButtonHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_ButtonActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        colors[ImGuiCol_Button] = ImVec4{0.26f, 0.26f, 0.26f, 1.0f};
+        colors[ImGuiCol_ButtonHovered] = ImVec4{0.30f, 0.30f, 0.30f, 1.0f};
+        colors[ImGuiCol_ButtonActive] = ImVec4{0.18f, 0.18f, 0.18f, 1.0f};
 
-        // Frame BG
-        colors[ImGuiCol_FrameBg] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
-        colors[ImGuiCol_FrameBgHovered] = ImVec4{0.3f, 0.305f, 0.31f, 1.0f};
-        colors[ImGuiCol_FrameBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        // Frame BG (Input fields - Darker than window for contrast)
+        colors[ImGuiCol_FrameBg] = ImVec4{0.14f, 0.14f, 0.14f, 1.0f}; 
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{0.16f, 0.16f, 0.16f, 1.0f};
+        colors[ImGuiCol_FrameBgActive] = ImVec4{0.14f, 0.14f, 0.14f, 1.0f};
 
         // Tabs
-        colors[ImGuiCol_Tab] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TabHovered] = ImVec4{0.38f, 0.3805f, 0.381f, 1.0f};
-        colors[ImGuiCol_TabActive] = ImVec4{0.28f, 0.2805f, 0.281f, 1.0f};
-        colors[ImGuiCol_TabUnfocused] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{0.2f, 0.205f, 0.21f, 1.0f};
+        colors[ImGuiCol_Tab] = ImVec4{0.2f, 0.2f, 0.2f, 1.0f}; // Match WindowBg
+        colors[ImGuiCol_TabHovered] = ImVec4{0.30f, 0.30f, 0.32f, 1.0f}; 
+        colors[ImGuiCol_TabActive] = ImVec4{0.2f, 0.2f, 0.2f, 1.0f};  
+        colors[ImGuiCol_TabUnfocused] = ImVec4{0.2f, 0.2f, 0.2f, 1.0f};
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{0.2f, 0.2f, 0.2f, 1.0f};
 
         // Title
-        colors[ImGuiCol_TitleBg] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TitleBgActive] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
-        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.15f, 0.1505f, 0.151f, 1.0f};
+        colors[ImGuiCol_TitleBg] = ImVec4{0.11f, 0.11f, 0.11f, 1.0f}; 
+        colors[ImGuiCol_TitleBgActive] = ImVec4{0.11f, 0.11f, 0.11f, 1.0f};
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{0.11f, 0.11f, 0.11f, 1.0f};
+        
+        // Separators
+        colors[ImGuiCol_Separator] = ImVec4{0.23f, 0.23f, 0.23f, 1.0f}; 
+        colors[ImGuiCol_SeparatorHovered] = ImVec4{0.32f, 0.32f, 0.32f, 1.0f};
+        colors[ImGuiCol_SeparatorActive] = ImVec4{0.28f, 0.28f, 0.28f, 1.0f};
+        
+        // Resize Grip
+        colors[ImGuiCol_ResizeGrip] = ImVec4{0.30f, 0.30f, 0.30f, 0.25f};
+        
+        // Standard Text
+        colors[ImGuiCol_Text] = ImVec4{0.85f, 0.85f, 0.85f, 1.0f}; // Soft white
     }
 
     uint32_t ImGuiLayer::GetActiveWidgetID() const

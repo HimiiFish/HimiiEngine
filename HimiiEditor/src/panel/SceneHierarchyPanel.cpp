@@ -17,6 +17,17 @@ namespace Himii
     SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> &context)
     {
         SetContext(context);
+        
+        // Load Component Icons
+        m_ComponentIcons["Transform"] = Texture2D::Create("resources/icons/Component_Transform.png");
+        m_ComponentIcons["Camera"] = Texture2D::Create("resources/icons/Component_Camera.png");
+        m_ComponentIcons["Script"] = Texture2D::Create("resources/icons/Component_Script.png");
+        m_ComponentIcons["Sprite Renderer"] = Texture2D::Create("resources/icons/Component_SpriteRenderer.png");
+        m_ComponentIcons["Circle Renderer"] = Texture2D::Create("resources/icons/Component_CircleRenderer.png");
+        m_ComponentIcons["Rigidbody2D"] = Texture2D::Create("resources/icons/Component_Rigidbody.png");
+        m_ComponentIcons["Box Collider2D"] = Texture2D::Create("resources/icons/Component_BoxCollider.png");
+        m_ComponentIcons["Circle Collider2D"] = Texture2D::Create("resources/icons/Component_CircleCollider.png");
+        m_ComponentIcons["Sprite Animation"] = Texture2D::Create("resources/icons/Component_Animator.png");
     }
     void SceneHierarchyPanel::SetContext(const Ref<Scene> &context)
     {
@@ -24,7 +35,7 @@ namespace Himii
     }
     void SceneHierarchyPanel::OnImGuiRender()
     {
-        ImGui::Begin("Scene Hierarchy");
+        ImGui::Begin("Scene Hierarchy", nullptr, ImGuiWindowFlags_NoCollapse);
 
         if (m_Context)
         {
@@ -46,7 +57,7 @@ namespace Himii
         }
         ImGui::End();
 
-        ImGui::Begin("Properties");
+        ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoCollapse);
 
         if (m_SelectionContext)
         {
@@ -75,6 +86,7 @@ namespace Himii
         ImGuiTreeNodeFlags flags =
                 ((m_SelectionContext == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
         flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+        flags |= ImGuiTreeNodeFlags_Leaf; // Fix: Treat as leaf node preventing arrow
         bool opened = ImGui::TreeNodeEx((void *)(uint64_t)(uint32_t)entity, flags, tag.c_str());
         if (ImGui::IsItemClicked())
         {
@@ -93,10 +105,6 @@ namespace Himii
 
         if (opened)
         {
-            ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
-            bool opened = ImGui::TreeNodeEx((void *)9817239, flags, tag.c_str());
-            if (opened)
-                ImGui::TreePop();
             ImGui::TreePop();
         }
 
@@ -115,8 +123,9 @@ namespace Himii
         auto boldFont = io.Fonts->Fonts[0];
 
         ImGui::PushID(label.c_str());
-
-        ImGui::Columns(2);
+        
+        // Use true for border to create the separator
+        ImGui::Columns(2, nullptr, true);
         ImGui::SetColumnWidth(0, columnWidth);
         ImGui::Text(label.c_str());
         ImGui::NextColumn();
@@ -178,8 +187,44 @@ namespace Himii
         ImGui::PopID();
     }
 
+    static void DrawFloatControl(const std::string& label, float& value, float speed = 0.1f, float min = 0.0f, float max = 0.0f, float columnWidth = 100.0f)
+    {
+        ImGui::PushID(label.c_str());
+        ImGui::Columns(2, nullptr, true);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::Text(label.c_str());
+        ImGui::NextColumn();
+        ImGui::DragFloat("##Value", &value, speed, min, max);
+        ImGui::Columns(1);
+        ImGui::PopID();
+    }
+
+    static void DrawCheckboxControl(const std::string& label, bool& value, float columnWidth = 100.0f)
+    {
+        ImGui::PushID(label.c_str());
+        ImGui::Columns(2, nullptr, true);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::Text(label.c_str());
+        ImGui::NextColumn();
+        ImGui::Checkbox("##Value", &value);
+        ImGui::Columns(1);
+        ImGui::PopID();
+    }
+
+    static void DrawColorControl(const std::string& label, glm::vec4& value, float columnWidth = 100.0f)
+    {
+        ImGui::PushID(label.c_str());
+        ImGui::Columns(2, nullptr, true);
+        ImGui::SetColumnWidth(0, columnWidth);
+        ImGui::Text(label.c_str());
+        ImGui::NextColumn();
+        ImGui::ColorEdit4("##Value", glm::value_ptr(value));
+        ImGui::Columns(1);
+        ImGui::PopID();
+    }
+
     template<typename T, typename UIFunction>
-    static void DrawComponent(const std::string &name, Entity entity, UIFunction uiFunction)
+    static void DrawComponent(const std::string &name, Entity entity, Ref<Texture2D> icon, UIFunction uiFunction)
     {
         const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed |
                                                  ImGuiTreeNodeFlags_SpanAvailWidth |
@@ -188,10 +233,52 @@ namespace Himii
         {
             auto &component = entity.GetComponent<T>();
             ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
+
             ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{4, 4});
             float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
             ImGui::Separator();
-            bool opened = ImGui::TreeNodeEx((void *)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+            
+            // --- Custom Icon Header ---
+            void* componentID = (void*)typeid(T).hash_code();
+            bool open = ImGui::GetStateStorage()->GetInt(ImGui::GetID(componentID), 1);
+            
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0,0,0,0)); // Transparent selectable background mostly?
+            // Actually, we want the default Header color logic.
+            // Let's manually draw the button behavior.
+
+            // Draw Full Width Selectable as Background/Toggler
+            // Use ID to store state
+            ImGui::PushID(componentID);
+            
+            // Draw Header Background
+            ImU32 headerColor = ImGui::GetColorU32(ImGuiCol_Header);
+            // If we want it to look "framed", we might need more style vars.
+            // But let's keep it simple: Selectable.
+            
+            if (ImGui::Selectable("##Header", false, ImGuiSelectableFlags_AllowItemOverlap, ImVec2(contentRegionAvailable.x, lineHeight)))
+            {
+                open = !open;
+                ImGui::GetStateStorage()->SetInt(ImGui::GetID(componentID), open ? 1 : 0);
+            }
+            ImGui::SameLine();
+            
+            // Reposition to start for Icon/Text
+            ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x); 
+            
+            // Icon
+            if (icon)
+            {
+                ImGui::Image((ImTextureID)icon->GetRendererID(), ImVec2{lineHeight - 4, lineHeight - 4}, {0, 1}, {1, 0});
+                ImGui::SameLine();
+            }
+            
+            // Text
+            ImGui::TextUnformatted(name.c_str());
+            
+            ImGui::PopID();
+            ImGui::PopStyleColor();
+
+
             ImGui::PopStyleVar();
 
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -208,10 +295,9 @@ namespace Himii
                 ImGui::EndPopup();
             }
 
-            if (opened)
+            if (open)
             {
                 uiFunction(component);
-                ImGui::TreePop();
             }
 
             if (removeComponent)
@@ -253,7 +339,7 @@ namespace Himii
             ImGui::EndPopup();
         }
 
-        DrawComponent<TransformComponent>("Transform", entity,
+        DrawComponent<TransformComponent>("Transform", entity, m_ComponentIcons["Transform"],
                                           [](auto &component)
                                           {
                                               DrawVec3Control("Position", component.Position);
@@ -263,16 +349,22 @@ namespace Himii
                                               DrawVec3Control("Scale", component.Scale, 1.0f);
                                           });
 
-        DrawComponent<CameraComponent>("Camera", entity,
+        DrawComponent<CameraComponent>("Camera", entity, m_ComponentIcons["Camera"],
                                        [](auto &component)
                                        {
                                            auto &camera = component.Camera;
 
-                                           ImGui::Checkbox("Primary", &component.Primary);
+                                           DrawCheckboxControl("Primary", component.Primary);
+
                                            const char *projectionTypeStrings[] = {"Perspective", "Orthographic"};
                                            const char *currentProjectionTypeString =
                                                    projectionTypeStrings[(int)camera.GetProjectionType()];
-                                           if (ImGui::BeginCombo("Projection", currentProjectionTypeString))
+                                           
+                                           ImGui::Columns(2, nullptr, true);
+                                           ImGui::SetColumnWidth(0, 100.0f);
+                                           ImGui::Text("Projection");
+                                           ImGui::NextColumn();
+                                           if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
                                            {
                                                for (int i = 0; i < 2; i++)
                                                {
@@ -288,35 +380,38 @@ namespace Himii
                                                }
                                                ImGui::EndCombo();
                                            }
+                                           ImGui::Columns(1);
+
                                            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
                                            {
                                                float perspectiveFOV = glm::degrees(camera.GetPerspectiveVerticalFOV());
-                                               if (ImGui::DragFloat("Vertical FOV", &perspectiveFOV))
+                                               DrawFloatControl("Vertical FOV", perspectiveFOV);
+                                               if (perspectiveFOV != glm::degrees(camera.GetPerspectiveVerticalFOV()))
                                                    camera.SetPerspectiveVerticalFOV(glm::radians(perspectiveFOV));
 
                                                float perspectiveNear = camera.GetPerspectiveNearClip();
-                                               if (ImGui::DragFloat("Near", &perspectiveNear))
-                                                   camera.SetPerspectiveNearClip(perspectiveNear);
+                                               DrawFloatControl("Near", perspectiveNear);
+                                               camera.SetPerspectiveNearClip(perspectiveNear);
 
                                                float perspectiveFar = camera.GetPerspectiveFarClip();
-                                               if (ImGui::DragFloat("Far", &perspectiveFar))
-                                                   camera.SetPerspectiveFarClip(perspectiveFar);
+                                               DrawFloatControl("Far", perspectiveFar);
+                                               camera.SetPerspectiveFarClip(perspectiveFar);
                                            }
                                            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
                                            {
                                                float orthographicSize = camera.GetOrthographicSize();
-                                               if (ImGui::DragFloat("Size", &orthographicSize))
-                                                   camera.SetOrthographicSize(orthographicSize);
+                                               DrawFloatControl("Size", orthographicSize);
+                                               camera.SetOrthographicSize(orthographicSize);
 
                                                float orthographicNear = camera.GetOrthographicNearClip();
-                                               if (ImGui::DragFloat("Near", &orthographicNear))
-                                                   camera.SetOrthographicNearClip(orthographicNear);
+                                               DrawFloatControl("Near", orthographicNear);
+                                               camera.SetOrthographicNearClip(orthographicNear);
 
                                                float orthographicFar = camera.GetOrthographicFarClip();
-                                               if (ImGui::DragFloat("Far", &orthographicFar))
-                                                   camera.SetOrthographicFarClip(orthographicFar);
+                                               DrawFloatControl("Far", orthographicFar);
+                                               camera.SetOrthographicFarClip(orthographicFar);
 
-                                               ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
+                                               DrawCheckboxControl("Fixed Aspect Ratio", component.FixedAspectRatio);
                                            }
                                        });
 
@@ -325,7 +420,7 @@ namespace Himii
         // ...
 
         DrawComponent<ScriptComponent>(
-                "Script", entity,
+                "Script", entity, m_ComponentIcons["Script"],
                 [entity, scene = m_Context](auto &component) mutable
                 {
                     bool scriptClassExists = ScriptEngine::EntityClassExists(component.ClassName);
@@ -372,21 +467,21 @@ namespace Himii
                 });
 
         DrawComponent<SpriteRendererComponent>(
-                "Sprite Renderer", entity,
+                "Sprite Renderer", entity, m_ComponentIcons["Sprite Renderer"],
                 [](auto &component)
                 {
-                    ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
+                    DrawColorControl("Color", component.Color);
                     // Texture
+                    ImGui::Columns(2, nullptr, true);
+                    ImGui::SetColumnWidth(0, 100.0f);
+                    ImGui::Text("Texture");
+                    ImGui::NextColumn();
                     ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
                     if (ImGui::BeginDragDropTarget())
                     {
                         if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
                         {
                             const wchar_t *path = (const wchar_t *)payload->Data;
-
-                            // 关键修改：利用 Project::GetAssetDirectory() 拼接完整路径
-                            // path 是 "textures/player.png"
-                            // GetAssetDirectory 是 "E:/MyGame/assets"
                             std::filesystem::path texturePath = Project::GetAssetDirectory() / path;
 
                             if (std::filesystem::exists(texturePath))
@@ -396,27 +491,30 @@ namespace Himii
                         }
 
                         ImGui::EndDragDropTarget();
-
-
-                        ImGui::DragFloat("Tiling Factor", &component.TilingFactor, 0.1f, 0.0f, 100.0f);
                     }
+                    ImGui::Columns(1);
+
+                    DrawFloatControl("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f);
                 });
 
-        DrawComponent<CircleRendererComponent>("Circle Renderer", entity,
+        DrawComponent<CircleRendererComponent>("Circle Renderer", entity, m_ComponentIcons["Circle Renderer"],
                                                [](auto &component)
                                                {
-                                                   ImGui::ColorEdit4("Color", glm::value_ptr(component.Color));
-                                                   ImGui::DragFloat("Thickness", &component.Thickness, 0.025f, 0.0f,1.0f);
-                                                   ImGui::DragFloat("Fade", &component.Fade, 0.0003f, 0.0f,1.0f);
+                                                   DrawColorControl("Color", component.Color);
+                                                   DrawFloatControl("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f);
+                                                   DrawFloatControl("Fade", component.Fade, 0.0003f, 0.0f, 1.0f);
                                                });
 
-        DrawComponent<Rigidbody2DComponent>("Rigidbody2D", entity,
+        DrawComponent<Rigidbody2DComponent>("Rigidbody2D", entity, m_ComponentIcons["Rigidbody2D"],
                                             [](auto &component)
                                             {
+                                                ImGui::Columns(2, nullptr, true);
+                                                ImGui::SetColumnWidth(0, 100.0f);
+                                                ImGui::Text("Body Type");
+                                                ImGui::NextColumn();
                                                 const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
-                                                const char *currentBodyTypeString =
-                                                        bodyTypeStrings[(int)component.Type];
-                                                if (ImGui::BeginCombo("Body Type", currentBodyTypeString))
+                                                const char *currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+                                                if (ImGui::BeginCombo("##Body Type", currentBodyTypeString))
                                                 {
                                                     for (int i = 0; i < 3; i++)
                                                     {
@@ -426,39 +524,59 @@ namespace Himii
                                                             currentBodyTypeString = bodyTypeStrings[i];
                                                             component.Type = (Rigidbody2DComponent::BodyType)i;
                                                         }
-                                                        if (isSelected)
-                                                            ImGui::SetItemDefaultFocus();
+                                                        if (isSelected) ImGui::SetItemDefaultFocus();
                                                     }
                                                     ImGui::EndCombo();
                                                 }
+                                                ImGui::Columns(1);
 
-                                                ImGui::Checkbox("Fixed Rotation", &component.FixedRotation);
+                                                DrawCheckboxControl("Fixed Rotation", component.FixedRotation);
                                             });
 
         DrawComponent<BoxCollider2DComponent>(
-                "Box Collider2D", entity,
+                "Box Collider2D", entity, m_ComponentIcons["Box Collider2D"],
                 [](auto &component)
                 {
-                    ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
-                    ImGui::DragFloat2("Size", glm::value_ptr(component.Size), 0.1f);
-                    ImGui::DragFloat("Density", &component.Density, 0.1f);
-                    ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.1f);
+                    // For vec2, we can just use DrawFloatControl twice or keep usage? 
+                    // Let's implement vec2 logic or simpler:
+                    ImGui::Columns(2, nullptr, true);
+                    ImGui::SetColumnWidth(0, 100.0f);
+                    ImGui::Text("Offset");
+                    ImGui::NextColumn();
+                    ImGui::DragFloat2("##Offset", glm::value_ptr(component.Offset), 0.1f);
+                    ImGui::Columns(1);
+                    
+                    ImGui::Columns(2, nullptr, true);
+                    ImGui::SetColumnWidth(0, 100.0f);
+                    ImGui::Text("Size");
+                    ImGui::NextColumn();
+                    ImGui::DragFloat2("##Size", glm::value_ptr(component.Size), 0.1f);
+                    ImGui::Columns(1);
+                    
+                    DrawFloatControl("Density", component.Density, 0.1f);
+                    DrawFloatControl("Friction", component.Friction, 0.01f, 0.0f, 1.0f);
+                    DrawFloatControl("Restitution", component.Restitution, 0.01f, 0.0f, 1.0f);
+                    DrawFloatControl("Restitution Threshold", component.RestitutionThreshold, 0.1f);
                 });
         DrawComponent<CircleCollider2DComponent>(
-                "Circle Collider2D", entity,
+                "Circle Collider2D", entity, m_ComponentIcons["Circle Collider2D"],
                 [](auto &component)
                 {
-                    ImGui::DragFloat2("Offset", glm::value_ptr(component.Offset), 0.1f);
-                    ImGui::DragFloat("Radius", &component.Radius, 0.1f);
-                    ImGui::DragFloat("Density", &component.Density, 0.1f);
-                    ImGui::DragFloat("Friction", &component.Friction, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Restitution", &component.Restitution, 0.01f, 0.0f, 1.0f);
-                    ImGui::DragFloat("Restitution Threshold", &component.RestitutionThreshold, 0.1f);
+                    ImGui::Columns(2, nullptr, true);
+                    ImGui::SetColumnWidth(0, 100.0f);
+                    ImGui::Text("Offset");
+                    ImGui::NextColumn();
+                    ImGui::DragFloat2("##Offset", glm::value_ptr(component.Offset), 0.1f);
+                    ImGui::Columns(1);
+                    
+                    DrawFloatControl("Radius", component.Radius, 0.1f);
+                    DrawFloatControl("Density", component.Density, 0.1f);
+                    DrawFloatControl("Friction", component.Friction, 0.01f, 0.0f, 1.0f);
+                    DrawFloatControl("Restitution", component.Restitution, 0.01f, 0.0f, 1.0f);
+                    DrawFloatControl("Restitution Threshold", component.RestitutionThreshold, 0.1f);
                 });
         DrawComponent<SpriteAnimationComponent>(
-                "Sprite Animation", entity,
+                "Sprite Animation", entity, m_ComponentIcons["Sprite Animation"],
                 [](auto &component)
                 {
                     ImGui::Text("Asset Handle: %llu", (uint64_t)component.AnimationHandle);

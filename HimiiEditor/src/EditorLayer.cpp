@@ -99,7 +99,7 @@ namespace Himii
         {
             case SceneState::Edit:
             {
-                m_EditorCamera.OnUpdate(ts);
+                m_EditorCamera.OnUpdate(ts, m_ViewportHovered);
                 m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera);
                 break;
             }
@@ -109,7 +109,7 @@ namespace Himii
                 break;
             }
             case SceneState::Simulate:
-                m_EditorCamera.OnUpdate(ts);
+                m_EditorCamera.OnUpdate(ts, m_ViewportHovered);
                 m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
                 break;
             default:
@@ -315,6 +315,9 @@ namespace Himii
                 float windowHeight = ImGui::GetWindowHeight();
                 ImGuizmo::SetRect(ImGui::GetWindowPos().x, ImGui::GetWindowPos().y, windowWidth, windowHeight);
 
+                // Only enable gizmo if viewport is hovered or we are already using it
+                ImGuizmo::Enable(m_ViewportHovered || ImGuizmo::IsUsing());
+                
                 // runtime camera
                 /*auto cameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
                 const auto &camera = cameraEntity.GetComponent<CameraComponent>().camera;
@@ -365,7 +368,8 @@ namespace Himii
     void EditorLayer::OnEvent(Himii::Event &event)
     {
         m_CameraController.OnEvent(event);
-        m_EditorCamera.OnEvent(event);
+        if (m_ViewportHovered)
+            m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
@@ -421,25 +425,25 @@ namespace Himii
             // Gizmo
             case Key::Q:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!ImGuizmo::IsUsing() && !ImGui::GetIO().WantTextInput)
                     m_GizmoType = -1;
                 break;
             }
             case Key::W:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!ImGuizmo::IsUsing() && !ImGui::GetIO().WantTextInput)
                     m_GizmoType = ImGuizmo::OPERATION::TRANSLATE;
                 break;
             }
             case Key::E:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!ImGuizmo::IsUsing() && !ImGui::GetIO().WantTextInput)
                     m_GizmoType = ImGuizmo::OPERATION::ROTATE;
                 break;
             }
             case Key::R:
             {
-                if (!ImGuizmo::IsUsing())
+                if (!ImGuizmo::IsUsing() && !ImGui::GetIO().WantTextInput)
                     m_GizmoType = ImGuizmo::OPERATION::SCALE;
                 break;
             }
