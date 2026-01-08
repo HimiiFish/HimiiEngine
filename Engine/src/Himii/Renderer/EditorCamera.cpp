@@ -125,11 +125,7 @@ namespace Himii
     bool EditorCamera::OnMouseScroll(MouseScrolledEvent &e)
     {
         float delta = e.GetYOffset() * 0.1f;
-        
-        // Scroll now controls speed instead of zoom
-        m_MoveSpeed += delta * 5.0f; // Scale factor for speed adjustment
-        if (m_MoveSpeed < 0.1f) m_MoveSpeed = 0.1f;
-        
+        MouseZoom(delta);
         UpdateView();
         return false;
     }

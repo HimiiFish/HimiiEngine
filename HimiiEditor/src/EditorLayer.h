@@ -80,6 +80,7 @@ namespace Himii
         int m_GizmoType = -1;
 
         bool m_ShowPhysicsColliders = false;
+        bool m_ShowGrid = true;
 
         enum class SceneState {
             Edit = 0,

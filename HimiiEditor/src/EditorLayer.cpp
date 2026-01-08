@@ -90,7 +90,7 @@ namespace Himii
         Renderer2D::ResetStats();
 
         m_Framebuffer->Bind();
-        RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
+        RenderCommand::SetClearColor({0.18f, 0.28f, 0.46f, 1.0f});
         RenderCommand::Clear();
 
         m_Framebuffer->ClearAttachment(1, -1); // 1号附件清除为 -1（无实体）
@@ -244,6 +244,7 @@ namespace Himii
                 if (ImGui::BeginMenu("Window"))
                 {
                     ImGui::MenuItem("Animation Editor", nullptr, &m_ShowAnimationPanel);
+                    ImGui::MenuItem("Show Grid", nullptr, &m_ShowGrid);
                     ImGui::EndMenu();
                 }
                 ImGui::EndMenuBar();
@@ -488,6 +489,26 @@ namespace Himii
         else
         {
             Renderer2D::BeginScene(m_EditorCamera);
+        }
+
+        if (m_ShowGrid)
+        {
+            // Grid Rendering
+            const float gridSize = 100.0f;
+            const float gridSpacing = 1.0f;
+            const glm::vec4 gridColor = glm::vec4(0.6f, 0.6f, 0.6f, 1.0f);
+            
+            // Draw Vertical lines
+            for (float x = -gridSize; x <= gridSize; x += gridSpacing)
+            {
+                Renderer2D::DrawLine(glm::vec3(x, -gridSize, 0.0f), glm::vec3(x, gridSize, 0.0f), gridColor);
+            }
+            
+            // Draw Horizontal lines
+            for (float y = -gridSize; y <= gridSize; y += gridSpacing)
+            {
+                Renderer2D::DrawLine(glm::vec3(-gridSize, y, 0.0f), glm::vec3(gridSize, y, 0.0f), gridColor);
+            }
         }
 
         if (m_ShowPhysicsColliders)
@@ -1116,6 +1137,79 @@ namespace Himii
         ImVec4 tintColor = ImVec4(1, 1, 1, 1);
 
         float size = ImGui::GetWindowHeight() - 4.0f;
+        
+        
+        {
+            // Gizmo Controls (Left Aligned)
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(2, 0));
+            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+
+            auto drawVectorIcon = [&](int type, ImVec2 pMin, ImVec2 pMax, ImU32 color) {
+                ImDrawList* drawList = ImGui::GetWindowDrawList();
+                float w = pMax.x - pMin.x;
+                float h = pMax.y - pMin.y;
+                float pad = w * 0.2f;
+                ImVec2 center = { pMin.x + w * 0.5f, pMin.y + h * 0.5f };
+
+                if (type == -1) // Select (Cursor)
+                {
+                    drawList->AddTriangleFilled(
+                        { pMin.x + pad, pMin.y + pad },
+                        { pMin.x + pad, pMax.y - pad },
+                        { pMax.x - pad, pMax.y - pad * 1.5f },
+                        color
+                    );
+                }
+                else if (type == ImGuizmo::OPERATION::TRANSLATE) // Move (Arrows)
+                {
+                    // Vertical arrow
+                    drawList->AddLine({ center.x, pMin.y + pad }, { center.x, pMax.y - pad }, color, 2.0f);
+                    drawList->AddLine({ pMin.x + pad, center.y }, { pMax.x - pad, center.y }, color, 2.0f);
+                    // Arrow heads
+                    drawList->AddTriangleFilled({center.x, pMin.y + pad}, {center.x - 3, pMin.y + pad + 4}, {center.x + 3, pMin.y + pad + 4}, color);
+                    drawList->AddTriangleFilled({pMax.x - pad, center.y}, {pMax.x - pad - 4, center.y - 3}, {pMax.x - pad - 4, center.y + 3}, color);
+                }
+                else if (type == ImGuizmo::OPERATION::ROTATE) // Rotate (Circle)
+                {
+                    drawList->AddCircle(center, w * 0.3f, color, 0, 2.0f);
+                    // Add a small arrow head on the circle?
+                    drawList->AddTriangleFilled({center.x, pMin.y + pad + 1}, {center.x - 3, pMin.y + pad + 5}, {center.x + 3, pMin.y + pad + 5}, color);
+                }
+                else if (type == ImGuizmo::OPERATION::SCALE) // Scale (Box)
+                {
+                    drawList->AddRect({ pMin.x + pad, pMin.y + pad }, { pMax.x - pad, pMax.y - pad }, color, 0.0f, 0, 2.0f);
+                    drawList->AddRectFilled({ center.x - 2, center.y - 2 }, { center.x + 2, center.y + 2 }, color);
+                }
+            };
+            
+            auto drawGizmoButton = [&](int type) {
+                bool active = m_GizmoType == type;
+                if (active) ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.2f, 0.2f, 0.2f, 1.0f)); // Active Highlight
+                
+                ImGui::PushID(type);
+                if (ImGui::Button("", ImVec2(size, size)))
+                {
+                    m_GizmoType = type;
+                }
+                // Custom Draw
+                ImVec2 pMin = ImGui::GetItemRectMin();
+                ImVec2 pMax = ImGui::GetItemRectMax();
+                ImU32 iconColor = active ? 0xFFFFFFFF : 0xFFAAAAAA;
+                drawVectorIcon(type, pMin, pMax, iconColor);
+
+                ImGui::PopID();
+                if (active) ImGui::PopStyleColor();
+                ImGui::SameLine();
+            };
+
+            drawGizmoButton(-1);
+            drawGizmoButton(ImGuizmo::OPERATION::TRANSLATE);
+            drawGizmoButton(ImGuizmo::OPERATION::ROTATE);
+            drawGizmoButton(ImGuizmo::OPERATION::SCALE);
+
+            ImGui::PopStyleVar(2);
+        }
+
         {
             Ref<Texture2D> icon = (m_SceneState == SceneState::Edit||m_SceneState==SceneState::Simulate) ? m_IconPlay : m_IconStop;
             ImGui::SetCursorPosX((ImGui::GetWindowContentRegionMax().x * 0.5f) - (size * 0.5f));
