@@ -20,5 +20,7 @@ namespace Himii
         Ref<Texture2D> m_FileIcon;
         Ref<Texture2D> m_ScriptIcon;
         Ref<Texture2D> m_SceneIcon;
+        
+        void DrawTree(const std::filesystem::path& path);
     };
 }

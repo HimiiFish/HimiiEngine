@@ -14,10 +14,8 @@
 namespace Himii
 {
     extern const std::filesystem::path s_AssetsPath;
-    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene> &context)
+    SceneHierarchyPanel::SceneHierarchyPanel()
     {
-        SetContext(context);
-        
         // Load Component Icons
         m_ComponentIcons["Transform"] = Texture2D::Create("resources/icons/Component_Transform.png");
         m_ComponentIcons["Camera"] = Texture2D::Create("resources/icons/Component_Camera.png");
@@ -28,6 +26,12 @@ namespace Himii
         m_ComponentIcons["Box Collider2D"] = Texture2D::Create("resources/icons/Component_BoxCollider.png");
         m_ComponentIcons["Circle Collider2D"] = Texture2D::Create("resources/icons/Component_CircleCollider.png");
         m_ComponentIcons["Sprite Animation"] = Texture2D::Create("resources/icons/Component_Animator.png");
+    }
+
+    SceneHierarchyPanel::SceneHierarchyPanel(const Ref<Scene>& context)
+        : SceneHierarchyPanel()
+    {
+        SetContext(context);
     }
     void SceneHierarchyPanel::SetContext(const Ref<Scene> &context)
     {
@@ -125,64 +129,71 @@ namespace Himii
         ImGui::PushID(label.c_str());
         
         // Use true for border to create the separator
-        ImGui::Columns(2, nullptr, true);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
+        if (ImGui::BeginTable(label.c_str(), 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+        {
+             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+             ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+             // ImGui::TableHeadersRow();
 
-        ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());
-        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
+             ImGui::TableNextColumn();
+             ImGui::Text("%s", label.c_str());
+             ImGui::TableNextColumn();
 
-        float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-        ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
 
-        // X
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.23f, 0.12f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("X", buttonSize))
-            values.x = resetValue;
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
+             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0, 0});
 
-        ImGui::SameLine();
-        ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
+             float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+             ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
+             float widthEach = (ImGui::GetContentRegionAvail().x - 3 * buttonSize.x) / 3.0f;
 
-        // Y
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.12f, 0.7f, 0.2f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Y", buttonSize))
-            values.y = resetValue;
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
+             // X
+             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.23f, 0.12f, 1.0f});
+             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
+             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+             ImGui::PushFont(boldFont);
+             if (ImGui::Button("X", buttonSize))
+                 values.x = resetValue;
+             ImGui::PopFont();
+             ImGui::PopStyleColor(3);
 
-        ImGui::SameLine();
-        ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
-        ImGui::PopItemWidth();
-        ImGui::SameLine();
+             ImGui::SameLine();
+             ImGui::SetNextItemWidth(widthEach);
+             ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
+             ImGui::SameLine();
 
-        // Z
-        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.13f, 0.4f, 0.8f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
-        ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
-        ImGui::PushFont(boldFont);
-        if (ImGui::Button("Z", buttonSize))
-            values.z = resetValue;
-        ImGui::PopFont();
-        ImGui::PopStyleColor(3);
+             // Y
+             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.12f, 0.7f, 0.2f, 1.0f});
+             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
+             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+             ImGui::PushFont(boldFont);
+             if (ImGui::Button("Y", buttonSize))
+                 values.y = resetValue;
+             ImGui::PopFont();
+             ImGui::PopStyleColor(3);
 
-        ImGui::SameLine();
-        ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
-        ImGui::PopItemWidth();
+             ImGui::SameLine();
+             ImGui::SetNextItemWidth(widthEach);
+             ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
+             ImGui::SameLine();
 
-        ImGui::PopStyleVar();
+             // Z
+             ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.13f, 0.4f, 0.8f, 1.0f});
+             ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
+             ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+             ImGui::PushFont(boldFont);
+             if (ImGui::Button("Z", buttonSize))
+                 values.z = resetValue;
+             ImGui::PopFont();
+             ImGui::PopStyleColor(3);
 
-        ImGui::Columns(1);
+             ImGui::SameLine();
+             ImGui::SetNextItemWidth(widthEach);
+             ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
+
+             ImGui::PopStyleVar();
+
+             ImGui::EndTable();
+        }
 
         ImGui::PopID();
     }
@@ -190,36 +201,52 @@ namespace Himii
     static void DrawFloatControl(const std::string& label, float& value, float speed = 0.1f, float min = 0.0f, float max = 0.0f, float columnWidth = 100.0f)
     {
         ImGui::PushID(label.c_str());
-        ImGui::Columns(2, nullptr, true);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
-        ImGui::DragFloat("##Value", &value, speed, min, max);
-        ImGui::Columns(1);
+        if(ImGui::BeginTable("##FloatControl", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+        {
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", label.c_str());
+            ImGui::TableNextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::DragFloat("##Value", &value, speed, min, max);
+            ImGui::PopItemWidth();
+            ImGui::EndTable();
+        }
         ImGui::PopID();
     }
 
     static void DrawCheckboxControl(const std::string& label, bool& value, float columnWidth = 100.0f)
     {
         ImGui::PushID(label.c_str());
-        ImGui::Columns(2, nullptr, true);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
-        ImGui::Checkbox("##Value", &value);
-        ImGui::Columns(1);
+        if(ImGui::BeginTable("##CheckboxControl", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+        {
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", label.c_str());
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("##Value", &value);
+            ImGui::EndTable();
+        }
         ImGui::PopID();
     }
 
     static void DrawColorControl(const std::string& label, glm::vec4& value, float columnWidth = 100.0f)
     {
         ImGui::PushID(label.c_str());
-        ImGui::Columns(2, nullptr, true);
-        ImGui::SetColumnWidth(0, columnWidth);
-        ImGui::Text(label.c_str());
-        ImGui::NextColumn();
-        ImGui::ColorEdit4("##Value", glm::value_ptr(value));
-        ImGui::Columns(1);
+        if(ImGui::BeginTable("##ColorControl", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+        {
+            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+            ImGui::TableSetupColumn("Value");
+            ImGui::TableNextColumn();
+            ImGui::Text("%s", label.c_str());
+            ImGui::TableNextColumn();
+            ImGui::PushItemWidth(-1);
+            ImGui::ColorEdit4("##Value", glm::value_ptr(value));
+            ImGui::PopItemWidth();
+            ImGui::EndTable();
+        }
         ImGui::PopID();
     }
 
@@ -238,33 +265,50 @@ namespace Himii
             float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
             ImGui::Separator();
             
-            // --- Custom Icon Header ---
+        // --- Custom Icon Header ---
             void* componentID = (void*)typeid(T).hash_code();
-            bool open = ImGui::GetStateStorage()->GetInt(ImGui::GetID(componentID), 1);
-            
-            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0,0,0,0)); // Transparent selectable background mostly?
-            // Actually, we want the default Header color logic.
-            // Let's manually draw the button behavior.
-
-            // Draw Full Width Selectable as Background/Toggler
-            // Use ID to store state
             ImGui::PushID(componentID);
             
-            // Draw Header Background
-            ImU32 headerColor = ImGui::GetColorU32(ImGuiCol_Header);
-            // If we want it to look "framed", we might need more style vars.
-            // But let's keep it simple: Selectable.
+            bool open = ImGui::GetStateStorage()->GetInt(ImGui::GetID("IsOpen"), 1);
+
+            // Calculate start pos
+            ImVec2 cursorPos = ImGui::GetCursorScreenPos(); // Screen Space
+            ImVec2 elementPos = ImGui::GetCursorPos();      // Window Space (for restoring)
             
+            // 1. Draw Background (Lighter color)
+            ImU32 headerColor = ImGui::GetColorU32(ImVec4{0.27f, 0.275f, 0.28f, 1.0f}); // Brighter gray
+            ImGui::GetWindowDrawList()->AddRectFilled(
+                cursorPos, 
+                ImVec2(cursorPos.x + contentRegionAvailable.x, cursorPos.y + lineHeight), 
+                headerColor
+            );
+
+            // 2. Draw Selectable (Input handling)
+            ImGui::PushStyleColor(ImGuiCol_Header, ImVec4(0,0,0,0)); 
+            ImGui::PushStyleColor(ImGuiCol_HeaderActive, ImVec4(0,0,0,0)); 
+            ImGui::PushStyleColor(ImGuiCol_HeaderHovered, ImVec4(0,0,0,0)); 
+
             if (ImGui::Selectable("##Header", false, ImGuiSelectableFlags_AllowItemOverlap, ImVec2(contentRegionAvailable.x, lineHeight)))
             {
                 open = !open;
-                ImGui::GetStateStorage()->SetInt(ImGui::GetID(componentID), open ? 1 : 0);
+                ImGui::GetStateStorage()->SetInt(ImGui::GetID("IsOpen"), open ? 1 : 0);
             }
-            ImGui::SameLine();
+            ImGui::PopStyleColor(3);
+
+            // 3. Draw Arrow & Icon & Text (Overlay)
+            // Reset cursor to start of the item to draw on top
+            ImGui::SetCursorPos(ImVec2(elementPos.x + ImGui::GetStyle().WindowPadding.x, elementPos.y));
+
+            // Arrow
+            ImGui::RenderArrow(ImGui::GetWindowDrawList(), 
+                ImVec2(ImGui::GetCursorScreenPos().x, ImGui::GetCursorScreenPos().y + (lineHeight - GImGui->FontSize)/2), 
+                ImGui::GetColorU32(ImGuiCol_Text), 
+                open ? ImGuiDir_Down : ImGuiDir_Right
+            );
             
-            // Reposition to start for Icon/Text
-            ImGui::SetCursorPosX(ImGui::GetStyle().WindowPadding.x); 
-            
+            // Move cursor past arrow
+            ImGui::SetCursorPos(ImVec2(elementPos.x + ImGui::GetStyle().WindowPadding.x + GImGui->FontSize + 4.0f, elementPos.y));
+
             // Icon
             if (icon)
             {
@@ -272,13 +316,18 @@ namespace Himii
                 ImGui::SameLine();
             }
             
-            // Text
+            // Text alignment fix (center vertically roughly)
+            float textOffsetY = (lineHeight - GImGui->FontSize) / 2.0f;
+            ImGui::SetCursorPosY(ImGui::GetCursorPosY() + textOffsetY);
             ImGui::TextUnformatted(name.c_str());
             
+            // Restore proper cursor Y for next item (although Selectable already advanced it, we messed with it)
+            // Selectable advanced Y by lineHeight. 
+            // Our overlay drawing logic mostly stayed on the same line or advanced locally.
+            // We should ensure we are at the line *after* the header.
+            ImGui::SetCursorPos(ImVec2(elementPos.x, elementPos.y + lineHeight));
+
             ImGui::PopID();
-            ImGui::PopStyleColor();
-
-
             ImGui::PopStyleVar();
 
             ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -360,27 +409,35 @@ namespace Himii
                                            const char *currentProjectionTypeString =
                                                    projectionTypeStrings[(int)camera.GetProjectionType()];
                                            
-                                           ImGui::Columns(2, nullptr, true);
-                                           ImGui::SetColumnWidth(0, 100.0f);
-                                           ImGui::Text("Projection");
-                                           ImGui::NextColumn();
-                                           if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
+                                           ImGui::PushID("Projection");
+                                           if(ImGui::BeginTable("##Projection", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingFixedFit))
                                            {
-                                               for (int i = 0; i < 2; i++)
-                                               {
-                                                   bool isSelected =
-                                                           currentProjectionTypeString == projectionTypeStrings[i];
-                                                   if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
-                                                   {
-                                                       currentProjectionTypeString = projectionTypeStrings[i];
-                                                       camera.SetProjectionType((SceneCamera::ProjectionType)i);
-                                                   }
-                                                   if (isSelected)
-                                                       ImGui::SetItemDefaultFocus();
-                                               }
-                                               ImGui::EndCombo();
+                                                ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                                                ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+                                                ImGui::TableNextColumn();
+                                                ImGui::Text("Projection");
+                                                ImGui::TableNextColumn();
+                                                ImGui::PushItemWidth(-1);
+                                                if (ImGui::BeginCombo("##Projection", currentProjectionTypeString))
+                                                {
+                                                    for (int i = 0; i < 2; i++)
+                                                    {
+                                                        bool isSelected =
+                                                                currentProjectionTypeString == projectionTypeStrings[i];
+                                                        if (ImGui::Selectable(projectionTypeStrings[i], isSelected))
+                                                        {
+                                                            currentProjectionTypeString = projectionTypeStrings[i];
+                                                            camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                                                        }
+                                                        if (isSelected)
+                                                            ImGui::SetItemDefaultFocus();
+                                                    }
+                                                    ImGui::EndCombo();
+                                                }
+                                                ImGui::PopItemWidth();
+                                                ImGui::EndTable();
                                            }
-                                           ImGui::Columns(1);
+                                           ImGui::PopID();
 
                                            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
                                            {
@@ -472,27 +529,35 @@ namespace Himii
                 {
                     DrawColorControl("Color", component.Color);
                     // Texture
-                    ImGui::Columns(2, nullptr, true);
-                    ImGui::SetColumnWidth(0, 100.0f);
-                    ImGui::Text("Texture");
-                    ImGui::NextColumn();
-                    ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
-                    if (ImGui::BeginDragDropTarget())
+                    ImGui::PushID("Texture");
+                    if(ImGui::BeginTable("##Texture", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingFixedFit))
                     {
-                        if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Texture");
+                        ImGui::TableNextColumn();
+                        ImGui::PushItemWidth(-1);
+                        ImGui::Button("Texture", ImVec2(100.0f, 0.0f));
+                        ImGui::PopItemWidth();
+                        if (ImGui::BeginDragDropTarget())
                         {
-                            const wchar_t *path = (const wchar_t *)payload->Data;
-                            std::filesystem::path texturePath = Project::GetAssetDirectory() / path;
+                            if (const ImGuiPayload *payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                            {
+                                const wchar_t *path = (const wchar_t *)payload->Data;
+                                std::filesystem::path texturePath = Project::GetAssetDirectory() / path;
 
-                            if (std::filesystem::exists(texturePath))
-                                component.Texture = Texture2D::Create(texturePath.string());
-                            else
-                                HIMII_CORE_WARNING("Texture not found: {0}", texturePath.string());
+                                if (std::filesystem::exists(texturePath))
+                                    component.Texture = Texture2D::Create(texturePath.string());
+                                else
+                                    HIMII_CORE_WARNING("Texture not found: {0}", texturePath.string());
+                            }
+
+                            ImGui::EndDragDropTarget();
                         }
-
-                        ImGui::EndDragDropTarget();
+                        ImGui::EndTable();
                     }
-                    ImGui::Columns(1);
+                    ImGui::PopID();
 
                     DrawFloatControl("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f);
                 });
@@ -508,27 +573,36 @@ namespace Himii
         DrawComponent<Rigidbody2DComponent>("Rigidbody2D", entity, m_ComponentIcons["Rigidbody2D"],
                                             [](auto &component)
                                             {
-                                                ImGui::Columns(2, nullptr, true);
-                                                ImGui::SetColumnWidth(0, 100.0f);
-                                                ImGui::Text("Body Type");
-                                                ImGui::NextColumn();
-                                                const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
-                                                const char *currentBodyTypeString = bodyTypeStrings[(int)component.Type];
-                                                if (ImGui::BeginCombo("##Body Type", currentBodyTypeString))
+                                                ImGui::PushID("Body Type");
+                                                if(ImGui::BeginTable("##BodyType", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingFixedFit))
                                                 {
-                                                    for (int i = 0; i < 3; i++)
+                                                    ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                                                    ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+                                                    ImGui::TableNextColumn();
+
+                                                    ImGui::Text("Body Type");
+                                                    ImGui::TableNextColumn();
+                                                    ImGui::PushItemWidth(-1);
+                                                    const char *bodyTypeStrings[] = {"Static", "Dynamic", "Kinematic"};
+                                                    const char *currentBodyTypeString = bodyTypeStrings[(int)component.Type];
+                                                    if (ImGui::BeginCombo("##Body Type", currentBodyTypeString))
                                                     {
-                                                        bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
-                                                        if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+                                                        for (int i = 0; i < 3; i++)
                                                         {
-                                                            currentBodyTypeString = bodyTypeStrings[i];
-                                                            component.Type = (Rigidbody2DComponent::BodyType)i;
+                                                            bool isSelected = currentBodyTypeString == bodyTypeStrings[i];
+                                                            if (ImGui::Selectable(bodyTypeStrings[i], isSelected))
+                                                            {
+                                                                currentBodyTypeString = bodyTypeStrings[i];
+                                                                component.Type = (Rigidbody2DComponent::BodyType)i;
+                                                            }
+                                                            if (isSelected) ImGui::SetItemDefaultFocus();
                                                         }
-                                                        if (isSelected) ImGui::SetItemDefaultFocus();
+                                                        ImGui::EndCombo();
                                                     }
-                                                    ImGui::EndCombo();
+                                                    ImGui::PopItemWidth();
+                                                    ImGui::EndTable();
                                                 }
-                                                ImGui::Columns(1);
+                                                ImGui::PopID();
 
                                                 DrawCheckboxControl("Fixed Rotation", component.FixedRotation);
                                             });
@@ -539,19 +613,35 @@ namespace Himii
                 {
                     // For vec2, we can just use DrawFloatControl twice or keep usage? 
                     // Let's implement vec2 logic or simpler:
-                    ImGui::Columns(2, nullptr, true);
-                    ImGui::SetColumnWidth(0, 100.0f);
-                    ImGui::Text("Offset");
-                    ImGui::NextColumn();
-                    ImGui::DragFloat2("##Offset", glm::value_ptr(component.Offset), 0.1f);
-                    ImGui::Columns(1);
+                    ImGui::PushID("Offset");
+                    if(ImGui::BeginTable("##Offset", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+                    {
+                        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Offset");
+                        ImGui::TableNextColumn();
+                        ImGui::PushItemWidth(-1);
+                        ImGui::DragFloat2("##Offset", glm::value_ptr(component.Offset), 0.1f);
+                        ImGui::PopItemWidth();
+                        ImGui::EndTable();
+                    }
+                    ImGui::PopID();
                     
-                    ImGui::Columns(2, nullptr, true);
-                    ImGui::SetColumnWidth(0, 100.0f);
-                    ImGui::Text("Size");
-                    ImGui::NextColumn();
-                    ImGui::DragFloat2("##Size", glm::value_ptr(component.Size), 0.1f);
-                    ImGui::Columns(1);
+                    ImGui::PushID("Size");
+                    if(ImGui::BeginTable("##Size", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+                    {
+                        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Size");
+                        ImGui::TableNextColumn();
+                        ImGui::PushItemWidth(-1);
+                        ImGui::DragFloat2("##Size", glm::value_ptr(component.Size), 0.1f);
+                        ImGui::PopItemWidth();
+                        ImGui::EndTable();
+                    }
+                    ImGui::PopID();
                     
                     DrawFloatControl("Density", component.Density, 0.1f);
                     DrawFloatControl("Friction", component.Friction, 0.01f, 0.0f, 1.0f);
@@ -562,12 +652,20 @@ namespace Himii
                 "Circle Collider2D", entity, m_ComponentIcons["Circle Collider2D"],
                 [](auto &component)
                 {
-                    ImGui::Columns(2, nullptr, true);
-                    ImGui::SetColumnWidth(0, 100.0f);
-                    ImGui::Text("Offset");
-                    ImGui::NextColumn();
-                    ImGui::DragFloat2("##Offset", glm::value_ptr(component.Offset), 0.1f);
-                    ImGui::Columns(1);
+                    ImGui::PushID("Offset");
+                    if(ImGui::BeginTable("##Offset", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
+                    {
+                        ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, 140.0f);
+                        ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+                        ImGui::TableNextColumn();
+                        ImGui::Text("Offset");
+                        ImGui::TableNextColumn();
+                        ImGui::PushItemWidth(-1);
+                        ImGui::DragFloat2("##Offset", glm::value_ptr(component.Offset), 0.1f);
+                        ImGui::PopItemWidth();
+                        ImGui::EndTable();
+                    }
+                    ImGui::PopID();
                     
                     DrawFloatControl("Radius", component.Radius, 0.1f);
                     DrawFloatControl("Density", component.Density, 0.1f);

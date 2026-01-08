@@ -8,7 +8,7 @@ namespace Himii
 {
     class SceneHierarchyPanel {
     public:
-        SceneHierarchyPanel() = default;
+        SceneHierarchyPanel();
         SceneHierarchyPanel(const Ref<Scene> &context);
 
         void SetContext(const Ref<Scene> &context);
