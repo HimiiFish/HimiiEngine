@@ -43,6 +43,4 @@ add_subdirectory(ScriptCore)
 add_subdirectory(Engine)
 add_subdirectory(HimiiEditor)
 add_subdirectory(HimiiRuntime)
-add_subdirectory(TemplateProject)
-
 add_dependencies(HimiiEditor ScriptCore_Build)
