@@ -92,6 +92,7 @@ namespace Himii
         // Windows 专用 API，跨平台可以用 setenv
         // 格式：变量名，变量值
         m_EngineDir = engineDir;
+#ifdef HIMII_PLATFORM_WINDOWS
         if (_putenv_s("HIMII_DIR", engineDir.c_str()) == 0)
         {
             HIMII_CORE_INFO("Set environment variable HIMII_DIR = {0}", engineDir);
@@ -100,6 +101,18 @@ namespace Himii
         {
             HIMII_CORE_ERROR("Failed to set HIMII_DIR environment variable!");
         }
+#else
+        // Linux/Unix implementation
+        if (setenv("HIMII_DIR", engineDir.c_str(), 1) == 0)
+        {
+             HIMII_CORE_INFO("Set environment variable HIMII_DIR = {0}", engineDir);
+        }
+        else
+        {
+             HIMII_CORE_ERROR("Failed to set HIMII_DIR environment variable!");
+        }
+#endif
+
     }
 
     bool Application::OnWindowClosed(WindowCloseEvent &e)

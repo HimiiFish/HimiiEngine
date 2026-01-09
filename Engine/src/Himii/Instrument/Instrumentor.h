@@ -128,7 +128,25 @@ namespace Himii
 #define HIMII_PROFILE_BEGIN_SESSION(name, filepath) ::Himii::Instrumentor::Get().BeginSession(name, filepath)
 #define HIMII_PROFILE_END_SESSION() ::Himii::Instrumentor::Get().EndSession()
 #define HIMII_PROFILE_SCOPE(name) ::Himii::InstrumentationTimer CONCAT(timer,__LINE__)(name);
-#define HIMII_PROFILE_FUNCTION() HIMII_PROFILE_SCOPE(__FUNCSIG__)
+#if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
+#define HIMII_FUNC_SIG __PRETTY_FUNCTION__
+#elif defined(__DMC__) && (__DMC__ >= 0x810)
+#define HIMII_FUNC_SIG __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#define HIMII_FUNC_SIG __FUNCSIG__
+#elif (defined(__INTEL_COMPILER) && (__INTEL_COMPILER >= 600)) || (defined(__IBMCPP__) && (__IBMCPP__ >= 500))
+#define HIMII_FUNC_SIG __FUNCTION__
+#elif defined(__BORLANDC__) && (__BORLANDC__ >= 0x550)
+#define HIMII_FUNC_SIG __FUNC__
+#elif defined(__STDC_VERSION__) && (__STDC_VERSION__ >= 199901)
+#define HIMII_FUNC_SIG __func__
+#elif defined(__cplusplus) && (__cplusplus >= 201103)
+#define HIMII_FUNC_SIG __func__
+#else
+#define HIMII_FUNC_SIG "HIMII_FUNC_SIG unknown!"
+#endif
+
+#define HIMII_PROFILE_FUNCTION() HIMII_PROFILE_SCOPE(HIMII_FUNC_SIG)
 #else
 #define HIMII_PROFILE_BEGIN_SESSION(name, filepath)
 #define HIMII_PROFILE_END_SESSION()
