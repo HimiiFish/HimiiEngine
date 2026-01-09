@@ -29,7 +29,7 @@
         {
             "name": "linux-base",
             "hidden": true,
-            "generator": "Ninja",
+
             "binaryDir": "${sourceDir}/build/${presetName}",
             "installDir": "${sourceDir}/install/${presetName}",
             "cacheVariables": {
