@@ -1,6 +1,6 @@
 site_name: HimiiEngine 引擎文档
-site_description: A 2D game engine for C# developers built on MonoGame
-repo_url: https://github.com/Yuan-Zzzz/Astora
+site_description: I Love HimiiFish
+repo_url: https://github.com/HimiiFish/Himii-Engine
 repo_name: Yuan-Zzzz/Astora
 
 theme:
