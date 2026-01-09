@@ -157,6 +157,7 @@ namespace Himii
             out << YAML::Key << "OrthographicSize" << YAML::Value << cameraComp.Camera.GetOrthographicSize();
             out << YAML::Key << "OrthographicNear" << YAML::Value << cameraComp.Camera.GetOrthographicNearClip();
             out << YAML::Key << "OrthographicFar" << YAML::Value << cameraComp.Camera.GetOrthographicFarClip();
+            out << YAML::Key << "BackgroundColor" << YAML::Value << cameraComp.Camera.GetBackgroundColor();
             out << YAML::EndMap;
 
             out << YAML::Key << "Primary" << YAML::Value << cameraComp.Primary;
@@ -333,6 +334,9 @@ namespace Himii
             cc.Camera.SetOrthographicSize(cameraProps["OrthographicSize"].as<float>());
             cc.Camera.SetOrthographicNearClip(cameraProps["OrthographicNear"].as<float>());
             cc.Camera.SetOrthographicFarClip(cameraProps["OrthographicFar"].as<float>());
+
+            if(cameraProps["BackgroundColor"])
+                cc.Camera.SetBackgroundColor(cameraProps["BackgroundColor"].as<glm::vec4>());
 
             cc.Primary = cameraComponent["Primary"].as<bool>();
             cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();

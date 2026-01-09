@@ -402,6 +402,12 @@ namespace Himii
                                        [](auto &component)
                                        {
                                            auto &camera = component.Camera;
+                                           
+                                           glm::vec4 backgroundColor = camera.GetBackgroundColor();
+                                           if (ImGui::ColorEdit4("Background Color", glm::value_ptr(backgroundColor)))
+                                           {
+                                               camera.SetBackgroundColor(backgroundColor);
+                                           }
 
                                            DrawCheckboxControl("Primary", component.Primary);
 

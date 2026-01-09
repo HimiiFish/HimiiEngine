@@ -88,11 +88,15 @@ namespace Himii
             RecalculateProjection();
         }
 
+        const glm::vec4& GetBackgroundColor() const { return m_BackgroundColor; }
+        void SetBackgroundColor(const glm::vec4& color) { m_BackgroundColor = color; }
+
     private:
         void RecalculateProjection();
 
     private:
         ProjectionType m_ProjectionType=ProjectionType::Orthographic;
+        glm::vec4 m_BackgroundColor = {0.0f, 0.0f, 0.0f, 1.0f};
 
         float m_PerspectiveFOV = glm::radians(45.0f);
         float m_PerspectiveNear = 0.01f, m_PerspectiveFar = 1000.0f;

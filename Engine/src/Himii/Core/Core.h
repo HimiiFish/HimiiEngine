@@ -3,7 +3,7 @@
 #include <memory>
 #define BIT(x) (1 << x)
 
-#define PLATFORM_WINDOWS
+
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)
 

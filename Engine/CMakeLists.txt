@@ -36,6 +36,13 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 # 头文件为src目录下的所有.h文件
 file(GLOB_RECURSE HEADERS "src/*.h")
 
+if (WIN32)
+    list(APPEND SOURCES "src/Platform/Windows/WindowsPlatformUtils.cpp")
+elseif (UNIX AND NOT APPLE)
+    list(APPEND SOURCES "src/Platform/Linux/LinuxPlatformUtils.cpp")
+endif()
+
+
 
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/imgui")
 set(IMGUIZMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/ImGuizmo")
@@ -100,6 +107,10 @@ target_compile_definitions(Engine PUBLIC
 if (WIN32)
     target_compile_definitions(Engine PUBLIC
         HIMII_PLATFORM_WINDOWS     # 你自己的平台宏
+    )
+elseif(UNIX AND NOT APPLE)
+    target_compile_definitions(Engine PUBLIC
+        HIMII_PLATFORM_LINUX
     )
 endif()
 

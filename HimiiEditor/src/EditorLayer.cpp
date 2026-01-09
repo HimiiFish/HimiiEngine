@@ -90,7 +90,14 @@ namespace Himii
         Renderer2D::ResetStats();
 
         m_Framebuffer->Bind();
-        RenderCommand::SetClearColor({0.18f, 0.28f, 0.46f, 1.0f});
+
+        glm::vec4 clearColor = {0.18f, 0.28f, 0.46f, 1.0f};
+
+        Entity camera = m_ActiveScene->GetPrimaryCameraEntity();
+        if (camera)
+            clearColor = camera.GetComponent<CameraComponent>().Camera.GetBackgroundColor();
+        
+        RenderCommand::SetClearColor(clearColor);
         RenderCommand::Clear();
 
         m_Framebuffer->ClearAttachment(1, -1); // 1号附件清除为 -1（无实体）
