@@ -116,3 +116,4 @@ Generated Files/
 *.swp
 vcpkg_installed/
 Hazelnut/assets/cache
+site/
