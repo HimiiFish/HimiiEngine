@@ -1,7 +1,7 @@
 site_name: HimiiEngine 引擎文档
 site_description: I Love HimiiFish
 repo_url: https://github.com/HimiiFish/Himii-Engine
-repo_name: Yuan-Zzzz/Astora
+repo_name: Himii-Engine
 
 theme:
   name: material
