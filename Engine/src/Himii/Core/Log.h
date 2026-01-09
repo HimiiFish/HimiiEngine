@@ -69,8 +69,8 @@ namespace Himii
 #define HIMII_ERROR(fmt, ...)          ::Himii::Log::PrintFormatted(::Himii::LogLevel::Error, __FILE__, __FUNCTION__, __LINE__, fmt, ##__VA_ARGS__)
 
 
-#define HIMII_ASSERT(condition, msg) ((void)0)
-#define HIMII_ASSERT_F(condition, fmt, ...) ((void)0)
-#define HIMII_CORE_ASSERT(condition, msg) ((void)0)
-#define HIMII_CORE_ASSERT_F(condition, fmt, ...) ((void)0)
+#define HIMII_ASSERT(...) ((void)0)
+#define HIMII_ASSERT_F(...) ((void)0)
+#define HIMII_CORE_ASSERT(...) ((void)0)
+#define HIMII_CORE_ASSERT_F(...) ((void)0)
 
