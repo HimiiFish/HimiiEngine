@@ -37,21 +37,21 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('Document/requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('Docs/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install MkDocs and dependencies
         run: |
-          pip install -r Document/requirements.txt
+          pip install -r Docs/requirements.txt
 
       - name: Build documentation
-        working-directory: ./Document
+        working-directory: ./Docs
         run: mkdocs build --strict
 
       - name: Deploy to GitHub Pages
         if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
-        working-directory: ./Document
+        working-directory: ./Docs
         run: |
           git config user.name github-actions[bot]
           git config user.email github-actions[bot]@users.noreply.github.com
