@@ -1,0 +1,6 @@
+# MkDocs and theme
+mkdocs>=1.5.0
+mkdocs-material>=9.5.0
+
+# Markdown extensions
+pymdown-extensions>=10.0
