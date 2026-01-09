@@ -1,5 +1,5 @@
 #include "Math.h"
-#include "hepch.h"
+#include "Hepch.h"
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/matrix_decompose.hpp>

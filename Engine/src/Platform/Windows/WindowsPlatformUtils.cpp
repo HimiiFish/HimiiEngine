@@ -1,5 +1,5 @@
 #pragma once
-#include "hepch.h"
+#include "Hepch.h"
 #include "Himii/Core/Application.h"
 #include "Himii/Utils/PlatformUtils.h"
 
