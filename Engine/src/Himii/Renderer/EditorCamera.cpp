@@ -5,7 +5,7 @@
 #include "Himii/Core/KeyCodes.h"
 #include "Himii/Core/MouseCodes.h"
 
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/gtx/quaternion.hpp"
