@@ -10,19 +10,19 @@ namespace Himii
             Reset();
         }
 
-        void Timer::Reset()
+        void Reset()
         {
             m_start = std::chrono::high_resolution_clock::now();
         }
 
-        float Timer::Elapsed() const
+        float Elapsed() const
         {
             auto end = std::chrono::high_resolution_clock::now();
             std::chrono::duration<float> duration = end - m_start;
             return duration.count();
         }
 
-        float Timer::ElapsedMillis() const
+        float ElapsedMillis() const
         {
             return Elapsed() * 1000.0f;
         }

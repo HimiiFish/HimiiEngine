@@ -1,5 +1,5 @@
-#include "Hepch.h"
 #include "Himii/Renderer/EditorCamera.h"
+#include "Hepch.h"
 
 #include "Himii/Core/Input.h"
 #include "Himii/Core/KeyCodes.h"
@@ -63,7 +63,7 @@ namespace Himii
     void EditorCamera::OnUpdate(Timestep ts, bool allowInput)
     {
         const glm::vec2 &mouse{Input::GetMouseX(), Input::GetMouseY()};
-        
+
         // Right Click for Look/Move, Middle Click for Zoom
         bool isRight = Input::IsMouseButtonPressed(Mouse::ButtonRight);
         bool isMiddle = Input::IsMouseButtonPressed(Mouse::ButtonMiddle);
@@ -91,16 +91,22 @@ namespace Himii
             if (isRight)
             {
                 MouseRotate(delta);
-                
+
                 // WASD Movement (Classic Fly Mode)
                 glm::vec3 direction(0.0f);
-                if (Input::IsKeyPressed(Key::W)) direction += GetForwardDirection();
-                if (Input::IsKeyPressed(Key::S)) direction -= GetForwardDirection();
-                if (Input::IsKeyPressed(Key::A)) direction -= GetRightDirection();
-                if (Input::IsKeyPressed(Key::D)) direction += GetRightDirection();
-                if (Input::IsKeyPressed(Key::Q)) direction -= GetUpDirection();
-                if (Input::IsKeyPressed(Key::E)) direction += GetUpDirection();
-                
+                if (Input::IsKeyPressed(Key::W))
+                    direction += GetForwardDirection();
+                if (Input::IsKeyPressed(Key::S))
+                    direction -= GetForwardDirection();
+                if (Input::IsKeyPressed(Key::A))
+                    direction -= GetRightDirection();
+                if (Input::IsKeyPressed(Key::D))
+                    direction += GetRightDirection();
+                if (Input::IsKeyPressed(Key::Q))
+                    direction -= GetUpDirection();
+                if (Input::IsKeyPressed(Key::E))
+                    direction += GetUpDirection();
+
                 if (glm::length(direction) > 0.0f)
                     m_FocalPoint += direction * m_MoveSpeed * (float)ts;
             }
@@ -178,4 +184,4 @@ namespace Himii
     {
         return glm::quat(glm::vec3(-m_Pitch, -m_Yaw, 0.0f));
     }
-}
+} // namespace Himii

@@ -2,16 +2,16 @@ name: CMake CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     # The CMake configure and build presets simplify the build process
     # and ensure that the CI build is consistent with the local build.
     # For more information on CMake presets, see: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
-    
+
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -56,42 +56,53 @@ jobs:
 
     - name: Bootstrap vcpkg (Linux)
       if: runner.os == 'Linux'
-      run: ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
+      run: |
+        chmod +x ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
+        ${{ github.workspace }}/vcpkg/bootstrap-vcpkg.sh
       shell: bash
 
     - name: Cache vcpkg dependencies
       uses: actions/cache@v4
       with:
         path: |
-          ${{ github.workspace }}/vcpkg_installed
-          ${{ github.workspace }}/build/vcpkg_installed
           ${{ github.workspace }}/vcpkg/buildtrees
           ${{ github.workspace }}/vcpkg/packages
           ${{ github.workspace }}/vcpkg/downloads
-        key: ${{ runner.os }}-${{ matrix.preset }}-${{ hashFiles('**/vcpkg.json') }}
+        key: ${{ runner.os }}-${{ matrix.preset }}-vcpkg-${{ hashFiles('**/vcpkg.json') }}
         restore-keys: |
-          ${{ runner.os }}-${{ matrix.preset }}-
+          ${{ runner.os }}-${{ matrix.preset }}-vcpkg-
 
     - name: Install dependencies (Linux)
       if: runner.os == 'Linux'
+      shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build build-essential autoconf automake libtool libltdl-dev libgl1-mesa-dev libglu1-mesa-dev
-      shell: bash
+        sudo apt-get install -y \
+          ninja-build build-essential autoconf automake libtool libltdl-dev \
+          libgl1-mesa-dev libglu1-mesa-dev xorg-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev \
+          git curl zip unzip tar pkg-config python3
 
-    - name: Set Compilers for Linux
+    - name: Configure CMake (Linux)
       if: runner.os == 'Linux'
-      # On Linux, the CC and CXX environment variables set in the matrix
-      # will be used to select the correct compiler.
-      run: |
-        echo "CC=${{ matrix.env.CC }}" >> $GITHUB_ENV
-        echo "CXX=${{ matrix.env.CXX }}" >> $GITHUB_ENV
-      shell: bash
-
-    - name: Configure CMake
-      # Use the preset to configure the build.
       run: cmake --preset ${{ matrix.preset }}
+      env:
+        CC: ${{ matrix.env.CC }}
+        CXX: ${{ matrix.env.CXX }}
+        CMAKE_MAKE_PROGRAM: /usr/bin/ninja
 
-    - name: Build
+    - name: Configure CMake (Windows)
+      run: cmake --preset ${{ matrix.preset }}
+      if: runner.os == 'Windows'
+
+    - name: Build (Linux)
       # Use the build preset to build the project.
       run: cmake --build --preset ${{ matrix.build_preset }}
+      if: runner.os == 'Linux'
+      env:
+        CC: ${{ matrix.env.CC }}
+        CXX: ${{ matrix.env.CXX }}
+        CMAKE_MAKE_PROGRAM: /usr/bin/ninja
+
+    - name: Build (Windows)
+      run: cmake --build --preset ${{ matrix.build_preset }}
+      if: runner.os == 'Windows'

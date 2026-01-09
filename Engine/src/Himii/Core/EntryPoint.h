@@ -2,7 +2,6 @@
 #include "Himii/Core/Application.h"
 #include "Himii/Core/Core.h"
 
-#ifdef HIMII_PLATFORM_WINDOWS
 
 extern Himii::Application *Himii::CreateApplication(ApplicationCommandLineArgs args);
 
@@ -40,4 +39,3 @@ int main(int argc, char **argv)
 //    return main(__argc, __argv);
 //}
 
-#endif

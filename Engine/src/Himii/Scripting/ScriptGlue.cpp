@@ -57,7 +57,7 @@ namespace Himii {
             return 0;
 
         Entity entity = scene->FindEntityByName(std::string(name)); // 需要在 Scene 类中实现此方法
-        return entity ? entity.GetUUID() : 0;
+        return entity ? (uint64_t)entity.GetUUID() : 0;
     }
 
 	static bool Entity_HasComponent(uint64_t entityID, void* scenePtr)

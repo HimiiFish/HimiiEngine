@@ -39,6 +39,18 @@ file(GLOB_RECURSE HEADERS "src/*.h")
 if (WIN32)
     list(APPEND SOURCES "src/Platform/Windows/WindowsPlatformUtils.cpp")
 elseif (UNIX AND NOT APPLE)
+    # 排除Windows特定的平台工具（使用Win32 API）
+    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows/WindowsPlatformUtils.cpp")
+    # 排除DirectX特定代码
+    file(GLOB_RECURSE DIRECTX_SOURCES "src/Platform/DirectX/*.cpp")
+    if (DIRECTX_SOURCES)
+        list(REMOVE_ITEM SOURCES ${DIRECTX_SOURCES})
+    endif()
+    # 添加跨平台的GLFW实现
+    list(APPEND SOURCES "src/Platform/Windows/WindowsInput.cpp")
+    list(APPEND SOURCES "src/Platform/Windows/WindowsWindow.cpp")
+    list(APPEND HEADERS "src/Platform/Windows/WindowsWindow.h")
+    # 确保Linux平台文件被包含
     list(APPEND SOURCES "src/Platform/Linux/LinuxPlatformUtils.cpp")
 endif()
 
@@ -53,6 +65,13 @@ if (NOT EXISTS "${IMGUI_DIR}")
 endif()
 if (NOT EXISTS "${IMGUIZMO_DIR}")
     message(FATAL_ERROR "ImGuizmo directory not found at ${IMGUIZMO_DIR}")
+endif()
+
+# 添加跨平台的Window和Input实现（使用GLFW，在所有平台上编译）
+if (UNIX AND NOT APPLE)
+    list(APPEND SOURCES "src/Platform/Windows/WindowsInput.cpp")
+    list(APPEND SOURCES "src/Platform/Windows/WindowsWindow.cpp")
+    list(APPEND HEADERS "src/Platform/Windows/WindowsWindow.h")
 endif()
 
 # ImGui 核心源文件

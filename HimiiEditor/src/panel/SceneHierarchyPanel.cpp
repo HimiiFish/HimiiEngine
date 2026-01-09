@@ -1,4 +1,3 @@
-#pragma once
 #include "SceneHierarchyPanel.h"
 #include "Himii/Project/Project.h"
 
@@ -43,7 +42,7 @@ namespace Himii
 
         if (m_Context)
         {
-            auto &view = m_Context->m_Registry.view<TagComponent>();
+            const auto &view = m_Context->m_Registry.view<TagComponent>();
             for (auto entity: view)
             {
                 Entity e{entity, m_Context.get()};

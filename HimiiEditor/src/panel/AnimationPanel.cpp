@@ -5,6 +5,8 @@
 #include "Himii/Utils/PlatformUtils.h" // 假设你有 FileDialog
 
 #include <filesystem>
+#include <algorithm>
+#include <cctype>
 #include <imgui.h>
 
 namespace Himii
