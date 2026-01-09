@@ -575,6 +575,11 @@ namespace Himii
     }
 
     template<>
+    void Scene::OnComponentAdded<CircleRendererComponent>(Entity entity, CircleRendererComponent &component)
+    {
+    }
+
+    template<>
     void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent &component)
     {
     }

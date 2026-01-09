@@ -77,7 +77,10 @@ jobs:
       shell: bash
       run: |
         sudo apt-get update
-        sudo apt-get install -y ninja-build build-essential autoconf automake libtool libltdl-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev
+        sudo apt-get install -y \
+          ninja-build build-essential autoconf automake libtool libltdl-dev \
+          libgl1-mesa-dev libglu1-mesa-dev xorg-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev \
+          git curl zip unzip tar pkg-config python3
 
     - name: Configure CMake (Linux)
       if: runner.os == 'Linux'
@@ -85,6 +88,7 @@ jobs:
       env:
         CC: ${{ matrix.env.CC }}
         CXX: ${{ matrix.env.CXX }}
+        CMAKE_MAKE_PROGRAM: /usr/bin/ninja
 
     - name: Configure CMake (Windows)
       run: cmake --preset ${{ matrix.preset }}
@@ -97,6 +101,7 @@ jobs:
       env:
         CC: ${{ matrix.env.CC }}
         CXX: ${{ matrix.env.CXX }}
+        CMAKE_MAKE_PROGRAM: /usr/bin/ninja
 
     - name: Build (Windows)
       run: cmake --build --preset ${{ matrix.build_preset }}
