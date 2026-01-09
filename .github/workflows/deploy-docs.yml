@@ -6,14 +6,14 @@ on:
       - main
       - master
     paths:
-      - 'Document/**'
+      - 'Docs/**'
       - '.github/workflows/deploy-docs.yml'
   pull_request:
     branches:
       - main
       - master
     paths:
-      - 'Document/**'
+      - 'Docs/**'
   workflow_dispatch:
 
 permissions:
