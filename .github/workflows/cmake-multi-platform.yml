@@ -11,7 +11,7 @@ jobs:
     # The CMake configure and build presets simplify the build process
     # and ensure that the CI build is consistent with the local build.
     # For more information on CMake presets, see: https://cmake.org/cmake/help/latest/manual/cmake-presets.7.html
-    
+
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -74,13 +74,14 @@ jobs:
 
     - name: Install dependencies (Linux)
       if: runner.os == 'Linux'
+      shell: bash
       run: |
         sudo apt-get update
         sudo apt-get install -y ninja-build build-essential autoconf automake libtool libltdl-dev libgl1-mesa-dev libglu1-mesa-dev xorg-dev libxcursor-dev libxi-dev libxrandr-dev libxinerama-dev
-      shell: bash
-      # Use preset to configure the build.
-      run: cmake --preset ${{ matrix.preset }}
+
+    - name: Configure CMake (Linux)
       if: runner.os == 'Linux'
+      run: cmake --preset ${{ matrix.preset }}
       env:
         CC: ${{ matrix.env.CC }}
         CXX: ${{ matrix.env.CXX }}
@@ -100,4 +101,3 @@ jobs:
     - name: Build (Windows)
       run: cmake --build --preset ${{ matrix.build_preset }}
       if: runner.os == 'Windows'
- 
