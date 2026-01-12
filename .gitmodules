@@ -9,3 +9,9 @@
 [submodule "Engine/vender/ImGuizmo"]
 	path = Engine/vender/ImGuizmo
 	url = https://github.com/HimiiFish/ImGuizmo.git
+[submodule "Engine/vendor/nativefiledialog-extended"]
+	path = Engine/vendor/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended
+[submodule "Engine/vender/nativefiledialog-extended"]
+	path = Engine/vender/nativefiledialog-extended
+	url = https://github.com/btzy/nativefiledialog-extended

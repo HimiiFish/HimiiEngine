@@ -14,9 +14,7 @@ find_package(spdlog CONFIG REQUIRED)
 find_package(glfw3 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
-
 find_package(unofficial-shaderc CONFIG REQUIRED)
-
 # SPIRV-Cross
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
@@ -64,21 +62,17 @@ if (NOT EXISTS "${IMGUIZMO_DIR}")
     message(FATAL_ERROR "ImGuizmo directory not found at ${IMGUIZMO_DIR}")
 endif()
 
-# 添加跨平台的Window和Input实现（使用GLFW，在所有平台上编译）
-if (UNIX AND NOT APPLE)
-    list(APPEND SOURCES "src/Platform/Windows/WindowsInput.cpp")
-    list(APPEND SOURCES "src/Platform/Windows/WindowsWindow.cpp")
-    list(APPEND HEADERS "src/Platform/Windows/WindowsWindow.h")
-endif()
 
 # ImGui 核心源文件
 set(IMGUI_SOURCES
     ${IMGUI_DIR}/imgui.cpp
     ${IMGUI_DIR}/imgui_draw.cpp
     ${IMGUI_DIR}/imgui_widgets.cpp
-    ${IMGUI_DIR}/imgui_tables.cpp # ImGui 1.80+ 包含 tables.cpp
-    ${IMGUI_DIR}/imgui_demo.cpp   # 如果需要 ImGui 示例窗口，可以包含
+    ${IMGUI_DIR}/imgui_tables.cpp
+    ${IMGUI_DIR}/imgui_demo.cpp
 )
+
+add_subdirectory("${CMAKE_SOURCE_DIR}/Engine/vender/nativefiledialog-extended" nfd_build)
 
 set(IMGUIZMO_SOURCES
     ${IMGUIZMO_DIR}/ImGuizmo.cpp
@@ -98,9 +92,7 @@ set(ENGINE_ALL_SOURCES
 )
 
 # 添加源文件和头文件到Engine库
-# 不需指定SHARED或STATIC，因为CMake会根据BUILD_SHARED_LIBS变量自动处理
 add_library(Engine STATIC ${ENGINE_ALL_SOURCES})
-# 若是共享库则可能是：add_library(Engine SHARED ${ENGINE_SOURCES})
 
 # 在Windows上，如果使用共享库，启用导出所有符号
 if(WIN32 AND BUILD_SHARED_LIBS)
@@ -109,7 +101,7 @@ endif()
 
 target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR})
 
-target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp::yaml-cpp Vulkan::Vulkan unofficial::shaderc::shaderc spirv-cross-core spirv-cross-glsl SPIRV-Tools-static box2d::box2d unofficial::nethost::nethost)
+target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp::yaml-cpp Vulkan::Vulkan unofficial::shaderc::shaderc spirv-cross-core spirv-cross-glsl SPIRV-Tools-static box2d::box2d unofficial::nethost::nethost nfd)
 
 # 启用 GLM 实验特性（如 gtx/component_wise），避免各 TU 单独定义宏
 target_compile_definitions(Engine PUBLIC GLM_ENABLE_EXPERIMENTAL)

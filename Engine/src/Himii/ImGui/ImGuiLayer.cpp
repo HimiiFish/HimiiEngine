@@ -33,7 +33,7 @@ namespace Himii
 
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
-        io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
+        //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
         const char *font_path = "assets/fonts/msyh.ttc"; // 请替换为你的字体实际路径和文件名
         float font_size = 15.0f;
