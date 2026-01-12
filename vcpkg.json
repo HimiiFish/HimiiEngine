@@ -9,7 +9,10 @@
     "stb",
     "yaml-cpp",
     "entt",
-    "vulkan",
+    {
+    "name": "vulkan",
+    "platform": "windows | osx"  
+   },
     "shaderc",
     "spirv-cross",
     "spirv-tools",

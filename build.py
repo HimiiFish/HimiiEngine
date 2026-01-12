@@ -31,7 +31,7 @@ class BuildScript:
                 "release": "build-x64-release-win"
             }
             # 同时查找两个可执行
-            self.executable_names = ["HimiiEditor.exe", "TemplateProject.exe"]
+            self.executable_names = ["HimiiEditor.exe"]
         elif self.is_linux:
             self.configure_presets = {
                 "debug": "linux-debug",
@@ -41,7 +41,7 @@ class BuildScript:
                 "debug": "build-linux-debug",
                 "release": "build-linux-release"
             }
-            self.executable_names = ["TemplateProject"]
+            self.executable_names = ["HimiiEditor"]
         else:
             print(f"错误: 不支持的操作系统: {self.system}")
             sys.exit(1)

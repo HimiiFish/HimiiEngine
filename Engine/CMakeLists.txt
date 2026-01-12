@@ -18,7 +18,6 @@ find_package(Vulkan REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
 
 # SPIRV-Cross
-# vcpkg 将其拆分为不同的组件，核心和GLSL通常是必须的
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(SPIRV-Tools CONFIG REQUIRED)
@@ -53,8 +52,6 @@ elseif (UNIX AND NOT APPLE)
     # 确保Linux平台文件被包含
     list(APPEND SOURCES "src/Platform/Linux/LinuxPlatformUtils.cpp")
 endif()
-
-
 
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/imgui")
 set(IMGUIZMO_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/ImGuizmo")

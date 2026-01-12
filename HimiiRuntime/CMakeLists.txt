@@ -16,12 +16,6 @@ target_include_directories(HimiiRuntime PRIVATE
 # 链接引擎核心库 (假设你的引擎库 Target 叫 Himii-Engine)
 target_link_libraries(HimiiRuntime PRIVATE Engine)
 
-
-# ==============================================================
-# [构建后操作] Post-Build Commands
-# 这是 Runtime 能否运行的关键！我们需要把所有依赖文件复制到输出目录
-# ==============================================================
-
 set(SCRIPT_CORE_BUILD_DIR "${CMAKE_SOURCE_DIR}/ScriptCore/bin/$<IF:$<CONFIG:Debug>,Debug,Release>/net8.0")
 
 add_custom_command(TARGET HimiiRuntime POST_BUILD
