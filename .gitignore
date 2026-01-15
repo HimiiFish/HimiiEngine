@@ -108,7 +108,8 @@ x64/
 *.vssscc
 .vs/
 Generated Files/
-
+# Clangd
+.clangd
 # Other
 *.stackdump
 *.log
