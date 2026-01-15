@@ -58,11 +58,12 @@ namespace Himii
 
         void Run();
 
-        // 暴露 LayerStack 只读访问（用于层间简单通信）
         const LayerStack &GetLayerStack() const
         {
             return m_LayerStack;
         }
+        
+        const std::filesystem::path& GetExecutableDir() const { return m_ExecutableDir; }
 
         const static std::filesystem::path &GetEngineDir()
         {
@@ -85,6 +86,7 @@ namespace Himii
         ApplicationCommandLineArgs m_CommandLineArgs;
 
         std::filesystem::path m_EngineDir;
+        std::filesystem::path m_ExecutableDir;
 
     private:
         static Application *s_Instance;

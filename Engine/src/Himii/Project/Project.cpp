@@ -55,10 +55,24 @@ namespace Himii
         std::filesystem::create_directories(projectDir / "assets" / "scripts");
         std::filesystem::create_directories(projectDir / "assets" / "textures");
 
-        auto engineDir = Application::GetEngineDir();
-        std::filesystem::path scriptCorePath = engineDir / "ScriptCore.dll";
+        // 先尝试在可执行文件同级目录找 ScriptCore.dll (运行时的真实环境)
+        auto exeDir = Application::Get().GetExecutableDir();
+        std::filesystem::path scriptCorePath = exeDir / "ScriptCore.dll";
+
+        if (!std::filesystem::exists(scriptCorePath))
+        {
+            // 如果没找到 (Dev模式且未拷贝), 尝试源码构建输出路径
+            auto engineDir = Application::GetEngineDir();
+            // Try standard dotnet output path relative to engine root
+#ifdef HIMII_DEBUG
+            scriptCorePath = engineDir / "ScriptCore/bin/Debug/net8.0/ScriptCore.dll";
+#else
+            scriptCorePath = engineDir / "ScriptCore/bin/Release/net8.0/ScriptCore.dll";
+#endif
+        }
 
         std::string scriptCorePathStr = scriptCorePath.string();
+        HIMII_CORE_INFO("Resolved ScriptCore Path: {0}", scriptCorePathStr);
         // 简单的替换 / 为 \ (如果需要)
         std::replace(scriptCorePathStr.begin(), scriptCorePathStr.end(), '/', '\\');
 

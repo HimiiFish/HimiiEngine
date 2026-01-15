@@ -83,9 +83,30 @@ namespace Himii
 #else
         // 发布模式：假设结构是 Bin/HimiiEditor.exe，那么根目录就是上一级
         // 注意：这取决于你的安装目录结构，假设 Release 包解压后就是根目录
-        auto exePath = std::filesystem::current_path(); // 或者用 GetModuleFileName 获取更准
+        // 如果 exe 在 bin 下，可能需要 engineDir = m_ExecutableDir.parent_path().string();
+       // engineDir = exePath.string(); // Will be set below
+#endif
+
+        // 获取当前 Editor.exe 所在的目录 (更健壮的方式) - 必须无条件执行
+#ifdef HIMII_PLATFORM_WINDOWS
+        char buffer[MAX_PATH];
+        GetModuleFileNameA(NULL, buffer, MAX_PATH);
+        std::filesystem::path exePath = std::filesystem::path(buffer).parent_path();
+#else
+        // Linux implementation (using /proc/self/exe)
+        char buffer[1024];
+        ssize_t count = readlink("/proc/self/exe", buffer, 1024);
+        std::filesystem::path exePath;
+        if (count != -1) {
+            exePath = std::filesystem::path(std::string(buffer, (count > 0) ? count : 0)).parent_path();
+        } else {
+             exePath = std::filesystem::current_path(); // Fallback
+        }
+#endif
+        m_ExecutableDir = exePath;
+
+#if !defined(HIMII_DEBUG) || !defined(HIMII_ROOT_DIR)
         engineDir = exePath.string();
-        // 如果 exe 在 bin 下，可能需要 engineDir = exePath.parent_path().string();
 #endif
 
         // 2. 设置环境变量 HIMII_DIR

@@ -565,58 +565,67 @@ namespace Himii
         Renderer2D::EndScene();
     }
 
-    void EditorLayer::NewProject()
+    void EditorLayer::CreateProject(const std::filesystem::path& projectPath, bool is2D)
     {
-        std::string filepath = FileDialog::SaveFile("Himii Project (*.hproj)\0*.hproj\0");
-
-        if (!filepath.empty())
+        if (std::filesystem::exists(projectPath))
         {
-            std::filesystem::path path(filepath);
+            // 如果目录已存在且非空，可能需要警告，这里简化处理只判断是否存在
+            // Project::CreateProjectFiles 会处理文件生成
+        }
+        else
+        {
+            std::filesystem::create_directories(projectPath);
+        }
 
-            std::filesystem::path parentDir = path.parent_path();
-            std::string projectName = path.stem().string();
+        std::string projectName = projectPath.filename().string();
+        std::filesystem::path newProjectFilePath = projectPath / (projectName + ".hproj");
 
-            // 1. 构建目录路径
-            std::filesystem::path newProjectDir = parentDir / projectName;
-            std::filesystem::path newProjectFilePath = newProjectDir / (projectName + ".hproj");
+        // 2. 生成物理文件 (csproj 和 assets 文件夹)
+        Project::CreateProjectFiles(projectName, projectPath);
 
-            // 2. 生成物理文件 (csproj 和 assets 文件夹)
-            Project::CreateProjectFiles(projectName, newProjectDir);
+        //创建临时场景
+        Ref<Scene> startScene = CreateRef<Scene>();
+        startScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 
-            //创建临时场景
-            Ref<Scene> startScene = CreateRef<Scene>();
-            startScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
-
+        {
+            Entity cameraEntity = startScene->CreateEntity("Main Camera");
+            auto &cc = cameraEntity.AddComponent<CameraComponent>();
+            
+            if (is2D)
             {
-                Entity cameraEntity = startScene->CreateEntity("Main Camera");
-                auto &cc = cameraEntity.AddComponent<CameraComponent>();
                 cc.Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
                 cameraEntity.GetComponent<TransformComponent>().Position = {0.0f, 0.0f, 10.0f};
             }
-
-            std::filesystem::path relativeScenePath = "scenes/Start.himii";
-            std::filesystem::path fullScenePath = newProjectDir / "assets" / relativeScenePath;
-
-            SceneSerializer sceneSerializer(startScene);
-            sceneSerializer.Serialize(fullScenePath.string());
-
-            HIMII_CORE_INFO("Created default scene at {0}", fullScenePath.string());
-
-            // 2. 在内存中配置 Project 对象
-            Ref<Project> newProject = Project::New();
-            newProject->GetConfig().Name = projectName;
-            newProject->GetConfig().AssetDirectory = "assets"; // 相对路径
-            newProject->GetConfig().StartScene = relativeScenePath;
-            newProject->GetConfig().ScriptModulePath = "bin/Debug/GameAssembly.dll";
-
-            // 3. 序列化 .hproj 文件
-            Project::SaveActive(newProjectFilePath);
-
-            // 4. 立即加载这个新项目
-            OpenProject(newProjectFilePath);
-
-            HIMII_CORE_INFO("New project created and loaded: {0}", newProjectFilePath.string());
+            else
+            {
+                cc.Camera.SetProjectionType(SceneCamera::ProjectionType::Perspective);
+                cameraEntity.GetComponent<TransformComponent>().Position = {0.0f, 0.0f, 10.0f};
+                // 透视相机可能需要旋转一下看清东西，或者默认朝向 -Z
+            }
         }
+
+        std::filesystem::path relativeScenePath = "scenes/Start.himii";
+        std::filesystem::path fullScenePath = projectPath / "assets" / relativeScenePath;
+
+        SceneSerializer sceneSerializer(startScene);
+        sceneSerializer.Serialize(fullScenePath.string());
+
+        HIMII_CORE_INFO("Created default scene at {0}", fullScenePath.string());
+
+        // 2. 在内存中配置 Project 对象
+        Ref<Project> newProject = Project::New();
+        newProject->GetConfig().Name = projectName;
+        newProject->GetConfig().AssetDirectory = "assets"; // 相对路径
+        newProject->GetConfig().StartScene = relativeScenePath;
+        newProject->GetConfig().ScriptModulePath = "bin/Debug/GameAssembly.dll";
+
+        // 3. 序列化 .hproj 文件
+        Project::SaveActive(newProjectFilePath);
+
+        // 4. 立即加载这个新项目
+        OpenProject(newProjectFilePath);
+
+        HIMII_CORE_INFO("New project created and loaded: {0}", newProjectFilePath.string());
     }
 
     void EditorLayer::OpenProject(const std::filesystem::path &path)
@@ -687,9 +696,11 @@ namespace Himii
 
         // 2. 确定源文件位置 (Editor 和 Runtime 通常在同一个构建目录下)
         // 获取当前 Editor.exe 所在的目录
-        std::filesystem::path engineBinDir = Application::GetEngineDir();
-
-        std::filesystem::path binRoot = (engineBinDir / "../../../").lexically_normal();
+        std::filesystem::path engineBinDir = Application::Get().GetExecutableDir();
+        
+        // 注意：这里的相对路径依赖于 CMake 的输出目录结构
+        // engineBinDir = .../bin/HimiiEditor/Debug
+        std::filesystem::path binRoot = engineBinDir.parent_path().parent_path(); // .../bin
         std::filesystem::path runtimeDir = binRoot / "HimiiRuntime" / "Debug";
 
         // 3. 定义需要复制的文件清单
@@ -947,7 +958,56 @@ namespace Himii
         // Left Column: Actions
         if (ImGui::Button("Create New Project", ImVec2(280, 50)))
         {
-            NewProject();
+            ImGui::OpenPopup("New Project Setup");
+        }
+
+        // Always center this window when appearing
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal("New Project Setup", NULL, ImGuiWindowFlags_AlwaysAutoResize))
+        {
+            static char projectName[256] = "NewProject";
+            static char projectPath[512] = ""; 
+            if(strlen(projectPath) == 0)
+                 strcpy(projectPath, std::filesystem::current_path().string().c_str());
+
+            static int projectType = 0; // 0: 2D, 1: 3D
+            
+            ImGui::Text("Project Name:");
+            ImGui::InputText("##project_name", projectName, 256);
+            
+            ImGui::Text("Location:");
+            ImGui::PushItemWidth(300);
+            ImGui::InputText("##project_path", projectPath, 512, ImGuiInputTextFlags_ReadOnly);
+            ImGui::PopItemWidth();
+            ImGui::SameLine();
+            if (ImGui::Button("...", ImVec2(30, 0)))
+            {
+                std::string folder = FileDialog::OpenFolder(projectPath);
+                if (!folder.empty())
+                {
+                    strcpy(projectPath, folder.c_str());
+                }
+            }
+
+            ImGui::Separator();
+            ImGui::Text("Select Project Template:");
+            ImGui::RadioButton("2D Project (Orthographic Camera)", &projectType, 0);
+            ImGui::RadioButton("3D Project (Perspective Camera)", &projectType, 1);
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Create", ImVec2(120, 0)))
+            { 
+               std::filesystem::path fullPath = std::filesystem::path(projectPath) / projectName;
+               CreateProject(fullPath, projectType == 0);
+               ImGui::CloseCurrentPopup();
+            }
+            ImGui::SetItemDefaultFocus();
+            ImGui::SameLine();
+            if (ImGui::Button("Cancel", ImVec2(120, 0))) { ImGui::CloseCurrentPopup(); }
+            ImGui::EndPopup();
         }
         ImGui::Dummy(ImVec2(0, 10));
         if (ImGui::Button("Open Project", ImVec2(280, 50)))

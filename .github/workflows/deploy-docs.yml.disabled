@@ -1,0 +1,58 @@
+name: Deploy Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'Docs/**'
+      - '.github/workflows/deploy-docs.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'Docs/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: 3.x
+
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('Docs/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install MkDocs and dependencies
+        run: |
+          pip install -r Docs/requirements.txt
+
+      - name: Build documentation
+        working-directory: ./Docs
+        run: mkdocs build --strict
+
+      - name: Deploy to GitHub Pages
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        working-directory: ./Docs
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email github-actions[bot]@users.noreply.github.com
+          mkdocs gh-deploy --force

@@ -26,7 +26,7 @@ namespace Himii
 
         void OnOverlayRender();
 
-        void NewProject();
+        void CreateProject(const std::filesystem::path& projectPath, bool is2D = true);
         void OpenProject(const std::filesystem::path &path);
         void SaveProject();
         void BuildProject();
