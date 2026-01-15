@@ -39,8 +39,13 @@ namespace Himii
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
         //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
 
+        float x_scale, y_scale;
+        glfwGetWindowContentScale(window, &x_scale, &y_scale);
+        float ui_scale = x_scale; 
+        HIMII_CORE_INFO("Window Content Scale: {0}, {1}", x_scale, y_scale);
+
         const char *font_path = "assets/fonts/msyh.ttc"; // 请替换为你的字体实际路径和文件名
-        float font_size = 15.0f;
+        float font_size = 15.0f * ui_scale;
 
         io.Fonts->AddFontFromFileTTF(font_path, font_size);
         io.FontDefault =
@@ -53,6 +58,7 @@ namespace Himii
             style.Colors[ImGuiCol_WindowBg].w = 1.0f;
         }
         SetDarkThemeColors();
+        style.ScaleAllSizes(ui_scale);
 
         ImGui_ImplGlfw_InitForOpenGL(window, true);
         ImGui_ImplOpenGL3_Init("#version 410");
