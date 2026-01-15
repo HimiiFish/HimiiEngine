@@ -1,4 +1,3 @@
-#pragma once
 #include "Hepch.h"
 #include "Buffer.h"
 #include "Renderer.h"

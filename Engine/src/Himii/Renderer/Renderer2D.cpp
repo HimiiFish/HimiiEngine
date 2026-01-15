@@ -1,4 +1,3 @@
-#pragma once
 #include "Hepch.h"
 #include "Himii/Renderer/Renderer2D.h"
 #include "Himii/Renderer/RenderCommand.h"

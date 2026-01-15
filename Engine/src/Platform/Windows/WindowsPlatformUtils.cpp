@@ -1,4 +1,3 @@
-#pragma once
 #include "Hepch.h"
 #include "Himii/Core/Application.h"
 #include "Himii/Utils/PlatformUtils.h"
