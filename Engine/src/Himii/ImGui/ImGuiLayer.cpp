@@ -31,6 +31,10 @@ namespace Himii
         /* 使用深色主题 */
         ImGui::StyleColorsDark();
 
+        m_IniFilePath = (Application::Get().GetEngineDir() / "imgui.ini").string();
+        HIMII_CORE_INFO("ImGui Ini File Path: {0}", m_IniFilePath);
+        io.IniFilename = m_IniFilePath.c_str();
+
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;   // Enable Docking
         //io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable; // Enable Multi-Viewport / Platform Windows
@@ -57,6 +61,7 @@ namespace Himii
     void ImGuiLayer::OnDetach()
     {
         HIMII_PROFILE_FUNCTION();
+        HIMII_CORE_INFO("ImGuiLayer::OnDetach()");
 
         ImGui_ImplOpenGL3_Shutdown();
         ImGui_ImplGlfw_Shutdown();

@@ -29,5 +29,6 @@ namespace Himii
 
     private:
          bool m_BlockEvents = true;
+         std::string m_IniFilePath;
     };
 }
