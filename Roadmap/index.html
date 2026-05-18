@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
@@ -502,6 +502,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心模块：发布 (Distribution)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -564,7 +575,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#distribution" class="md-nav__link">
+  <a href="#distribution_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         核心模块：发布 (Distribution)
@@ -1116,6 +1127,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#distribution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心模块：发布 (Distribution)
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1178,7 +1200,7 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#distribution" class="md-nav__link">
+  <a href="#distribution_1" class="md-nav__link">
     <span class="md-ellipsis">
       
         核心模块：发布 (Distribution)
@@ -1331,6 +1353,11 @@
 <td style="text-align: left;"><strong>BoxCollider2D</strong></td>
 <td style="text-align: left;">矩形碰撞体与夹具 (Fixture) 创建</td>
 </tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Collision Events 2D</strong></td>
+<td style="text-align: left;"><code>OnCollisionEnter2D</code> / <code>OnCollisionExit2D</code> 脚本回调</td>
+</tr>
 </tbody>
 </table>
 <h3 id="scripting">核心模块：脚本系统 (Scripting)</h3>
@@ -1345,18 +1372,43 @@
 <tbody>
 <tr>
 <td style="text-align: left;">[x]</td>
-<td style="text-align: left;"><strong>Mono Host</strong></td>
-<td style="text-align: left;">初始化 Mono 运行时环境</td>
+<td style="text-align: left;"><strong>CoreCLR Host</strong></td>
+<td style="text-align: left;">.NET 8 + 可收集 AssemblyLoadContext（非 Mono）</td>
 </tr>
 <tr>
 <td style="text-align: left;">[x]</td>
 <td style="text-align: left;"><strong>Script Class</strong></td>
-<td style="text-align: left;">C# 类加载与实例化</td>
+<td style="text-align: left;">C# 类加载与实例化（OnCreate / OnUpdate / OnDestroy）</td>
 </tr>
 <tr>
 <td style="text-align: left;">[x]</td>
 <td style="text-align: left;"><strong>Internal Calls</strong></td>
 <td style="text-align: left;">C++ 与 C# 互操作绑定</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Input API</strong></td>
+<td style="text-align: left;">C# <code>Input.IsKeyDown</code> 等接口</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Script Fields</strong></td>
+<td style="text-align: left;">Inspector 公开字段读写与 YAML 序列化（含 Entity 引用）</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Async Compile</strong></td>
+<td style="text-align: left;"><code>dotnet build</code> 异步编译与文件监视</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Script Console</strong></td>
+<td style="text-align: left;">编译日志面板，错误行跳转 IDE</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>IDE Launcher</strong></td>
+<td style="text-align: left;">全局/项目 IDE 配置（VS / VS Code / Rider / Custom）</td>
 </tr>
 </tbody>
 </table>
@@ -1395,6 +1447,38 @@
 <td style="text-align: left;"><strong>Content Browser</strong></td>
 <td style="text-align: left;">资源文件浏览与拖拽</td>
 </tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>ImGuizmo</strong></td>
+<td style="text-align: left;">视口内物体变换 Gizmo</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Editor Preferences</strong></td>
+<td style="text-align: left;">全局编辑器设置（含默认脚本 IDE）</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Project Settings</strong></td>
+<td style="text-align: left;">项目级 IDE 覆盖与 <code>.hproj</code> 序列化</td>
+</tr>
+</tbody>
+</table>
+<h3 id="distribution">核心模块：发布 (Distribution)</h3>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">状态</th>
+<th style="text-align: left;">最小执行单元 (Minimum Execution Unit)</th>
+<th style="text-align: left;">说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Runtime Application</strong></td>
+<td style="text-align: left;"><code>HimiiRuntime</code> 剥离编辑器的游戏运行程序</td>
+</tr>
 </tbody>
 </table>
 <hr />
@@ -1432,7 +1516,7 @@
 <tr>
 <td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>Particle System</strong></td>
-<td style="text-align: left;">基于 GPU 或 CPU 的粒子发射器</td>
+<td style="text-align: left;">基于 GPU 或 CPU 的粒子发射器（编辑器部分已有基础）</td>
 </tr>
 </tbody>
 </table>
@@ -1485,16 +1569,6 @@
 <tbody>
 <tr>
 <td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>Input API</strong></td>
-<td style="text-align: left;">C# 端获取 <code>Input.IsKeyDown</code> 等接口</td>
-</tr>
-<tr>
-<td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>Physics Events</strong></td>
-<td style="text-align: left;"><code>OnCollisionEnter/Exit</code> 回调</td>
-</tr>
-<tr>
-<td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>Prefab System</strong></td>
 <td style="text-align: left;">预制体资产的保存与实例化</td>
 </tr>
@@ -1502,6 +1576,11 @@
 <td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>Scene Transition</strong></td>
 <td style="text-align: left;">运行时场景切换 API</td>
+</tr>
+<tr>
+<td style="text-align: left;">[ ]</td>
+<td style="text-align: left;"><strong>[SerializeField]</strong></td>
+<td style="text-align: left;">支持 private 字段在 Inspector 中显示</td>
 </tr>
 </tbody>
 </table>
@@ -1517,11 +1596,6 @@
 <tbody>
 <tr>
 <td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>Guizmo Integration</strong></td>
-<td style="text-align: left;">引入 ImGuizmo 实现视口内物体变换</td>
-</tr>
-<tr>
-<td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>Undo/Redo</strong></td>
 <td style="text-align: left;">命令模式实现操作撤销重做</td>
 </tr>
@@ -1533,11 +1607,11 @@
 <tr>
 <td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>Console Panel</strong></td>
-<td style="text-align: left;">捕获 Stdout/Stderr 并彩色显示日志</td>
+<td style="text-align: left;">通用 Log 面板：重定向 <code>HIMII_CORE_*</code> / spdlog 到 ImGui</td>
 </tr>
 </tbody>
 </table>
-<h3 id="distribution">核心模块：发布 (Distribution)</h3>
+<h3 id="distribution_1">核心模块：发布 (Distribution)</h3>
 <table>
 <thead>
 <tr>
@@ -1549,13 +1623,13 @@
 <tbody>
 <tr>
 <td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>Runtime Application</strong></td>
-<td style="text-align: left;">剥离编辑器代码的纯游戏运行程序</td>
+<td style="text-align: left;"><strong>Project Packager</strong></td>
+<td style="text-align: left;">自动打包脚本与资源到发布的目录</td>
 </tr>
 <tr>
 <td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>Project Packager</strong></td>
-<td style="text-align: left;">自动打包脚本与资源到发布的目录</td>
+<td style="text-align: left;"><strong>Build Pipeline</strong></td>
+<td style="text-align: left;">确保 GameAssembly、ScriptCore、资源、<code>.hproj</code> 一并输出</td>
 </tr>
 </tbody>
 </table>
