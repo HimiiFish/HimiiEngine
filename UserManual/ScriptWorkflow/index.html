@@ -11,8 +11,10 @@
       
       
       
-        <link rel="prev" href="../ScriptWorkflow/">
+        <link rel="prev" href="../Physics2D/">
       
+      
+        <link rel="next" href="../ScriptingAPI/">
       
       
         
@@ -23,7 +25,7 @@
     
     
       
-        <title>脚本 API (Scripting API) - HimiiEngine 引擎文档</title>
+        <title>脚本工作流 (Script Workflow) - HimiiEngine 引擎文档</title>
       
     
     
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#api-scripting-api" class="md-skip">
+        <a href="#script-workflow" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              脚本 API (Scripting API)
+              脚本工作流 (Script Workflow)
             
           </span>
         </div>
@@ -802,34 +804,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../ScriptWorkflow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    脚本工作流 (Script Workflow)
-  
-
-    
-  </span>
-  
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -849,7 +823,7 @@
   <span class="md-ellipsis">
     
   
-    脚本 API (Scripting API)
+    脚本工作流 (Script Workflow)
   
 
     
@@ -867,7 +841,7 @@
   <span class="md-ellipsis">
     
   
-    脚本 API (Scripting API)
+    脚本工作流 (Script Workflow)
   
 
     
@@ -896,73 +870,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        创建脚本
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#entity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Entity 生命周期
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        日志 (Log)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        输入 (Input)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#transform" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Transform 与组件
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2d" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2D 物理碰撞
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inspector" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inspector 脚本字段
+        项目中的脚本文件
       
     </span>
   </a>
@@ -971,6 +879,89 @@
       
         <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编译
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行与热重载策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IDE 配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IDE 配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edit-preferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        全局默认（Edit → Preferences）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-project-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        项目覆盖（File → Project Settings）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        打开项目 / 脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常见问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         相关文档
@@ -984,6 +975,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ScriptingAPI/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本 API (Scripting API)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1026,73 +1045,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        创建脚本
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#entity" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Entity 生命周期
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#log" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        日志 (Log)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#input" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        输入 (Input)
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#transform" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Transform 与组件
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#2d" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        2D 物理碰撞
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#inspector" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Inspector 脚本字段
+        项目中的脚本文件
       
     </span>
   </a>
@@ -1101,6 +1054,89 @@
       
         <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编译
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行与热重载策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IDE 配置
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="IDE 配置">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#edit-preferences" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        全局默认（Edit → Preferences）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#file-project-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        项目覆盖（File → Project Settings）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        打开项目 / 脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常见问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
         相关文档
@@ -1130,102 +1166,84 @@
   
 
 
-<h1 id="api-scripting-api">脚本 API (Scripting API)</h1>
-<p>HimiiEngine 使用 <strong>C#</strong> 作为游戏脚本语言，运行时基于 <strong>.NET 8 + CoreCLR</strong>（非 Mono）。脚本编译为 <code>GameAssembly.dll</code>，由引擎通过可收集的 <code>AssemblyLoadContext</code> 加载。</p>
-<h2 id="_1">创建脚本</h2>
-<ol>
-<li>在 <strong>Content Browser</strong> 中右键 → Create → C# Script。</li>
-<li>命名脚本（例如 <code>PlayerController.cs</code>）。</li>
-<li>在属性面板为实体添加 <strong>Script Component</strong>，填写完整类名（含命名空间）。</li>
-<li>点击 <strong>Edit</strong> 或菜单 <strong>File → Open C# Project</strong> 在外部 IDE 中编辑（Visual Studio / VS Code / Rider，见 <a href="../ScriptWorkflow/">脚本工作流</a>）。</li>
-</ol>
-<h2 id="entity">Entity 生命周期</h2>
-<p>继承自 <code>Himii.Entity</code> 的类可重写以下虚方法（须使用 <code>public override</code>）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">Himii</span><span class="p">;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">PlayerController</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Entity</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">{</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCreate</span><span class="p">()</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">        </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Entity {ID} created.&quot;</span><span class="p">);</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnUpdate</span><span class="p">(</span><span class="kt">float</span><span class="w"> </span><span class="n">ts</span><span class="p">)</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">        </span><span class="c1">// ts：上一帧时间间隔（秒），用于帧率无关逻辑</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="n">Position</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector3</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ts</span><span class="p">;</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnDestroy</span><span class="p">()</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">    </span><span class="p">{</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">        </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">&quot;Entity destroyed.&quot;</span><span class="p">);</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="p">}</span>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="p">}</span>
+<h1 id="script-workflow">脚本工作流 (Script Workflow)</h1>
+<p>本文说明在 HimiiEditor 中编写、编译与调试 C# 游戏脚本的典型流程。</p>
+<h2 id="_1">项目中的脚本文件</h2>
+<p>打开项目后，脚本通常位于：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;ProjectDir&gt;/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── assets/
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   └── scripts/          # 游戏 C# 源码（*.cs）
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── &lt;ProjectName&gt;.sln     # 供 IDE 打开
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── &lt;ProjectName&gt;.csproj
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── &lt;ProjectName&gt;.hproj   # 项目配置（含 ScriptModulePath 等）
 </code></pre></div>
-<p>生命周期仅在 <strong>Play</strong> 模式下、且实体带有有效 <code>ScriptComponent</code> 时由引擎调用。</p>
-<h2 id="log">日志 (Log)</h2>
-<p>使用 <code>Himii.Log</code> 将消息写入引擎日志与编辑器 <strong>Console</strong> 面板（<strong>Window → Console</strong>）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">&quot;Game started.&quot;</span><span class="p">);</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">Log</span><span class="p">.</span><span class="n">Warning</span><span class="p">(</span><span class="s">&quot;Low health!&quot;</span><span class="p">);</span>
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">Log</span><span class="p">.</span><span class="n">Error</span><span class="p">(</span><span class="s">&quot;Something went wrong.&quot;</span><span class="p">);</span>
-</code></pre></div>
+<p>编译产物 <strong><code>GameAssembly.dll</code></strong>（及 <code>.pdb</code>）路径由 <code>.hproj</code> 的 <code>ScriptModulePath</code> 指定，构建时输出到项目目录或 <code>bin</code> 子目录（以项目模板为准）。</p>
+<p>引擎自带 <strong><code>ScriptCore.dll</code></strong>（API：<code>Entity</code>、<code>Input</code>、<code>Log</code> 等），由 HimiiEditor 构建时拷贝到可执行文件旁，<strong>不要</strong>修改其命名空间下的核心类型。</p>
+<h2 id="_2">编译</h2>
 <ul>
-<li>输出同时出现在控制台（spdlog）与编辑器 <strong>Console</strong>。</li>
-<li>进入 <strong>Play</strong> 时会清空 Console 缓冲，避免与上次运行混淆。</li>
-<li><strong>Script Console</strong>（<strong>Window → Script Console</strong>）仅显示 <code>dotnet build</code> 编译输出，与运行时 <code>Log</code> 不同。</li>
+<li>保存 <code>.cs</code> 后，编辑器 <strong>文件监视</strong> 可触发 <strong>异步 <code>dotnet build</code></strong>（debounce）。</li>
+<li>点击 <strong>Play</strong> 前若脚本有改动，会先编译再进入 Play；编译进行中若已在 Play，会先 Stop。</li>
+<li>编译日志在 <strong>Window → Script Console</strong>：</li>
+<li>成功 / 失败状态</li>
+<li>点击 <code>path\file.cs(line,col): error</code> 行，在配置的 IDE 中打开对应位置</li>
 </ul>
-<p>请勿依赖 <code>Console.WriteLine</code> 作为游戏日志手段（不会进入编辑器 Console）。</p>
-<h2 id="input">输入 (Input)</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsKeyDown</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">W</span><span class="p">))</span>
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="p">{</span>
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="c1">// 按键按住</span>
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="p">}</span>
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">mouse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Input</span><span class="p">.</span><span class="n">MousePosition</span><span class="p">;</span>
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsMouseButtonDown</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="p">{</span>
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">    </span><span class="c1">// 左键</span>
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="p">}</span>
-</code></pre></div>
-<h2 id="transform">Transform 与组件</h2>
-<p>每个实体均有 <code>Transform</code>（通过 <code>entity.Transform</code> 或 <code>Position</code> / <code>Rotation</code> / <code>Scale</code> 访问）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">Position</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector3</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ts</span><span class="p">;</span>
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">Transform</span><span class="p">.</span><span class="n">Scale</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector3</span><span class="p">(</span><span class="mf">2.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">2.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
-</code></pre></div>
-<p>获取其他组件（需实体上已添加对应 C++ 组件）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">rb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">Rigidbody2D</span><span class="o">&gt;</span><span class="p">();</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rb</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
-<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">rb</span><span class="p">.</span><span class="n">Velocity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector2</span><span class="p">(</span><span class="mf">5.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">);</span>
-</code></pre></div>
-<h2 id="2d">2D 物理碰撞</h2>
-<p>在 <strong>Play</strong> 模式下，当带碰撞体的实体发生接触/分离时，可重写：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionEnter2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
-<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="p">{</span>
-<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Hit entity {collision.OtherEntityID}&quot;</span><span class="p">);</span>
-<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="p">}</span>
-<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>
-<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionExit2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
-<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="p">{</span>
-<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Left entity {collision.OtherEntityID}&quot;</span><span class="p">);</span>
-<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">}</span>
-</code></pre></div>
-<p>要求：双方实体均有 <strong>Rigidbody2D</strong> 与 <strong>BoxCollider2D</strong> 或 <strong>CircleCollider2D</strong>；仅在运行时 <strong>Play</strong> 模式触发（非纯 Simulate 脚本实例）。</p>
-<p>更多物理组件说明见 <a href="../Physics2D/">2D 物理</a>。</p>
-<h2 id="inspector">Inspector 脚本字段</h2>
-<p>在脚本类中声明 <strong>public 实例字段</strong>，可在属性面板中编辑并随场景 YAML 保存：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">public</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">Speed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0f</span><span class="p">;</span>
-<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">public</span><span class="w"> </span><span class="n">Entity</span><span class="w"> </span><span class="n">Target</span><span class="p">;</span><span class="w">  </span><span class="c1">// 引用场景中另一实体（UUID）</span>
-</code></pre></div>
+<h2 id="_3">运行与热重载策略</h2>
 <ul>
-<li>支持类型：数值、布尔、<code>Vector2/3/4</code>、<code>string</code>、<code>KeyCode</code>、<code>Entity</code> 等（与引擎 <code>ReflectionBridge</code> 一致）。</li>
-<li>修改后保存场景即可持久化。</li>
-<li><code>[SerializeField]</code> 与 private 字段尚未支持。</li>
+<li><strong>Play</strong>：复制场景、加载 <code>GameAssembly</code>、为带 <code>ScriptComponent</code> 的实体调用 <code>OnCreate</code>，每帧 <code>OnUpdate</code>。</li>
+<li><strong>Stop</strong> 后回到编辑场景；修改脚本后需再次 <strong>Play</strong> 才会加载新 DLL（<strong>不在 Play 中热替换程序集</strong>）。</li>
+<li>编译成功且曾中断 Play 时，可能提示重新按 Play。</li>
 </ul>
-<h2 id="_2">相关文档</h2>
+<p>运行时日志使用 <code>Log.Info</code> / <code>Warning</code> / <code>Error</code>，在 <strong>Window → Console</strong> 查看（见 <a href="../ScriptingAPI/">脚本 API</a>）。</p>
+<h2 id="ide">IDE 配置</h2>
+<h3 id="edit-preferences">全局默认（Edit → Preferences）</h3>
 <ul>
-<li><a href="../ScriptWorkflow/">脚本工作流</a>：编译、文件监视、IDE 配置</li>
-<li><a href="../EditorInterface/">编辑器界面</a>：Console、Script Console、Play 工具栏</li>
-<li><a href="../Physics2D/">2D 物理</a>：刚体、碰撞体与碰撞事件</li>
+<li>选择 <strong>Visual Studio</strong>、<strong>VS Code</strong>、<strong>Rider</strong> 或 <strong>Custom</strong>（自定义可执行文件与参数模板）。</li>
+<li>保存到引擎数据目录下的 <code>editor_settings.yaml</code>。</li>
+</ul>
+<h3 id="file-project-settings">项目覆盖（File → Project Settings）</h3>
+<ul>
+<li><strong>Use Editor Default</strong>：继承全局设置。</li>
+<li>或为本项目单独指定 IDE / Custom 路径。</li>
+<li>写入 <code>.hproj</code>，随项目一并分享。</li>
+</ul>
+<h3 id="_4">打开项目 / 脚本</h3>
+<ul>
+<li><strong>File → Open C# Project</strong>：用当前有效配置打开 <code>.sln</code> 或项目目录。</li>
+<li>属性面板 <strong>Script Component → Edit</strong>：打开对应 <code>.cs</code> 文件。</li>
+</ul>
+<p><strong>Custom</strong> 参数占位符：<code>{ProjectDir}</code>、<code>{Solution}</code>、<code>{File}</code>、<code>{ProjectName}</code>。</p>
+<h2 id="_5">常见问题</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Play 后脚本不执行</td>
+<td>检查类名是否与 <code>ScriptComponent</code> 中一致（含命名空间）；Script Console 是否编译成功</td>
+</tr>
+<tr>
+<td>Inspector 无字段</td>
+<td>字段须为 <strong>public 实例</strong> 字段；保存场景后重开验证</td>
+</tr>
+<tr>
+<td>Log 无输出</td>
+<td>使用 <code>Himii.Log</code>，非 <code>Console.WriteLine</code>；确认 Console 面板已打开</td>
+</tr>
+<tr>
+<td>IDE 打不开</td>
+<td>Preferences / Project Settings 中检查 IDE 路径；VS Code 需 <code>code</code> 在 PATH</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_6">相关文档</h2>
+<ul>
+<li><a href="../ScriptingAPI/">脚本 API</a></li>
+<li><a href="../EditorInterface/">编辑器界面</a></li>
+<li><a href="../../DevManual/BuildingFromSource/">源码构建</a></li>
 </ul>
 
 

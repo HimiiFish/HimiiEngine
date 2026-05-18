@@ -25,7 +25,7 @@
     
     
       
-        <title>场景序列化实现思路（YAML） - HimiiEngine 引擎文档</title>
+        <title>场景序列化（YAML） - HimiiEngine 引擎文档</title>
       
     
     
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              场景序列化实现思路（YAML）
+              场景序列化（YAML）
             
           </span>
         </div>
@@ -617,7 +617,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -635,7 +635,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -664,7 +664,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        目标与范围
+        目标
       
     </span>
   </a>
@@ -675,18 +675,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        数据模型与字段
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#yaml-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        YAML Schema 示例
+        文件格式概览
       
     </span>
   </a>
@@ -697,19 +686,41 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        关键实现细节
+        已序列化的组件（当前）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="关键实现细节">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptfields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScriptFields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实现要点
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="实现要点">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-yaml-cpp" class="md-nav__link">
+  <a href="#serialize" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1) 基于 yaml-cpp 的读写
+        写入 (Serialize)
       
     </span>
   </a>
@@ -717,10 +728,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-glm" class="md-nav__link">
+  <a href="#deserialize" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2) GLM 向量的序列化支持
+        读取 (Deserialize)
       
     </span>
   </a>
@@ -728,21 +739,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-serialize" class="md-nav__link">
+  <a href="#glm" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3) Serialize 流程（写入）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-deserialize" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4) Deserialize 流程（读取）
+        GLM 向量
       
     </span>
   </a>
@@ -755,21 +755,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        相机与渲染的配合
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        错误处理与边界情况
+        编辑器集成
       
     </span>
   </a>
@@ -780,7 +769,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        现状与待办
+        错误处理
       
     </span>
   </a>
@@ -791,7 +780,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        与编辑器的集成建议
+        待扩展（真实缺口）
       
     </span>
   </a>
@@ -813,7 +802,7 @@
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        代码指引
+        代码索引
       
     </span>
   </a>
@@ -1017,6 +1006,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../UserManual/ScriptWorkflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本工作流 (Script Workflow)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../UserManual/ScriptingAPI/" class="md-nav__link">
         
   
@@ -1075,7 +1092,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        目标与范围
+        目标
       
     </span>
   </a>
@@ -1086,18 +1103,7 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        数据模型与字段
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#yaml-schema" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        YAML Schema 示例
+        文件格式概览
       
     </span>
   </a>
@@ -1108,19 +1114,41 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        关键实现细节
+        已序列化的组件（当前）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="关键实现细节">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scriptfields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ScriptFields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实现要点
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="实现要点">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-yaml-cpp" class="md-nav__link">
+  <a href="#serialize" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1) 基于 yaml-cpp 的读写
+        写入 (Serialize)
       
     </span>
   </a>
@@ -1128,10 +1156,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-glm" class="md-nav__link">
+  <a href="#deserialize" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2) GLM 向量的序列化支持
+        读取 (Deserialize)
       
     </span>
   </a>
@@ -1139,21 +1167,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#3-serialize" class="md-nav__link">
+  <a href="#glm" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3) Serialize 流程（写入）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#4-deserialize" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4) Deserialize 流程（读取）
+        GLM 向量
       
     </span>
   </a>
@@ -1166,21 +1183,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        相机与渲染的配合
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_5" class="md-nav__link">
     <span class="md-ellipsis">
       
-        错误处理与边界情况
+        编辑器集成
       
     </span>
   </a>
@@ -1191,7 +1197,7 @@
   <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        现状与待办
+        错误处理
       
     </span>
   </a>
@@ -1202,7 +1208,7 @@
   <a href="#_7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        与编辑器的集成建议
+        待扩展（真实缺口）
       
     </span>
   </a>
@@ -1224,7 +1230,7 @@
   <a href="#_9" class="md-nav__link">
     <span class="md-ellipsis">
       
-        代码指引
+        代码索引
       
     </span>
   </a>
@@ -1251,184 +1257,163 @@
   
 
 
-<h1 id="yaml">场景序列化实现思路（YAML）</h1>
-<p>本文档总结当前 Scene 序列化/反序列化（YAML）的设计目标、数据模型、YAML Schema、关键实现与扩展点，方便维护与后续接入编辑器 UI。</p>
-<h2 id="_1">目标与范围</h2>
+<h1 id="yaml">场景序列化（YAML）</h1>
+<p>本文档描述 <code>.himii</code> 场景文件的序列化/反序列化设计，实现位于 <code>Engine/src/Himii/Scene/SceneSerializer.cpp</code>。</p>
+<h2 id="_1">目标</h2>
 <ul>
-<li>目标：将场景中的实体与核心组件保存为可读可编辑的 <code>.yaml</code>，并支持从 <code>.yaml</code> 还原。</li>
-<li>范围（当前版本）：</li>
-<li>仅序列化包含 <code>Transform</code> 的实体（作为最小存在条件）。</li>
-<li>组件覆盖：<code>ID</code>（如存在）、<code>Tag</code>、<code>Transform</code>、<code>SpriteRenderer</code>、<code>CameraComponent</code>。</li>
-<li>未覆盖：纹理资源路径/UV 细节（仅保留颜色与 tiling）、脚本/网格资源、层级关系等。</li>
+<li>将场景中实体与组件保存为可读 YAML（<code>.himii</code>）。</li>
+<li>支持从文件还原场景，并在编辑器中 <strong>File → Open Scene</strong> / <strong>Save Scene As</strong> 使用。</li>
 </ul>
-<h2 id="_2">数据模型与字段</h2>
-<ul>
-<li>Entity 最低要求：必须有 <code>Transform</code> 才会被写入。</li>
-<li>组件字段映射：</li>
-<li>ID：<code>ID.id</code>（UUID，若存在则写入 <code>ID</code> 字段，类型为 uint64）</li>
-<li>Tag：<code>Tag.name</code> → <code>Tag</code></li>
-<li>Transform：<ul>
-<li><code>Position: [x, y, z]</code></li>
-<li><code>Rotation: [x, y, z]</code>（欧拉角，单位：弧度/度 取决于项目内部约定；当前实现与引擎一致）</li>
-<li><code>Scale: [x, y, z]</code></li>
-</ul>
-</li>
-<li>SpriteRenderer：<ul>
-<li><code>Color: [r, g, b, a]</code></li>
-<li><code>Tiling: float</code></li>
-</ul>
-</li>
-<li>Camera：<ul>
-<li><code>Primary: bool</code></li>
-<li><code>Projection: "Perspective" | "Orthographic"</code></li>
-<li>透视：<code>FovYDeg: float</code></li>
-<li>正交：<code>OrthoSize: float</code>（以可视高度为基准的缩放/zoom 值）</li>
-<li>裁剪：<code>NearZ: float</code>, <code>FarZ: float</code></li>
-<li>朝向控制：</li>
-<li><code>UseLookAt: bool</code></li>
-<li><code>LookAtTarget: [x,y,z]</code></li>
-<li><code>Up: [x,y,z]</code></li>
-</ul>
-</li>
-</ul>
-<h2 id="yaml-schema">YAML Schema 示例</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">Scene</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Untitled</span>
+<h2 id="_2">文件格式概览</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">Scene</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ExampleScene</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">Entities</span><span class="p">:</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">ID</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">123456789</span><span class="w">        </span><span class="c1"># 可选，存在 ID 组件才写入</span>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">Tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Camera&quot;</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="nt">Transform</span><span class="p">:</span>
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">      </span><span class="nt">Position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">5</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">Rotation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">Scale</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">Camera</span><span class="p">:</span>
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="nt">Primary</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
-<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">Projection</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Perspective</span>
-<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">FovYDeg</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">45.0</span>
-<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">      </span><span class="nt">OrthoSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10.0</span>
-<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="nt">NearZ</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.1</span>
-<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">      </span><span class="nt">FarZ</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">100.0</span>
-<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">      </span><span class="nt">UseLookAt</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
-<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="nt">LookAtTarget</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="nt">Up</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a>
-<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Tag</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;Quad&quot;</span>
-<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">    </span><span class="nt">Transform</span><span class="p">:</span>
-<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="nt">Position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">      </span><span class="nt">Rotation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">Scale</span><span class="p">:</span><span class="w">    </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">    </span><span class="nt">SpriteRenderer</span><span class="p">:</span>
-<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">      </span><span class="nt">Color</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.5</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0.2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
-<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">      </span><span class="nt">Tiling</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Entity</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1234567890123456789</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="nt">TagComponent</span><span class="p">:</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">      </span><span class="nt">Tag</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Player</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">    </span><span class="nt">TransformComponent</span><span class="p">:</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">      </span><span class="nt">Position</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">      </span><span class="nt">Rotation</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">      </span><span class="nt">Scale</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">    </span><span class="nt">ScriptComponent</span><span class="p">:</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="nt">ClassName</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">MyGame.PlayerController</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="nt">ScriptFields</span><span class="p">:</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Speed</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">          </span><span class="nt">Type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">5</span><span class="w">          </span><span class="c1"># ScriptFieldType 枚举整型</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">          </span><span class="nt">Data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8.0</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Target</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">          </span><span class="nt">Type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span><span class="w">         </span><span class="c1"># Entity</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">          </span><span class="nt">Data</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">9876543210987654321</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">    </span><span class="nt">SpriteRendererComponent</span><span class="p">:</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">      </span><span class="nt">Color</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-21" name="__codelineno-0-21" href="#__codelineno-0-21"></a><span class="w">      </span><span class="nt">TexturePath</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">assets/textures/player.png</span>
+<a id="__codelineno-0-22" name="__codelineno-0-22" href="#__codelineno-0-22"></a><span class="w">      </span><span class="nt">TilingFactor</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<a id="__codelineno-0-23" name="__codelineno-0-23" href="#__codelineno-0-23"></a><span class="w">    </span><span class="nt">Rigidbody2DComponent</span><span class="p">:</span>
+<a id="__codelineno-0-24" name="__codelineno-0-24" href="#__codelineno-0-24"></a><span class="w">      </span><span class="nt">BodyType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<a id="__codelineno-0-25" name="__codelineno-0-25" href="#__codelineno-0-25"></a><span class="w">      </span><span class="nt">FixedRotation</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span>
+<a id="__codelineno-0-26" name="__codelineno-0-26" href="#__codelineno-0-26"></a><span class="w">    </span><span class="nt">BoxCollider2DComponent</span><span class="p">:</span>
+<a id="__codelineno-0-27" name="__codelineno-0-27" href="#__codelineno-0-27"></a><span class="w">      </span><span class="nt">Offset</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-28" name="__codelineno-0-28" href="#__codelineno-0-28"></a><span class="w">      </span><span class="nt">Size</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">1</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-29" name="__codelineno-0-29" href="#__codelineno-0-29"></a><span class="w">      </span><span class="nt">Density</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1.0</span>
+<a id="__codelineno-0-30" name="__codelineno-0-30" href="#__codelineno-0-30"></a><span class="w">      </span><span class="nt">Friction</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
+<a id="__codelineno-0-31" name="__codelineno-0-31" href="#__codelineno-0-31"></a><span class="w">      </span><span class="nt">Restitution</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0</span>
+<a id="__codelineno-0-32" name="__codelineno-0-32" href="#__codelineno-0-32"></a><span class="w">      </span><span class="nt">RestitutionThreshold</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.5</span>
 </code></pre></div>
-<h2 id="_3">关键实现细节</h2>
-<p>文件位置：
-- <code>Engine/src/Himii/Scene/SceneSerializer.h/.cpp</code></p>
-<h3 id="1-yaml-cpp">1) 基于 yaml-cpp 的读写</h3>
+<p>实际键名与 <code>SceneSerializer</code> 中 <code>YAML::Key</code> 一致（如 <code>TagComponent</code>、<code>TransformComponent</code> 等）。</p>
+<h2 id="_3">已序列化的组件（当前）</h2>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Entity</strong> (UUID)</td>
+<td><code>entity["Entity"]</code>，反序列化用 <code>CreateEntityWithUUID</code></td>
+</tr>
+<tr>
+<td><strong>TagComponent</strong></td>
+<td>实体名称</td>
+</tr>
+<tr>
+<td><strong>TransformComponent</strong></td>
+<td>Position / Rotation / Scale</td>
+</tr>
+<tr>
+<td><strong>CameraComponent</strong></td>
+<td>投影、裁剪、背景色、Primary 等</td>
+</tr>
+<tr>
+<td><strong>ScriptComponent</strong></td>
+<td><code>ClassName</code> + <code>ScriptFields</code>（含 Entity 引用 UUID）</td>
+</tr>
+<tr>
+<td><strong>SpriteRendererComponent</strong></td>
+<td>Color、TexturePath、TilingFactor</td>
+</tr>
+<tr>
+<td><strong>CircleRendererComponent</strong></td>
+<td>Color、Thickness、Fade</td>
+</tr>
+<tr>
+<td><strong>MeshComponent</strong></td>
+<td>Type、Color</td>
+</tr>
+<tr>
+<td><strong>Rigidbody2DComponent</strong></td>
+<td>BodyType、FixedRotation</td>
+</tr>
+<tr>
+<td><strong>BoxCollider2DComponent</strong></td>
+<td>Offset、Size、材料参数</td>
+</tr>
+<tr>
+<td><strong>CircleCollider2DComponent</strong></td>
+<td>Offset、Radius、材料参数</td>
+</tr>
+<tr>
+<td><strong>UITransform / UIImage / UIText</strong> 等</td>
+<td>UI 实体分支（<code>CreateUIEntityWithUUID</code>）</td>
+</tr>
+</tbody>
+</table>
+<p>其他组件（粒子、Tilemap、动画等）若已在 <code>SerializeEntity</code> 中实现，以源码为准；未列出的组件在保存时不会写入。</p>
+<h2 id="scriptfields">ScriptFields</h2>
 <ul>
-<li>依赖：<code>yaml-cpp</code>（已在 <code>Engine/CMakeLists.txt</code> 中 <code>find_package</code> 并链接）。</li>
-<li>写入使用 <code>YAML::Emitter</code>，读取使用 <code>YAML::LoadFile</code>。</li>
+<li>与编辑器 Inspector 中 <code>ScriptComponent::Fields</code> 一致。</li>
+<li><code>Type</code> 为 <code>ScriptFieldType</code> 整型；<code>Data</code> 类型随字段变化（标量、向量、UUID、字符串等）。</li>
+<li>游戏脚本仅 <strong>public 实例字段</strong> 参与反射与保存。</li>
 </ul>
-<h3 id="2-glm">2) GLM 向量的序列化支持</h3>
+<h2 id="_4">实现要点</h2>
+<h3 id="serialize">写入 (<code>Serialize</code>)</h3>
+<ol>
+<li>遍历 <code>registry</code> 中带 <code>TransformComponent</code> 的实体（或 UI 实体路径）。</li>
+<li><code>SerializeEntity</code> 按组件存在性逐项 <code>Emitter</code> 输出。</li>
+<li>写入磁盘路径由 <code>SceneSerializer::Serialize(path)</code> 指定。</li>
+</ol>
+<h3 id="deserialize">读取 (<code>Deserialize</code>)</h3>
+<ol>
+<li><code>YAML::LoadFile</code> 解析 <code>Entities</code> 序列。</li>
+<li>每个条目调用 <code>DeserializeEntity</code>：</li>
+<li>读取 <code>Entity</code> UUID → <code>CreateEntityWithUUID</code> / <code>CreateUIEntityWithUUID</code></li>
+<li>按块还原各组件字段</li>
+<li>缺失字段保留组件默认值。</li>
+</ol>
+<h3 id="glm">GLM 向量</h3>
+<p><code>SceneSerializer.cpp</code> 内对 <code>glm::vec2/vec3/vec4</code> 提供 <code>YAML::convert</code> 与 Emitter 支持，格式为 Flow 序列 <code>[x, y, z]</code>。</p>
+<h2 id="_5">编辑器集成</h2>
 <ul>
-<li>在 <code>SceneSerializer.cpp</code> 内提供 <code>YAML::convert&lt;glm::vec3/vec4&gt;</code> 与 <code>Emitter</code> 运算符重载：</li>
-<li>写入为 Flow 序列（<code>[x, y, z]</code> / <code>[x, y, z, w]</code>）。</li>
-<li>读取时验证为定长序列并解析为 <code>glm</code> 向量。</li>
+<li><strong>File → Open Scene</strong>：加载 <code>.himii</code> 到当前编辑场景。</li>
+<li><strong>File → Save Scene As</strong>：<code>EditorLayer::SerializeScene</code> → <code>SceneSerializer::Serialize</code>。</li>
+<li>项目 <strong>Start Scene</strong> 在 <code>.hproj</code> 中配置，打开项目时可自动加载。</li>
 </ul>
-<h3 id="3-serialize">3) Serialize 流程（写入）</h3>
+<h2 id="_6">错误处理</h2>
 <ul>
-<li>遍历 <code>entt::registry</code> 内所有实体：</li>
-<li>过滤：若实体无 <code>Transform</code>，跳过（保证最小有效实体）。</li>
-<li>按组件依次写入对应字段（见“数据模型与字段”）。</li>
-<li>最终写入到指定路径的文本文件。</li>
+<li>文件打开/解析失败：<code>Deserialize</code> 返回 <code>false</code>。</li>
+<li>缺少 <code>Entities</code> 节点：反序列化失败。</li>
+<li>可选字段：有则解析，无则跳过。</li>
 </ul>
-<p>伪代码（与实现一致）：
-- BeginMap: Scene/Entities
-- For each entity with Transform:
-  - BeginMap: Entity
-    - if ID: write <code>ID</code>
-    - if Tag: write <code>Tag</code>
-    - if Transform: write Position/Rotation/Scale
-    - if SpriteRenderer: write Color/Tiling
-    - if Camera: write Primary/Projection/Fov/OrthoSize/Near/Far/UseLookAt/LookAtTarget/Up
-  - EndMap
-- EndSeq/EndMap, flush to file</p>
-<h3 id="4-deserialize">4) Deserialize 流程（读取）</h3>
+<h2 id="_7">待扩展（真实缺口）</h2>
 <ul>
-<li>读取 <code>Entities</code> 数组，逐个创建实体：</li>
-<li>目前默认使用 <code>Scene::CreateEntity(name)</code> 生成新 UUID。</li>
-<li>依次检测并还原 Transform、SpriteRenderer、Camera 字段。</li>
-<li>注意：当前版本未写回 <code>ID</code>（即使 YAML 中存在 <code>ID</code>），因此会生成新的 UUID。</li>
-</ul>
-<p>改进建议（已在引擎具备能力）：
-- 当 YAML 存在 <code>ID</code> 时，调用 <code>Scene::CreateEntityWithUUID(uuid, name)</code>，确保稳定 ID 回放；
-- 同时更新 <code>Scene::m_EntityMap</code>（<code>CreateEntityWithUUID</code> 已内部处理）。</p>
-<h2 id="_4">相机与渲染的配合</h2>
-<ul>
-<li><code>CameraComponent</code> 在 <code>Scene::OnUpdate</code> 中被读取：</li>
-<li>根据 <code>Projection</code> 自动刷新投影矩阵：<ul>
-<li>透视：<code>SetFovYDeg(fov)</code></li>
-<li>正交：<code>SetOrthographicBySize(orthoSize, near, far)</code>（保持垂直尺寸，水平按纵横比）</li>
-</ul>
-</li>
-<li>视图矩阵：<ul>
-<li><code>UseLookAt == true</code>：使用 <code>glm::lookAt(Position, LookAtTarget, Up)</code>；</li>
-<li>否则：通过 <code>Transform</code> 欧拉角设置相机旋转与位置，避免 <code>SetPosition</code> 影响旋转。</li>
-</ul>
-</li>
-</ul>
-<h2 id="_5">错误处理与边界情况</h2>
-<ul>
-<li>打开文件/解析失败：返回 <code>false</code>，外层可据此提示用户。</li>
-<li>YAML 结构缺失：若缺 <code>Entities</code>，反序列化返回 <code>false</code>。</li>
-<li>字段缺失：采用“存在则解析，否则使用组件默认值”的模式（例如 <code>Tiling</code>、<code>FovYDeg</code> 等）。</li>
-<li>非法向量：<code>convert&lt;&gt;</code> 会校验序列长度，失败则不覆盖默认值。</li>
-</ul>
-<h2 id="_6">现状与待办</h2>
-<ul>
-<li>已完成：</li>
-<li>序列化/反序列化核心逻辑（ID/Tag/Transform/SpriteRenderer/Camera）。</li>
-<li><code>Engine</code> 构建已链接 <code>yaml-cpp</code>。</li>
-<li>待完成：</li>
-<li>编辑器 UI 接入：添加菜单项“File &gt; Save Scene… / Open Scene…”，调用 <code>SceneSerializer</code>；</li>
-<li>反序列化使用 <code>CreateEntityWithUUID</code> 保持稳定 ID；</li>
-<li>扩展序列化内容：<ul>
-<li><code>SpriteRenderer.texture</code>（资源路径/句柄）、<code>uvs</code>；</li>
-<li><code>NativeScriptComponent</code>（脚本类名与可序列化参数）；</li>
-<li><code>MeshRenderer</code>（网格/材质/纹理资源标识）；</li>
-<li>实体层级/关系（若引入 Parent/Child 组件）；</li>
-<li>选择/拾取所需的稳定 <code>PickID</code>（若与选择系统耦合）。</li>
-</ul>
-</li>
-</ul>
-<h2 id="_7">与编辑器的集成建议</h2>
-<ul>
-<li>保存：</li>
-<li>从当前 <code>Scene*</code> 构造 <code>SceneSerializer</code>，<code>Serialize(path)</code>。</li>
-<li>打开：</li>
-<li>可先清空场景，再 <code>Deserialize(path)</code>；或提供“追加合并”模式（需要冲突策略与 UUID 处理）。</li>
-<li>Windows 文件对话框：</li>
-<li>可使用现有跨平台封装（若有），或临时集成原生对话框/ImGui file dialog。</li>
+<li><strong>Prefab</strong> 引用与实例化覆盖</li>
+<li>部分高级组件的统一资源句柄格式（AssetHandle vs 路径混用时的规范化）</li>
+<li><strong>实体父子层级</strong> 若引入 Parent 组件，需在序列化中增加关系块</li>
+<li>更完整的 <strong>NativeScriptComponent</strong> / 程序集拆分（多 asmdef）</li>
 </ul>
 <h2 id="_8">测试建议</h2>
+<ol>
+<li>空场景 + 单实体 Transform：保存 → 重新打开 → 比对变换。</li>
+<li>带 <code>ScriptComponent</code> 与 public 字段：Inspector 修改 → 保存 → 重开 → 字段与 Entity 引用一致。</li>
+<li>2D 物理组件：保存后碰撞体参数一致。</li>
+<li>Play 模式前无需重新手动挂脚本类名（类名在 YAML 中）。</li>
+</ol>
+<h2 id="_9">代码索引</h2>
 <ul>
-<li>最小回放：</li>
-<li>仅 Transform 的实体 1~2 个；保存→清空→读取→比对位置/旋转/缩放。</li>
-<li>SpriteRenderer：</li>
-<li>颜色、tiling 的保存与恢复；</li>
-<li>Camera：</li>
-<li>透视/正交切换、FOV/OrthoSize、Near/Far、UseLookAt 路径回放；</li>
-<li>UUID 稳定性（在迁移到 <code>CreateEntityWithUUID</code> 后）：</li>
-<li>写入 ID→读取后比对 ID 是否保持一致。</li>
+<li><code>SceneSerializer::Serialize</code> / <code>Deserialize</code> / <code>SerializeEntity</code> / <code>DeserializeEntity</code></li>
+<li><code>Engine/src/Himii/Scene/Components.h</code></li>
+<li><code>Engine/src/Himii/Scene/Scene.h</code></li>
 </ul>
-<h2 id="_9">代码指引</h2>
-<ul>
-<li>入口：<code>SceneSerializer::Serialize/Deserialize</code></li>
-<li>组件定义：<code>Engine/src/Himii/Scene/Components.h</code></li>
-<li>场景入口与实体创建：<code>Engine/src/Himii/Scene/Scene.h/.cpp</code></li>
-<li>相机基类与编辑器相机：<code>Engine/src/Himii/Scene/SceneCamera.*</code>、<code>Engine/src/Himii/Renderer/EditorCamera.*</code></li>
-</ul>
-<hr />
-<p>如需扩展更多组件的序列化，请遵循“存在则写入/读取，缺省使用默认值”的策略，并尽量使用资源标识（路径/UUID）而非裸指针，以便跨会话还原。</p>
 
 
 

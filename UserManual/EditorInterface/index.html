@@ -602,7 +602,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -843,6 +843,78 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        日志与调试面板
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="日志与调试面板">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consolewindow-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Console（Window → Console）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-consolewindow-script-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Script Console（Window → Script Console）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工具栏与运行模式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        菜单要点
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        脚本 IDE 配置
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -895,6 +967,34 @@
     
   
     2D 物理系统 (Physics 2D)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ScriptWorkflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本工作流 (Script Workflow)
   
 
     
@@ -1030,6 +1130,78 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        日志与调试面板
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="日志与调试面板">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#consolewindow-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Console（Window → Console）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#script-consolewindow-script-console" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Script Console（Window → Script Console）
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工具栏与运行模式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        菜单要点
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        脚本 IDE 配置
+      
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1051,24 +1223,105 @@
 
 
 <h1 id="editor-interface">编辑器界面 (Editor Interface)</h1>
-<p>HimiiEditor 的界面布局旨在提供直观的游戏开发体验。</p>
+<p>HimiiEditor 采用 DockSpace 停靠布局，提供场景编辑、资源管理与脚本开发能力。</p>
 <h2 id="_1">主要面板</h2>
 <h3 id="1-viewport">1. 视口 (Viewport)</h3>
-<p>视口是您查看和编辑 3D/2D 场景的主要区域。
-*   <strong>右键按住 + WASD</strong>：漫游场景。
-*   <strong>滚轮</strong>：缩放。</p>
+<p>查看与编辑 2D/3D 场景的主区域。</p>
+<ul>
+<li><strong>右键 + WASD</strong>：漫游（编辑模式下的场景相机）。</li>
+<li><strong>滚轮</strong>：缩放。</li>
+<li><strong>Play</strong> 模式下显示运行时画面；<strong>Edit</strong> 模式下可用 <strong>ImGuizmo</strong> 变换选中物体（移动 / 旋转 / 缩放）。</li>
+</ul>
 <h3 id="2-scene-hierarchy">2. 场景层级 (Scene Hierarchy)</h3>
-<p>显示当前场景中所有的实体 (Entity)。
-*   <strong>右键</strong>：创建新实体 (Create Empty, Camera, Sprite 等)。
-*   <strong>拖拽</strong>：改变父子关系。</p>
+<p>当前场景中的实体 (Entity) 树。</p>
+<ul>
+<li><strong>右键</strong>：创建实体（Empty、Camera、Sprite 等）。</li>
+<li><strong>拖拽</strong>：调整父子层级（若支持）。</li>
+<li>选中实体后，右侧属性面板显示其组件。</li>
+</ul>
 <h3 id="3-properties">3. 属性面板 (Properties)</h3>
-<p>显示当前选中实体的组件 (Component) 详细信息。
-*   在此处修改 Transform, Tag, SpriteRenderer 等组件参数。
-*   点击 <strong>Add Component</strong> 按钮为实体添加新功能。</p>
+<p>显示选中实体的组件与参数。</p>
+<ul>
+<li>编辑 <strong>Transform</strong>、<strong>SpriteRenderer</strong>、<strong>Script Component</strong> 等。</li>
+<li><strong>Add Component</strong> 添加新组件。</li>
+<li><strong>Script Component</strong>：填写类名、编辑 public 脚本字段（含 <strong>Entity</strong> 引用下拉）、<strong>Edit</strong> 打开脚本文件。</li>
+</ul>
 <h3 id="4-content-browser">4. 内容浏览器 (Content Browser)</h3>
-<p>管理项目资源（图片、脚本、场景文件等）。
-*   对应于项目根目录下的 <code>Assets</code> 文件夹。
-*   拖拽资源到视口或属性面板即可使用。</p>
+<p>管理项目资源（纹理、脚本、场景等），对应项目目录下的 <code>assets</code> 等文件夹。</p>
+<ul>
+<li>拖拽资源到视口或属性面板使用。</li>
+<li>可创建 C# 脚本、打开场景文件（<code>.himii</code>）等。</li>
+</ul>
+<h2 id="_2">日志与调试面板</h2>
+<h3 id="consolewindow-console">Console（Window → Console）</h3>
+<p><strong>运行时日志</strong>面板，显示游戏脚本通过 <code>Log.Info</code> / <code>Warning</code> / <code>Error</code> 输出的内容。</p>
+<ul>
+<li><strong>Clear</strong>：清空缓冲。</li>
+<li><strong>Show Engine Logs</strong>：勾选后同时显示引擎内部日志（默认仅显示脚本 <code>Log</code>）。</li>
+<li><strong>Auto Scroll</strong>：新日志时自动滚到底部。</li>
+<li>进入 <strong>Play</strong> 时自动清空，避免与上次运行混淆。</li>
+</ul>
+<h3 id="script-consolewindow-script-console">Script Console（Window → Script Console）</h3>
+<p><strong>脚本编译</strong>输出，显示 <code>dotnet build</code> 的结果。</p>
+<ul>
+<li>编译中 / 成功 / 失败状态提示。</li>
+<li>点击带 <code>文件.cs(行,列): error</code> 格式的行，可在配置的 IDE 中打开对应脚本（见 <a href="../ScriptWorkflow/">脚本工作流</a>）。</li>
+</ul>
+<h2 id="_3">工具栏与运行模式</h2>
+<p>视口上方工具栏：</p>
+<ul>
+<li><strong>Play</strong>：运行游戏（复制场景、启动脚本与物理）；再次点击或 <strong>Stop</strong> 返回编辑。</li>
+<li><strong>Simulate</strong>：仅物理模拟（不运行脚本生命周期）。</li>
+<li><strong>Stop</strong>：结束 Play / Simulate，恢复编辑场景。</li>
+</ul>
+<h2 id="_4">菜单要点</h2>
+<table>
+<thead>
+<tr>
+<th>菜单</th>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>File</strong></td>
+<td>New / Open / Save Project</td>
+<td>项目管理</td>
+</tr>
+<tr>
+<td><strong>File</strong></td>
+<td>Open C# Project</td>
+<td>用配置的 IDE 打开解决方案</td>
+</tr>
+<tr>
+<td><strong>File</strong></td>
+<td>Project Settings</td>
+<td>项目级脚本 IDE 覆盖（<code>.hproj</code>）</td>
+</tr>
+<tr>
+<td><strong>Edit</strong></td>
+<td>Preferences</td>
+<td>全局默认脚本 IDE（<code>editor_settings.yaml</code>）</td>
+</tr>
+<tr>
+<td><strong>Window</strong></td>
+<td>Console / Script Console</td>
+<td>见上文</td>
+</tr>
+<tr>
+<td><strong>Window</strong></td>
+<td>Animation / TileMap / Particle 等</td>
+<td>专项资源编辑器</td>
+</tr>
+</tbody>
+</table>
+<h2 id="ide">脚本 IDE 配置</h2>
+<ul>
+<li><strong>Edit → Preferences</strong>：设置默认 IDE（Visual Studio、VS Code、Rider 或 Custom 可执行文件）。</li>
+<li><strong>File → Project Settings</strong>：项目可覆盖为「使用编辑器默认」或指定 IDE。</li>
+</ul>
+<p>详见 <a href="../ScriptWorkflow/">脚本工作流</a>。</p>
 
 
 

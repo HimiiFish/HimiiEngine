@@ -551,7 +551,7 @@
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1) 技术栈一览
+        1) 技术栈
       
     </span>
   </a>
@@ -562,7 +562,7 @@
   <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2) 项目/目录结构（精简）
+        2) 仓库结构
       
     </span>
   </a>
@@ -573,52 +573,19 @@
   <a href="#3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3) 模块与架构
+        3) 模块划分
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4) 生命周期（运行时）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5) 典型调用路径（渲染帧）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6) 主要子系统要点
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="6) 主要子系统要点">
+    <nav class="md-nav" aria-label="3) 模块划分">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#61-framebuffer" class="md-nav__link">
+  <a href="#core" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.1 帧缓冲（Framebuffer）
+        Core
       
     </span>
   </a>
@@ -626,10 +593,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#62" class="md-nav__link">
+  <a href="#renderer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.2 渲染资源
+        Renderer
       
     </span>
   </a>
@@ -637,10 +604,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#63" class="md-nav__link">
+  <a href="#sceneecs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.3 编辑器面板
+        Scene（ECS）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#himiieditor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HimiiEditor
       
     </span>
   </a>
@@ -653,10 +642,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) 应用生命周期
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) 脚本加载与调用链
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6) 日志数据流
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7) 地形生成（概览）
+        7) 渲染帧（编辑器视口）
       
     </span>
   </a>
@@ -667,7 +689,7 @@
   <a href="#8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8) 天空盒与光照
+        8) 构建与运行
       
     </span>
   </a>
@@ -675,15 +697,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-openglglmimgui" class="md-nav__link">
+  <a href="#9-opengl-glm-imgui" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9) OpenGL/GLM/ImGui 知识点速查
+        9) OpenGL / GLM / ImGui 速查
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9) OpenGL/GLM/ImGui 知识点速查">
+    <nav class="md-nav" aria-label="9) OpenGL / GLM / ImGui 速查">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -728,7 +750,7 @@
   <a href="#10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10) 构建与运行
+        10) 延伸阅读
       
     </span>
   </a>
@@ -736,32 +758,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#11" class="md-nav__link">
+  <a href="#templateproject" class="md-nav__link">
     <span class="md-ellipsis">
       
-        11) 性能与稳健性建议
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-roadmap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12) 未来工作（Roadmap）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        13) 术语表（简）
+        附录：TemplateProject 历史说明
       
     </span>
   </a>
@@ -876,7 +876,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -1078,6 +1078,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../UserManual/ScriptWorkflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本工作流 (Script Workflow)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../UserManual/ScriptingAPI/" class="md-nav__link">
         
   
@@ -1136,7 +1164,7 @@
   <a href="#1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1) 技术栈一览
+        1) 技术栈
       
     </span>
   </a>
@@ -1147,7 +1175,7 @@
   <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2) 项目/目录结构（精简）
+        2) 仓库结构
       
     </span>
   </a>
@@ -1158,52 +1186,19 @@
   <a href="#3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3) 模块与架构
+        3) 模块划分
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        4) 生命周期（运行时）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5) 典型调用路径（渲染帧）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6) 主要子系统要点
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="6) 主要子系统要点">
+    <nav class="md-nav" aria-label="3) 模块划分">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#61-framebuffer" class="md-nav__link">
+  <a href="#core" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.1 帧缓冲（Framebuffer）
+        Core
       
     </span>
   </a>
@@ -1211,10 +1206,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#62" class="md-nav__link">
+  <a href="#renderer" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.2 渲染资源
+        Renderer
       
     </span>
   </a>
@@ -1222,10 +1217,32 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#63" class="md-nav__link">
+  <a href="#sceneecs" class="md-nav__link">
     <span class="md-ellipsis">
       
-        6.3 编辑器面板
+        Scene（ECS）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#scripting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Scripting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#himiieditor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HimiiEditor
       
     </span>
   </a>
@@ -1238,10 +1255,43 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) 应用生命周期
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5) 脚本加载与调用链
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6) 日志数据流
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#7" class="md-nav__link">
     <span class="md-ellipsis">
       
-        7) 地形生成（概览）
+        7) 渲染帧（编辑器视口）
       
     </span>
   </a>
@@ -1252,7 +1302,7 @@
   <a href="#8" class="md-nav__link">
     <span class="md-ellipsis">
       
-        8) 天空盒与光照
+        8) 构建与运行
       
     </span>
   </a>
@@ -1260,15 +1310,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#9-openglglmimgui" class="md-nav__link">
+  <a href="#9-opengl-glm-imgui" class="md-nav__link">
     <span class="md-ellipsis">
       
-        9) OpenGL/GLM/ImGui 知识点速查
+        9) OpenGL / GLM / ImGui 速查
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="9) OpenGL/GLM/ImGui 知识点速查">
+    <nav class="md-nav" aria-label="9) OpenGL / GLM / ImGui 速查">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
@@ -1313,7 +1363,7 @@
   <a href="#10" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10) 构建与运行
+        10) 延伸阅读
       
     </span>
   </a>
@@ -1321,32 +1371,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#11" class="md-nav__link">
+  <a href="#templateproject" class="md-nav__link">
     <span class="md-ellipsis">
       
-        11) 性能与稳健性建议
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#12-roadmap" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        12) 未来工作（Roadmap）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#13" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        13) 术语表（简）
+        附录：TemplateProject 历史说明
       
     </span>
   </a>
@@ -1374,226 +1402,193 @@
 
 
 <h1 id="_1">技术总览（引擎与编辑器）</h1>
-<p>本文档总结本项目当前的技术栈、工程结构、核心架构、运行生命周期、关键调用关系，并整理常用 OpenGL/GLM/ImGui 相关知识点，便于快速上手与维护。</p>
+<p>本文档描述 Himii-Engine 当前的技术栈、仓库结构、核心子系统与典型数据流，供贡献者快速上手。</p>
 <hr />
-<h2 id="1">1) 技术栈一览</h2>
+<h2 id="1">1) 技术栈</h2>
+<table>
+<thead>
+<tr>
+<th>类别</th>
+<th>选型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>语言 / 构建</td>
+<td>C++17、CMake、vcpkg 清单模式</td>
+</tr>
+<tr>
+<td>渲染</td>
+<td>OpenGL（GLAD）、GLM</td>
+</tr>
+<tr>
+<td>窗口 / 输入</td>
+<td>GLFW</td>
+</tr>
+<tr>
+<td>UI</td>
+<td>Dear ImGui（Docking）、ImGuizmo</td>
+</tr>
+<tr>
+<td>物理 2D</td>
+<td>Box2D v3</td>
+</tr>
+<tr>
+<td>脚本</td>
+<td>.NET 8、CoreCLR、<code>hostfxr</code>、可收集 ALC</td>
+</tr>
+<tr>
+<td>序列化</td>
+<td>yaml-cpp</td>
+</tr>
+<tr>
+<td>日志</td>
+<td>spdlog + 编辑器 <code>ConsoleLog</code> 缓冲</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2">2) 仓库结构</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Himii-Engine/
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Engine/           # 静态库：Core、Renderer、Scene、Scripting、Physics…
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── HimiiEditor/      # 编辑器可执行程序（Layer：EditorLayer + 各 Panel）
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── HimiiRuntime/     # 无 UI 的运行时启动器
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── ScriptCore/       # C# 脚本宿主 API（Entity、Input、Log、InternalCalls）
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── Docs/docs/        # 用户 / 开发者文档
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── HimiiEditor/assets/           # 编辑器附带资源
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>└── build/            # CMake 生成目录（x64-debug 等）
+</code></pre></div>
+<blockquote>
+<p><strong>说明</strong>：早期示例工程 <strong>TemplateProject</strong>（CubeLayer 体素地形等）已不再作为默认产品入口；当前以 <strong>HimiiEditor</strong> 为主开发界面。</p>
+</blockquote>
+<hr />
+<h2 id="3">3) 模块划分</h2>
+<h3 id="core">Core</h3>
 <ul>
-<li>语言与构建</li>
-<li>C++17</li>
-<li>CMake + MSBuild（Windows）</li>
-<li>vcpkg 清单模式（<code>vcpkg.json</code>）</li>
-<li>第三方库（按用途）</li>
-<li>渲染：OpenGL 4.x（GLAD 加载）</li>
-<li>窗口与输入：GLFW</li>
-<li>数学：GLM</li>
-<li>UI：Dear ImGui（Docking）</li>
-<li>纹理：stb_image</li>
-<li>日志与格式化：spdlog, fmt</li>
-<li>运行形态</li>
-<li>原生桌面应用（TemplateProject.exe）</li>
-<li>内嵌编辑器 UI（DockSpace + 多面板）</li>
+<li><code>Application</code> / <code>LayerStack</code>：主循环、层生命周期</li>
+<li><code>Window</code> / <code>Input</code> / <code>Events</code></li>
+<li><code>Log</code>：<code>Print</code>（带源码位置）、<code>PrintMessage</code>（脚本/分类消息）</li>
+<li><code>ConsoleLog</code>：线程安全环形缓冲，供编辑器 Console 面板读取</li>
+</ul>
+<h3 id="renderer">Renderer</h3>
+<ul>
+<li>抽象：<code>Renderer2D</code>、<code>Shader</code>、<code>Texture</code>、<code>Framebuffer</code></li>
+<li>平台：<code>Platform/OpenGL</code> 实现</li>
+<li>编辑器视口：场景渲染到 FBO，ImGui <code>Image</code> 显示</li>
+</ul>
+<h3 id="sceneecs">Scene（ECS）</h3>
+<ul>
+<li><code>entt::registry</code> + <code>Entity</code> 句柄</li>
+<li>组件：<code>Transform</code>、<code>SpriteRenderer</code>、<code>Camera</code>、<code>ScriptComponent</code>、2D 物理组件等</li>
+<li><code>SceneSerializer</code>：<code>.himii</code> 场景 YAML 读写</li>
+<li><code>OnRuntimeStart</code> / <code>OnSimulationStart</code>：脚本实例化、Box2D 世界创建</li>
+</ul>
+<h3 id="scripting">Scripting</h3>
+<ul>
+<li><strong>C++</strong>：<code>ScriptEngine</code>（CoreCLR 宿主、实例表、<code>OnUpdate</code> / 碰撞分发）</li>
+<li><strong>C++</strong>：<code>ScriptGlue</code>（<code>NativeLog</code>、<code>Transform</code>、Input、Physics2D 等 native 函数表）</li>
+<li><strong>C++</strong>：<code>ScriptCompiler</code>（异步 <code>dotnet build</code>）、<code>ScriptIDELauncher</code></li>
+<li><strong>C#</strong>：<code>ScriptManager</code>（加载 <code>GameAssembly</code>、实例生命周期）</li>
+<li><strong>C#</strong>：<code>ReflectionBridge</code>（Inspector 字段读写）</li>
+<li><strong>C#</strong>：<code>InternalCalls</code> + <code>NativeFunctionsMap</code> 互操作</li>
+</ul>
+<h3 id="himiieditor">HimiiEditor</h3>
+<ul>
+<li><code>EditorLayer</code>：DockSpace、Play/Simulate/Stop、项目与场景 IO</li>
+<li>面板：Hierarchy、Content Browser、Console、Script Console、Preferences 等</li>
 </ul>
 <hr />
-<h2 id="2">2) 项目/目录结构（精简）</h2>
-<ul>
-<li>顶层</li>
-<li><code>CMakeLists.txt</code> / <code>CMakePresets.json</code> / <code>build.py</code>/<code>build_py.bat</code></li>
-<li><code>vcpkg/</code>（本地 vcpkg）</li>
-<li><code>build/</code>（生成目录，区分 x64-debug / x64-release）</li>
-<li><code>Docs/</code>（文档）</li>
-<li>Engine/</li>
-<li><code>src/Engine.h</code>（聚合头）</li>
-<li><code>src/Himii/Core</code>：Application、Layer、LayerStack、Window、Log、Event 等</li>
-<li><code>src/Himii/Renderer</code>：Renderer、RenderCommand、Shader、Texture、Buffer、VertexArray、Framebuffer（抽象）等</li>
-<li><code>src/Platform/OpenGL</code>：OpenGL 具体实现（Buffer/VertexArray/Shader/Texture/Framebuffer 等）</li>
-<li><code>vender/imgui</code>：ImGui 集成</li>
-<li>TemplateProject/</li>
-<li>Demo/编辑器层：<code>EditorLayer.*</code>、<code>CubeLayer.*</code>、<code>Example*</code> 等</li>
-<li>资源与着色器：<code>assets/</code>（textures/shaders/fonts）</li>
-</ul>
-<hr />
-<h2 id="3">3) 模块与架构</h2>
-<ul>
-<li>Core（跨平台层）</li>
-<li>Application：主循环、层管理（LayerStack）与事件派发</li>
-<li>Layer：抽象生命周期接口（OnAttach/OnUpdate/OnDetach/OnImGuiRender/OnEvent）</li>
-<li>Window/Input/Events：窗口、输入、事件类型（如 WindowResizeEvent）</li>
-<li>Renderer（API 无关抽象）</li>
-<li>RenderCommand：封装清屏/视口/DrawIndexed 等</li>
-<li>Shader/Texture/Buffer/VertexArray：渲染资源抽象</li>
-<li>Framebuffer：离屏渲染目标抽象（颜色附件 + 深度/模板）</li>
-<li>Renderer：BeginScene/Submit/EndScene（设置 VP 矩阵与批量提交）</li>
-<li>Platform.OpenGL（后端实现）</li>
-<li>OpenGLFramebuffer：FBO + 颜色纹理（RGBA8）+ 深度模板 RBO（DEPTH24_STENCIL8），Bind 时设置 Viewport</li>
-<li>其它 GL 对象：VAO/VBO/IBO/Shader/Texture 的 OpenGL 实现</li>
-<li>UI/Editor（基于 ImGui）</li>
-<li>DockSpace 顶部菜单条 + 面板系统</li>
-<li>Scene/Game 视图面板（通过 ImGui::Image 展示 FBO 颜色纹理）</li>
-<li>示例/玩法层（TemplateProject）</li>
-<li>CubeLayer：地形生成与渲染、相机、离屏渲染驱动</li>
-<li>EditorLayer：面板布局、尺寸/焦点/悬停状态回传、接收 FBO 纹理</li>
-</ul>
-<hr />
-<h2 id="4">4) 生命周期（运行时）</h2>
+<h2 id="4">4) 应用生命周期</h2>
 <ol>
-<li>启动</li>
-<li>初始化日志、窗口、OpenGL（GLAD）、ImGui 等</li>
-<li>装载 Layer：如 CubeLayer（场景逻辑）、EditorLayer（编辑器 UI）</li>
-<li>主循环（Application::Run，伪代码）</li>
-<li>处理系统事件 → 分发到各 Layer::OnEvent</li>
-<li>计算 DeltaTime（Timestep）</li>
-<li>遍历 LayerStack 调用 OnUpdate(ts)</li>
-<li>开始 ImGui 帧 → 遍历调用 OnImGuiRender() → 渲染 ImGui</li>
-<li>退出</li>
-<li>逆序 Detach 层、释放资源</li>
+<li><code>Log::Init</code>、窗口与 OpenGL、ImGui 初始化</li>
+<li>压入 <code>EditorLayer</code>（及可选其他 Layer）</li>
+<li>主循环：事件 → <code>OnUpdate</code> → ImGui → 呈现</li>
+<li>退出时释放层与 CoreCLR 脚本实例</li>
 </ol>
-<p>常见 Layer 生命周期钩子：
-- OnAttach：创建资源（VAO/VBO/IBO、Shader、Texture、Framebuffer 等）
-- OnUpdate(ts)：更新输入/相机、执行渲染（含离屏渲染）
-- OnImGuiRender：参数面板、视图面板等 UI
-- OnDetach：释放资源</p>
+<p><strong>Play 模式</strong>（<code>EditorLayer::StartScenePlay</code>）：</p>
+<ol>
+<li><code>ConsoleLog::Clear</code></li>
+<li>复制 <code>EditorScene</code> → <code>ActiveScene</code></li>
+<li><code>Scene::OnRuntimeStart</code> → <code>ScriptEngine::OnRuntimeStart</code> → 各实体 <code>OnCreateEntity</code></li>
+<li>每帧：<code>OnUpdateRuntime</code>（脚本 <code>OnUpdate</code>、Box2D Step、接触事件 → <code>OnCollisionEnter2D/Exit2D</code>）</li>
+</ol>
+<p><strong>Simulate</strong>：仅 <code>OnPhysics2DStart</code> + 物理步进，不实例化游戏脚本。</p>
 <hr />
-<h2 id="5">5) 典型调用路径（渲染帧）</h2>
-<ul>
-<li>输入/相机</li>
-<li>EditorLayer 提供 Scene/Game 面板尺寸与悬停/聚焦标记</li>
-<li>CubeLayer::OnUpdate：当 Scene 悬停/聚焦时响应 WASD + 右键鼠标以更新相机</li>
-<li>离屏渲染</li>
-<li>获取面板期望尺寸 → 调整各自 FBO（Scene/Game）</li>
-<li>计算投影矩阵：<code>glm::perspective&lt;float&gt;(fov, aspect, near, far)</code></li>
-<li>计算视图矩阵：<code>glm::lookAt(pos, target, up)</code></li>
-<li>Renderer::BeginScene(viewProj)<ul>
-<li>先渲染天空盒（深度函数 LEQUAL + 深度写禁用）</li>
-<li>再渲染体素地形（光照/法线/纹理图集）</li>
-</ul>
-</li>
-<li>Renderer::EndScene()；FBO::Unbind()</li>
-<li>UI 展示</li>
-<li>EditorLayer 读取 FBO 颜色纹理 ID → ImGui::Image 翻转 UV（(0,1)-(1,0)）显示</li>
-</ul>
+<h2 id="5">5) 脚本加载与调用链</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sequenceDiagram
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    participant Editor as HimiiEditor
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    participant SE as ScriptEngine
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    participant CLR as CoreCLR
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    participant SM as ScriptManager
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  Editor-&gt;&gt;SE: LoadAssembly ScriptCore.dll
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  SE-&gt;&gt;CLR: hostfxr + GetDelegate
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  Editor-&gt;&gt;SE: LoadAppAssembly GameAssembly.dll
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  SE-&gt;&gt;SM: LoadGameAssembly
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  Editor-&gt;&gt;SE: OnCreateEntity
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  SE-&gt;&gt;SM: InstantiateClass
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  loop每帧
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    Editor-&gt;&gt;SE: OnUpdateScript
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    SE-&gt;&gt;SM: OnUpdateInstance
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  end
+</code></pre></div>
+<p><code>ScriptGlue::GetNativeFunctions()</code> 填充 <code>ScriptEngineData</code>，经 <code>InternalCalls.Initialize</code> 绑定到 C# 委托（含 <code>NativeLog(level, msg)</code>）。</p>
 <hr />
-<h2 id="6">6) 主要子系统要点</h2>
-<h3 id="61-framebuffer">6.1 帧缓冲（Framebuffer）</h3>
-<ul>
-<li>抽象接口：Bind/Unbind/Resize/GetColorAttachmentRendererID/GetSpecification</li>
-<li>规格（Specification）：<code>Width/Height</code></li>
-<li>OpenGL 实现（OpenGLFramebuffer）</li>
-<li>颜色附件：2D 纹理 RGBA8</li>
-<li>深度模板：Renderbuffer DEPTH24_STENCIL8</li>
-<li>Invalidate()：在 Resize 时销毁并重建附件</li>
-<li>Bind()：glBindFramebuffer + glViewport(0,0,w,h)</li>
-</ul>
-<h3 id="62">6.2 渲染资源</h3>
-<ul>
-<li>Buffer/VertexArray：设置 BufferLayout，按顺序绑定属性（位置/法线/颜色/UV/索引等）</li>
-<li>Shader：统一设置采样器数组 <code>u_Texture[0..31]</code>，<code>SetIntArray</code> 绑定到纹理单元</li>
-<li>Texture：stb_image 加载，支持图集；渲染时按图集中 UV 采样</li>
-</ul>
-<h3 id="63">6.3 编辑器面板</h3>
-<ul>
-<li>Scene 面板：主要用于操控相机</li>
-<li>Game 面板：展示相同场景的独立离屏结果（可扩展为独立相机）</li>
-<li>面板尺寸变化 → 触发对应 FBO Resize，保持清晰度与正确纵横比</li>
-</ul>
+<h2 id="6">6) 日志数据流</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>flowchart LR
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    LogCS[&quot;C# Log.Info&quot;]
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    NativeLog[&quot;ScriptGlue::NativeLog&quot;]
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    PrintMsg[&quot;Log::PrintMessage&quot;]
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    Spdlog[&quot;spdlog stdout&quot;]
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    Buffer[&quot;ConsoleLog&quot;]
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    Panel[&quot;ConsolePanel ImGui&quot;]
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    LogCS --&gt; NativeLog --&gt; PrintMsg
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    PrintMsg --&gt; Spdlog
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    PrintMsg --&gt; Buffer --&gt; Panel
+</code></pre></div>
+<p>引擎内部 <code>HIMII_*</code> 宏走 <code>Log::Print</code>，也会写入 <code>ConsoleLog</code>（source=<code>Engine</code>）；Console 面板默认仅显示 <code>Script</code>，可勾选 <strong>Show Engine Logs</strong>。</p>
 <hr />
-<h2 id="7">7) 地形生成（概览）</h2>
+<h2 id="7">7) 渲染帧（编辑器视口）</h2>
+<ol>
+<li>根据视口尺寸 Resize 场景 FBO</li>
+<li><code>Renderer2D::BeginScene(camera)</code> 绘制精灵、UI 等</li>
+<li><code>EndScene</code>，将颜色附件交给 ImGui 显示</li>
+<li>Edit 模式下 ImGuizmo 操作选中实体 Transform</li>
+</ol>
+<p>（3D 网格、天空盒等能力因项目/scene 内容而异，2D 批处理为主路径。）</p>
+<hr />
+<h2 id="8">8) 构建与运行</h2>
+<p>见 <a href="../BuildingFromSource/">源码构建</a>。典型输出：</p>
 <ul>
-<li>体素化：仅发射可见面的网格，极大降低三角形数</li>
-<li>噪声层次</li>
-<li>Plains（fBm）与 Mountain（Ridged）按 biome 混合</li>
-<li>Continent（低频）塑造大陆与海洋格局</li>
-<li>Detail + Warp 消除网格感并增加细节</li>
-<li>形状整形</li>
-<li>Plateau（台地分段）、CurveExponent（分布曲线）、ValleyDepth（谷地加深）、SeaLevel（海平面）</li>
-<li>UV 图集</li>
-<li>为不同面（顶/底/侧）选取不同 tile；支持 padding 避免采样污染</li>
+<li><code>build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe</code></li>
 </ul>
 <hr />
-<h2 id="8">8) 天空盒与光照</h2>
-<ul>
-<li>天空盒：程序化渐变（Top/Horizon/Bottom），以相机位置为中心的大立方体</li>
-<li>绘制时：<code>glDepthFunc(GL_LEQUAL) + glDepthMask(GL_FALSE)</code>，避免遮挡前景物体</li>
-<li>光照（简化）</li>
-<li>环境光（颜色+强度）</li>
-<li>定向光（方向+颜色+强度）</li>
-<li>在 <code>LitTexture.glsl</code> 中进行漫反射近似</li>
-</ul>
-<hr />
-<h2 id="9-openglglmimgui">9) OpenGL/GLM/ImGui 知识点速查</h2>
+<h2 id="9-opengl-glm-imgui">9) OpenGL / GLM / ImGui 速查</h2>
 <h3 id="opengl">OpenGL</h3>
 <ul>
-<li>坐标与裁剪空间</li>
-<li>GLM 默认右手坐标；投影/视图组合后在 NDC（-1..1）进行裁剪</li>
-<li>透视投影</li>
-<li><code>glm::perspective&lt;float&gt;(fovyRadians, aspect, zNear, zFar)</code></li>
-<li>建议在调用处保证参数为 <code>float</code>，并包含 <code>glm/gtc/matrix_transform.hpp</code> 或 <code>glm/ext/matrix_clip_space.hpp</code></li>
-<li>深度测试/写入</li>
-<li>常规绘制：<code>glDepthFunc(GL_LESS)</code>，写入开启</li>
-<li>天空盒：<code>glDepthFunc(GL_LEQUAL)</code> + 关闭深度写（<code>glDepthMask(GL_FALSE)</code>）</li>
-<li>剔除与绕序</li>
-<li>调试期可关闭剔除：<code>glDisable(GL_CULL_FACE)</code>；开启后需保证绕序一致（默认 CCW）</li>
-<li>Framebuffer</li>
-<li>颜色附件纹理（采样展示）+ 深度/模板（RBO）</li>
-<li>Resize 时需删除并重建附件；Bind 时更新 Viewport</li>
-<li>纹理图集</li>
-<li>统一采样器数组（绑定到各纹理单元）</li>
-<li>UV 区块需留 padding 抗 bleeding，边缘使用 CLAMP 或适当的采样策略</li>
+<li>透视：<code>glm::perspective(fovyRad, aspect, near, far)</code></li>
+<li>深度：常规 <code>GL_LESS</code>；天空盒可用 <code>GL_LEQUAL</code> + 关闭深度写</li>
+<li>FBO：颜色纹理 + 深度 RBO；Resize 时重建附件</li>
 </ul>
 <h3 id="glm">GLM</h3>
 <ul>
-<li>角度：<code>glm::radians(deg)</code> / <code>glm::degrees(rad)</code></li>
-<li>相机：<code>glm::lookAt(eye, center, up)</code></li>
-<li>常见 include</li>
-<li>变换：<code>#include &lt;glm/gtc/matrix_transform.hpp&gt;</code></li>
-<li>透视/正交：<code>#include &lt;glm/ext/matrix_clip_space.hpp&gt;</code>（可选增强）</li>
+<li><code>glm::lookAt</code>、<code>glm::radians</code> / <code>degrees</code></li>
+<li><code>#include &lt;glm/gtc/matrix_transform.hpp&gt;</code></li>
 </ul>
 <h3 id="imgui">ImGui</h3>
 <ul>
-<li>Docking 启用后可自由布局</li>
-<li>图像显示需注意 UV 翻转（OpenGL 纹理原点与 ImGui 的期望可能不同）</li>
-<li>面板尺寸变化通过 <code>GetContentRegionAvail()</code> 获取并回传给渲染层</li>
+<li>Docking 布局；<code>ImGui::Image</code> 显示 FBO 时 UV 常为 <code>(0,1)-(1,0)</code> 翻转</li>
+<li>面板尺寸用 <code>GetContentRegionAvail()</code> 回传渲染层</li>
 </ul>
 <hr />
-<h2 id="10">10) 构建与运行</h2>
+<h2 id="10">10) 延伸阅读</h2>
 <ul>
-<li>依赖：本地 <code>vcpkg/</code> 已在工程中集成；CMake Presets 指向对应 triplet 与工具链</li>
-<li>构建（示例）</li>
-<li>Debug：<code>build/x64-debug</code> 目录内生成 <code>TemplateProject.exe</code></li>
-<li>Release：<code>build/x64-release</code></li>
-<li>资源</li>
-<li>CMake 构建过程会将 <code>assets/</code> 拷贝到输出 <code>bin/</code> 目录</li>
+<li><a href="../CoreSystems/Serialization/">场景序列化</a></li>
+<li><a href="../../Roadmap/">开发路线图</a></li>
+<li><a href="../../UserManual/ScriptingAPI/">用户手册：脚本 API</a></li>
 </ul>
 <hr />
-<h2 id="11">11) 性能与稳健性建议</h2>
-<ul>
-<li>网格生成</li>
-<li>继续剔除不可见面；分区块（Chunk）与懒加载可在大地图下提升性能</li>
-<li>渲染</li>
-<li>使用索引缓冲、合并 draw call；必要时启用简单批处理</li>
-<li>后续可引入 MSAA、sRGB 帧缓冲，或阴影贴图等效果</li>
-<li>编辑器/交互</li>
-<li>为 Game 面板增加独立相机及输入切换</li>
-<li>视口 letterboxing：保持目标纵横比时留黑避免拉伸</li>
-</ul>
-<hr />
-<h2 id="12-roadmap">12) 未来工作（Roadmap）</h2>
-<ul>
-<li>资源系统（热加载/引用计数）</li>
-<li>场景与实体组件系统（ECS）</li>
-<li>多渲染后端适配层（如未来接 Vulkan/DirectX）</li>
-<li>离屏后期处理链（Bloom/SSR/ToneMapping）</li>
-<li>跨平台构建与 CI</li>
-</ul>
-<hr />
-<h2 id="13">13) 术语表（简）</h2>
-<ul>
-<li>FBO（Framebuffer Object）：离屏渲染目标</li>
-<li>RBO（Renderbuffer Object）：通常用于深度/模板附件</li>
-<li>VAO/VBO/IBO：顶点数组/顶点缓冲/索引缓冲</li>
-<li>NDC：标准设备坐标，裁剪后范围 [-1,1]</li>
-<li>fBm：分形布朗运动（分形噪声叠加）</li>
-<li>Ridged：脊状噪声（强调山脊）</li>
-</ul>
+<h2 id="templateproject">附录：TemplateProject 历史说明</h2>
+<p>仓库中若仍存在 <strong>TemplateProject</strong> 或 <strong>CubeLayer</strong> 相关代码，其为早期 3D 地形/离屏渲染演示，<strong>不是</strong>当前默认编辑器流程。新功能开发以 <code>HimiiEditor</code> + <code>Engine</code> + <code>ScriptCore</code> 为准。</p>
 
 
 

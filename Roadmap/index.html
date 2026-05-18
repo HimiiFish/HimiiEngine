@@ -804,7 +804,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -986,6 +986,34 @@
     
   
     2D 物理系统 (Physics 2D)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../UserManual/ScriptWorkflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本工作流 (Script Workflow)
   
 
     
@@ -1410,6 +1438,11 @@
 <td style="text-align: left;"><strong>IDE Launcher</strong></td>
 <td style="text-align: left;">全局/项目 IDE 配置（VS / VS Code / Rider / Custom）</td>
 </tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Script Log API</strong></td>
+<td style="text-align: left;">C# <code>Log.Info</code> / <code>Warning</code> / <code>Error</code>，经 C++ <code>Log::PrintMessage</code> 输出</td>
+</tr>
 </tbody>
 </table>
 <h3 id="editor-interface">核心模块：编辑器 (Editor Interface)</h3>
@@ -1461,6 +1494,11 @@
 <td style="text-align: left;">[x]</td>
 <td style="text-align: left;"><strong>Project Settings</strong></td>
 <td style="text-align: left;">项目级 IDE 覆盖与 <code>.hproj</code> 序列化</td>
+</tr>
+<tr>
+<td style="text-align: left;">[x]</td>
+<td style="text-align: left;"><strong>Console Panel</strong></td>
+<td style="text-align: left;">运行时脚本日志 ImGui 面板（<code>Window → Console</code>）</td>
 </tr>
 </tbody>
 </table>
@@ -1606,8 +1644,8 @@
 </tr>
 <tr>
 <td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>Console Panel</strong></td>
-<td style="text-align: left;">通用 Log 面板：重定向 <code>HIMII_CORE_*</code> / spdlog 到 ImGui</td>
+<td style="text-align: left;"><strong>Console 增强</strong></td>
+<td style="text-align: left;">日志过滤/搜索/复制；默认展示引擎日志；<code>Console.WriteLine</code> 重定向等</td>
 </tr>
 </tbody>
 </table>

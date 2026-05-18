@@ -590,7 +590,68 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        构建步骤
+        构建步骤（推荐）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="构建步骤（推荐）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cmake-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方式一：CMake Preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方式二：Python 脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行编辑器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        输出目录说明
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        故障排除
       
     </span>
   </a>
@@ -677,7 +738,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -879,6 +940,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../../UserManual/ScriptWorkflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本工作流 (Script Workflow)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../UserManual/ScriptingAPI/" class="md-nav__link">
         
   
@@ -948,7 +1037,68 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        构建步骤
+        构建步骤（推荐）
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="构建步骤（推荐）">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cmake-preset" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方式一：CMake Preset
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#python" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        方式二：Python 脚本
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行编辑器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        输出目录说明
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        故障排除
       
     </span>
   </a>
@@ -978,35 +1128,52 @@
 <h1 id="building-from-source">源码构建 (Building From Source)</h1>
 <h2 id="prerequisites">前置要求 (Prerequisites)</h2>
 <ul>
-<li><strong>操作系统</strong>: Windows 10/11</li>
-<li><strong>Visual Studio 2022</strong>: 安装 "Desktop development with C++" 工作负载。</li>
-<li><strong>Python 3</strong>: 用于运行构建脚本。</li>
-<li><strong>Git</strong>: 用于版本控制。</li>
+<li><strong>操作系统</strong>: Windows 10/11（Linux 构建说明见仓库 <a href="https://github.com/HimiiFish/Himii-Engine/blob/main/README.md">README</a>）</li>
+<li><strong>Visual Studio 2022</strong>: 安装 “使用 C++ 的桌面开发” 工作负载</li>
+<li><strong>CMake</strong> 3.12+</li>
+<li><strong>Python 3</strong>: 用于 <code>build.py</code>（可选）</li>
+<li><strong>.NET 8 SDK</strong>: 编译 <code>ScriptCore</code> 与游戏脚本</li>
+<li><strong>Git</strong>: 克隆时建议 <code>--recursive</code>（含 vcpkg 等子模块）</li>
 </ul>
-<h2 id="_1">构建步骤</h2>
-<ol>
-<li>
-<p>克隆仓库（包含子模块）：
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">git</span> <span class="n">clone</span> <span class="p">-</span><span class="n">-recursive</span> <span class="n">https</span><span class="p">://</span><span class="n">github</span><span class="p">.</span><span class="n">com</span><span class="p">/</span><span class="n">YourUsername</span><span class="p">/</span><span class="n">HimiiEngine</span><span class="p">.</span><span class="n">git</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd </span><span class="n">HimiiEngine</span>
-</code></pre></div></p>
-</li>
-<li>
-<p>运行构建脚本生成项目文件：
-    <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">./</span><span class="n">build</span><span class="p">.</span><span class="n">py</span>
+<h2 id="_1">构建步骤（推荐）</h2>
+<h3 id="cmake-preset">方式一：CMake Preset</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">git</span> <span class="n">clone</span> <span class="p">-</span><span class="n">-recursive</span> <span class="p">&lt;</span><span class="n">repository-url</span><span class="p">&gt;</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd </span><span class="n">Himii-Engine</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-debug</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-debug</span> <span class="p">-</span><span class="n">-target</span> <span class="n">HimiiEditor</span> <span class="n">-j</span> <span class="n">8</span>
 </code></pre></div>
-    或者双击运行 <code>build_py.bat</code>。</p>
-</li>
-<li>
-<p>打开生成的 Visual Studio 解决方案（通常在 <code>build/</code> 目录或根目录下，取决于生成脚本配置）。</p>
-</li>
-<li>
-<p>将 <code>HimiiEditor</code> 设为启动项目。</p>
-</li>
-<li>
-<p>按 F5 编译并运行。</p>
-</li>
+<h3 id="python">方式二：Python 脚本</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">build</span><span class="p">.</span><span class="n">py</span> <span class="n">debug</span>
+</code></pre></div>
+<p>或双击 <code>build_py.bat</code>。</p>
+<h2 id="_2">运行编辑器</h2>
+<ol>
+<li>在 Visual Studio 中打开 <code>build/x64-debug</code> 下生成的解决方案，或将 <strong>HimiiEditor</strong> 设为启动项目。</li>
+<li>也可直接运行：</li>
 </ol>
+<p><code>build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe</code></p>
+<ol>
+<li>首次运行前需成功构建 <strong>ScriptCore</strong>（CMake 目标 <code>ScriptCore_Build</code>，构建 HimiiEditor 时会自动触发）。</li>
+</ol>
+<h2 id="_3">输出目录说明</h2>
+<p>引擎通过 <code>himii_set_output_dirs</code> 统一输出到：</p>
+<ul>
+<li>可执行文件：<code>${CMAKE_BINARY_DIR}/bin/&lt;TargetName&gt;/&lt;Config&gt;/</code></li>
+<li>静态库 Engine：<code>${CMAKE_BINARY_DIR}/lib/Engine/&lt;Config&gt;/</code></li>
+</ul>
+<p>示例（Windows Debug）：</p>
+<ul>
+<li><code>build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe</code></li>
+<li><code>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe</code></li>
+</ul>
+<p>Post-build 会将 <code>assets</code>、<code>resources</code>、<code>ScriptCore.dll</code> 等拷贝到 HimiiEditor 输出目录。</p>
+<h2 id="_4">故障排除</h2>
+<ul>
+<li><strong>找不到 ScriptCore.dll</strong>：先完整构建 HimiiEditor，或单独 <code>dotnet build ScriptCore</code>。</li>
+<li><strong>vcpkg 依赖失败</strong>：确认仓库内 <code>vcpkg</code> 子模块存在，并重跑 <code>cmake --preset x64-debug</code>。</li>
+<li>更多平台说明见仓库 <a href="https://github.com/HimiiFish/Himii-Engine/blob/main/README.md">README</a>（含 Linux 与 <code>build.py</code> 用法）。</li>
+</ul>
 
 
 

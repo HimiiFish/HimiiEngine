@@ -14,7 +14,7 @@
         <link rel="prev" href="../GettingStarted/">
       
       
-        <link rel="next" href="../ScriptingAPI/">
+        <link rel="next" href="../ScriptWorkflow/">
       
       
         
@@ -602,7 +602,7 @@
   <span class="md-ellipsis">
     
   
-    场景序列化实现思路（YAML）
+    场景序列化（YAML）
   
 
     
@@ -851,10 +851,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-rigidbody-2d" class="md-nav__link">
+  <a href="#rigidbody-2d" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Rigidbody 2D
+        Rigidbody 2D
       
     </span>
   </a>
@@ -862,10 +862,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-box-collider-2d" class="md-nav__link">
+  <a href="#box-collider-2d" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Box Collider 2D
+        Box Collider 2D
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#circle-collider-2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Circle Collider 2D
       
     </span>
   </a>
@@ -881,7 +892,29 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        物理控制
+        脚本控制刚体
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        碰撞事件（脚本）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        与编辑器的配合
       
     </span>
   </a>
@@ -892,6 +925,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ScriptWorkflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本工作流 (Script Workflow)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -971,10 +1032,10 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#1-rigidbody-2d" class="md-nav__link">
+  <a href="#rigidbody-2d" class="md-nav__link">
     <span class="md-ellipsis">
       
-        1. Rigidbody 2D
+        Rigidbody 2D
       
     </span>
   </a>
@@ -982,10 +1043,21 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#2-box-collider-2d" class="md-nav__link">
+  <a href="#box-collider-2d" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2. Box Collider 2D
+        Box Collider 2D
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#circle-collider-2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Circle Collider 2D
       
     </span>
   </a>
@@ -1001,7 +1073,29 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        物理控制
+        脚本控制刚体
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        碰撞事件（脚本）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        与编辑器的配合
       
     </span>
   </a>
@@ -1029,24 +1123,83 @@
 
 
 <h1 id="2d-physics-2d">2D 物理系统 (Physics 2D)</h1>
-<p>HimiiEngine 内置 Box2D 物理引擎。</p>
+<p>HimiiEngine 内置 <strong>Box2D v3</strong> 作为 2D 物理引擎。</p>
 <h2 id="_1">启用物理</h2>
-<p>要让实体受物理系统控制，需要添加以下组件：</p>
-<h3 id="1-rigidbody-2d">1. Rigidbody 2D</h3>
-<p>定义实体的物理属性（质量、速度、阻尼等）。
-*   <strong>Body Type</strong>:
-    *   <code>Static</code>: 不会移动（如地面）。
-    *   <code>Dynamic</code>: 受力影响（如玩家、箱子）。
-    *   <code>Kinematic</code>: 仅由脚本控制速度，不完全受物理模拟影响。</p>
-<h3 id="2-box-collider-2d">2. Box Collider 2D</h3>
-<p>定义实体的碰撞形状（矩形）。
-*   <strong>Density</strong>: 密度，影响质量。
-*   <strong>Friction</strong>: 摩擦力。
-*   <strong>Restitution</strong>: 弹性（反弹系数）。
-*   <strong>Restitution Threshold</strong>: 弹性阈值。</p>
-<h2 id="_2">物理控制</h2>
-<p>建议在 <code>OnUpdate</code> 中通过修改位置或在物理更新阶段施加力来控制物体。
-（API 完善中...）</p>
+<p>为实体添加以下组件（通常同时需要 <strong>Transform</strong>）：</p>
+<h3 id="rigidbody-2d">Rigidbody 2D</h3>
+<p>定义刚体类型与旋转锁定。</p>
+<table>
+<thead>
+<tr>
+<th>Body Type</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Static</strong></td>
+<td>不移动（地面、墙等）</td>
+</tr>
+<tr>
+<td><strong>Dynamic</strong></td>
+<td>受力与碰撞影响（玩家、可推动物体）</td>
+</tr>
+<tr>
+<td><strong>Kinematic</strong></td>
+<td>主要由脚本/编辑器驱动，模拟行为与 Dynamic 不同</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>Fixed Rotation</strong>：勾选后锁定 Z 轴旋转。</li>
+</ul>
+<h3 id="box-collider-2d">Box Collider 2D</h3>
+<p>矩形碰撞形状。</p>
+<ul>
+<li><strong>Offset</strong> / <strong>Size</strong>：相对 Transform 的偏移与尺寸。</li>
+<li><strong>Density</strong>、<strong>Friction</strong>、<strong>Restitution</strong>、<strong>Restitution Threshold</strong>：密度、摩擦、弹性及弹性阈值。</li>
+</ul>
+<h3 id="circle-collider-2d">Circle Collider 2D</h3>
+<p>圆形碰撞形状。</p>
+<ul>
+<li><strong>Offset</strong>、<strong>Radius</strong>：圆心与半径。</li>
+<li>材料参数同 Box Collider。</li>
+</ul>
+<p>至少一方需有 <strong>Rigidbody2D</strong>，碰撞体才会参与模拟。进入 <strong>Play</strong> 或 <strong>Simulate</strong> 时创建物理世界；<strong>Stop</strong> 后销毁。</p>
+<h2 id="_2">脚本控制刚体</h2>
+<p>实体上若有 <code>Rigidbody2D</code> 组件，可通过脚本访问：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">rb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">Rigidbody2D</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">rb</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">{</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">    </span><span class="n">rb</span><span class="p">.</span><span class="n">Velocity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector2</span><span class="p">(</span><span class="mf">3.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">);</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">    </span><span class="n">rb</span><span class="p">.</span><span class="n">ApplyImpulse</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Vector2</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">5.0f</span><span class="p">),</span><span class="w"> </span><span class="n">wake</span><span class="p">:</span><span class="w"> </span><span class="k">true</span><span class="p">);</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="p">}</span>
+</code></pre></div>
+<p>Transform 与刚体位置在物理步进后会同步（Dynamic 物体以物理结果为准）。</p>
+<h2 id="_3">碰撞事件（脚本）</h2>
+<p>在 <strong>Play</strong> 模式下，两个形状开始/结束接触时，引擎会调用脚本虚方法（双方实体若挂有 <code>ScriptComponent</code> 且已实例化，各收到一次回调，对方 ID 在 <code>Collision2DInfo.OtherEntityID</code> 中）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionEnter2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="p">{</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Enter: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">}</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionExit2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">{</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Exit: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="p">}</span>
+</code></pre></div>
+<p>注意：</p>
+<ul>
+<li>仅在 <strong>Play</strong> 模式触发（<strong>Simulate</strong> 不运行脚本实例）。</li>
+<li>双方需有碰撞体；动态交互至少一方通常为 <strong>Dynamic</strong> 或 <strong>Kinematic</strong>。</li>
+<li>使用 <code>Log</code> 可在 <strong>Console</strong> 面板查看输出。</li>
+</ul>
+<h2 id="_4">与编辑器的配合</h2>
+<ul>
+<li><strong>Edit</strong>：编辑碰撞体参数，不运行物理。</li>
+<li><strong>Simulate</strong>：预览物理，不调用 <code>OnCreate</code> / <code>OnUpdate</code> / 碰撞脚本。</li>
+<li><strong>Play</strong>：完整运行时（脚本 + 物理 + 碰撞回调）。</li>
+</ul>
 
 
 
