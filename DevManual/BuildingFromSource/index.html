@@ -648,6 +648,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#himiiruntime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行 HimiiRuntime（本地构建）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1095,6 +1106,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#himiiruntime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        运行 HimiiRuntime（本地构建）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1143,8 +1165,12 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-debug</span>
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-debug</span> <span class="p">-</span><span class="n">-target</span> <span class="n">HimiiEditor</span> <span class="n">-j</span> <span class="n">8</span>
 </code></pre></div>
+<p>Release 构建示例：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span>
+</code></pre></div>
 <h3 id="python">方式二：Python 脚本</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">python</span> <span class="n">build</span><span class="p">.</span><span class="n">py</span> <span class="n">debug</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">python</span> <span class="n">build</span><span class="p">.</span><span class="n">py</span> <span class="n">debug</span>
 </code></pre></div>
 <p>或双击 <code>build_py.bat</code>。</p>
 <h2 id="_2">运行编辑器</h2>
@@ -1162,12 +1188,39 @@
 <li>可执行文件：<code>${CMAKE_BINARY_DIR}/bin/&lt;TargetName&gt;/&lt;Config&gt;/</code></li>
 <li>静态库 Engine：<code>${CMAKE_BINARY_DIR}/lib/Engine/&lt;Config&gt;/</code></li>
 </ul>
-<p>示例（Windows Debug）：</p>
-<ul>
-<li><code>build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe</code></li>
-<li><code>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe</code></li>
-</ul>
+<p>示例（Windows）：</p>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>编辑器</th>
+<th>运行时</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debug</td>
+<td><code>build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe</code></td>
+<td><code>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe</code></td>
+</tr>
+<tr>
+<td>Release</td>
+<td><code>build/x64-release/bin/HimiiEditor/Release/HimiiEngine.exe</code></td>
+<td><code>build/x64-release/bin/HimiiRuntime/Release/HimiiRuntime.exe</code></td>
+</tr>
+</tbody>
+</table>
+<p>Release 下编辑器目标在 CMake 中仍名为 <code>HimiiEditor</code>，输出文件名称为 <code>HimiiEngine.exe</code>。</p>
 <p>Post-build 会将 <code>assets</code>、<code>resources</code>、<code>ScriptCore.dll</code> 等拷贝到 HimiiEditor 输出目录。</p>
+<h2 id="himiiruntime">运行 HimiiRuntime（本地构建）</h2>
+<p>在完整构建 HimiiRuntime 目标后，可从输出目录启动：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe --project &quot;D:\path\to\YourProject\YourProject.hproj&quot;
+</code></pre></div>
+<ul>
+<li>使用 <code>--project</code> 指定 <code>.hproj</code> 文件路径。</li>
+<li>未指定 <code>--project</code> 时，在 <strong>HimiiRuntime 可执行文件所在目录</strong> 查找 <code>.hproj</code> 文件。</li>
+</ul>
+<p>运行前请确认该目录下已有 <code>ScriptCore.dll</code>、<code>ScriptCore.runtimeconfig.json</code> 以及项目所需的 <code>assets</code>（与编辑器 Post-build 拷贝规则相同）。</p>
 <h2 id="_4">故障排除</h2>
 <ul>
 <li><strong>找不到 ScriptCore.dll</strong>：先完整构建 HimiiEditor，或单独 <code>dotnet build ScriptCore</code>。</li>
