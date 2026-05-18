@@ -1227,7 +1227,11 @@
 </tr>
 <tr>
 <td>Inspector 无字段</td>
-<td>字段须为 <strong>public 实例</strong> 字段；保存场景后重开验证</td>
+<td>字段须为 <strong>public 实例</strong> 字段，或 <strong>private + <code>[SerializeField]</code></strong>；保存场景后重开验证</td>
+</tr>
+<tr>
+<td><code>[SerializeField]</code> 无智能提示</td>
+<td>用 IDE 打开 <strong><code>.sln</code></strong>；确认存在 <code>assets/scripts/Himii/SerializeField.cs</code>（打开项目或编译脚本时会自动同步）；项目根目录还需 <code>ScriptCore.dll</code> / <code>ScriptCore.xml</code>；重载 C# 语言服务</td>
 </tr>
 <tr>
 <td>Log 无输出</td>

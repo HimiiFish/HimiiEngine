@@ -1212,14 +1212,19 @@
 <p>要求：双方实体均有 <strong>Rigidbody2D</strong> 与 <strong>BoxCollider2D</strong> 或 <strong>CircleCollider2D</strong>；仅在运行时 <strong>Play</strong> 模式触发（非纯 Simulate 脚本实例）。</p>
 <p>更多物理组件说明见 <a href="../Physics2D/">2D 物理</a>。</p>
 <h2 id="inspector">Inspector 脚本字段</h2>
-<p>在脚本类中声明 <strong>public 实例字段</strong>，可在属性面板中编辑并随场景 YAML 保存：</p>
+<p>在脚本类中声明 <strong>public 实例字段</strong>，或使用 <code>[SerializeField]</code> 标记 <strong>private 实例字段</strong>，可在属性面板中编辑并随场景 YAML 保存：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="k">public</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">Speed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0f</span><span class="p">;</span>
 <a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">public</span><span class="w"> </span><span class="n">Entity</span><span class="w"> </span><span class="n">Target</span><span class="p">;</span><span class="w">  </span><span class="c1">// 引用场景中另一实体（UUID）</span>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="na">[SerializeField]</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">private</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">hiddenSpeed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0f</span><span class="p">;</span><span class="w">  </span><span class="c1">// private 字段，Inspector 可见</span>
 </code></pre></div>
+<p>新建项目的 <code>GameAssembly.csproj</code> 已包含 <code>&lt;Using Include="Himii" /&gt;</code>，一般可直接写 <code>[SerializeField]</code> 而无需手写 <code>using Himii;</code>。</p>
+<p><code>[SerializeField]</code> 定义在 <code>assets/scripts/Himii/SerializeField.cs</code>（由引擎同步到游戏项目），以便 IDE 对特性名补全；其余 API 仍来自 <code>ScriptCore.dll</code>。</p>
 <ul>
 <li>支持类型：数值、布尔、<code>Vector2/3/4</code>、<code>string</code>、<code>KeyCode</code>、<code>Entity</code> 等（与引擎 <code>ReflectionBridge</code> 一致）。</li>
 <li>修改后保存场景即可持久化。</li>
-<li><code>[SerializeField]</code> 与 private 字段尚未支持。</li>
+<li>已支持 <code>[SerializeField]</code> 标记 private 字段；不支持 static 或属性（Property）。</li>
 </ul>
 <h2 id="_2">相关文档</h2>
 <ul>
