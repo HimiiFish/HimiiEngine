@@ -11,26 +11,26 @@
       
       
       
+        <link rel="prev" href="../ScriptingAPI/">
       
-        <link rel="next" href="Roadmap/">
       
       
         
       
       
-      <link rel="icon" href="assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
     
     
       
-        <title>HimiiEngine 引擎文档</title>
+        <title>Sprite Animation（SpriteFrames） - HimiiEngine 引擎文档</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -49,7 +49,7 @@
       
     
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -74,7 +74,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#himiiengine" class="md-skip">
+        <a href="#sprite-animationspriteframes" class="md-skip">
           Skip to content
         </a>
       
@@ -88,7 +88,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="HimiiEngine 引擎文档" class="md-header__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
+    <a href="../.." title="HimiiEngine 引擎文档" class="md-header__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -108,7 +108,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              HimiiEngine 文档
+              Sprite Animation（SpriteFrames）
             
           </span>
         </div>
@@ -219,11 +219,9 @@
   
   
   
-    
   
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
         
   
   
@@ -242,7 +240,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="Roadmap/" class="md-tabs__link">
+      <a href="../../Roadmap/" class="md-tabs__link">
         
   
   
@@ -263,7 +261,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="DevManual/" class="md-tabs__link">
+        <a href="../../DevManual/" class="md-tabs__link">
           
   
   
@@ -279,11 +277,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="UserManual/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../" class="md-tabs__link">
           
   
   
@@ -317,7 +317,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="HimiiEngine 引擎文档" class="md-nav__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
+    <a href="../.." title="HimiiEngine 引擎文档" class="md-nav__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -344,37 +344,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    HimiiEngine 文档
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="." class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -390,37 +363,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        手册导航
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -432,7 +374,7 @@
   
   
     <li class="md-nav__item">
-      <a href="Roadmap/" class="md-nav__link">
+      <a href="../../Roadmap/" class="md-nav__link">
         
   
   
@@ -513,7 +455,7 @@
   
   
     <li class="md-nav__item">
-      <a href="DevManual/" class="md-nav__link">
+      <a href="../../DevManual/" class="md-nav__link">
         
   
   
@@ -541,7 +483,7 @@
   
   
     <li class="md-nav__item">
-      <a href="DevManual/Architecture/" class="md-nav__link">
+      <a href="../../DevManual/Architecture/" class="md-nav__link">
         
   
   
@@ -569,7 +511,7 @@
   
   
     <li class="md-nav__item">
-      <a href="DevManual/BuildingFromSource/" class="md-nav__link">
+      <a href="../../DevManual/BuildingFromSource/" class="md-nav__link">
         
   
   
@@ -651,7 +593,7 @@
   
   
     <li class="md-nav__item">
-      <a href="DevManual/CoreSystems/Serialization/" class="md-nav__link">
+      <a href="../../DevManual/CoreSystems/Serialization/" class="md-nav__link">
         
   
   
@@ -691,28 +633,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
-        
-          
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -730,7 +675,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             
@@ -748,7 +693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="UserManual/" class="md-nav__link">
+      <a href="../" class="md-nav__link">
         
   
   
@@ -776,7 +721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="UserManual/EditorInterface/" class="md-nav__link">
+      <a href="../EditorInterface/" class="md-nav__link">
         
   
   
@@ -804,7 +749,7 @@
   
   
     <li class="md-nav__item">
-      <a href="UserManual/GettingStarted/" class="md-nav__link">
+      <a href="../GettingStarted/" class="md-nav__link">
         
   
   
@@ -832,7 +777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="UserManual/Physics2D/" class="md-nav__link">
+      <a href="../Physics2D/" class="md-nav__link">
         
   
   
@@ -860,7 +805,7 @@
   
   
     <li class="md-nav__item">
-      <a href="UserManual/ScriptWorkflow/" class="md-nav__link">
+      <a href="../ScriptWorkflow/" class="md-nav__link">
         
   
   
@@ -888,7 +833,7 @@
   
   
     <li class="md-nav__item">
-      <a href="UserManual/ScriptingAPI/" class="md-nav__link">
+      <a href="../ScriptingAPI/" class="md-nav__link">
         
   
   
@@ -913,10 +858,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="UserManual/SpriteAnimation/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sprite Animation（SpriteFrames）
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -932,6 +904,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        概述
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工作流
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loop-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        注意
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -974,7 +1010,40 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        手册导航
+        概述
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        工作流
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loop-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loop Mode
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        注意
       
     </span>
   </a>
@@ -1001,26 +1070,47 @@
   
 
 
-<h1 id="himiiengine">HimiiEngine 文档</h1>
-<p>欢迎来到 HimiiEngine 文档中心。</p>
-<h2 id="_1">手册导航</h2>
+<h1 id="sprite-animationspriteframes">Sprite Animation（SpriteFrames）</h1>
+<h2 id="_1">概述</h2>
+<p>2D 逐帧动画采用 <strong>Godot SpriteFrames</strong> 风格：一个 <strong><code>.anim</code></strong> 资产共享图集，内含多条 <strong>命名动画</strong>（如 <code>walk</code>、<code>idle</code>）。运行时由 <strong>Sprite Animation</strong> 组件的 <strong>Current Animation</strong> 选择播放哪一条，配合 <strong>Sprite Renderer</strong> 绘制。</p>
+<h2 id="_2">工作流</h2>
+<ol>
+<li><strong>Window → Animation Editor</strong> 或双击内容浏览器中的 <code>.anim</code></li>
+<li><strong>已切好的图集</strong>：拖入 PNG → 设置 <strong>Cell Size</strong> → 在 <strong>Animations</strong> 列表选中一条动画 → 在 <strong>Atlas Picker</strong> 上按播放顺序逐格点击（无需 Slice）</li>
+<li>用 <strong>Add / Rename / Delete</strong> 管理多条命名动画；每条动画有独立的 <strong>FPS</strong>、<strong>Loop Mode</strong> 与时间轴</li>
+<li>可选 <strong>Fill All Cells</strong> 一次性按网格填满当前动画；或用 <strong>Frame List</strong> 拖入 Sprite</li>
+<li>保存（Ctrl+S 会 Import 到 AssetManager）</li>
+<li>实体添加 <strong>Sprite Animation</strong> + <strong>Sprite Renderer</strong>，指定 Animation 引用，在 Inspector 选择 <strong>Current Animation</strong></li>
+<li>脚本：<code>Play("walk")</code>、<code>CurrentAnimation = "idle"</code>；编辑时可勾选 <strong>Preview In Scene</strong></li>
+</ol>
+<p>旧版单条 <code>.anim</code>（<code>AssetType: SpriteAnimation</code>）会自动迁移为名为 <code>default</code> 的一条动画。</p>
+<h2 id="loop-mode">Loop Mode</h2>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Loop</td>
+<td>循环播放</td>
+</tr>
+<tr>
+<td>Once</td>
+<td>播放到最后一帧后停止</td>
+</tr>
+<tr>
+<td>PingPong</td>
+<td>往返播放</td>
+</tr>
+</tbody>
+</table>
+<h2 id="_3">注意</h2>
 <ul>
-<li><strong><a href="UserManual/">用户手册 (User Manual)</a></strong></li>
-<li>面向使用 HimiiEngine 制作游戏的用户。</li>
-<li>
-<p>包含编辑器使用、脚本编写、物理与组件介绍等。</p>
-</li>
-<li>
-<p><strong><a href="DevManual/">开发者手册 (Developer Manual)</a></strong></p>
-</li>
-<li>面向参与引擎开发的贡献者。</li>
-<li>
-<p>包含源码构建、架构概览、核心系统详解等。</p>
-</li>
-<li>
-<p><strong><a href="Roadmap/">开发路线图 (Roadmap)</a></strong></p>
-</li>
-<li>已完成功能与后续规划一览。</li>
+<li>必须同时存在 <strong>Sprite Renderer</strong>，否则无法绘制</li>
+<li>图集模式与帧列表模式互斥；Slice Grid 会切换到图集模式</li>
 </ul>
 
 
@@ -1077,10 +1167,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
       
     
   </body>
