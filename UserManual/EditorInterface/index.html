@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../">
+        <link rel="prev" href="../EditorFeatures/">
       
       
         <link rel="next" href="../GettingStarted/">
@@ -720,6 +720,62 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../Character2D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2D 角色工作流（索引）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EditorFeatures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器与功能
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -905,6 +961,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#animation-editor2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Animation Editor（2D 逐帧动画）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ctrls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存工程（Ctrl+S）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#ide" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1050,7 +1128,35 @@
   <span class="md-ellipsis">
     
   
-    Sprite Animation（SpriteFrames）
+    2D 逐帧动画
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Tutorial2DPlatformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    教程：制作可运行的 2D 平台跳跃
   
 
     
@@ -1220,6 +1326,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#animation-editor2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Animation Editor（2D 逐帧动画）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ctrls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存工程（Ctrl+S）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#ide" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1252,6 +1380,7 @@
 
 <h1 id="editor-interface">编辑器界面 (Editor Interface)</h1>
 <p>HimiiEditor 采用 DockSpace 停靠布局，提供场景编辑、资源管理与脚本开发能力。</p>
+<p>各功能模块（动画、物理、脚本等）的总览见 <strong><a href="../EditorFeatures/">编辑器与功能</a></strong>。建议新手按 <strong><a href="../Tutorial2DPlatformer/">2D 平台跳跃教程</a></strong> 边做边熟悉本页面板。</p>
 <h2 id="_1">主要面板</h2>
 <h3 id="1-viewport">1. 视口 (Viewport)</h3>
 <p>查看与编辑 2D/3D 场景的主区域。</p>
@@ -1339,11 +1468,35 @@
 </tr>
 <tr>
 <td><strong>Window</strong></td>
-<td>Animation / TileMap / Particle 等</td>
-<td>专项资源编辑器</td>
+<td>Animation Editor</td>
+<td>编辑 <code>.anim</code> 逐帧动画资产</td>
+</tr>
+<tr>
+<td><strong>Window</strong></td>
+<td>TileMap / Particle 等</td>
+<td>其他专项资源编辑器</td>
 </tr>
 </tbody>
 </table>
+<h2 id="animation-editor2d">Animation Editor（2D 逐帧动画）</h2>
+<p>通过 <strong>Window → Animation Editor</strong> 或双击内容浏览器中的 <code>.anim</code> 打开。</p>
+<ul>
+<li><strong>左栏</strong>：命名动画列表（Add / Rename / Delete）、FPS、Loop、图集 Cell Size。</li>
+<li><strong>右栏</strong>：<strong>Atlas Picker</strong>（点格子组成时间轴）、<strong>Timeline</strong>（帧顺序与重排）。</li>
+<li><strong>保存</strong>：面板内 <strong>Save</strong>；全局 <strong>Ctrl+S</strong> 仅在已打开且已修改的 <code>.anim</code> 时写入，不会为空白新动画弹另存为。</li>
+</ul>
+<p>完整说明与配图见 <a href="../SpriteAnimation/">2D 逐帧动画</a>。</p>
+<h2 id="ctrls">保存工程（Ctrl+S）</h2>
+<p><strong>Ctrl+S</strong> 会保存：</p>
+<ul>
+<li>项目 <code>.hproj</code></li>
+<li>当前场景 <code>.himii</code></li>
+<li>已修改且已落盘的纹理 <code>.meta</code>、TileMap、<strong>已打开的 <code>.anim</code></strong> 等</li>
+</ul>
+<p>不会在未保存的新动画上强制弹出 <strong>Save As</strong>（除非你在 Animation Editor 内主动 Save 且无路径）。</p>
+<blockquote>
+<p>按 Ctrl+S 后仅状态栏/日志提示保存，无文件对话框。</p>
+</blockquote>
 <h2 id="ide">脚本 IDE 配置</h2>
 <ul>
 <li><strong>Edit → Preferences</strong>：设置默认 IDE（Visual Studio、VS Code、Rider 或 Custom 可执行文件）。</li>

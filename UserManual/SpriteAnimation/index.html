@@ -14,6 +14,8 @@
         <link rel="prev" href="../ScriptingAPI/">
       
       
+        <link rel="next" href="../Tutorial2DPlatformer/">
+      
       
         
       
@@ -23,7 +25,7 @@
     
     
       
-        <title>Sprite Animation（SpriteFrames） - HimiiEngine 引擎文档</title>
+        <title>2D 逐帧动画 - HimiiEngine 引擎文档</title>
       
     
     
@@ -74,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#sprite-animationspriteframes" class="md-skip">
+        <a href="#2d" class="md-skip">
           Skip to content
         </a>
       
@@ -108,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Sprite Animation（SpriteFrames）
+              2D 逐帧动画
             
           </span>
         </div>
@@ -721,6 +723,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../Character2D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2D 角色工作流（索引）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../EditorFeatures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器与功能
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../EditorInterface/" class="md-nav__link">
         
   
@@ -877,7 +935,7 @@
   <span class="md-ellipsis">
     
   
-    Sprite Animation（SpriteFrames）
+    2D 逐帧动画
   
 
     
@@ -895,7 +953,7 @@
   <span class="md-ellipsis">
     
   
-    Sprite Animation（SpriteFrames）
+    2D 逐帧动画
   
 
     
@@ -924,7 +982,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        概述
+        核心概念
       
     </span>
   </a>
@@ -935,10 +993,171 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        工作流
+        资产结构
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="资产结构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新格式（推荐）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        旧格式兼容
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#animation-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编辑器：Animation Editor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="编辑器：Animation Editor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        打开方式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        界面分区
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        推荐工作流（已切图集）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        帧列表模式（少用）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        预览
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ctrls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存与 Ctrl+S
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景中的组件
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="场景中的组件">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        必需组合
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sprite-animation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprite Animation 属性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sprite-renderer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprite Renderer：水平翻转
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -954,10 +1173,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#c-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        注意
+        C# 脚本 API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        与物理 / 脚本配合
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常见问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        相关文档
       
     </span>
   </a>
@@ -968,6 +1220,34 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Tutorial2DPlatformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    教程：制作可运行的 2D 平台跳跃
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1010,7 +1290,7 @@
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
-        概述
+        核心概念
       
     </span>
   </a>
@@ -1021,10 +1301,171 @@
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        工作流
+        资产结构
       
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="资产结构">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新格式（推荐）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        旧格式兼容
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#animation-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编辑器：Animation Editor
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="编辑器：Animation Editor">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        打开方式
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        界面分区
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        推荐工作流（已切图集）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        帧列表模式（少用）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        预览
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ctrls" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存与 Ctrl+S
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景中的组件
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="场景中的组件">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        必需组合
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sprite-animation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprite Animation 属性
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#sprite-renderer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Sprite Renderer：水平翻转
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1040,10 +1481,43 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
+  <a href="#c-api" class="md-nav__link">
     <span class="md-ellipsis">
       
-        注意
+        C# 脚本 API
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        与物理 / 脚本配合
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常见问题
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        相关文档
       
     </span>
   </a>
@@ -1070,20 +1544,241 @@
   
 
 
-<h1 id="sprite-animationspriteframes">Sprite Animation（SpriteFrames）</h1>
-<h2 id="_1">概述</h2>
-<p>2D 逐帧动画采用 <strong>Godot SpriteFrames</strong> 风格：一个 <strong><code>.anim</code></strong> 资产共享图集，内含多条 <strong>命名动画</strong>（如 <code>walk</code>、<code>idle</code>）。运行时由 <strong>Sprite Animation</strong> 组件的 <strong>Current Animation</strong> 选择播放哪一条，配合 <strong>Sprite Renderer</strong> 绘制。</p>
-<h2 id="_2">工作流</h2>
+<h1 id="2d">2D 逐帧动画</h1>
+<p>Himii 的 2D 逐帧动画以 <strong><code>.anim</code> 资产</strong> 组织：一个文件绑定一张图集（<code>AssetType: SpriteFrames</code>），内部包含 <strong>多条命名动画</strong>（如 <code>Idle</code>、<code>Run</code>）。运行时通过 <strong>Sprite Animation</strong> 组件选择当前动画名，由 <strong>Sprite Renderer</strong> 负责绘制。</p>
+<p>适合 <strong>已按格子切好的角色图集</strong>：单文件管理站立、跑步、跳跃等多段序列，无需为每个动作单独建资产文件。</p>
+<blockquote>
+<p>整窗截图：左栏 Animations 列表、Playback、Atlas Frames；右侧 Atlas Picker 与 Timeline。</p>
+</blockquote>
+<hr />
+<h2 id="_1">核心概念</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>.anim</code> 资产</strong></td>
+<td>磁盘上的动画文件，内含共享图集与多条命名序列</td>
+</tr>
+<tr>
+<td><strong>命名动画</strong></td>
+<td><code>Animations[]</code> 中每条有 <code>Name</code>（如 <code>Idle</code>）、FPS、Loop、帧列表</td>
+</tr>
+<tr>
+<td><strong>图集格子</strong></td>
+<td><code>AtlasGridCellSize</code> 与 <code>AtlasFrameCoordinates</code>（列, 行）</td>
+</tr>
+<tr>
+<td><strong>Sprite Animation 组件</strong></td>
+<td>场景实体上引用 <code>.anim</code>，<code>Play("Run")</code> 切换播放</td>
+</tr>
+<tr>
+<td><strong>Animation Editor</strong></td>
+<td>可视化点选格子、编辑时间轴</td>
+</tr>
+</tbody>
+</table>
+<p>首次上手建议先完成 <a href="../Tutorial2DPlatformer/">教程：2D 平台跳跃</a>。</p>
+<hr />
+<h2 id="_2">资产结构</h2>
+<h3 id="_3">新格式（推荐）</h3>
+<p>保存后 YAML 顶层为 <code>SpriteFrames</code>：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">AssetType</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">SpriteFrames</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">Handle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="nt">AtlasTextureHandle</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">...</span><span class="w">      </span><span class="c1"># 图集纹理句柄</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="nt">AtlasGridCellSize</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">32</span><span class="w">        </span><span class="c1"># 单格像素边长，与导出图集时一致</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="nt">Animations</span><span class="p">:</span>
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Idle</span>
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">    </span><span class="nt">FrameRate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">10</span>
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">    </span><span class="nt">LoopMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Loop</span>
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">    </span><span class="nt">AtlasFrameCoordinates</span><span class="p">:</span>
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">2</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">0</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">Name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Run</span>
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">    </span><span class="nt">FrameRate</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span>
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="nt">LoopMode</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Loop</span>
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a><span class="w">    </span><span class="nt">AtlasFrameCoordinates</span><span class="p">:</span>
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">0</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-18" name="__codelineno-0-18" href="#__codelineno-0-18"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">1</span><span class="p p-Indicator">,</span><span class="w"> </span><span class="nv">2</span><span class="p p-Indicator">]</span>
+<a id="__codelineno-0-19" name="__codelineno-0-19" href="#__codelineno-0-19"></a><span class="w">      </span><span class="c1"># ...</span>
+<a id="__codelineno-0-20" name="__codelineno-0-20" href="#__codelineno-0-20"></a><span class="w">    </span><span class="nt">Frames</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span><span class="w">                 </span><span class="c1"># 帧列表模式时填 AssetHandle，与图集模式二选一</span>
+</code></pre></div>
+<p>每条 <strong>命名动画</strong> 独立拥有：</p>
+<ul>
+<li><strong>FrameRate</strong>：默认播放帧率（组件可覆盖）</li>
+<li><strong>LoopMode</strong>：<code>Loop</code> / <code>Once</code> / <code>PingPong</code></li>
+<li><strong>AtlasFrameCoordinates</strong>：图集格子 <code>(列, 行)</code> 的有序列表（主工作流）</li>
+<li><strong>Frames</strong>：可选，拖入独立 Sprite/纹理句柄时使用（少用）</li>
+</ul>
+<h3 id="_4">旧格式兼容</h3>
+<p>旧版 <code>AssetType: SpriteAnimation</code>（单条时间轴）在加载时自动迁移为 <strong>一条名为 <code>default</code> 的动画</strong>，播放与编辑行为与升级前一致。</p>
+<blockquote>
+<p>打开旧资产后，左栏 Animations 中出现 <code>default</code>。</p>
+<p>文本编辑器中展示 <code>SpriteFrames</code> 的 <code>Animations</code> 数组片段。</p>
+</blockquote>
+<hr />
+<h2 id="animation-editor">编辑器：Animation Editor</h2>
+<h3 id="_5">打开方式</h3>
+<ul>
+<li>菜单 <strong>Window → Animation Editor</strong></li>
+<li>在 <strong>内容浏览器</strong> 中 <strong>双击</strong> <code>.anim</code> 文件</li>
+</ul>
+<blockquote>
+<p>内容浏览器中 <code>Idle.anim</code> / 图集 PNG 并列显示。</p>
+</blockquote>
+<h3 id="_6">界面分区</h3>
+<table>
+<thead>
+<tr>
+<th>区域</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Animations</strong></td>
+<td>命名动画列表：Add / Rename / Delete；选中项决定当前编辑上下文</td>
+</tr>
+<tr>
+<td><strong>Playback</strong></td>
+<td>当前动画的 <strong>FPS</strong>、<strong>Loop Mode</strong></td>
+</tr>
+<tr>
+<td><strong>Atlas Frames</strong></td>
+<td><strong>Cell Size</strong>、拖入图集、可选 Fill All Cells</td>
+</tr>
+<tr>
+<td><strong>Atlas Picker</strong></td>
+<td>在图集预览上 <strong>按播放顺序点格子</strong> 组成时间轴</td>
+</tr>
+<tr>
+<td><strong>Timeline</strong></td>
+<td>已选帧缩略图序列；Move Left/Right 调整顺序</td>
+</tr>
+</tbody>
+</table>
+<p><strong>重要</strong>：Atlas Picker 与 Timeline 只修改 <strong>当前在 Animations 列表中选中的</strong> 那条动画（如 <code>Run</code>），不会影响 <code>Idle</code>。</p>
+<blockquote>
+<p>左栏选中 <code>Run</code>，列表中 <code>Idle</code> 与 <code>Run</code> 均可见。</p>
+</blockquote>
+<h3 id="_7">推荐工作流（已切图集）</h3>
 <ol>
-<li><strong>Window → Animation Editor</strong> 或双击内容浏览器中的 <code>.anim</code></li>
-<li><strong>已切好的图集</strong>：拖入 PNG → 设置 <strong>Cell Size</strong> → 在 <strong>Animations</strong> 列表选中一条动画 → 在 <strong>Atlas Picker</strong> 上按播放顺序逐格点击（无需 Slice）</li>
-<li>用 <strong>Add / Rename / Delete</strong> 管理多条命名动画；每条动画有独立的 <strong>FPS</strong>、<strong>Loop Mode</strong> 与时间轴</li>
-<li>可选 <strong>Fill All Cells</strong> 一次性按网格填满当前动画；或用 <strong>Frame List</strong> 拖入 Sprite</li>
-<li>保存（Ctrl+S 会 Import 到 AssetManager）</li>
-<li>实体添加 <strong>Sprite Animation</strong> + <strong>Sprite Renderer</strong>，指定 Animation 引用，在 Inspector 选择 <strong>Current Animation</strong></li>
-<li>脚本：<code>Play("walk")</code>、<code>CurrentAnimation = "idle"</code>；编辑时可勾选 <strong>Preview In Scene</strong></li>
+<li><strong>File → Open Animation</strong> 或新建后 <strong>拖入</strong> 已切好的角色图集 PNG（<strong>不会</strong>自动 Slice 填满全图）。</li>
+<li>设置 <strong>Cell Size (px)</strong> 与美术导出一致（常见 16 / 32 / 48）。</li>
+<li>在 <strong>Animations</strong> 中 <strong>Add</strong> <code>Idle</code>、<code>Run</code> 等，选中一条。</li>
+<li>在 <strong>Atlas Picker</strong> 上 <strong>从左到右、按动作顺序点击格子</strong>；格子高亮表示已加入时间轴。</li>
+<li>勾选 <strong>Click Replaces Selected</strong> 时，点击格子会 <strong>替换</strong> Timeline 中当前选中帧，否则 <strong>追加</strong>。</li>
+<li>需要时使用 <strong>Fill All Cells</strong> 按网格顺序填满（适合整图循环特效，非角色主流程）。</li>
+<li><strong>Save</strong> 或 <strong>Ctrl+S</strong>（见下文「保存」）。</li>
 </ol>
-<p>旧版单条 <code>.anim</code>（<code>AssetType: SpriteAnimation</code>）会自动迁移为名为 <code>default</code> 的一条动画。</p>
+<blockquote>
+<p>点选后 Atlas 上高亮格子 + Timeline 出现对应缩略图。</p>
+</blockquote>
+<h3 id="_8">帧列表模式（少用）</h3>
+<p>在 <strong>Frame List</strong> 区域拖入 <strong>Sprite</strong> 或纹理，会切换到「独立帧句柄」模式并清空当前动画的图集帧。与图集点选 <strong>互斥</strong>，一般仅用于非图集素材。</p>
+<h3 id="_9">预览</h3>
+<p>右上方 <strong>Play / Stop</strong> 与 <strong>Preview FPS</strong> 仅在编辑器内预览 <strong>当前命名动画</strong>，不影响场景资产直到保存。</p>
+<h3 id="ctrls">保存与 Ctrl+S</h3>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Animation Editor 内 <strong>Save</strong></td>
+<td>写入当前 <code>.anim</code> 并 <strong>Import</strong> 到 AssetManager</td>
+</tr>
+<tr>
+<td>全局 <strong>Ctrl+S</strong>（保存工程）</td>
+<td>仅当 <strong>已打开过磁盘上的 <code>.anim</code> 且内容有修改</strong> 时才自动写入动画；<strong>不会</strong>为未保存的新动画弹出另存为</td>
+</tr>
+<tr>
+<td>首次保存新动画</td>
+<td>在 Animation Editor 用 <strong>Save As</strong> 指定路径，或先 Save As 再使用 Ctrl+S</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_10">场景中的组件</h2>
+<h3 id="_11">必需组合</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>是否必需</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sprite Renderer</strong></td>
+<td>是</td>
+<td>负责绘制；无则看不见画面</td>
+</tr>
+<tr>
+<td><strong>Sprite Animation</strong></td>
+<td>是</td>
+<td>引用 <code>.anim</code>，指定当前动画名与播放状态</td>
+</tr>
+<tr>
+<td><strong>Transform</strong></td>
+<td>是</td>
+<td>位置 / 旋转 / 缩放</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sprite-animation">Sprite Animation 属性</h3>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Animation</strong></td>
+<td>拖入 <code>.anim</code> 资产句柄</td>
+</tr>
+<tr>
+<td><strong>Current Animation</strong></td>
+<td>下拉选择命名动画（如 <code>Idle</code>、<code>Run</code>）</td>
+</tr>
+<tr>
+<td><strong>Frame Rate</strong></td>
+<td>大于 0 时覆盖资产内该动画默认 FPS</td>
+</tr>
+<tr>
+<td><strong>Playing</strong></td>
+<td>是否推进帧（运行时）</td>
+</tr>
+<tr>
+<td><strong>Preview In Scene</strong></td>
+<td>编辑模式下在 Scene 视口预览（不勾选则仅 Play 时播放）</td>
+</tr>
+<tr>
+<td><strong>Current Frame</strong></td>
+<td>编辑时手动 scrub 帧索引（需 Preview In Scene）</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>Inspector 中 Sprite Animation 全部字段可见。</p>
+</blockquote>
+<h3 id="sprite-renderer">Sprite Renderer：水平翻转</h3>
+<p>左右朝向请使用 <strong>Flip Horizontal</strong>，<strong>不要</strong> 将 <code>Transform.Scale.x</code> 设为 <code>-1</code>（会导致碰撞与渲染异常）。脚本见 <code>SpriteRenderer.FlipHorizontal</code>。</p>
+<blockquote>
+<p>同一场景中角色朝左、朝右各一张对比图。</p>
+</blockquote>
+<hr />
 <h2 id="loop-mode">Loop Mode</h2>
 <table>
 <thead>
@@ -1094,23 +1789,127 @@
 </thead>
 <tbody>
 <tr>
-<td>Loop</td>
-<td>循环播放</td>
+<td><strong>Loop</strong></td>
+<td>播完最后一帧后回到第一帧</td>
 </tr>
 <tr>
-<td>Once</td>
-<td>播放到最后一帧后停止</td>
+<td><strong>Once</strong></td>
+<td>播完后停在最后一帧并停止 <strong>Playing</strong></td>
 </tr>
 <tr>
-<td>PingPong</td>
-<td>往返播放</td>
+<td><strong>PingPong</strong></td>
+<td>正向播完再反向，往复</td>
 </tr>
 </tbody>
 </table>
-<h2 id="_3">注意</h2>
+<p>每条命名动画在资产内单独配置；组件 <strong>Playing</strong> 与 <strong>Frame Rate</strong> 可在实例上覆盖。</p>
+<hr />
+<h2 id="c-api">C# 脚本 API</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">HimiiEngine</span><span class="p">;</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">PlayerController</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Entity</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="p">{</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="n">SpriteAnimation</span><span class="w"> </span><span class="n">_spriteAnimation</span><span class="p">;</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCreate</span><span class="p">()</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">        </span><span class="n">_spriteAnimation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">SpriteAnimation</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">        </span><span class="n">_spriteAnimation</span><span class="o">?.</span><span class="n">Play</span><span class="p">(</span><span class="s">&quot;Idle&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnUpdate</span><span class="p">(</span><span class="kt">float</span><span class="w"> </span><span class="n">timestep</span><span class="p">)</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">_spriteAnimation</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="k">null</span><span class="p">)</span><span class="w"> </span><span class="k">return</span><span class="p">;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsKeyDown</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">D</span><span class="p">))</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">            </span><span class="n">_spriteAnimation</span><span class="p">.</span><span class="n">Play</span><span class="p">(</span><span class="s">&quot;Run&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">        </span><span class="k">else</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">            </span><span class="n">_spriteAnimation</span><span class="p">.</span><span class="n">Play</span><span class="p">(</span><span class="s">&quot;Idle&quot;</span><span class="p">);</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Playing</code></td>
+<td>是否播放</td>
+</tr>
+<tr>
+<td><code>FrameRate</code></td>
+<td>实例级帧率覆盖</td>
+</tr>
+<tr>
+<td><code>CurrentAnimation</code></td>
+<td>当前动画名（get/set）</td>
+</tr>
+<tr>
+<td><code>Play()</code></td>
+<td>使用当前 <code>CurrentAnimation</code> 并重置帧</td>
+</tr>
+<tr>
+<td><code>Play(string name)</code></td>
+<td>切换动画名、重置帧并开始播放</td>
+</tr>
+<tr>
+<td><code>Stop()</code></td>
+<td>停止播放</td>
+</tr>
+</tbody>
+</table>
+<p>完整组件列表见 <a href="../ScriptingAPI/#spriteanimation-组件">脚本 API - SpriteAnimation</a>。</p>
+<hr />
+<h2 id="_12">与物理 / 脚本配合</h2>
+<p>典型 2D 平台角色见 <strong><a href="../Tutorial2DPlatformer/">教程：2D 平台跳跃</a></strong>（移动、跳跃、<code>[SerializeField]</code>、动画切换）。</p>
+<hr />
+<h2 id="_13">常见问题</h2>
+<table>
+<thead>
+<tr>
+<th>现象</th>
+<th>原因与处理</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>看不见角色</td>
+<td>缺 <strong>Sprite Renderer</strong>；或动画无帧；或 <code>Animation</code> 未指定</td>
+</tr>
+<tr>
+<td>Ctrl+S 弹出保存 Animation</td>
+<td>已在编辑器打开未落盘的动画且误触保存；现逻辑已限制；请用 Animation Editor <strong>Save As</strong> 首次落盘</td>
+</tr>
+<tr>
+<td>Scale.x = -1 人物消失</td>
+<td>改用 <strong>Flip Horizontal</strong>；勿用负缩放翻转</td>
+</tr>
+<tr>
+<td>改 walk 却改了 idle</td>
+<td>未在 Animations 列表选中 <code>walk</code> 就点图集</td>
+</tr>
+<tr>
+<td>Play 不播</td>
+<td>检查 <strong>Playing</strong>；运行时需要 <strong>Play</strong> 模式；编辑预览需 <strong>Preview In Scene</strong></td>
+</tr>
+<tr>
+<td>动画名对不上</td>
+<td><code>Play("名称")</code> 必须与资产内 <code>Name</code> 完全一致（区分大小写）</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="_14">相关文档</h2>
 <ul>
-<li>必须同时存在 <strong>Sprite Renderer</strong>，否则无法绘制</li>
-<li>图集模式与帧列表模式互斥；Slice Grid 会切换到图集模式</li>
+<li><a href="../Tutorial2DPlatformer/">教程：2D 平台跳跃</a></li>
+<li><a href="../EditorFeatures/">编辑器与功能</a></li>
+<li><a href="../ScriptingAPI/">脚本 API</a></li>
+<li><a href="../EditorInterface/">编辑器界面</a></li>
+<li><a href="../Physics2D/">2D 物理</a></li>
 </ul>
 
 

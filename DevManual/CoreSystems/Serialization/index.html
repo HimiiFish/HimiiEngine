@@ -705,6 +705,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#anim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        动画资产（.anim）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -922,6 +933,62 @@
   
   
     <li class="md-nav__item">
+      <a href="../../../UserManual/Character2D/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    2D 角色工作流（索引）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../UserManual/EditorFeatures/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器与功能
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../../UserManual/EditorInterface/" class="md-nav__link">
         
   
@@ -1069,7 +1136,35 @@
   <span class="md-ellipsis">
     
   
-    Sprite Animation（SpriteFrames）
+    2D 逐帧动画
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../../UserManual/Tutorial2DPlatformer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    教程：制作可运行的 2D 平台跳跃
   
 
     
@@ -1154,6 +1249,17 @@
     <span class="md-ellipsis">
       
         ScriptFields
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#anim" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        动画资产（.anim）
       
     </span>
   </a>
@@ -1358,7 +1464,11 @@
 </tr>
 <tr>
 <td><strong>SpriteRendererComponent</strong></td>
-<td>Color、TextureHandle（优先）、TexturePath（兼容旧场景）、TilingFactor</td>
+<td>Color、SpriteAssetHandle、TilingFactor、FlipHorizontal</td>
+</tr>
+<tr>
+<td><strong>SpriteAnimationComponent</strong></td>
+<td>AnimationHandle、CurrentAnimationName、FrameRate、Playing、PreviewInScene</td>
 </tr>
 <tr>
 <td><strong>CircleRendererComponent</strong></td>
@@ -1391,8 +1501,15 @@
 <ul>
 <li>与编辑器 Inspector 中 <code>ScriptComponent::Fields</code> 一致。</li>
 <li><code>Type</code> 为 <code>ScriptFieldType</code> 整型；<code>Data</code> 类型随字段变化（标量、向量、UUID、字符串等）。</li>
-<li>游戏脚本仅 <strong>public 实例字段</strong> 参与反射与保存。</li>
+<li>游戏脚本 <strong>public 实例字段</strong> 与 <strong><code>[SerializeField]</code> private 字段</strong>（<code>HimiiEngine.SerializeField</code>）参与反射与保存。</li>
 </ul>
+<h2 id="anim">动画资产（<code>.anim</code>）</h2>
+<p>由 <code>AssetSerializer</code> / <code>SpriteAnimationSerializer</code> 读写，非场景 YAML 内嵌。</p>
+<ul>
+<li>新格式：<code>AssetType: SpriteFrames</code>，<code>Animations[]</code> 每条含 <code>Name</code>、<code>FrameRate</code>、<code>LoopMode</code>、<code>AtlasFrameCoordinates</code>。</li>
+<li>旧格式：<code>AssetType: SpriteAnimation</code> 加载时迁移为单条 <code>default</code> 动画。</li>
+</ul>
+<p>用户说明见 <a href="../../../UserManual/SpriteAnimation/">2D 逐帧动画</a>。</p>
 <h2 id="_4">实现要点</h2>
 <h3 id="serialize">写入 (<code>Serialize</code>)</h3>
 <ol>

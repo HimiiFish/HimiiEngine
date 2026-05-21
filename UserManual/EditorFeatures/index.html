@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../Physics2D/">
+        <link rel="prev" href="../Character2D/">
       
       
-        <link rel="next" href="../ScriptingAPI/">
+        <link rel="next" href="../EditorInterface/">
       
       
         
@@ -25,7 +25,7 @@
     
     
       
-        <title>脚本工作流 (Script Workflow) - HimiiEngine 引擎文档</title>
+        <title>编辑器与功能 - HimiiEngine 引擎文档</title>
       
     
     
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#script-workflow" class="md-skip">
+        <a href="#_1" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              脚本工作流 (Script Workflow)
+              编辑器与功能
             
           </span>
         </div>
@@ -748,10 +748,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../EditorFeatures/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器与功能
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -767,6 +794,259 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编辑器能做什么
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景与实体
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="场景与实体">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实体 (Entity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        视口操作
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        内容浏览器
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2D 逐帧动画
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2D 逐帧动画">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#animation-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        打开 Animation Editor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心工作流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景中使用
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2d_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2D 物理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2D 物理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常用组件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编辑器中的三种模式
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        脚本系统
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="脚本系统">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编译与日志
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspector 字段
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        专项编辑器窗口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存与快捷键
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        相关文档
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -860,37 +1140,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    脚本工作流 (Script Workflow)
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../ScriptWorkflow/" class="md-nav__link">
         
   
   
@@ -906,131 +1159,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        项目中的脚本文件
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        编译
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_3" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        运行与热重载策略
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ide" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        IDE 配置
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="IDE 配置">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#edit-preferences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        全局默认（Edit → Preferences）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#file-project-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        项目覆盖（File → Project Settings）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#_4" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        打开项目 / 脚本
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        常见问题
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        相关文档
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1154,21 +1282,10 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        项目中的脚本文件
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        编译
+        编辑器能做什么
       
     </span>
   </a>
@@ -1179,52 +1296,41 @@
   <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        运行与热重载策略
+        场景与实体
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ide" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        IDE 配置
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="IDE 配置">
+    <nav class="md-nav" aria-label="场景与实体">
       <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#edit-preferences" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        全局默认（Edit → Preferences）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#file-project-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        项目覆盖（File → Project Settings）
-      
-    </span>
-  </a>
-  
-</li>
         
           <li class="md-nav__item">
   <a href="#_4" class="md-nav__link">
     <span class="md-ellipsis">
       
-        打开项目 / 脚本
+        场景文件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#entity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        实体 (Entity)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        视口操作
       
     </span>
   </a>
@@ -1237,10 +1343,10 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_5" class="md-nav__link">
+  <a href="#_6" class="md-nav__link">
     <span class="md-ellipsis">
       
-        常见问题
+        内容浏览器
       
     </span>
   </a>
@@ -1248,7 +1354,157 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#_6" class="md-nav__link">
+  <a href="#2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2D 逐帧动画
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2D 逐帧动画">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#animation-editor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        打开 Animation Editor
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        核心工作流
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景中使用
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2d_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2D 物理
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2D 物理">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_9" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        常用组件
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_10" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编辑器中的三种模式
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_11" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        脚本系统
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="脚本系统">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        编译与日志
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#inspector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Inspector 字段
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_13" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        专项编辑器窗口
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_14" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        保存与快捷键
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_15" class="md-nav__link">
     <span class="md-ellipsis">
       
         相关文档
@@ -1278,96 +1534,289 @@
   
 
 
-<h1 id="script-workflow">脚本工作流 (Script Workflow)</h1>
-<p>本文说明在 HimiiEditor 中编写、编译与调试 C# 游戏脚本的典型流程。</p>
-<h2 id="_1">项目中的脚本文件</h2>
-<p>打开项目后，脚本通常位于：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>&lt;ProjectDir&gt;/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── assets/
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>│   └── scripts/          # 游戏 C# 源码（*.cs）
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── &lt;ProjectName&gt;.sln     # 供 IDE 打开
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── &lt;ProjectName&gt;.csproj
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>└── &lt;ProjectName&gt;.hproj   # 项目配置（含 ScriptModulePath 等）
-</code></pre></div>
-<p>编译产物 <strong><code>GameAssembly.dll</code></strong>（及 <code>.pdb</code>）路径由 <code>.hproj</code> 的 <code>ScriptModulePath</code> 指定，构建时输出到项目目录或 <code>bin</code> 子目录（以项目模板为准）。</p>
-<p>引擎自带 <strong><code>ScriptCore.dll</code></strong>（API：<code>Entity</code>、<code>Input</code>、<code>Log</code> 等），由 HimiiEditor 构建时拷贝到可执行文件旁，<strong>不要</strong>修改其命名空间下的核心类型。</p>
-<h2 id="_2">编译</h2>
-<ul>
-<li>保存 <code>.cs</code> 后，编辑器 <strong>文件监视</strong> 可触发 <strong>异步 <code>dotnet build</code></strong>（debounce）。</li>
-<li>点击 <strong>Play</strong> 前若脚本有改动，会先编译再进入 Play；编译进行中若已在 Play，会先 Stop。</li>
-<li>编译日志在 <strong>Window → Script Console</strong>：</li>
-<li>成功 / 失败状态</li>
-<li>点击 <code>path\file.cs(line,col): error</code> 行，在配置的 IDE 中打开对应位置</li>
-</ul>
-<h2 id="_3">运行与热重载策略</h2>
-<ul>
-<li><strong>Play</strong>：复制场景、加载 <code>GameAssembly</code>、为带 <code>ScriptComponent</code> 的实体调用 <code>OnCreate</code>，每帧 <code>OnUpdate</code>。</li>
-<li><strong>Stop</strong> 后回到编辑场景；修改脚本后需再次 <strong>Play</strong> 才会加载新 DLL（<strong>不在 Play 中热替换程序集</strong>）。</li>
-<li>编译成功且曾中断 Play 时，可能提示重新按 Play。</li>
-</ul>
-<p>运行时日志使用 <code>Log.Info</code> / <code>Warning</code> / <code>Error</code>，在 <strong>Window → Console</strong> 查看（见 <a href="../ScriptingAPI/">脚本 API</a>）。</p>
-<h2 id="ide">IDE 配置</h2>
-<h3 id="edit-preferences">全局默认（Edit → Preferences）</h3>
-<ul>
-<li>选择 <strong>Visual Studio</strong>、<strong>VS Code</strong>、<strong>Rider</strong> 或 <strong>Custom</strong>（自定义可执行文件与参数模板）。</li>
-<li>保存到引擎数据目录下的 <code>editor_settings.yaml</code>。</li>
-</ul>
-<h3 id="file-project-settings">项目覆盖（File → Project Settings）</h3>
-<ul>
-<li><strong>Use Editor Default</strong>：继承全局设置。</li>
-<li>或为本项目单独指定 IDE / Custom 路径。</li>
-<li>写入 <code>.hproj</code>，随项目一并分享。</li>
-</ul>
-<h3 id="_4">打开项目 / 脚本</h3>
-<ul>
-<li><strong>File → Open C# Project</strong>：用当前有效配置打开 <code>.sln</code> 或项目目录。</li>
-<li>属性面板 <strong>Script Component → Edit</strong>：打开对应 <code>.cs</code> 文件。</li>
-</ul>
-<p><strong>Custom</strong> 参数占位符：<code>{ProjectDir}</code>、<code>{Solution}</code>、<code>{File}</code>、<code>{ProjectName}</code>。</p>
-<h2 id="_5">常见问题</h2>
+<h1 id="_1">编辑器与功能</h1>
+<p>本文介绍 <strong>HimiiEditor</strong> 的整体能力划分，以及动画、物理、脚本等子系统的使用入口。界面布局与面板操作详见 <a href="../EditorInterface/">编辑器界面</a>。</p>
+<hr />
+<h2 id="_2">编辑器能做什么</h2>
+<p>HimiiEditor 是基于停靠布局的集成开发环境，主要能力包括：</p>
 <table>
 <thead>
 <tr>
-<th>现象</th>
-<th>处理</th>
+<th>能力</th>
+<th>说明</th>
+<th>深入阅读</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>Play 后脚本不执行</td>
-<td>检查类名是否与 <code>ScriptComponent</code> 中一致（含命名空间）；Script Console 是否编译成功</td>
+<td><strong>场景编辑</strong></td>
+<td>实体层级、Transform、组件、视口 Gizmo</td>
+<td><a href="../EditorInterface/">编辑器界面</a></td>
 </tr>
 <tr>
-<td>Inspector 无字段</td>
-<td>字段须为 <strong>public 实例</strong> 或 <strong>private + <code>[SerializeField]</code></strong>（<code>HimiiEngine</code> 命名空间）；脚本类名与组件一致；<strong>重新编译 ScriptCore 并重启编辑器</strong> 后重选实体</td>
+<td><strong>资源管理</strong></td>
+<td>纹理、场景、动画、脚本、Tilemap 等</td>
+<td>下文「内容浏览器」</td>
 </tr>
 <tr>
-<td><code>[SerializeField]</code> 无智能提示</td>
-<td>用 IDE 打开 <strong><code>.sln</code></strong>；确认 <code>assets/scripts/Himii/SerializeField.cs</code> 存在；<code>using HimiiEngine;</code>；重载 C# 语言服务</td>
+<td><strong>2D 逐帧动画</strong></td>
+<td>单 <code>.anim</code> 内多条命名动画、图集选帧</td>
+<td><a href="../SpriteAnimation/">2D 逐帧动画</a></td>
 </tr>
 <tr>
-<td>Ctrl+S 弹出保存 Animation</td>
-<td>仅在 Animation Editor 内对<strong>未 Save As 的新动画</strong>点 Save 会弹窗；全局 Ctrl+S 已忽略未落盘动画</td>
+<td><strong>2D 物理</strong></td>
+<td>刚体、碰撞体、Tilemap 碰撞、碰撞回调</td>
+<td><a href="../Physics2D/">2D 物理</a></td>
 </tr>
 <tr>
-<td>Log 无输出</td>
-<td>使用 <code>Himii.Log</code>，非 <code>Console.WriteLine</code>；确认 Console 面板已打开</td>
+<td><strong>C# 脚本</strong></td>
+<td>编译、Play 运行、Inspector 字段</td>
+<td><a href="../ScriptWorkflow/">脚本工作流</a>、<a href="../ScriptingAPI/">脚本 API</a></td>
 </tr>
 <tr>
-<td>IDE 打不开</td>
-<td>Preferences / Project Settings 中检查 IDE 路径；VS Code 需 <code>code</code> 在 PATH</td>
+<td><strong>运行调试</strong></td>
+<td>Play / Simulate / Stop、Console 日志</td>
+<td><a href="../EditorInterface/">编辑器界面</a></td>
 </tr>
 </tbody>
 </table>
-<h2 id="_6">相关文档</h2>
+<p>建议学习路径：<strong><a href="../GettingStarted/">快速开始</a></strong> → <strong><a href="../Tutorial2DPlatformer/">2D 平台跳跃教程</a></strong> → 按需查阅本页各专题。</p>
+<hr />
+<h2 id="_3">场景与实体</h2>
+<h3 id="_4">场景文件</h3>
 <ul>
-<li><a href="../ScriptingAPI/">脚本 API</a></li>
-<li><a href="../Tutorial2DPlatformer/">教程：2D 平台跳跃</a></li>
-<li><a href="../EditorFeatures/">编辑器与功能</a></li>
-<li><a href="../EditorInterface/">编辑器界面</a></li>
-<li><a href="../SpriteAnimation/">2D 逐帧动画</a></li>
-<li><a href="../ScriptingAPI/">脚本 API</a></li>
-<li><a href="../../DevManual/BuildingFromSource/">源码构建</a></li>
+<li>场景保存为 <strong><code>assets/scenes/*.himii</code></strong>（YAML）。</li>
+<li>在 <strong>Content Browser</strong> 双击打开；<strong>Ctrl+S</strong> 保存当前场景与工程。</li>
+</ul>
+<h3 id="entity">实体 (Entity)</h3>
+<ul>
+<li>在 <strong>Scene Hierarchy</strong> 创建、重命名、组织父子关系。</li>
+<li>每个实体必有 <strong>Transform</strong>；通过 <strong>Add Component</strong> 挂载渲染、物理、脚本等组件。</li>
+<li>选中实体后，<strong>Properties</strong> 面板编辑各组件参数。</li>
+</ul>
+<h3 id="_5">视口操作</h3>
+<ul>
+<li><strong>Edit 模式</strong>：右键 + <strong>WASD</strong> 漫游场景相机；滚轮缩放；<strong>ImGuizmo</strong> 变换选中物体。</li>
+<li><strong>Play 模式</strong>：显示运行时画面（脚本与物理生效）。</li>
+</ul>
+<blockquote>
+<p>视口 + Hierarchy + Properties 三栏同框。</p>
+</blockquote>
+<hr />
+<h2 id="_6">内容浏览器</h2>
+<p>项目资源对应磁盘上的 <strong><code>assets/</code></strong> 目录：</p>
+<table>
+<thead>
+<tr>
+<th>类型</th>
+<th>常见路径</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>场景</td>
+<td><code>assets/scenes/</code></td>
+<td><code>.himii</code></td>
+</tr>
+<tr>
+<td>脚本</td>
+<td><code>assets/scripts/</code></td>
+<td><code>.cs</code></td>
+</tr>
+<tr>
+<td>纹理</td>
+<td><code>assets/textures/</code></td>
+<td><code>.png</code> 等</td>
+</tr>
+<tr>
+<td>动画</td>
+<td><code>assets/animation/</code></td>
+<td><code>.anim</code>（多命名逐帧序列）</td>
+</tr>
+<tr>
+<td>Tilemap</td>
+<td><code>assets/tilemaps/</code></td>
+<td><code>.tilemap</code></td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><strong>拖拽</strong> 资源到 Inspector 字段（如 Animation、Texture）。</li>
+<li><strong>右键</strong> 可创建 C# 脚本、文件夹等。</li>
+<li>纹理导入后生成 <strong><code>.meta</code></strong>，修改切片等信息后需保存工程。</li>
+</ul>
+<hr />
+<h2 id="2d">2D 逐帧动画</h2>
+<p>Himii 使用 <strong><code>.anim</code> 资产</strong> 组织 2D 逐帧动画：一个文件绑定一张图集，内含多条 <strong>命名动画</strong>（如 <code>Idle</code>、<code>Run</code>）。</p>
+<h3 id="animation-editor">打开 Animation Editor</h3>
+<ul>
+<li><strong>Window → Animation Editor</strong></li>
+<li>或双击 Content Browser 中的 <code>.anim</code></li>
+</ul>
+<h3 id="_7">核心工作流</h3>
+<ol>
+<li>拖入图集，设置 <strong>Cell Size</strong>。</li>
+<li><strong>Animations</strong> 列表 <strong>Add</strong> 命名动画。</li>
+<li>在 <strong>Atlas Picker</strong> 按播放顺序点格子。</li>
+<li><strong>Timeline</strong> 调整帧顺序；设置 FPS、Loop。</li>
+<li><strong>Save</strong> / <strong>Save As</strong> 写入磁盘。</li>
+</ol>
+<h3 id="_8">场景中使用</h3>
+<p>实体添加 <strong>Sprite Renderer</strong> + <strong>Sprite Animation</strong>，指定 <code>.anim</code> 与 <strong>Current Animation</strong>。脚本可调用 <code>Play("Run")</code> 切换。</p>
+<p>完整说明：<a href="../SpriteAnimation/">2D 逐帧动画</a>。</p>
+<hr />
+<h2 id="2d_1">2D 物理</h2>
+<p>内置 <strong>Box2D</strong> 二维物理。</p>
+<h3 id="_9">常用组件</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>典型用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rigidbody 2D</strong></td>
+<td>Static（墙/地）、Dynamic（玩家）、Kinematic（平台等）</td>
+</tr>
+<tr>
+<td><strong>Box / Circle Collider 2D</strong></td>
+<td>碰撞形状与材料（摩擦、弹性）</td>
+</tr>
+<tr>
+<td><strong>Tilemap Collider 2D</strong></td>
+<td>瓦片地图批量静态碰撞</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_10">编辑器中的三种模式</h3>
+<table>
+<thead>
+<tr>
+<th>模式</th>
+<th>物理</th>
+<th>脚本生命周期</th>
+<th>碰撞脚本回调</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Edit</strong></td>
+<td>否</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td><strong>Simulate</strong></td>
+<td>是</td>
+<td>否</td>
+<td>否</td>
+</tr>
+<tr>
+<td><strong>Play</strong></td>
+<td>是</td>
+<td>是</td>
+<td>是</td>
+</tr>
+</tbody>
+</table>
+<p>平台跳跃教程中的地面与玩家配置见 <a href="../Tutorial2DPlatformer/">教程：2D 平台跳跃</a>。</p>
+<p>完整说明：<a href="../Physics2D/">2D 物理</a>。</p>
+<hr />
+<h2 id="_11">脚本系统</h2>
+<ul>
+<li>语言：<strong>C#</strong>，目标 <strong>.NET 8</strong>，运行时 <strong>CoreCLR</strong>。</li>
+<li>游戏逻辑写在 <code>assets/scripts/</code>，编译为 <strong><code>GameAssembly.dll</code></strong>。</li>
+<li>实体挂载 <strong>Script</strong> 组件，填写 <strong>Class Name</strong>（与 C# 类名一致）。</li>
+</ul>
+<h3 id="_12">编译与日志</h3>
+<table>
+<thead>
+<tr>
+<th>面板</th>
+<th>内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Script Console</strong></td>
+<td><code>dotnet build</code> 输出</td>
+</tr>
+<tr>
+<td><strong>Console</strong></td>
+<td>运行时 <code>Log.Info</code> / <code>Warning</code> / <code>Error</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="inspector">Inspector 字段</h3>
+<ul>
+<li><strong>public 实例字段</strong> 或 <strong><code>[SerializeField]</code> private 字段</strong>（<code>using HimiiEngine;</code>）可在属性面板编辑并写入场景。</li>
+</ul>
+<p>详见 <a href="../ScriptWorkflow/">脚本工作流</a>、<a href="../ScriptingAPI/">脚本 API</a>。</p>
+<hr />
+<h2 id="_13">专项编辑器窗口</h2>
+<table>
+<thead>
+<tr>
+<th>菜单</th>
+<th>功能</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Window → Animation Editor</strong></td>
+<td>编辑 <code>.anim</code></td>
+</tr>
+<tr>
+<td><strong>Window → TileMap Editor</strong></td>
+<td>编辑瓦片地图与 TileSet</td>
+</tr>
+<tr>
+<td><strong>Window → Console</strong></td>
+<td>运行时日志</td>
+</tr>
+<tr>
+<td><strong>Window → Script Console</strong></td>
+<td>编译输出</td>
+</tr>
+</tbody>
+</table>
+<p>其他窗口以编辑器当前版本菜单为准。</p>
+<hr />
+<h2 id="_14">保存与快捷键</h2>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>行为</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Ctrl+S</strong></td>
+<td>保存 <code>.hproj</code>、当前场景、已修改且已落盘的 <code>.anim</code> / <code>.meta</code> 等</td>
+</tr>
+<tr>
+<td>Animation Editor <strong>Save As</strong></td>
+<td>首次保存新动画资产的路径</td>
+</tr>
+<tr>
+<td><strong>Play / Stop</strong></td>
+<td>进入或退出运行时（编辑场景在 Stop 后恢复）</td>
+</tr>
+</tbody>
+</table>
+<p>全局 <strong>Ctrl+S</strong> 不会为「从未 Save As 过」的空白新动画强制弹出另存为对话框。</p>
+<hr />
+<h2 id="_15">相关文档</h2>
+<ul>
+<li><a href="../EditorInterface/">编辑器界面</a>：面板与工具栏细节  </li>
+<li><a href="../Tutorial2DPlatformer/">教程：2D 平台跳跃</a>  </li>
+<li><a href="../SpriteAnimation/">2D 逐帧动画</a>  </li>
+<li><a href="../Physics2D/">2D 物理</a>  </li>
+<li><a href="../ScriptingAPI/">脚本 API</a>  </li>
 </ul>
 
 
