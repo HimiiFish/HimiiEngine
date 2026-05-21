@@ -889,6 +889,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tilemap-tilemap-collider-2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tilemap 碰撞（Tilemap Collider 2D）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1070,6 +1081,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#tilemap-tilemap-collider-2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tilemap 碰撞（Tilemap Collider 2D）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1165,7 +1187,28 @@
 <li><strong>Offset</strong>、<strong>Radius</strong>：圆心与半径。</li>
 <li>材料参数同 Box Collider。</li>
 </ul>
-<p>至少一方需有 <strong>Rigidbody2D</strong>，碰撞体才会参与模拟。进入 <strong>Play</strong> 或 <strong>Simulate</strong> 时创建物理世界；<strong>Stop</strong> 后销毁。</p>
+<p><strong>Box / Circle Collider</strong> 可单独挂在实体上（无需 Rigidbody2D）：进入 <strong>Play</strong> 时引擎会为其自动创建 <strong>Static</strong> 刚体，适合地面、墙等静止碰撞体。</p>
+<p><strong>Player</strong> 等需要移动、受力的对象应使用 <strong>Rigidbody2D（Dynamic 或 Kinematic）</strong> + 碰撞体。</p>
+<p>碰撞双方至少一方需参与物理模拟（有刚体，或仅有碰撞体时隐式 Static 刚体）。进入 <strong>Play</strong> 或 <strong>Simulate</strong> 时创建物理世界；<strong>Stop</strong> 后销毁。</p>
+<h2 id="tilemap-tilemap-collider-2d">Tilemap 碰撞（Tilemap Collider 2D）</h2>
+<p>用于由瓦片组成的地面/墙体，<strong>不需要</strong> Rigidbody2D。</p>
+<ol>
+<li>实体上已有 <strong>Tilemap</strong> 组件并指定 <code>.tilemap</code> 资源。</li>
+<li>在 <strong>TileMap Setup → Collision</strong> 中为<strong>图块类型</strong>（非场景里已画的格子）勾选 <strong>Collidable</strong>，并 <strong>Save TileSet</strong>。</li>
+<li>为同一实体添加 <strong>Tilemap Collider 2D</strong> 组件（Inspector 中可关闭 <strong>Enabled</strong>）。</li>
+<li>进入 <strong>Play</strong> 或 <strong>Simulate</strong> 后，引擎会为所有 <code>Collidable</code> 且非空的格子创建静态 Box2D 碰撞形状。</li>
+</ol>
+<p>说明：</p>
+<ul>
+<li><strong>Collidable</strong> 是 TileSet 里每种图块类型的属性，不是单个场景格子的属性。</li>
+<li><strong>Slice Grid</strong> 会按图集坐标 <code>(列, 行)</code> 保留同位置图块的 Collidable 设置。</li>
+<li>Inspector 中 <strong>Tilemap Collider 2D</strong> 显示诊断：已绘制格子数、将参与碰撞的格子数、未知图块 ID 数。</li>
+<li>可选 <strong>Merge Adjacent Cells</strong>：合并相邻可碰撞格为更少的大矩形（大地图性能更好，默认关闭）。</li>
+<li>未添加 <strong>Tilemap Collider 2D</strong> 的 Tilemap <strong>不会</strong>产生物理碰撞。</li>
+<li>编辑器菜单 <strong>Show physics colliders</strong> 可对 Collidable 格子显示绿色线框（与运行时判定一致）。</li>
+<li>运行时修改瓦片或 TileSet 后，需重新 <strong>Play</strong> 才会重建碰撞（与 Box/Circle Collider 相同）。</li>
+<li>控制台若提示 unknown tile IDs：地图上存的图块 ID 与当前 TileSet 不一致，请重新 Slice 或重画。</li>
+</ul>
 <h2 id="_2">脚本控制刚体</h2>
 <p>实体上若有 <code>Rigidbody2D</code> 组件，可通过脚本访问：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">rb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">Rigidbody2D</span><span class="o">&gt;</span><span class="p">();</span>
