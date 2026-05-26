@@ -645,6 +645,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="输出目录说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debug-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug 与 Release 资源布局
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1215,6 +1232,23 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="输出目录说明">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#debug-release" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Debug 与 Release 资源布局
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1323,10 +1357,42 @@
 </tbody>
 </table>
 <p>Release 下编辑器目标在 CMake 中仍名为 <code>HimiiEditor</code>，输出文件名称为 <code>HimiiEngine.exe</code>。</p>
-<p>Post-build 会将 <code>assets</code>、<code>resources</code>、<code>ScriptCore.dll</code> 等拷贝到 HimiiEditor 输出目录。</p>
+<h3 id="debug-release">Debug 与 Release 资源布局</h3>
+<table>
+<thead>
+<tr>
+<th>配置</th>
+<th>引擎资源</th>
+<th>ScriptCore</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Debug</td>
+<td>松散目录 <code>assets/</code>、<code>resources/</code>（POST_BUILD 拷贝到 exe 旁）</td>
+<td>exe 同目录</td>
+</tr>
+<tr>
+<td>Release</td>
+<td>二进制包 <code>HimiiEngine/engine.hpck</code>（由 <code>ResourcePacker</code> 构建）</td>
+<td><code>HimiiEngine/</code> 子目录</td>
+</tr>
+</tbody>
+</table>
+<p>Release 分发目录结构（Godot 式顶层入口）：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>HimiiEngine.exe
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>HimiiEngine/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  engine.hpck
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  ScriptCore.dll
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  ScriptCore.runtimeconfig.json
+</code></pre></div>
+<p>安装 Release 包：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-install</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-release</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span> <span class="p">-</span><span class="n">-prefix</span> <span class="n">install</span><span class="p">/</span><span class="n">x64-release</span>
+</code></pre></div>
 <h2 id="himiiruntime">运行 HimiiRuntime（本地构建）</h2>
 <p>在完整构建 HimiiRuntime 目标后，可从输出目录启动：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe --project &quot;D:\path\to\YourProject\YourProject.hproj&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe --project &quot;D:\path\to\YourProject\YourProject.hproj&quot;
 </code></pre></div>
 <ul>
 <li>使用 <code>--project</code> 指定 <code>.hproj</code> 文件路径。</li>
