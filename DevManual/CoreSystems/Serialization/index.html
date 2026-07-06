@@ -1501,7 +1501,7 @@
 <ul>
 <li>与编辑器 Inspector 中 <code>ScriptComponent::Fields</code> 一致。</li>
 <li><code>Type</code> 为 <code>ScriptFieldType</code> 整型；<code>Data</code> 类型随字段变化（标量、向量、UUID、字符串等）。</li>
-<li>游戏脚本 <strong>public 实例字段</strong> 与 <strong><code>[SerializeField]</code> private 字段</strong>（<code>HimiiEngine.SerializeField</code>）参与反射与保存。</li>
+<li>游戏脚本 <strong>public 实例字段</strong> 与 <strong><code>[SerializeField]</code> private 字段</strong>（<code>HimiiEngine.SerializeField</code>，定义于 ScriptCore）参与反射与保存；<code>static</code> / <code>readonly</code> / <code>[NonSerialized]</code> 字段不参与。</li>
 </ul>
 <h2 id="anim">动画资产（<code>.anim</code>）</h2>
 <p>由 <code>AssetSerializer</code> / <code>SpriteAnimationSerializer</code> 读写，非场景 YAML 内嵌。</p>

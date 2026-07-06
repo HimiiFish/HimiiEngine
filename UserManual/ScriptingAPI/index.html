@@ -1056,10 +1056,87 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#boxcollider2d-circlecollider2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BoxCollider2D / CircleCollider2D
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tilemap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tilemap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#physics2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physics2D
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenemanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SceneManager
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prefab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prefab 实例化
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#spriterenderer" class="md-nav__link">
     <span class="md-ellipsis">
       
         SpriteRenderer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camera" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camera
       
     </span>
   </a>
@@ -1314,10 +1391,87 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#boxcollider2d-circlecollider2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BoxCollider2D / CircleCollider2D
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tilemap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tilemap
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#physics2d" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Physics2D
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#scenemanager" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        SceneManager
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#prefab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Prefab 实例化
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#time" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Time
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#spriterenderer" class="md-nav__link">
     <span class="md-ellipsis">
       
         SpriteRenderer
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#camera" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Camera
       
     </span>
   </a>
@@ -1411,7 +1565,7 @@
 </tr>
 <tr>
 <td>生命周期</td>
-<td><code>OnCreate</code> / <code>OnUpdate</code> / <code>OnDestroy</code></td>
+<td><code>OnCreate</code> / <code>OnUpdate</code> / <code>OnFixedUpdate</code> / <code>OnDestroy</code></td>
 <td>仅 Play 模式调用</td>
 </tr>
 <tr>
@@ -1421,7 +1575,7 @@
 </tr>
 <tr>
 <td>输入</td>
-<td><code>Input.IsKeyDown</code> / <code>IsMouseButtonDown</code> / <code>MousePosition</code></td>
+<td><code>Input.IsKeyDown</code> / <code>IsKeyPressed</code> / <code>IsKeyReleased</code> / <code>GetAxisHorizontal</code> / <code>GetAxisVertical</code> / <code>IsMouseButtonDown</code> / <code>MousePosition</code></td>
 <td>键盘与鼠标</td>
 </tr>
 <tr>
@@ -1437,12 +1591,22 @@
 <tr>
 <td>2D 物理</td>
 <td><code>Rigidbody2D</code></td>
-<td>速度、冲量</td>
+<td>速度、冲量、BodyType、FixedRotation</td>
+</tr>
+<tr>
+<td>碰撞体</td>
+<td><code>BoxCollider2D</code> / <code>CircleCollider2D</code></td>
+<td>偏移、尺寸/半径、材料参数、IsTrigger、Layer</td>
 </tr>
 <tr>
 <td>渲染</td>
 <td><code>SpriteRenderer</code></td>
-<td>颜色、纹理、水平翻转</td>
+<td>颜色、纹理、翻转、SortingLayer/Order</td>
+</tr>
+<tr>
+<td>相机</td>
+<td><code>Camera</code></td>
+<td>OrthographicSize、BackgroundColor、Primary</td>
 </tr>
 <tr>
 <td>动画</td>
@@ -1450,9 +1614,39 @@
 <td><code>Play</code> / <code>CurrentAnimation</code></td>
 </tr>
 <tr>
+<td>瓦片地图</td>
+<td><code>Tilemap</code></td>
+<td>读写格子、边界查询</td>
+</tr>
+<tr>
+<td>物理查询</td>
+<td><code>Physics2D.Raycast</code></td>
+<td>2D 射线检测</td>
+</tr>
+<tr>
+<td>场景</td>
+<td><code>SceneManager.LoadScene</code> / <code>ActiveScenePath</code></td>
+<td>运行时切换 <code>.himii</code> 场景</td>
+</tr>
+<tr>
+<td>Prefab</td>
+<td><code>Entity.Instantiate</code></td>
+<td>运行时实例化 <code>.hprefab</code></td>
+</tr>
+<tr>
+<td>时间</td>
+<td><code>Time.DeltaTime</code></td>
+<td>帧间隔（秒）</td>
+</tr>
+<tr>
 <td>碰撞</td>
 <td><code>OnCollisionEnter2D</code> / <code>OnCollisionExit2D</code></td>
-<td>Play 模式回调</td>
+<td>Play 模式物理碰撞回调</td>
+</tr>
+<tr>
+<td>触发器</td>
+<td><code>OnTriggerEnter2D</code> / <code>OnTriggerExit2D</code></td>
+<td>Play 模式 Trigger 回调</td>
 </tr>
 <tr>
 <td>序列化</td>
@@ -1507,7 +1701,11 @@
 </tr>
 <tr>
 <td><code>OnUpdate(timestep)</code></td>
-<td>每帧</td>
+<td>每帧（物理步进<strong>之前</strong>）</td>
+</tr>
+<tr>
+<td><code>OnFixedUpdate(timestep)</code></td>
+<td>每帧物理步进与碰撞事件<strong>之后</strong></td>
 </tr>
 <tr>
 <td><code>OnDestroy</code></td>
@@ -1515,6 +1713,7 @@
 </tr>
 </tbody>
 </table>
+<p>平台跳跃、着地检测、读写 <code>Rigidbody2D.Velocity</code> 等应放在 <strong><code>OnFixedUpdate</code></strong>；输入采集与相机可放在 <code>OnUpdate</code>。详见 <a href="../ScriptWorkflow/#物理时序与平台跳跃重要">脚本工作流 - 物理时序</a>。</p>
 <hr />
 <h2 id="log">日志 (Log)</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">&quot;Game started.&quot;</span><span class="p">);</span>
@@ -1530,20 +1729,58 @@
 <h2 id="input">输入 (Input)</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsKeyDown</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">W</span><span class="p">))</span>
 <a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="p">{</span>
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="c1">// 键按住</span>
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="w">    </span><span class="c1">// 键按住（每帧为 true）</span>
 <a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="p">}</span>
 <a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>
-<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsKeyDown</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">Space</span><span class="p">))</span>
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsKeyPressed</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">Space</span><span class="p">))</span>
 <a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">{</span>
-<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="c1">// 跳跃等</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="c1">// 本帧刚按下（边沿检测，适合跳跃）</span>
 <a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
 <a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
-<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">mouse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Input</span><span class="p">.</span><span class="n">MousePosition</span><span class="p">;</span>
-<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsMouseButtonDown</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
-<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">{</span>
-<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="w">    </span><span class="c1">// 左键</span>
-<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a><span class="p">}</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsKeyReleased</span><span class="p">(</span><span class="n">KeyCode</span><span class="p">.</span><span class="n">E</span><span class="p">))</span>
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="p">{</span>
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="w">    </span><span class="c1">// 本帧刚松开</span>
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a><span class="p">}</span>
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a><span class="kt">float</span><span class="w"> </span><span class="n">horizontal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Input</span><span class="p">.</span><span class="n">GetAxisHorizontal</span><span class="p">();</span><span class="w"> </span><span class="c1">// A/D 或 Left/Right，-1 ~ 1</span>
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a><span class="kt">float</span><span class="w"> </span><span class="n">vertical</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Input</span><span class="p">.</span><span class="n">GetAxisVertical</span><span class="p">();</span><span class="w">     </span><span class="c1">// W/S 或 Up/Down</span>
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a><span class="n">Vector2</span><span class="w"> </span><span class="n">mouse</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Input</span><span class="p">.</span><span class="n">MousePosition</span><span class="p">;</span>
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">Input</span><span class="p">.</span><span class="n">IsMouseButtonDown</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="p">{</span>
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="w">    </span><span class="c1">// 左键</span>
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a><span class="p">}</span>
 </code></pre></div>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>IsKeyDown</code></td>
+<td>键当前按住</td>
+</tr>
+<tr>
+<td><code>IsKeyPressed</code></td>
+<td>本帧刚按下（单帧 true）</td>
+</tr>
+<tr>
+<td><code>IsKeyReleased</code></td>
+<td>本帧刚松开</td>
+</tr>
+<tr>
+<td><code>GetAxisHorizontal</code></td>
+<td>水平轴：Left/Right 或 A/D</td>
+</tr>
+<tr>
+<td><code>GetAxisVertical</code></td>
+<td>垂直轴：Up/Down 或 W/S</td>
+</tr>
+</tbody>
+</table>
 <p>常用键码定义在 <strong><code>KeyCode</code></strong> 枚举（<code>A</code>、<code>D</code>、<code>Left</code>、<code>Right</code>、<code>Space</code> 等），完整列表见 <code>ScriptCore</code> 中 <code>KeyCode.cs</code>。</p>
 <hr />
 <h2 id="transform">Transform 与位置</h2>
@@ -1554,6 +1791,7 @@
 <a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="n">Transform</span><span class="p">.</span><span class="n">Rotation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector3</span><span class="p">(</span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">);</span>
 </code></pre></div>
 <p><strong>注意</strong>：角色左右朝向请用 <strong><code>SpriteRenderer.FlipHorizontal</code></strong>，不要将 <strong><code>Transform.Scale.x</code></strong> 设为负数（会导致碰撞与渲染异常）。</p>
+<p>在 <strong>Play</strong> 模式下，若实体带有 <strong>Rigidbody2D</strong>，修改 <strong><code>Position</code></strong> 或 <strong><code>Transform.Rotation</code></strong> 会同步到 Box2D 刚体（相当于传送）。Dynamic 角色日常移动仍推荐在 <strong><code>OnFixedUpdate</code></strong> 中使用 <strong><code>Rigidbody2D.Velocity</code></strong>。</p>
 <hr />
 <h2 id="_2">组件访问</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">rigidbody</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">Rigidbody2D</span><span class="o">&gt;</span><span class="p">();</span>
@@ -1590,6 +1828,14 @@
 <td>线速度（<code>Vector2</code>）</td>
 </tr>
 <tr>
+<td><code>BodyType</code></td>
+<td><code>Static</code> / <code>Dynamic</code> / <code>Kinematic</code>（运行时读写）</td>
+</tr>
+<tr>
+<td><code>FixedRotation</code></td>
+<td>是否锁定 Z 轴旋转</td>
+</tr>
+<tr>
 <td><code>ApplyImpulse(impulse, wake)</code></td>
 <td>对质心施加冲量</td>
 </tr>
@@ -1601,11 +1847,145 @@
 </table>
 <p>Inspector 中设置 <strong>Body Type</strong>（Static / Dynamic / Kinematic）、<strong>Fixed Rotation</strong> 等。详见 <a href="../Physics2D/">2D 物理</a>。</p>
 <hr />
+<h2 id="boxcollider2d-circlecollider2d">BoxCollider2D / CircleCollider2D</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">boxCollider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">BoxCollider2D</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">boxCollider</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="p">{</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">    </span><span class="n">Vector2</span><span class="w"> </span><span class="n">size</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">boxCollider</span><span class="p">.</span><span class="n">Size</span><span class="p">;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">    </span><span class="n">boxCollider</span><span class="p">.</span><span class="n">Friction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.8f</span><span class="p">;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="p">}</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a><span class="kt">var</span><span class="w"> </span><span class="n">circleCollider</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">CircleCollider2D</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">circleCollider</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="w">    </span><span class="n">circleCollider</span><span class="p">.</span><span class="n">Radius</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.5f</span><span class="p">;</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>属性</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>BoxCollider2D</code></td>
+<td><code>Offset</code>、<code>Size</code>、<code>Density</code>、<code>Friction</code>、<code>Restitution</code>、<code>IsTrigger</code>、<code>Layer</code></td>
+</tr>
+<tr>
+<td><code>CircleCollider2D</code></td>
+<td><code>Offset</code>、<code>Radius</code>、<code>Density</code>、<code>Friction</code>、<code>Restitution</code>、<code>IsTrigger</code>、<code>Layer</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>IsTrigger</strong>：勾选后形状为传感器，不产生物理碰撞响应，但会触发 <code>OnTriggerEnter2D</code> / <code>OnTriggerExit2D</code>。</p>
+<p><strong>Layer</strong>：物理层索引（0–7），与项目 <strong>Project Settings → Physics 2D Layers</strong> 中的层名及碰撞矩阵对应。</p>
+<p>运行时修改碰撞体参数会更新组件数据；形状在下次进入 <strong>Play</strong> 时重建。详见 <a href="../Physics2D/">2D 物理</a>。</p>
+<hr />
+<h2 id="tilemap">Tilemap</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">tilemap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">Tilemap</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">tilemap</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">tilemap</span><span class="p">.</span><span class="n">HasBounds</span><span class="p">)</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="p">{</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">    </span><span class="n">tilemap</span><span class="p">.</span><span class="n">GetBounds</span><span class="p">(</span><span class="k">out</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">minX</span><span class="p">,</span><span class="w"> </span><span class="k">out</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">minY</span><span class="p">,</span><span class="w"> </span><span class="k">out</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">maxX</span><span class="p">,</span><span class="w"> </span><span class="k">out</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">maxY</span><span class="p">);</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">    </span><span class="kt">ushort</span><span class="w"> </span><span class="n">tileId</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tilemap</span><span class="p">.</span><span class="n">GetTile</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">);</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">    </span><span class="n">tilemap</span><span class="p">.</span><span class="n">SetTile</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">tileId</span><span class="p">);</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>成员</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Width</code> / <code>Height</code></td>
+<td>地图尺寸（稀疏分块模型的外接范围）</td>
+</tr>
+<tr>
+<td><code>HasBounds</code></td>
+<td>是否存在有效格子</td>
+</tr>
+<tr>
+<td><code>GetBounds</code></td>
+<td>已绘制格子的包围盒</td>
+</tr>
+<tr>
+<td><code>GetTile</code> / <code>SetTile</code></td>
+<td>读写瓦片 ID</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="physics2d">Physics2D</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="n">RaycastHit2D</span><span class="w"> </span><span class="n">hit</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Physics2D</span><span class="p">.</span><span class="n">Raycast</span><span class="p">(</span><span class="n">start</span><span class="p">,</span><span class="w"> </span><span class="n">end</span><span class="p">);</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">hit</span><span class="p">.</span><span class="n">Hit</span><span class="p">)</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Hit entity {hit.EntityID} at {hit.Point}&quot;</span><span class="p">);</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Hit</code></td>
+<td>是否命中</td>
+</tr>
+<tr>
+<td><code>Point</code> / <code>Normal</code></td>
+<td>命中点与世界法线</td>
+</tr>
+<tr>
+<td><code>Distance</code></td>
+<td>沿射线距离</td>
+</tr>
+<tr>
+<td><code>EntityID</code></td>
+<td>命中实体 ID</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="scenemanager">SceneManager</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">SceneManager</span><span class="p">.</span><span class="n">LoadScene</span><span class="p">(</span><span class="s">&quot;scenes/Level1.himii&quot;</span><span class="p">))</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="p">{</span>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">&quot;Loaded level 1.&quot;</span><span class="p">);</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="p">}</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="kt">string</span><span class="w"> </span><span class="n">current</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SceneManager</span><span class="p">.</span><span class="n">ActiveScenePath</span><span class="p">;</span>
+</code></pre></div>
+<ul>
+<li>路径相对于项目 <strong><code>assets/</code></strong> 目录。</li>
+<li>仅在 <strong>Play</strong> 模式有效；会停止当前脚本、清空实体并加载新场景。</li>
+<li><code>LoadScene</code> 返回 <code>bool</code> 表示是否成功。</li>
+<li><code>ActiveScenePath</code> 返回当前场景的 assets 相对路径（未加载时为空）。</li>
+<li>项目 <strong>Start Scene</strong> 在 <code>.hproj</code> 中配置。</li>
+</ul>
+<hr />
+<h2 id="prefab">Prefab 实例化</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="n">Entity</span><span class="w"> </span><span class="n">enemy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Entity</span><span class="p">.</span><span class="n">Instantiate</span><span class="p">(</span><span class="s">&quot;prefabs/Enemy.hprefab&quot;</span><span class="p">);</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">enemy</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="n">enemy</span><span class="p">.</span><span class="n">Position</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector3</span><span class="p">(</span><span class="mf">5.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.0f</span><span class="p">);</span>
+</code></pre></div>
+<ul>
+<li>路径相对于 <strong><code>assets/</code></strong>。</li>
+<li>仅在 <strong>Play</strong> 模式会为脚本调用 <code>OnCreate</code>。</li>
+<li>编辑器中：Hierarchy 右键 <strong>Save as Prefab</strong>，或将 <code>.hprefab</code> 拖入 Viewport 实例化。</li>
+</ul>
+<hr />
+<h2 id="time">Time</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="kt">float</span><span class="w"> </span><span class="n">delta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Time</span><span class="p">.</span><span class="n">DeltaTime</span><span class="p">;</span>
+</code></pre></div>
+<p>与 <code>OnUpdate(timestep)</code> 参数等价，便于在非生命周期方法中读取帧间隔。</p>
+<hr />
 <h2 id="spriterenderer">SpriteRenderer</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">spriteRenderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">SpriteRenderer</span><span class="o">&gt;</span><span class="p">();</span>
-<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">spriteRenderer</span><span class="p">.</span><span class="n">FlipHorizontal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
-<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="n">spriteRenderer</span><span class="p">.</span><span class="n">Color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector4</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
-<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="n">spriteRenderer</span><span class="p">.</span><span class="n">TextureHandle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">textureHandle</span><span class="p">;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">spriteRenderer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">SpriteRenderer</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="n">spriteRenderer</span><span class="p">.</span><span class="n">FlipHorizontal</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="n">spriteRenderer</span><span class="p">.</span><span class="n">Color</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector4</span><span class="p">(</span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="n">spriteRenderer</span><span class="p">.</span><span class="n">TextureHandle</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">textureHandle</span><span class="p">;</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1631,16 +2011,57 @@
 <td><code>FlipHorizontal</code></td>
 <td>水平镜像绘制</td>
 </tr>
+<tr>
+<td><code>SortingLayer</code></td>
+<td>排序层索引（越小越靠后绘制）</td>
+</tr>
+<tr>
+<td><code>SortingOrder</code></td>
+<td>同层内的绘制顺序</td>
+</tr>
+</tbody>
+</table>
+<p>Sorting Layer 名称在 <strong>Project Settings → Sorting Layers</strong> 中配置。</p>
+<hr />
+<h2 id="camera">Camera</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">camera</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">Camera</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">camera</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="k">null</span><span class="p">)</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="p">{</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">    </span><span class="n">camera</span><span class="p">.</span><span class="n">OrthographicSize</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">8.0f</span><span class="p">;</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">    </span><span class="n">camera</span><span class="p">.</span><span class="n">BackgroundColor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Vector4</span><span class="p">(</span><span class="mf">0.1f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.1f</span><span class="p">,</span><span class="w"> </span><span class="mf">0.15f</span><span class="p">,</span><span class="w"> </span><span class="mf">1.0f</span><span class="p">);</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="n">camera</span><span class="p">.</span><span class="n">Primary</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="p">}</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>属性</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OrthographicSize</code></td>
+<td>正交相机半高（2D 常用）</td>
+</tr>
+<tr>
+<td><code>BackgroundColor</code></td>
+<td>清屏颜色</td>
+</tr>
+<tr>
+<td><code>Primary</code></td>
+<td>是否为主相机（渲染时使用）</td>
+</tr>
 </tbody>
 </table>
 <hr />
 <h2 id="spriteanimation">SpriteAnimation</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">animation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">SpriteAnimation</span><span class="o">&gt;</span><span class="p">();</span>
-<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="n">animation</span><span class="p">.</span><span class="n">Play</span><span class="p">(</span><span class="s">&quot;Run&quot;</span><span class="p">);</span>
-<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="n">animation</span><span class="p">.</span><span class="n">CurrentAnimation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Idle&quot;</span><span class="p">;</span>
-<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="n">animation</span><span class="p">.</span><span class="n">FrameRate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">12.0f</span><span class="p">;</span>
-<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="n">animation</span><span class="p">.</span><span class="n">Playing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
-<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="n">animation</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="kt">var</span><span class="w"> </span><span class="n">animation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">GetComponent</span><span class="o">&lt;</span><span class="n">SpriteAnimation</span><span class="o">&gt;</span><span class="p">();</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a><span class="n">animation</span><span class="p">.</span><span class="n">Play</span><span class="p">(</span><span class="s">&quot;Run&quot;</span><span class="p">);</span>
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a><span class="n">animation</span><span class="p">.</span><span class="n">CurrentAnimation</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;Idle&quot;</span><span class="p">;</span>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="n">animation</span><span class="p">.</span><span class="n">FrameRate</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">12.0f</span><span class="p">;</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a><span class="n">animation</span><span class="p">.</span><span class="n">Playing</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">true</span><span class="p">;</span>
+<a id="__codelineno-16-6" name="__codelineno-16-6" href="#__codelineno-16-6"></a><span class="n">animation</span><span class="p">.</span><span class="n">Stop</span><span class="p">();</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1680,15 +2101,25 @@
 <hr />
 <h2 id="2d">2D 碰撞回调</h2>
 <p>在 <strong>Play</strong> 模式下，碰撞开始/结束时调用（双方若挂 Script 且已实例化，各收到一次回调）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionEnter2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
-<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="p">{</span>
-<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Enter: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
-<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="p">}</span>
-<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
-<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionExit2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
-<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="p">{</span>
-<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Exit: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
-<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionEnter2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a><span class="p">{</span>
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Enter: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a><span class="p">}</span>
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnCollisionExit2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a><span class="p">{</span>
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Exit: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-9" name="__codelineno-17-9" href="#__codelineno-17-9"></a><span class="p">}</span>
+<a id="__codelineno-17-10" name="__codelineno-17-10" href="#__codelineno-17-10"></a>
+<a id="__codelineno-17-11" name="__codelineno-17-11" href="#__codelineno-17-11"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnTriggerEnter2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
+<a id="__codelineno-17-12" name="__codelineno-17-12" href="#__codelineno-17-12"></a><span class="p">{</span>
+<a id="__codelineno-17-13" name="__codelineno-17-13" href="#__codelineno-17-13"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Trigger enter: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-14" name="__codelineno-17-14" href="#__codelineno-17-14"></a><span class="p">}</span>
+<a id="__codelineno-17-15" name="__codelineno-17-15" href="#__codelineno-17-15"></a>
+<a id="__codelineno-17-16" name="__codelineno-17-16" href="#__codelineno-17-16"></a><span class="k">public</span><span class="w"> </span><span class="k">override</span><span class="w"> </span><span class="k">void</span><span class="w"> </span><span class="nf">OnTriggerExit2D</span><span class="p">(</span><span class="n">Collision2DInfo</span><span class="w"> </span><span class="n">collision</span><span class="p">)</span>
+<a id="__codelineno-17-17" name="__codelineno-17-17" href="#__codelineno-17-17"></a><span class="p">{</span>
+<a id="__codelineno-17-18" name="__codelineno-17-18" href="#__codelineno-17-18"></a><span class="w">    </span><span class="n">Log</span><span class="p">.</span><span class="n">Info</span><span class="p">(</span><span class="s">$&quot;Trigger exit: {collision.OtherEntityID}&quot;</span><span class="p">);</span>
+<a id="__codelineno-17-19" name="__codelineno-17-19" href="#__codelineno-17-19"></a><span class="p">}</span>
 </code></pre></div>
 <table>
 <thead>
@@ -1699,6 +2130,14 @@
 </thead>
 <tbody>
 <tr>
+<td>碰撞回调</td>
+<td>双方 <strong>IsTrigger 均未勾选</strong> 时触发 <code>OnCollisionEnter2D</code> / <code>OnCollisionExit2D</code></td>
+</tr>
+<tr>
+<td>触发器回调</td>
+<td>至少一方 <strong>IsTrigger 勾选</strong> 时触发 <code>OnTriggerEnter2D</code> / <code>OnTriggerExit2D</code>（无物理推力）</td>
+</tr>
+<tr>
 <td>触发条件</td>
 <td>双方有 <strong>Box</strong> 或 <strong>Circle Collider 2D</strong>；至少一方参与动态模拟</td>
 </tr>
@@ -1708,26 +2147,49 @@
 </tr>
 <tr>
 <td>用途</td>
-<td>着地检测、伤害判定等</td>
+<td>伤害、拾取、机关等；<strong>平台着地优先用射线</strong>（见 <a href="../ScriptWorkflow/">脚本工作流</a>）</td>
 </tr>
 </tbody>
 </table>
-<p><code>Collision2DInfo.OtherEntityID</code> 为对方实体 ID。更多组件参数见 <a href="../Physics2D/">2D 物理</a>。</p>
+<p><code>Collision2DInfo</code> 字段：</p>
+<table>
+<thead>
+<tr>
+<th>字段</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>OtherEntityID</code></td>
+<td>对方实体 ID</td>
+</tr>
+<tr>
+<td><code>Normal</code></td>
+<td>支撑法线（指向本实体，世界空间）；脚下地面通常 <code>Normal.Y</code> 较大</td>
+</tr>
+<tr>
+<td><code>Point</code></td>
+<td>接触点世界坐标（首个 manifold 点）</td>
+</tr>
+</tbody>
+</table>
+<p>更多组件参数见 <a href="../Physics2D/">2D 物理</a>。</p>
 <hr />
 <h2 id="inspector-serializefield">Inspector 与 [SerializeField]</h2>
 <p><strong>public 实例字段</strong> 或带 <strong><code>[SerializeField]</code></strong> 的 <strong>private 实例字段</strong> 会出现在属性面板，并随场景 YAML 的 <code>ScriptFields</code> 保存：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">HimiiEngine</span><span class="p">;</span>
-<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
-<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">PlayerController</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Entity</span>
-<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="p">{</span>
-<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">MoveSpeed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0f</span><span class="p">;</span>
-<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Entity</span><span class="w"> </span><span class="n">Target</span><span class="p">;</span>
-<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
-<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="w">    </span><span class="na">[SerializeField]</span>
-<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">jumpSpeed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">7.0f</span><span class="p">;</span>
-<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="p">}</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">using</span><span class="w"> </span><span class="nn">HimiiEngine</span><span class="p">;</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="k">public</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">PlayerController</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Entity</span>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="p">{</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">MoveSpeed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">5.0f</span><span class="p">;</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a><span class="w">    </span><span class="k">public</span><span class="w"> </span><span class="n">Entity</span><span class="w"> </span><span class="n">Target</span><span class="p">;</span>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a><span class="w">    </span><span class="na">[SerializeField]</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a><span class="w">    </span><span class="k">private</span><span class="w"> </span><span class="kt">float</span><span class="w"> </span><span class="n">jumpSpeed</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">7.0f</span><span class="p">;</span>
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a><span class="p">}</span>
 </code></pre></div>
-<p><code>[SerializeField]</code> 类型定义在 <code>assets/scripts/Himii/SerializeField.cs</code>（引擎同步到游戏项目）。</p>
+<p><code>[SerializeField]</code> 由 <strong>ScriptCore.dll</strong> 提供（<code>HimiiEngine.SerializeField</code>），游戏脚本只需 <code>using HimiiEngine;</code>，<strong>无需</strong>在项目内复制该文件。</p>
 <table>
 <thead>
 <tr>
