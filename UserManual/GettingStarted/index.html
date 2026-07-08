@@ -1191,8 +1191,10 @@
 <li>Git（建议 <code>git clone --recursive</code> 以包含 vcpkg 子模块）</li>
 </ul>
 <p>构建编辑器（Debug 示例）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-debug</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-debug</span> <span class="p">-</span><span class="n">-target</span> <span class="n">HimiiEditor</span> <span class="n">-j</span> <span class="n">8</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">copy </span><span class="n">CMakePresets</span><span class="p">.</span><span class="n">json</span><span class="p">.</span><span class="n">example</span> <span class="n">CMakePresets</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-debug</span>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-debug-win</span> <span class="n">-j</span> <span class="n">8</span>
 </code></pre></div>
 <p>也可使用 <code>python build.py debug</code> 或 <code>build_py.bat</code>。</p>
 <h2 id="2">2. 启动编辑器</h2>
