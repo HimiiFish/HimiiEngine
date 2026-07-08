@@ -587,6 +587,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        首次准备：生成本地 CMake 预设
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1174,6 +1185,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#cmake" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        首次准备：生成本地 CMake 预设
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_1" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1303,20 +1325,37 @@
 <li><strong>.NET 8 SDK</strong>: 编译 <code>ScriptCore</code> 与游戏脚本</li>
 <li><strong>Git</strong>: 克隆时建议 <code>--recursive</code>（含 vcpkg 等子模块）</li>
 </ul>
+<h2 id="cmake">首次准备：生成本地 CMake 预设</h2>
+<p>仓库内提交的是跨平台模板 <code>CMakePresets.json.example</code>，<strong>不包含</strong>本机生成器（Visual Studio、Ninja 等）。每位开发者需复制为本地文件后再构建；<code>CMakePresets.json</code> 已加入 <code>.gitignore</code>，不会提交到 Git。</p>
+<p><strong>Windows:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nb">copy </span><span class="n">CMakePresets</span><span class="p">.</span><span class="n">json</span><span class="p">.</span><span class="n">example</span> <span class="n">CMakePresets</span><span class="p">.</span><span class="n">json</span>
+</code></pre></div>
+<p><strong>Linux:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cp<span class="w"> </span>CMakePresets.json.example<span class="w"> </span>CMakePresets.json
+</code></pre></div>
+<p>若本机 CMake 默认生成器不符合预期，可在本地 <code>CMakePresets.json</code> 的 <code>windows-base</code>（或对应 preset）中自行添加，例如：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&quot;generator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Visual Studio 17 2022&quot;</span>
+</code></pre></div>
+<p>或：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&quot;generator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ninja&quot;</span>
+</code></pre></div>
+<p>Linux 开发者通常复制后无需修改，直接使用 <code>linux-debug</code> / <code>linux-release</code> 即可。</p>
 <h2 id="_1">构建步骤（推荐）</h2>
 <h3 id="cmake-preset">方式一：CMake Preset</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">git</span> <span class="n">clone</span> <span class="p">-</span><span class="n">-recursive</span> <span class="p">&lt;</span><span class="n">repository-url</span><span class="p">&gt;</span>
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd </span><span class="n">Himii-Engine</span>
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-debug</span>
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-debug</span> <span class="p">-</span><span class="n">-target</span> <span class="n">HimiiEditor</span> <span class="n">-j</span> <span class="n">8</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">git</span> <span class="n">clone</span> <span class="p">-</span><span class="n">-recursive</span> <span class="p">&lt;</span><span class="n">repository-url</span><span class="p">&gt;</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="nb">cd </span><span class="n">Himii-Engine</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="nb">copy </span><span class="n">CMakePresets</span><span class="p">.</span><span class="n">json</span><span class="p">.</span><span class="n">example</span> <span class="n">CMakePresets</span><span class="p">.</span><span class="n">json</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-debug</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-debug-win</span> <span class="n">-j</span> <span class="n">8</span>
 </code></pre></div>
 <p>Release 构建示例：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">x64-release</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span> <span class="n">-j</span> <span class="n">8</span>
 </code></pre></div>
 <h3 id="python">方式二：Python 脚本</h3>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">python</span> <span class="n">build</span><span class="p">.</span><span class="n">py</span> <span class="n">debug</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">python</span> <span class="n">build</span><span class="p">.</span><span class="n">py</span> <span class="n">debug</span>
 </code></pre></div>
 <p>或双击 <code>build_py.bat</code>。</p>
 <h2 id="_2">运行编辑器</h2>
@@ -1380,19 +1419,19 @@
 </tbody>
 </table>
 <p>Release 分发目录结构（Godot 式顶层入口）：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>HimiiEngine.exe
-<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>HimiiEngine/
-<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  engine.hpck
-<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>  ScriptCore.dll
-<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>  ScriptCore.runtimeconfig.json
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>HimiiEngine.exe
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>HimiiEngine/
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  engine.hpck
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  ScriptCore.dll
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  ScriptCore.runtimeconfig.json
 </code></pre></div>
 <p>安装 Release 包：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span>
-<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-install</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-release</span> <span class="p">-</span><span class="n">-config</span> <span class="n">Release</span> <span class="p">-</span><span class="n">-prefix</span> <span class="n">install</span><span class="p">/</span><span class="n">x64-release</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-install</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-release</span> <span class="p">-</span><span class="n">-prefix</span> <span class="n">install</span><span class="p">/</span><span class="n">x64-release</span>
 </code></pre></div>
 <h2 id="himiiruntime">运行 HimiiRuntime（本地构建）</h2>
 <p>在完整构建 HimiiRuntime 目标后，可从输出目录启动：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe --project &quot;D:\path\to\YourProject\YourProject.hproj&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe --project &quot;D:\path\to\YourProject\YourProject.hproj&quot;
 </code></pre></div>
 <ul>
 <li>使用 <code>--project</code> 指定 <code>.hproj</code> 文件路径。</li>
@@ -1402,7 +1441,7 @@
 <h2 id="_4">故障排除</h2>
 <ul>
 <li><strong>找不到 ScriptCore.dll</strong>：先完整构建 HimiiEditor，或单独 <code>dotnet build ScriptCore</code>。</li>
-<li><strong>vcpkg 依赖失败</strong>：确认仓库内 <code>vcpkg</code> 子模块存在，并重跑 <code>cmake --preset x64-debug</code>。</li>
+<li><strong>vcpkg 依赖失败</strong>：确认仓库内 <code>vcpkg</code> 子模块存在，并确认已从 <code>CMakePresets.json.example</code> 复制出本地 <code>CMakePresets.json</code>，然后重跑 <code>cmake --preset x64-debug</code>。</li>
 <li>更多平台说明见仓库 <a href="https://github.com/HimiiFish/Himii-Engine/blob/main/README.md">README</a>（含 Linux 与 <code>build.py</code> 用法）。</li>
 </ul>
 
