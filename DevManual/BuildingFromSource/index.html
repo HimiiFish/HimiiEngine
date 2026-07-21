@@ -21,7 +21,7 @@
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
@@ -29,7 +29,7 @@
       
     
     
-      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
         <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
@@ -1431,13 +1431,10 @@
 </code></pre></div>
 <h2 id="himiiruntime">运行 HimiiRuntime（本地构建）</h2>
 <p>在完整构建 HimiiRuntime 目标后，可从输出目录启动：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe --project &quot;D:\path\to\YourProject\YourProject.hproj&quot;
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe
 </code></pre></div>
-<ul>
-<li>使用 <code>--project</code> 指定 <code>.hproj</code> 文件路径。</li>
-<li>未指定 <code>--project</code> 时，在 <strong>HimiiRuntime 可执行文件所在目录</strong> 查找 <code>.hproj</code> 文件。</li>
-</ul>
-<p>运行前请确认该目录下已有 <code>ScriptCore.dll</code>、<code>ScriptCore.runtimeconfig.json</code> 以及项目所需的 <code>assets</code>（与编辑器 Post-build 拷贝规则相同）。</p>
+<p>在 <strong>HimiiRuntime 可执行文件所在目录</strong>（或将其设为当前工作目录）放置 <code>.hproj</code> 文件；启动后会加载该目录下找到的第一个 <code>.hproj</code>。</p>
+<p>运行前请确认同目录下已有 <code>ScriptCore.dll</code>、<code>ScriptCore.runtimeconfig.json</code>，以及项目所需的 <code>assets</code>（Debug 构建由 Post-build 从 <code>HimiiEditor</code> 拷贝；Release 使用 <code>HimiiEngine/engine.hpck</code>）。</p>
 <h2 id="_4">故障排除</h2>
 <ul>
 <li><strong>找不到 ScriptCore.dll</strong>：先完整构建 HimiiEditor，或单独 <code>dotnet build ScriptCore</code>。</li>
@@ -1502,7 +1499,7 @@
       <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>
