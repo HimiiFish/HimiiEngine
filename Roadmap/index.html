@@ -2180,7 +2180,7 @@
 <h3 id="_2">实施顺序</h3>
 <ol>
 <li><strong>轨 1 — 场景结构</strong>：实体父子层级 → 多实体 Prefab → Canvas（含 Scaler）→ UIButton  </li>
-<li><strong>轨 2 — 音频</strong>（与轨 1 并行）：<code>AudioEngine</code> 抽象 + miniaudio 后端 → 非空间化 <code>AudioSource</code> + C# API  </li>
+<li><strong>轨 2 — 音频</strong>（与轨 1 并行）：<code>AudioEngine</code> + miniaudio → <code>SoundAsset</code> / 非空间化 <code>SoundPlayer</code> + C# / 编辑器  </li>
 <li><strong>收束 — 发布</strong>：完整 Build Pipeline（在功能稳定后进行）</li>
 </ol>
 <h3 id="1-ui">轨 1：场景结构与 UI</h3>
@@ -2238,17 +2238,27 @@
 <tr>
 <td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>AudioEngine Abstraction</strong></td>
-<td style="text-align: left;">引擎侧音频接口抽象；首期后端为 <strong>miniaudio</strong>；预留更换中间件的可能</td>
+<td style="text-align: left;">引擎侧音频接口抽象；首期后端为 <strong>miniaudio</strong>（解码与设备）；预留更换中间件的可能</td>
 </tr>
 <tr>
 <td style="text-align: left;">[ ]</td>
-<td style="text-align: left;"><strong>AudioSource（非空间化）</strong></td>
-<td style="text-align: left;">Play / Stop / Pause、Loop、Volume、Mute、Clip 引用；<strong>不做</strong> 2D 空间衰减 / Listener 定位</td>
+<td style="text-align: left;"><strong>SoundAsset</strong></td>
+<td style="text-align: left;">可引用音频资产（WAV / OGG / MP3）；一律解码进内存；<code>AssetHandle</code> 体系</td>
+</tr>
+<tr>
+<td style="text-align: left;">[ ]</td>
+<td style="text-align: left;"><strong>SoundPlayer（非空间化）</strong></td>
+<td style="text-align: left;">Play / Stop / Pause、Loop、Volume、Mute、PlayOnStart、PlayOneShot；最多 32 voice（超限优先丢弃新 OneShot）；<strong>不做</strong> 空间衰减 / Listener / Mixer</td>
 </tr>
 <tr>
 <td style="text-align: left;">[ ]</td>
 <td style="text-align: left;"><strong>Audio C# API</strong></td>
-<td style="text-align: left;">ScriptCore 可驱动上述播放控制</td>
+<td style="text-align: left;">ScriptCore <code>SoundPlayer</code> 组件可驱动上述播放控制</td>
+</tr>
+<tr>
+<td style="text-align: left;">[ ]</td>
+<td style="text-align: left;"><strong>Audio Editor</strong></td>
+<td style="text-align: left;">Inspector（含 Preview）、Content Browser 导入；仅 Play/Runtime 自动出声，Stop 时全部立刻停止</td>
 </tr>
 </tbody>
 </table>
