@@ -1706,11 +1706,14 @@
 <p>引擎自带 <strong><code>ScriptCore.dll</code></strong>（API：<code>Entity</code>、<code>Input</code>、<code>Log</code> 等），由 HimiiEditor 构建时拷贝到可执行文件旁，<strong>不要</strong>修改其命名空间下的核心类型。</p>
 <h2 id="_2">编译</h2>
 <ul>
-<li>保存 <code>.cs</code> 后，编辑器 <strong>文件监视</strong> 可触发 <strong>异步 <code>dotnet build</code></strong>（debounce）。</li>
-<li>点击 <strong>Play</strong> 前若脚本有改动，会先编译再进入 Play；编译进行中若已在 Play，会先 Stop。</li>
+<li>打开项目时：若 <code>GameAssembly.dll</code> 比全部 <code>assets/scripts/**/*.cs</code> 与根目录 <code>GameAssembly.csproj</code> 都新，则<strong>跳过编译</strong>，直接加载已有 DLL；否则异步 <code>dotnet build</code>。</li>
+<li>保存 <code>.cs</code> 或 <code>GameAssembly.csproj</code> 后，文件监视会触发异步编译（debounce）。编译进行中再次保存会<strong>排队</strong>，结束后再编一轮。</li>
+<li><strong>Play / Simulate 中</strong>不会自动编译，也不会强制 Stop；仅标记脚本为 dirty。再次点击 <strong>Play</strong>（或菜单 <strong>Compile and Reload</strong>）时才会编译。</li>
+<li>点击 <strong>Play</strong> 前若脚本有改动或正在编译，会先编译成功再进入 Play。</li>
 <li>编译日志在 <strong>Window → Script Console</strong>：</li>
 <li>成功 / 失败状态</li>
-<li>点击 <code>path\file.cs(line,col): error</code> 行，在配置的 IDE 中打开对应位置</li>
+<li><strong>红色 error</strong> 行可点击，在配置的 IDE 中打开对应位置（Visual Studio：打开项目 <code>.sln</code> 后再打开文件，不使用 <code>/edit</code>）</li>
+<li><strong>黄色 warning</strong> 仅高亮显示，不可点击跳转</li>
 </ul>
 <blockquote>
 <p><strong>【配图占位】</strong> <code>images/script-console-compile.png</code> — Script Console 编译输出</p>
@@ -1759,6 +1762,7 @@
 <h3 id="edit-preferences">全局默认（Edit → Preferences）</h3>
 <ul>
 <li>选择 <strong>Visual Studio</strong>、<strong>VS Code</strong>、<strong>Rider</strong> 或 <strong>Custom</strong>（自定义可执行文件与参数模板）。</li>
+<li>Custom 占位符：<code>{ProjectDir}</code> <code>{Solution}</code> <code>{File}</code> <code>{ProjectName}</code> <code>{Line}</code></li>
 <li>保存到引擎数据目录下的 <code>editor_settings.yaml</code>。</li>
 </ul>
 <h3 id="file-project-settings">项目覆盖（File → Project Settings）</h3>
