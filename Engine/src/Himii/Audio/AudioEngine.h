@@ -35,6 +35,7 @@ namespace Himii
 
         /// 编辑器 Inspector 预览（不占用场景主轨语义）。
         static void Preview(const Ref<SoundAsset>& soundAsset, float volume = 1.0f);
+        static void SetPreviewVolume(float volume);
         static void StopPreview();
 
     private:

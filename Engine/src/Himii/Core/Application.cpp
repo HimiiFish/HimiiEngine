@@ -111,6 +111,17 @@ namespace Himii
 #endif
         m_ExecutableDir = executablePath;
 
+        // 打包游戏常被从其它工作目录启动；强制 cwd=exe 目录，确保能找到 Game.hproj / assets。
+        {
+            std::error_code currentPathError;
+            std::filesystem::current_path(m_ExecutableDir, currentPathError);
+            if (currentPathError)
+            {
+                HIMII_CORE_WARNING("Failed to set working directory to executable dir '{0}': {1}",
+                                   m_ExecutableDir.string(), currentPathError.message());
+            }
+        }
+
 #if defined(HIMII_DEBUG)
         m_EngineDir = m_ExecutableDir;
         FileSystem::Init(m_ExecutableDir, m_ExecutableDir, true);

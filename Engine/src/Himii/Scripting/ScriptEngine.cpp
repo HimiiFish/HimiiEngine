@@ -47,6 +47,7 @@ namespace Himii
 
     typedef void *(CORECLR_DELEGATE_CALLTYPE *InstantiateClassFn)(uint64_t entityID, const char *className, int flags);
     typedef void(CORECLR_DELEGATE_CALLTYPE *ReleaseInstanceFn)(void *handle);
+    typedef void(CORECLR_DELEGATE_CALLTYPE *OnCreateInstanceFn)(void *handle);
     typedef void(CORECLR_DELEGATE_CALLTYPE *OnDestroyInstanceFn)(void *handle);
     typedef void(CORECLR_DELEGATE_CALLTYPE *OnUpdateInstanceFn)(void *handle, float ts);
     typedef void(CORECLR_DELEGATE_CALLTYPE *OnFixedUpdateInstanceFn)(void *handle, float ts);
@@ -82,6 +83,7 @@ namespace Himii
 
     static InstantiateClassFn s_InstantiateClass = nullptr;
     static ReleaseInstanceFn s_ReleaseInstance = nullptr;
+    static OnCreateInstanceFn s_OnCreateInstance = nullptr;
     static OnDestroyInstanceFn s_OnDestroyInstance = nullptr;
     static OnUpdateInstanceFn s_OnUpdateInstance = nullptr;
     static OnFixedUpdateInstanceFn s_OnFixedUpdateInstance = nullptr;
@@ -261,6 +263,10 @@ namespace Himii
                                                (void **)&s_ReleaseInstance);
 
         load_assembly_and_get_function_pointer(filepath.c_str(), STR("HimiiEngine.ScriptManager, ScriptCore"),
+                                               STR("OnCreateInstance"), UNMANAGEDCALLERSONLY_METHOD, nullptr,
+                                               (void **)&s_OnCreateInstance);
+
+        load_assembly_and_get_function_pointer(filepath.c_str(), STR("HimiiEngine.ScriptManager, ScriptCore"),
                                                STR("OnDestroyInstance"), UNMANAGEDCALLERSONLY_METHOD, nullptr,
                                                (void **)&s_OnDestroyInstance);
 
@@ -407,75 +413,75 @@ namespace Himii
     void ScriptEngine::OnCreateEntity(Entity entity)
     {
         const auto &sc = entity.GetComponent<ScriptComponent>();
-        if (ScriptEngine::EntityClassExists(sc.ClassName))
+        if (!ScriptEngine::EntityClassExists(sc.ClassName))
         {
-            UUID entityID = entity.GetUUID();
-
-            // [MODIFIED] Use InstantiateClass to get handle
-            void* instance = InstantiateClass(entityID, sc.ClassName, ScriptInstanceFlags::InvokeOnCreate);
-            
-            // [NEW] Apply serialized fields
-            if (instance)
-            {
-     
-                // Note: We might want to ensure fields are up to date first?
-                // If we built the project, fields might have changed.
-                // For now, assume sc.Fields contains valid data from serialization or editor.
-                
-                for (const auto& [name, field] : sc.Fields)
-                {
-                    if (field.Type == ScriptFieldType::Float)
-                    {
-                        float value = field.GetValue<float>();
-                        SetFloat(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::Int)
-                    {
-                        int value = field.GetValue<int>();
-                        SetInt(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::Bool)
-                    {
-                        bool value = field.GetValue<bool>();
-                        SetBool(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::Vector2)
-                    {
-                        glm::vec2 value = field.GetValue<glm::vec2>();
-                        SetVector2(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::Vector3)
-                    {
-                        glm::vec3 value = field.GetValue<glm::vec3>();
-                        SetVector3(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::Vector4)
-                    {
-                        glm::vec4 value = field.GetValue<glm::vec4>();
-                        SetVector4(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::String)
-                    {
-                        std::string value = field.GetValue<std::string>();
-                        SetString(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::KeyCode)
-                    {
-                        int value = field.GetValue<int>();
-                        SetInt(instance, name, value);
-                    }
-                    else if (field.Type == ScriptFieldType::Entity)
-                    {
-                        UUID value = field.GetValue<UUID>();
-                        SetEntityField(instance, name, value);
-                    }
-                }
-            }
-
-
-            // Legacy s_OnCreate is now redundant if InstantiateClass does everything
-            // But we keep s_OnCreate logic inside InstantiateClass on C# side.
+            HIMII_CORE_ERROR("Script class '{0}' not found in GameAssembly. "
+                             "Check Script Component ClassName and that scripts compiled.",
+                             sc.ClassName);
+            return;
         }
+
+        UUID entityID = entity.GetUUID();
+
+        // 先实例化、写入序列化字段，再调用 OnCreate，避免脚本在默认字段值上初始化。
+        void *instance = InstantiateClass(entityID, sc.ClassName, ScriptInstanceFlags::None);
+        if (!instance)
+        {
+            HIMII_CORE_ERROR("Failed to instantiate script class '{0}'", sc.ClassName);
+            return;
+        }
+
+        for (const auto &[name, field] : sc.Fields)
+        {
+            if (field.Type == ScriptFieldType::Float)
+            {
+                float value = field.GetValue<float>();
+                SetFloat(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::Int)
+            {
+                int value = field.GetValue<int>();
+                SetInt(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::Bool)
+            {
+                bool value = field.GetValue<bool>();
+                SetBool(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::Vector2)
+            {
+                glm::vec2 value = field.GetValue<glm::vec2>();
+                SetVector2(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::Vector3)
+            {
+                glm::vec3 value = field.GetValue<glm::vec3>();
+                SetVector3(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::Vector4)
+            {
+                glm::vec4 value = field.GetValue<glm::vec4>();
+                SetVector4(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::String)
+            {
+                std::string value = field.GetValue<std::string>();
+                SetString(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::KeyCode)
+            {
+                int value = field.GetValue<int>();
+                SetInt(instance, name, value);
+            }
+            else if (field.Type == ScriptFieldType::Entity)
+            {
+                UUID value = field.GetValue<UUID>();
+                SetEntityField(instance, name, value);
+            }
+        }
+
+        if (s_OnCreateInstance)
+            s_OnCreateInstance(instance);
     }
 
     void ScriptEngine::OnRuntimeStart(Scene *scene)

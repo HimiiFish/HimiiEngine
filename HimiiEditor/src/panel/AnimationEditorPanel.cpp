@@ -812,6 +812,13 @@ namespace Himii
             && m_IsDirty;
     }
 
+    bool AnimationEditorPanel::HasUnsavedAnimationWithoutDiskPath() const
+    {
+        return m_CurrentAnimation != nullptr
+            && m_IsDirty
+            && m_CurrentFilePath.empty();
+    }
+
     bool AnimationEditorPanel::SaveActiveAnimationAsset()
     {
         if (!HasSaveableAnimationAsset())

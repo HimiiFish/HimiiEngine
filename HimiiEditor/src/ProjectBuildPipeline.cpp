@@ -434,6 +434,18 @@ namespace Himii
                                             stageErrorMessage))
             return failAndCleanupTemporary(stageErrorMessage);
 
+        // AssetRegistry.yaml (required for AssetHandle → path resolution at runtime)
+        const std::filesystem::path sourceAssetRegistryPath = Project::GetAssetRegistryPath();
+        if (!std::filesystem::exists(sourceAssetRegistryPath))
+        {
+            return failAndCleanupTemporary(
+                    "AssetRegistry.yaml missing: " + sourceAssetRegistryPath.string() +
+                    ". Save the project / run Build after assets are registered.");
+        }
+        if (!CopyFileRequired(sourceAssetRegistryPath, temporaryDirectory / "AssetRegistry.yaml",
+                              stageErrorMessage))
+            return failAndCleanupTemporary(stageErrorMessage);
+
         // GameAssembly.dll at package root
         if (!CopyFileRequired(releaseGameAssemblyPath, temporaryDirectory / "GameAssembly.dll",
                               stageErrorMessage))

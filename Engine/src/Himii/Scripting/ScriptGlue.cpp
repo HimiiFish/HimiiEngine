@@ -720,19 +720,19 @@ namespace Himii {
         font->ProcessCompletedGenerations();
     }
 
-    static bool Input_IsKeyDown(int keycode)
+    static uint8_t Input_IsKeyDown(int keycode)
     {
-        return Input::IsKeyPressed(keycode);
+        return Input::IsKeyPressed(keycode) ? 1 : 0;
     }
 
-    static bool Input_IsKeyPressed(int keycode)
+    static uint8_t Input_IsKeyPressed(int keycode)
     {
-        return Input::IsKeyJustPressed(keycode);
+        return Input::IsKeyJustPressed(keycode) ? 1 : 0;
     }
 
-    static bool Input_IsKeyReleased(int keycode)
+    static uint8_t Input_IsKeyReleased(int keycode)
     {
-        return Input::IsKeyJustReleased(keycode);
+        return Input::IsKeyJustReleased(keycode) ? 1 : 0;
     }
 
     static float Input_GetAxisHorizontal()
@@ -745,9 +745,9 @@ namespace Himii {
         return Input::GetAxisVertical();
     }
 
-    static bool Input_IsMouseButtonDown(int button)
+    static uint8_t Input_IsMouseButtonDown(int button)
     {
-        return Input::IsMouseButtonPressed(button);
+        return Input::IsMouseButtonPressed(button) ? 1 : 0;
     }
 
     static void Input_GetMousePosition(glm::vec2 *outPos)

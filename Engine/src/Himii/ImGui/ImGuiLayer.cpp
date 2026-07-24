@@ -70,7 +70,7 @@ namespace Himii
 
         io.IniFilename = nullptr;
 
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        // 不启用 Keyboard Nav：Space/方向键会进游戏脚本（Editor Play 与 Runtime 一致）。
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
         ImGuiStyle &style = ImGui::GetStyle();

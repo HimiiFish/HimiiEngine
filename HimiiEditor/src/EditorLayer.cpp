@@ -1608,11 +1608,118 @@ namespace Himii
         ImGui::EndMenuBar();
     }
 
+    bool EditorLayer::FlushProjectStateForBuild(std::string& errorMessage)
+    {
+        if (!Project::GetActive())
+        {
+            errorMessage = "No active project.";
+            return false;
+        }
+
+        if (m_SceneState != SceneState::Edit)
+            OnSceneStop();
+
+        if (m_AnimationEditorPanel.HasUnsavedAnimationWithoutDiskPath())
+        {
+            errorMessage =
+                    "Animation Editor has unsaved changes with no file path. "
+                    "Save the .anim asset (Save As) before building.";
+            return false;
+        }
+
+        if (m_TextureInspectorPanel.SaveActiveTextureMeta())
+            HIMII_CORE_INFO("Build Project: texture import meta saved.");
+
+        if (m_TileMapEditorPanel.SaveActiveTileMapAssets())
+            HIMII_CORE_INFO("Build Project: TileMap assets saved.");
+
+        if (m_AnimationEditorPanel.SaveActiveAnimationAsset())
+            HIMII_CORE_INFO("Build Project: animation asset saved.");
+
+        const ProjectConfig& projectConfiguration = Project::GetConfig();
+        if (projectConfiguration.StartScene.empty())
+        {
+            errorMessage = "Project Start Scene is empty. Set Project Settings → Start Scene before building.";
+            return false;
+        }
+
+        const std::filesystem::path startSceneAbsolutePath =
+                Project::GetAssetDirectory() / projectConfiguration.StartScene;
+        if (!std::filesystem::exists(startSceneAbsolutePath))
+        {
+            errorMessage = "Start Scene file missing: " + startSceneAbsolutePath.string();
+            return false;
+        }
+
+        std::error_code startSceneCanonicalError;
+        const std::filesystem::path startSceneCanonical =
+                std::filesystem::weakly_canonical(startSceneAbsolutePath, startSceneCanonicalError);
+
+        std::error_code editorSceneCanonicalError;
+        const std::filesystem::path editorSceneCanonical =
+                m_EditorScenePath.empty()
+                        ? std::filesystem::path{}
+                        : std::filesystem::weakly_canonical(m_EditorScenePath, editorSceneCanonicalError);
+
+        const bool editorSceneIsStartScene =
+                !startSceneCanonicalError
+                && !editorSceneCanonicalError
+                && !editorSceneCanonical.empty()
+                && !startSceneCanonical.empty()
+                && editorSceneCanonical == startSceneCanonical;
+
+        if (!m_EditorScenePath.empty() && m_EditorScene)
+        {
+            SerializeScene(m_EditorScene, m_EditorScenePath);
+            HIMII_CORE_INFO("Build Project: scene saved to {0}", m_EditorScenePath.string());
+        }
+
+        if (!editorSceneIsStartScene)
+        {
+            HIMII_CORE_WARNING(
+                    "Build Project: open scene is not the Start Scene. "
+                    "Package will launch '{0}' from disk (current editor scene is not the start scene).",
+                    projectConfiguration.StartScene.string());
+        }
+
+        if (m_EditorScenePath.empty())
+        {
+            HIMII_CORE_WARNING(
+                    "Build Project: current editor scene has no saved path. "
+                    "Only the Start Scene on disk will be included as the launch scene.");
+        }
+
+        Ref<AssetManager> assetManager = Project::GetAssetManager();
+        if (!assetManager)
+        {
+            errorMessage = "AssetManager is unavailable.";
+            return false;
+        }
+
+        assetManager->SerializeAssetRegistry();
+
+        const std::filesystem::path assetRegistryPath = Project::GetAssetRegistryPath();
+        if (!std::filesystem::exists(assetRegistryPath))
+        {
+            errorMessage = "AssetRegistry.yaml missing after save: " + assetRegistryPath.string();
+            return false;
+        }
+
+        return true;
+    }
+
     void EditorLayer::BuildProject()
     {
         if (!Project::GetActive())
         {
             HIMII_CORE_ERROR("Build Project: no active project.");
+            return;
+        }
+
+        std::string flushErrorMessage;
+        if (!FlushProjectStateForBuild(flushErrorMessage))
+        {
+            HIMII_CORE_ERROR("Build Project failed: {0}", flushErrorMessage);
             return;
         }
 

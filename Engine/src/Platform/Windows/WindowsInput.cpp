@@ -20,7 +20,9 @@ namespace Himii
         bool QueryKeyDownState(KeyCode key)
         {
             auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-            const int state = glfwGetKey(window, key);
+            if (!window)
+                return false;
+            const int state = glfwGetKey(window, static_cast<int>(key));
             return state == GLFW_PRESS || state == GLFW_REPEAT;
         }
 
@@ -39,15 +41,11 @@ namespace Himii
 
     bool Input::IsKeyJustPressed(const KeyCode key)
     {
-        auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        const int state = glfwGetKey(window, key);
-        const bool isJustPressed = state == GLFW_PRESS;
-
+        const bool isDown = QueryKeyDownState(key);
         KeyFrameState& keyFrameState = GetKeyFrameState(key);
         const bool wasDownLastFrame = keyFrameState.WasDownLastFrame;
-        keyFrameState.IsDownThisFrame = state == GLFW_PRESS || state == GLFW_REPEAT;
-
-        return isJustPressed && !wasDownLastFrame;
+        keyFrameState.IsDownThisFrame = isDown;
+        return isDown && !wasDownLastFrame;
     }
 
     bool Input::IsKeyJustReleased(const KeyCode key)
@@ -62,13 +60,17 @@ namespace Himii
     bool Input::IsMouseButtonPressed(const MouseCode button)
     {
         auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
-        const int state = glfwGetMouseButton(window, button);
+        if (!window)
+            return false;
+        const int state = glfwGetMouseButton(window, static_cast<int>(button));
         return state == GLFW_PRESS;
     }
 
     glm::vec2 Input::GetMousePosition()
     {
         auto* window = static_cast<GLFWwindow*>(Application::Get().GetWindow().GetNativeWindow());
+        if (!window)
+            return glm::vec2(0.0f);
         double positionX = 0.0;
         double positionY = 0.0;
         glfwGetCursorPos(window, &positionX, &positionY);
@@ -107,7 +109,11 @@ namespace Himii
 
     void Input::EndFrame()
     {
+        // 先刷新本帧曾出现过的键的物理状态，再写入 WasDown，供下一帧边沿检测。
         for (auto& [keyCode, keyFrameState] : s_KeyFrameStates)
+        {
+            keyFrameState.IsDownThisFrame = QueryKeyDownState(keyCode);
             keyFrameState.WasDownLastFrame = keyFrameState.IsDownThisFrame;
+        }
     }
 }

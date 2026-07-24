@@ -18,8 +18,8 @@ namespace HimiiEngine
         internal delegate void TransformPosDelegate(ulong entityID, out Vector3 vec);
         internal delegate void TransformSetPosDelegate(ulong entityID, ref Vector3 vec);
 
-        internal delegate bool InputGetKeyDelegate(KeyCode keycode);
-        internal delegate bool InputGetMouseBtnDelegate(int button);
+        internal delegate byte InputGetKeyDelegate(KeyCode keycode);
+        internal delegate byte InputGetMouseBtnDelegate(int button);
         internal delegate void InputGetMousePosDelegate(out Vector2 pos);
 
         internal delegate void Rigidbody2DApplyImpulseDelegate(ulong entityID, ref Vector2 impulse, ref Vector2 point, bool wake);

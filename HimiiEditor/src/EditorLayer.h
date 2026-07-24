@@ -53,6 +53,8 @@ namespace Himii
         void OpenProject(const std::filesystem::path &path);
         void SaveProject();
         void BuildProject();
+        /// Build Project 前：停止 Play、落盘脏资产、确保 StartScene / AssetRegistry 在磁盘上。
+        bool FlushProjectStateForBuild(std::string& errorMessage);
 
         void OpenCSProject();
 

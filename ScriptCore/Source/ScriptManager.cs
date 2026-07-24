@@ -192,6 +192,23 @@ namespace HimiiEngine
         }
 
         [UnmanagedCallersOnly]
+        public static void OnCreateInstance(IntPtr handlePtr)
+        {
+            if (handlePtr == IntPtr.Zero) return;
+
+            try
+            {
+                GCHandle handle = GCHandle.FromIntPtr(handlePtr);
+                if (handle.IsAllocated && handle.Target is Entity entity)
+                    entity.OnCreate();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine($"[C# Error] OnCreateInstance failed: {e.Message}");
+            }
+        }
+
+        [UnmanagedCallersOnly]
         public static void OnDestroyInstance(IntPtr handlePtr)
         {
             if (handlePtr == IntPtr.Zero) return;

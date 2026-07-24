@@ -12,7 +12,7 @@ namespace Himii
     };
 
     /// 编辑器侧完整发布管线：校验 Release Runtime / engine.hpck、编译 Release GameAssembly、
-    /// 原子写出与 HimiiRuntime Release 布局一致的可运行目录。
+    /// 原子写出与 HimiiRuntime Release 布局一致的可运行目录（含 AssetRegistry.yaml）。
     class ProjectBuildPipeline
     {
     public:

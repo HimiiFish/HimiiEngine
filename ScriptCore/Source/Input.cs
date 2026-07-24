@@ -5,24 +5,24 @@ namespace HimiiEngine
         /// <summary>键按住（含重复触发）。</summary>
         public static bool IsKeyDown(KeyCode keycode)
         {
-            return InternalCalls.Input_IsKeyDown != null && InternalCalls.Input_IsKeyDown(keycode);
+            return InternalCalls.Input_IsKeyDown != null && InternalCalls.Input_IsKeyDown(keycode) != 0;
         }
 
         /// <summary>本帧刚按下（边沿，不含重复）。</summary>
         public static bool IsKeyPressed(KeyCode keycode)
         {
-            return InternalCalls.Input_IsKeyPressed != null && InternalCalls.Input_IsKeyPressed(keycode);
+            return InternalCalls.Input_IsKeyPressed != null && InternalCalls.Input_IsKeyPressed(keycode) != 0;
         }
 
         /// <summary>本帧刚释放。</summary>
         public static bool IsKeyReleased(KeyCode keycode)
         {
-            return InternalCalls.Input_IsKeyReleased != null && InternalCalls.Input_IsKeyReleased(keycode);
+            return InternalCalls.Input_IsKeyReleased != null && InternalCalls.Input_IsKeyReleased(keycode) != 0;
         }
 
         public static bool IsMouseButtonDown(int button)
         {
-            return InternalCalls.Input_IsMouseButtonDown != null && InternalCalls.Input_IsMouseButtonDown(button);
+            return InternalCalls.Input_IsMouseButtonDown != null && InternalCalls.Input_IsMouseButtonDown(button) != 0;
         }
 
         public static Vector2 MousePosition

@@ -392,7 +392,14 @@ namespace Himii
 
         float EvaluateEffectiveVolume() const
         {
-            return Mute ? 0.0f : Volume;
+            if (Mute)
+                return 0.0f;
+            // 线性音量钳制到 [0,1]，避免异常值把扬声器打满。
+            if (Volume <= 0.0f)
+                return 0.0f;
+            if (Volume >= 1.0f)
+                return 1.0f;
+            return Volume;
         }
     };
 

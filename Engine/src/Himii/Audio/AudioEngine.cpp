@@ -73,7 +73,7 @@ namespace Himii
                 return false;
             }
 
-            ma_sound_set_volume(&slot.Sound, volume);
+            ma_sound_set_volume(&slot.Sound, volume < 0.0f ? 0.0f : (volume > 1.0f ? 1.0f : volume));
             ma_sound_set_looping(&slot.Sound, loop ? MA_TRUE : MA_FALSE);
             if (ma_sound_start(&slot.Sound) != MA_SUCCESS)
             {
@@ -323,6 +323,15 @@ namespace Himii
         state.PreviewVoice.IsOneShot = true;
         state.PreviewVoice.ProtectFromEviction = false;
         state.PreviewActive = true;
+    }
+
+    void AudioEngine::SetPreviewVolume(float volume)
+    {
+        auto& state = GetState();
+        std::lock_guard<std::mutex> lock(state.Mutex);
+        if (!state.Initialized || !state.PreviewActive)
+            return;
+        ma_sound_set_volume(&state.PreviewVoice.Sound, volume);
     }
 
     void AudioEngine::StopPreview()

@@ -20,6 +20,8 @@ namespace Himii
         bool SaveActiveAnimationAsset();
         bool HasOpenAnimation() const { return m_CurrentAnimation != nullptr; }
         bool HasSaveableAnimationAsset() const;
+        /// 已修改但尚未 Save As（无磁盘路径），Build 前无法自动落盘。
+        bool HasUnsavedAnimationWithoutDiskPath() const;
 
     private:
         static constexpr float LeftPanelWidth = 380.0f;

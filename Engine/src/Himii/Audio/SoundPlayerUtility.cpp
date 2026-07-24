@@ -36,6 +36,9 @@ namespace Himii::SoundPlayerUtility
         component.RuntimeVoiceHandle =
                 AudioEngine::Play(component.Sound, component.EvaluateEffectiveVolume(), component.Loop, true);
         component.RuntimePaused = false;
+        // 再写一次音量，避免个别后端在 start 时忽略初始 gain。
+        if (component.RuntimeVoiceHandle != AudioEngine::InvalidVoiceHandle)
+            AudioEngine::SetVolume(component.RuntimeVoiceHandle, component.EvaluateEffectiveVolume());
     }
 
     void Stop(SoundPlayerComponent& component)
@@ -82,9 +85,11 @@ namespace Himii::SoundPlayerUtility
 
     void ApplyVolume(SoundPlayerComponent& component)
     {
-        if (component.RuntimeVoiceHandle == AudioEngine::InvalidVoiceHandle)
-            return;
-        AudioEngine::SetVolume(component.RuntimeVoiceHandle, component.EvaluateEffectiveVolume());
+        const float effectiveVolume = component.EvaluateEffectiveVolume();
+        if (component.RuntimeVoiceHandle != AudioEngine::InvalidVoiceHandle)
+            AudioEngine::SetVolume(component.RuntimeVoiceHandle, effectiveVolume);
+        // Inspector Preview 使用独立 voice，需同步音量，否则拖动 Volume 看起来“不生效”。
+        AudioEngine::SetPreviewVolume(effectiveVolume);
     }
 
     void StopAllPlayersInScene(Scene* scene)

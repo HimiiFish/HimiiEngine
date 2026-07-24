@@ -4,6 +4,8 @@
 
 #include "miniaudio.h"
 
+#include <fstream>
+
 namespace Himii
 {
     SoundAsset::SoundAsset(const std::filesystem::path& filePath)
@@ -19,13 +21,36 @@ namespace Himii
         m_ChannelCount = 0;
         m_SampleRate = 0;
 
+        // Read via filesystem::path so Unicode paths work on Windows (miniaudio's narrow fopen does not).
+        std::ifstream inputStream(filePath, std::ios::binary | std::ios::ate);
+        if (!inputStream)
+        {
+            HIMII_CORE_ERROR("SoundAsset: failed to open '{0}'", filePath.string());
+            return false;
+        }
+
+        const std::streamsize fileSize = inputStream.tellg();
+        if (fileSize <= 0)
+        {
+            HIMII_CORE_ERROR("SoundAsset: empty or unreadable file '{0}'", filePath.string());
+            return false;
+        }
+
+        inputStream.seekg(0, std::ios::beg);
+        std::vector<uint8_t> fileBytes(static_cast<size_t>(fileSize));
+        if (!inputStream.read(reinterpret_cast<char*>(fileBytes.data()), fileSize))
+        {
+            HIMII_CORE_ERROR("SoundAsset: failed reading bytes from '{0}'", filePath.string());
+            return false;
+        }
+
         ma_decoder_config decoderConfig = ma_decoder_config_init(ma_format_f32, 0, 0);
         ma_decoder decoder;
-        ma_result result = ma_decoder_init_file(filePath.string().c_str(), &decoderConfig, &decoder);
+        ma_result result = ma_decoder_init_memory(fileBytes.data(), fileBytes.size(), &decoderConfig, &decoder);
         if (result != MA_SUCCESS)
         {
-            HIMII_CORE_ERROR("SoundAsset: failed to decode '{0}' (miniaudio result {1})", filePath.string(),
-                             static_cast<int>(result));
+            HIMII_CORE_ERROR("SoundAsset: failed to decode '{0}' (miniaudio result {1}: {2})", filePath.string(),
+                             static_cast<int>(result), ma_result_description(result));
             return false;
         }
 
