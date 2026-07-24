@@ -346,7 +346,7 @@ namespace Himii
         if (ScriptCompiler::IsCompiling())
             return false;
 
-        ScriptCompiler::RequestBuild(projectPath, [projectPath](bool success)
+        return ScriptCompiler::RequestBuild(projectPath, [projectPath](bool success)
         {
             if (!success)
             {
@@ -360,8 +360,6 @@ namespace Himii
             else
                 std::cerr << "[ScriptEngine] DLL not found at: " << dllPath << std::endl;
         });
-
-        return true;
     }
 
     bool ScriptEngine::LoadAppAssembly(const std::filesystem::path &filepath)

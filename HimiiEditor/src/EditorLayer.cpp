@@ -10,6 +10,7 @@
 #include "Himii/Scripting/ScriptIDELauncher.h"
 #include "Himii/Editor/EditorSettings.h"
 #include "Himii/Project/Project.h"
+#include "ProjectBuildPipeline.h"
 
 #include "Himii/Renderer/Renderer3D.h"
 
@@ -1609,128 +1610,26 @@ namespace Himii
 
     void EditorLayer::BuildProject()
     {
-        // 选择输出路径
-        std::string filepath = FileDialog::SaveFile("Executable (*.exe)\0*.exe\0");
+        if (!Project::GetActive())
+        {
+            HIMII_CORE_ERROR("Build Project: no active project.");
+            return;
+        }
 
+        const std::string filepath = FileDialog::SaveFile("Executable (*.exe)\0*.exe\0");
         if (filepath.empty())
             return;
 
-        std::filesystem::path exePath(filepath);
-        std::filesystem::path buildDir = exePath.parent_path();
-
-        // 如果目录不存在，创建目录
-        if (!std::filesystem::exists(buildDir))
-            std::filesystem::create_directories(buildDir);
-
-        HIMII_CORE_INFO("Starting Build to: {0}", buildDir.string());
-
-        // 获取当前 Editor.exe 所在的目录
-        std::filesystem::path engineBinDir = Application::Get().GetExecutableDir();
-        
-        // 这里的相对路径依赖于 CMake 的输出目录结构
-        std::filesystem::path binRoot = engineBinDir.parent_path().parent_path();
-#if defined(HIMII_DEBUG)
-        const char *configurationFolder = "Debug";
-#else
-        const char *configurationFolder = "Release";
-#endif
-        std::filesystem::path runtimeDir = binRoot / "HimiiRuntime" / configurationFolder;
-
-        // 定义需要复制的文件清单
-        struct CopyEntry {
-            std::filesystem::path Source;
-            std::filesystem::path Dest;
-            bool IsDirectory = false;
-        };
-
-        std::vector<CopyEntry> filesToCopy;
-
-        // 复制 Runtime 可执行文件 (HimiiRuntime.exe -> 用户指定的 MyGame.exe)
-        filesToCopy.push_back({runtimeDir/"HimiiRuntime.exe", exePath});
-
-        filesToCopy.push_back({runtimeDir / "ScriptCore.runtimeconfig.json", buildDir / "ScriptCore.runtimeconfig.json"});
-
-        if (std::filesystem::exists(runtimeDir))
+        const ProjectBuildPipelineResult buildResult =
+                ProjectBuildPipeline::Build(std::filesystem::path(filepath));
+        if (!buildResult.Succeeded)
         {
-            for (auto &entry: std::filesystem::directory_iterator(runtimeDir))
-            {
-                // 只要是 .dll 文件，统统复制过去
-                if (entry.path().extension() == ".dll")
-                {
-                    // 排除掉可能存在的旧 GameAssembly (我们后面会从项目目录复制最新的)
-                    if (entry.path().stem() == "GameAssembly")
-                        continue;
-
-                    filesToCopy.push_back({entry.path(), buildDir / entry.path().filename()});
-                }
-            }
-        }
-        else
-        {
-            HIMII_CORE_ERROR("Runtime directory not found for DLL scanning!");
+            HIMII_CORE_ERROR("Build Project failed: {0}", buildResult.ErrorMessage);
+            return;
         }
 
-        std::filesystem::path engineAssetsDir = engineBinDir / "assets";
-
-        if (std::filesystem::exists(engineAssetsDir))
-        {
-            HIMII_CORE_INFO("Copying Engine Assets from: {0}", engineAssetsDir.string());
-            // 复制引擎资源作为“默认值”
-            filesToCopy.push_back({engineAssetsDir, buildDir / "assets", true});
-        }
-        else
-        {
-            HIMII_CORE_WARNING("Could not locate Engine Assets (shaders)! Runtime might crash.");
-        }
-
-        //复制 Game DLL
-        std::filesystem::path gameDllSource = Project::GetProjectDirectory() / Project::GetConfig().ScriptModulePath;
-        filesToCopy.push_back({gameDllSource, buildDir / "GameAssembly.dll"}); // 强制改名或保持原名
-
-        //复制 Assets 文件夹 (递归)
-        filesToCopy.push_back({Project::GetAssetDirectory(), buildDir / "assets", true});
-
-        //复制并重命名项目配置文件 (.hproj)
-        std::filesystem::path projectSource = Project::GetProjectDirectory() / (Project::GetConfig().Name + ".hproj");
-        filesToCopy.push_back({projectSource, buildDir / "Game.hproj"});
-
-
-        int successCount = 0;
-        for (auto &entry: filesToCopy)
-        {
-            try
-            {
-                if (std::filesystem::exists(entry.Source))
-                {
-                    if (entry.IsDirectory)
-                    {
-                        std::filesystem::copy(entry.Source, entry.Dest,
-                                              std::filesystem::copy_options::recursive |
-                                                      std::filesystem::copy_options::overwrite_existing);
-                    }
-                    else
-                    {
-                        std::filesystem::copy_file(entry.Source, entry.Dest,
-                                                   std::filesystem::copy_options::overwrite_existing);
-                    }
-                    successCount++;
-                }
-                else
-                {
-                    // 只有关键文件缺失才报错
-                    HIMII_CORE_WARNING("Build Warning: Source file missing {0}", entry.Source.string());
-                }
-            }
-            catch (std::exception &e)
-            {
-                HIMII_CORE_ERROR("Build Failed: {0}", e.what());
-            }
-        }
-
-        if (successCount > 0)
-            HIMII_CORE_INFO("Build Completed Successfully! Output: {0}", buildDir.string());
-        else
-            HIMII_CORE_ERROR("Build Failed - No files copied.");
+        HIMII_CORE_INFO("Build Project completed: {0}",
+                        std::filesystem::path(filepath).parent_path().string());
     }
 
     void EditorLayer::OpenCSProject()

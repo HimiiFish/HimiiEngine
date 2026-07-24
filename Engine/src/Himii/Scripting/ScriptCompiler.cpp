@@ -75,7 +75,9 @@ namespace Himii
 #endif
         }
 
-        int RunDotnetBuildWindows(const std::filesystem::path& projectPath, std::string& output)
+        int RunDotnetBuildWindows(const std::filesystem::path& projectPath,
+                                  const std::string& configuration,
+                                  std::string& output)
         {
             DisableDotnetBuildServerForChildProcesses();
 
@@ -93,9 +95,12 @@ namespace Himii
 
             SetHandleInformation(standardOutputReadHandle, HANDLE_FLAG_INHERIT, 0);
 
+            std::wstring configurationWide(configuration.begin(), configuration.end());
             std::wstring commandLine = L"dotnet build \"";
             commandLine += projectPath.wstring();
-            commandLine += L"\" -c Debug -v minimal";
+            commandLine += L"\" -c ";
+            commandLine += configurationWide;
+            commandLine += L" -v minimal";
 
             std::vector<wchar_t> commandBuffer(commandLine.begin(), commandLine.end());
             commandBuffer.push_back(L'\0');
@@ -155,10 +160,14 @@ namespace Himii
 #endif
     }
 
-    void ScriptCompiler::RequestBuild(const std::filesystem::path& projectPath, CompletionCallback onComplete)
+    bool ScriptCompiler::RequestBuild(const std::filesystem::path& projectPath,
+                                      CompletionCallback onComplete,
+                                      const std::string& configuration)
     {
         if (s_IsCompiling.load() || s_ShutdownRequested.load())
-            return;
+            return false;
+
+        const std::string resolvedConfiguration = configuration.empty() ? "Debug" : configuration;
 
         if (s_BuildThread.joinable())
             s_BuildThread.join();
@@ -169,10 +178,12 @@ namespace Himii
         }
 
         s_IsCompiling.store(true);
-        s_BuildThread = std::thread(RunBuildThread, projectPath);
+        s_BuildThread = std::thread(RunBuildThread, projectPath, resolvedConfiguration);
+        return true;
     }
 
-    void ScriptCompiler::RunBuildThread(const std::filesystem::path projectPath)
+    void ScriptCompiler::RunBuildThread(const std::filesystem::path projectPath,
+                                        const std::string configuration)
     {
         std::string output;
         int exitCode = -1;
@@ -185,7 +196,7 @@ namespace Himii
 #ifdef _WIN32
         else
         {
-            exitCode = RunDotnetBuildWindows(projectPath, output);
+            exitCode = RunDotnetBuildWindows(projectPath, configuration, output);
         }
 #else
         else
@@ -194,7 +205,7 @@ namespace Himii
 
             std::ostringstream command;
             command << "dotnet build \"" << projectPath.string()
-                    << "\" -c Debug -v minimal 2>&1";
+                    << "\" -c " << configuration << " -v minimal 2>&1";
 
             FILE* pipe = popen(command.str().c_str(), "r");
             if (pipe)

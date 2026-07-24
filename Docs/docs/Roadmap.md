@@ -71,7 +71,7 @@
 | [x] | **Scene Transition（基础）** | `SceneManager.LoadScene` + `ActiveScenePath` |
 | [x] | **[SerializeField]** | ScriptCore 提供特性；private 字段 Inspector 显示与场景序列化 |
 | [x] | **Undo/Redo** | 命令模式；Transform、Hierarchy 等操作已接入 |
-| [x] | **Project Packager（基础）** | 编辑器 **File → Build Project**：复制 Runtime、依赖 DLL、项目资源与 `GameAssembly` |
+| [x] | **Project Packager（基础）** | 已被完整 **Build Pipeline** 取代；历史：编辑器 File → Build Project 扁平拷贝 Runtime / 资源 |
 
 ### 核心模块：发布 (Distribution)
 | 状态 | 最小执行单元 (Minimum Execution Unit) | 说明 |
@@ -102,16 +102,16 @@
 ### 轨 2：音频
 | 状态 | 最小执行单元 (Minimum Execution Unit) | 预期内容 |
 | :--- | :--- | :--- |
-| [ ] | **AudioEngine Abstraction** | 引擎侧音频接口抽象；首期后端为 **miniaudio**（解码与设备）；预留更换中间件的可能 |
-| [ ] | **SoundAsset** | 可引用音频资产（WAV / OGG / MP3）；一律解码进内存；`AssetHandle` 体系 |
-| [ ] | **SoundPlayer（非空间化）** | Play / Stop / Pause、Loop、Volume、Mute、PlayOnStart、PlayOneShot；最多 32 voice（超限优先丢弃新 OneShot）；**不做** 空间衰减 / Listener / Mixer |
-| [ ] | **Audio C# API** | ScriptCore `SoundPlayer` 组件可驱动上述播放控制 |
-| [ ] | **Audio Editor** | Inspector（含 Preview）、Content Browser 导入；仅 Play/Runtime 自动出声，Stop 时全部立刻停止 |
+| [x] | **AudioEngine Abstraction** | 引擎侧音频接口抽象；首期后端为 **miniaudio**（解码与设备）；预留更换中间件的可能 |
+| [x] | **SoundAsset** | 可引用音频资产（WAV / OGG / MP3）；一律解码进内存；`AssetHandle` 体系 |
+| [x] | **SoundPlayer（非空间化）** | Play / Stop / Pause、Loop、Volume、Mute、PlayOnStart、PlayOneShot；最多 32 voice（超限优先丢弃新 OneShot）；**不做** 空间衰减 / Listener / Mixer |
+| [x] | **Audio C# API** | ScriptCore `SoundPlayer` 组件可驱动上述播放控制 |
+| [x] | **Audio Editor** | Inspector（含 Preview）、Content Browser 导入；仅 Play/Runtime 自动出声，Stop 时全部立刻停止 |
 
 ### 收束：发布管线
 | 状态 | 最小执行单元 (Minimum Execution Unit) | 预期内容 |
 | :--- | :--- | :--- |
-| [ ] | **Build Pipeline** | 编辑器一键输出可运行目录树：统一配置、`engine.hpck`、资源校验、Runtime / 依赖 / `GameAssembly` / 项目资源；缺关键文件则 Build 失败并报错。不要求干净机器冒烟或自动拉起 Runtime |
+| [x] | **Build Pipeline** | 编辑器一键输出可运行目录树：统一配置、`engine.hpck`、资源校验、Runtime / 依赖 / `GameAssembly` / 项目资源；缺关键文件则 Build 失败并报错。不要求干净机器冒烟或自动拉起 Runtime |
 
 ### Phase A 明确排除（本阶段不做、不算进度）
 | 类别 | 排除项 |

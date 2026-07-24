@@ -65,8 +65,19 @@ namespace Himii
             out << YAML::EndMap; // Root
         }
 
-        std::ofstream fout(filepath);
-        fout << out.c_str();
+        std::ofstream outputStream(filepath, std::ios::binary | std::ios::trunc);
+        if (!outputStream)
+        {
+            HIMII_CORE_ERROR("Failed to open project file for write: {0}", filepath.string());
+            return false;
+        }
+
+        outputStream << out.c_str();
+        if (!outputStream)
+        {
+            HIMII_CORE_ERROR("Failed to write project file: {0}", filepath.string());
+            return false;
+        }
 
         return true;
     }
