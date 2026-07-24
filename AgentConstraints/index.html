@@ -11,10 +11,10 @@
       
       
       
-        <link rel="prev" href="../UserManual/ScriptingAPI/">
+        <link rel="prev" href="../DevManual/Architecture/">
       
       
-        <link rel="next" href="BuildingFromSource/">
+        <link rel="next" href="../DevManual/CoreSystems/Serialization/">
       
       
         
@@ -27,7 +27,7 @@
     
     
       
-        <title>开发者手册总览 - HimiiEngine 引擎文档</title>
+        <title>Agent 约束与 Trellis - HimiiEngine 引擎文档</title>
       
     
     
@@ -78,7 +78,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#_1" class="md-skip">
+        <a href="#agent-trellis" class="md-skip">
           跳转至
         </a>
       
@@ -112,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              开发者手册总览
+              Agent 约束与 Trellis
             
           </span>
         </div>
@@ -349,7 +349,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../DevManual/" class="md-tabs__link">
           
   
   
@@ -1128,37 +1128,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    
-  
-    开发者手册总览
-  
-
-    
-  </span>
-  
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../DevManual/" class="md-nav__link">
         
   
   
@@ -1174,37 +1147,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="目录">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      目录
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#_2" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        目录
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1217,7 +1159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="BuildingFromSource/" class="md-nav__link">
+      <a href="../DevManual/BuildingFromSource/" class="md-nav__link">
         
   
   
@@ -1245,7 +1187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="Architecture/" class="md-nav__link">
+      <a href="../DevManual/Architecture/" class="md-nav__link">
         
   
   
@@ -1270,10 +1212,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../AgentConstraints/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Agent 约束与 Trellis
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1289,6 +1258,192 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        设计摘要
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        环境要求
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新成员加入本仓库
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        必读规范
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git 约定（本仓库）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        各平台本机怎么用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="各平台本机怎么用">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cursor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cursor（推荐默认）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claude-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Claude Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codex
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-ide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        如何为其他 AI IDE 添加约束支持
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="如何为其他 AI IDE 添加约束支持">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        步骤
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        禁止事项
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trellis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        升级 Trellis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        相关链接
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1301,7 +1456,7 @@
   
   
     <li class="md-nav__item">
-      <a href="CoreSystems/Serialization/" class="md-nav__link">
+      <a href="../DevManual/CoreSystems/Serialization/" class="md-nav__link">
         
   
   
@@ -1445,10 +1600,165 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        设计摘要
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        目录
+        环境要求
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        新成员加入本仓库
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        必读规范
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git 约定（本仓库）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        各平台本机怎么用
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="各平台本机怎么用">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#cursor" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cursor（推荐默认）
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claude-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Claude Code
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codex" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codex
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ai-ide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        如何为其他 AI IDE 添加约束支持
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="如何为其他 AI IDE 添加约束支持">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#_6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        步骤
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_7" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        禁止事项
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#trellis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        升级 Trellis
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_8" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        相关链接
       
     </span>
   </a>
@@ -1475,38 +1785,163 @@
   
 
 
-<h1 id="_1">开发者手册</h1>
-<p>本手册面向 HimiiEngine 的源码贡献者与深入研究者。</p>
-<h2 id="_2">目录</h2>
+<h1 id="agent-trellis">Agent 约束与 Trellis 协作</h1>
+<p>面向引擎贡献者：如何在本仓库使用 <strong>mindfold-ai/Trellis</strong>，让 Cursor、Claude Code、Codex 及其他 AI IDE / 终端共享同一套约束与任务记忆。</p>
+<hr />
+<h2 id="_1">设计摘要</h2>
+<table>
+<thead>
+<tr>
+<th>项</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>规范源真相</td>
+<td><code>.trellis/spec/</code>（当前主要为 <code>product-ux.md</code>、<code>agent-workflow.md</code>）</td>
+</tr>
+<tr>
+<td>工作流</td>
+<td><code>.trellis/workflow.md</code> + <code>.trellis/tasks/</code></td>
+</tr>
+<tr>
+<td>个人记忆</td>
+<td><code>.trellis/workspace/&lt;你的名字&gt;/</code></td>
+</tr>
+<tr>
+<td>Git 策略</td>
+<td><strong>只提交</strong> <code>.trellis/</code> 与文档；各 IDE 适配目录在本机生成，<strong>不入库</strong></td>
+</tr>
+<tr>
+<td>推荐本机平台</td>
+<td>按需 init；仓库维护者常用 <strong>Cursor</strong> 即可</td>
+</tr>
+</tbody>
+</table>
+<p>业务规则只维护在 <code>.trellis/spec/</code>。<code>.cursor/</code>、<code>.claude/</code>、<code>.codex/</code>、<code>.agents/</code>、根目录 <code>AGENTS.md</code> 均视为生成物，可随本机 <code>trellis init</code> / <code>trellis update</code> 更新，<strong>不要提交</strong>。</p>
+<p>根目录出现多个 AI 相关文件夹是各工具的固定约定路径，<strong>不能</strong>合并到子目录，否则 IDE 无法发现配置。本仓库用「不入库」来控制 Git/PR 噪声，而不是搬家。</p>
+<hr />
+<h2 id="_2">环境要求</h2>
+<ul>
+<li>Node.js ≥ 18</li>
+<li>Python ≥ 3.9</li>
+<li>建议用 <code>npx</code> 调用 CLI，避免强制全局安装：</li>
+</ul>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>--version
+</code></pre></div>
+<p>也可自行全局安装：<code>npm install -g @mindfoldhq/trellis@latest</code>。</p>
+<hr />
+<h2 id="_3">新成员加入本仓库</h2>
 <ol>
-<li>
-<p><strong><a href="BuildingFromSource/">源码构建 (Building From Source)</a></strong></p>
-<ul>
-<li>环境要求 (Pre-requisites)</li>
-<li>构建步骤</li>
-</ul>
-</li>
-<li>
-<p><strong><a href="Architecture/">架构概览 (Architecture)</a></strong></p>
-<ul>
-<li><a href="Architecture/">技术总览</a> (原文档)</li>
-</ul>
-</li>
-<li>
-<p><strong><a href="../AgentConstraints/">Agent 约束与 Trellis 协作</a></strong></p>
-<ul>
-<li>共享规范源（<code>.trellis/spec/</code>）</li>
-<li>Cursor / Claude Code / Codex</li>
-<li>为其他 AI IDE 添加约束支持</li>
-</ul>
-</li>
-<li>
-<p><strong>核心系统 (Core Systems)</strong></p>
-<ul>
-<li><strong><a href="CoreSystems/Serialization/">场景序列化</a></strong> (原文档)</li>
-</ul>
-</li>
+<li>拉取含 <code>.trellis/</code> 的仓库。</li>
+<li>为本机建立身份，并<strong>只生成你实际使用的平台</strong>：</li>
 </ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="nb">cd</span><span class="w"> </span>Himii-Engine
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="c1"># 仅 Cursor</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>init<span class="w"> </span>-u<span class="w"> </span>你的名字<span class="w"> </span>--cursor<span class="w"> </span>--no-monorepo<span class="w"> </span>-y
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="c1"># 若还用 Claude Code / Codex，追加对应标志即可，例如：</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="c1"># npx --yes @mindfoldhq/trellis@latest init --claude -y</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="c1"># npx --yes @mindfoldhq/trellis@latest init --codex -y</span>
+</code></pre></div>
+<p>已有 <code>.trellis/</code> 时，CLI 会走「加入已有项目 / 追加平台」，<strong>不要</strong>选 Full re-initialize。</p>
+<ol>
+<li>在所用 AI 工具中开新会话；Cursor 可用 <code>/trellis-finish-work</code>、<code>/trellis-continue</code> 等命令（以本机 <code>.cursor/commands/</code> 为准）。</li>
+</ol>
+<hr />
+<h2 id="_4">必读规范</h2>
+<p>动手改 Editor / 组件 / 脚本桥之前，至少阅读仓库内（文档站点外）规范文件：</p>
+<ol>
+<li><code>.trellis/spec/product-ux.md</code> — 面向用户的 Inspector；必须用 <code>InspectorControls</code></li>
+<li><code>.trellis/spec/agent-workflow.md</code> — 命名、成套交付、先问后改、Trellis 任务</li>
+</ol>
+<p>索引见仓库根下 <code>.trellis/spec/index.md</code>。</p>
+<hr />
+<h2 id="git">Git 约定（本仓库）</h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>是否提交</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>.trellis/spec/</code>、<code>workflow.md</code>、<code>config.yaml</code>、<code>scripts/</code>、<code>tasks/</code></td>
+<td><strong>提交</strong></td>
+</tr>
+<tr>
+<td><code>.trellis/.developer</code>、<code>.trellis/.runtime/</code></td>
+<td><strong>不提交</strong>（<code>.trellis/.gitignore</code>）</td>
+</tr>
+<tr>
+<td><code>.trellis/workspace/&lt;他人&gt;/</code></td>
+<td><strong>不要擅自提交他人日志</strong></td>
+</tr>
+<tr>
+<td><code>.cursor/</code>、<code>.claude/</code>、<code>.codex/</code>、<code>.agents/</code>、<code>AGENTS.md</code></td>
+<td><strong>不提交</strong>（根 <code>.gitignore</code>）</td>
+</tr>
+</tbody>
+</table>
+<p>本仓库已将 Trellis <code>session_auto_commit</code> 设为 <code>false</code>，避免 Agent 自动产生 git commit。</p>
+<hr />
+<h2 id="_5">各平台本机怎么用</h2>
+<h3 id="cursor">Cursor（推荐默认）</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>init<span class="w"> </span>-u<span class="w"> </span>你的名字<span class="w"> </span>--cursor<span class="w"> </span>--no-monorepo<span class="w"> </span>-y
+</code></pre></div>
+<ul>
+<li>命令与 hooks 在本机 <code>.cursor/</code>（已 gitignore）</li>
+<li>规范仍从 <code>.trellis/spec/</code> 注入；无需把 <code>.cursor</code> 推上远程</li>
+</ul>
+<h3 id="claude-code">Claude Code</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>init<span class="w"> </span>--claude<span class="w"> </span>-y
+</code></pre></div>
+<p>配置在本机 <code>.claude/</code>。新会话应由 SessionStart hook 注入上下文。</p>
+<h3 id="codex">Codex</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>init<span class="w"> </span>--codex<span class="w"> </span>-y
+</code></pre></div>
+<p>会生成本机 <code>AGENTS.md</code>、<code>.codex/</code>、<code>.agents/skills/</code>（均不入库）。建议在 <code>~/.codex/config.toml</code> 启用：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">[features]</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">hooks</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</code></pre></div>
+<p>Codex 0.129+ 还需在会话中执行一次 <code>/hooks</code>，批准 Trellis 的 hook。</p>
+<hr />
+<h2 id="ai-ide">如何为其他 AI IDE 添加约束支持</h2>
+<p>目标：让新工具也读到<strong>同一套</strong> <code>.trellis/spec/</code>，而不是复制规则，也<strong>不要</strong>把新平台目录提交进库。</p>
+<h3 id="_6">步骤</h3>
+<ol>
+<li>确认 Trellis 是否已有该平台适配（见 <a href="https://docs.trytrellis.app/advanced/multi-platform">Multi-Platform</a>）。</li>
+<li>在本机追加平台（不要 Full re-initialize）：</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>init<span class="w"> </span>--&lt;平台标志&gt;<span class="w"> </span>-y
+</code></pre></div>
+<ol>
+<li>本地验证：新开会话能读到 <code>.trellis/workflow.md</code> 与 <code>.trellis/spec/</code>。</li>
+<li><strong>不要</strong>把新生成的 <code>.&lt;平台&gt;/</code> 或 <code>AGENTS.md</code> 加入 Git；若文档需补充「如何 init 该平台」，只改 <code>Docs/docs/AgentConstraints.md</code>。</li>
+<li>没有官方适配时：仍以 <code>.trellis/spec/</code> 为唯一业务规范源；工具自带说明文件里只写短入口指向 <code>.trellis/spec/index.md</code>。</li>
+</ol>
+<h3 id="_7">禁止事项</h3>
+<ul>
+<li>不要把 <code>product-ux</code> / <code>agent-workflow</code> 全文复制到多个入口文件导致多源漂移</li>
+<li>不要试图把 <code>.cursor</code> / <code>.claude</code> 等挪到子目录「整理观感」——会破坏 IDE 发现路径</li>
+<li>不要为了「方便」在 Drawer 里绕过 <code>InspectorControls</code></li>
+<li>不要修改 <code>Engine/vender/**</code> 来迁就 Agent</li>
+</ul>
+<hr />
+<h2 id="trellis">升级 Trellis</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>upgrade<span class="w">   </span><span class="c1"># 如使用全局 CLI</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>npx<span class="w"> </span>--yes<span class="w"> </span>@mindfoldhq/trellis@latest<span class="w"> </span>update<span class="w">    </span><span class="c1"># 同步本机模板与已 init 的平台文件</span>
+</code></pre></div>
+<p><code>update</code> 可能改写本机平台目录；升级后检查 <code>.trellis/spec/</code> 中的 Himii 自定义文件未被覆盖。平台目录变更仍留在本机，勿提交。</p>
+<hr />
+<h2 id="_8">相关链接</h2>
+<ul>
+<li>官方文档：https://docs.trytrellis.app/</li>
+<li>仓库 Spec 索引：<code>.trellis/spec/index.md</code>（位于文档站点之外的仓库路径）</li>
+<li>开发者手册目录：<a href="../DevManual/">DevManual/README.md</a></li>
+</ul>
 
 
 
