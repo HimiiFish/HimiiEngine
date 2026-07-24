@@ -1,16 +1,14 @@
 #include "panel/ComponentInspector/ComponentInspectorDrawContext.h"
 #include "panel/ComponentInspector/ComponentInspectorHeader.h"
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
-#include "panel/ComponentInspector/ComponentInspectorUtils.h"
 #include "InspectorControls.h"
 #include "commands/EditorCommandHistory.h"
 #include "commands/EditorCommands.h"
 
-#include "Himii/Renderer/Font.h"
 #include "Himii/Scene/Components.h"
 
+#include <cstdio>
 #include <glm/gtc/constants.hpp>
-#include <imgui.h>
 
 namespace Himii
 {
@@ -30,12 +28,19 @@ namespace Himii
             {
                 if (drawContext.entity.HasComponent<CanvasComponent>())
                 {
-                    ImGui::TextDisabled("Canvas root is resolved from the Game target size.");
                     if (drawContext.scene)
                         drawContext.scene->SyncCanvasReferenceResolutionToTransform(drawContext.entity);
-                    ImGui::Text(
-                            "Resolved Size: %.0f x %.0f",
-                            component.ResolvedSize.x, component.ResolvedSize.y);
+
+                    DrawInspectorSectionHeader("Layout");
+                    DrawReadOnlyTextControl(
+                        "Driver", "Game Target Size",
+                        "Canvas 根节点尺寸由 Game 目标分辨率驱动，类似 UE 根控件填满视口。");
+
+                    char resolvedSizeBuffer[64];
+                    std::snprintf(resolvedSizeBuffer, sizeof(resolvedSizeBuffer), "%.0f x %.0f",
+                                  component.ResolvedSize.x, component.ResolvedSize.y);
+                    DrawReadOnlyTextControl("Resolved Size", resolvedSizeBuffer,
+                                           "当前同步后的根矩形像素尺寸。");
                     return;
                 }
 
@@ -85,6 +90,7 @@ namespace Himii
                     transformEditCaptured = false;
                 };
 
+                DrawInspectorSectionHeader("Anchors");
                 DrawVec2AxisControl(
                         "Anchor Minimum", component.AnchorMinimum, 0.5f,
                         beginTransformEdit, endTransformEdit);
@@ -97,6 +103,7 @@ namespace Himii
                 component.AnchorMaximum = glm::clamp(
                         component.AnchorMaximum, component.AnchorMinimum, glm::vec2(1.0f));
 
+                DrawInspectorSectionHeader("Transform");
                 DrawVec2AxisControl(
                         "Pivot", component.Pivot, 0.5f,
                         beginTransformEdit, endTransformEdit);
@@ -108,21 +115,15 @@ namespace Himii
                         beginTransformEdit, endTransformEdit);
 
                 float rotationDegrees = glm::degrees(component.RotationRadians);
-                DrawPropertyRow(
-                        "Rotation",
-                        [&]()
-                        {
-                            ImGui::PushItemWidth(-1.0f);
-                            ImGui::DragFloat(
-                                    "##RotationDegrees", &rotationDegrees,
-                                    0.1f, 0.0f, 0.0f, "%.2f deg");
-                            ImGui::PopItemWidth();
-                            component.RotationRadians = glm::radians(rotationDegrees);
-                            if (ImGui::IsItemActivated())
-                                beginTransformEdit();
-                            if (ImGui::IsItemDeactivatedAfterEdit())
-                                endTransformEdit();
-                        });
+                DrawFloatControl(
+                    "Rotation", rotationDegrees, 0.1f, 0.0f, 0.0f,
+                    beginTransformEdit,
+                    [&]()
+                    {
+                        component.RotationRadians = glm::radians(rotationDegrees);
+                        endTransformEdit();
+                    });
+                component.RotationRadians = glm::radians(rotationDegrees);
 
                 DrawVec2AxisControl(
                         "Size Delta", component.SizeDelta, 100.0f,

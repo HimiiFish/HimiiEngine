@@ -21,8 +21,10 @@ namespace Himii
             [&]()
             {
                 DrawColorControl("Color", component.Color);
-                DrawFloatControl("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f);
-                DrawFloatControl("Fade", component.Fade, 0.0003f, 0.0f, 1.0f);
+                DrawFloatControl("Thickness", component.Thickness, 0.025f, 0.0f, 1.0f, nullptr, nullptr,
+                                 true, 1.0f);
+                DrawFloatControl("Fade", component.Fade, 0.0003f, 0.0f, 1.0f, nullptr, nullptr, true,
+                                 0.005f);
             },
             [&]() { drawContext.entity.RemoveComponent<CircleRendererComponent>(); });
     }

@@ -127,9 +127,10 @@ namespace Himii
                     DrawReadOnlyTextControl("Current Animation", component.CurrentAnimationName.c_str());
                 }
 
-                DrawFloatControl("Frame Rate", component.FrameRate, 0.1f, 0.0f, 120.0f);
-                DrawCheckboxControl("Playing", component.Playing);
-                DrawCheckboxControl("Preview In Scene", component.PreviewInScene);
+                DrawFloatControl("Frame Rate", component.FrameRate, 0.1f, 0.0f, 120.0f, nullptr, nullptr,
+                                 true, 10.0f);
+                DrawCheckboxControl("Playing", component.Playing, true);
+                DrawCheckboxControl("Preview In Scene", component.PreviewInScene, false);
 
                 const int frameCount = [&]() -> int
                 {

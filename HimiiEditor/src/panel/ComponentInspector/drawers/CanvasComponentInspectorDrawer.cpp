@@ -5,7 +5,6 @@
 
 #include "Himii/Scene/Components.h"
 
-#include <imgui.h>
 #include <glm/glm.hpp>
 
 namespace Himii
@@ -23,32 +22,33 @@ namespace Himii
             drawContext, "CanvasComponent", "Canvas", icon,
             [&]()
             {
-                ImGui::TextUnformatted("Render Mode: Screen Space Overlay");
-                const char* scaleModeName =
-                        component.ScaleMode == CanvasScaleMode::ConstantPixelSize
-                                ? "Constant Pixel Size"
-                                : "Scale With Screen Size";
-                if (ImGui::BeginCombo("Scale Mode", scaleModeName))
+                DrawInspectorSectionHeader("Render");
+                DrawReadOnlyTextControl(
+                    "Render Mode", "Screen Space Overlay",
+                    "当前仅支持屏幕空间叠加；世界空间模式尚未开放。");
+
+                DrawInspectorSectionHeader("Scaler");
                 {
-                    if (ImGui::Selectable(
-                                "Constant Pixel Size",
-                                component.ScaleMode == CanvasScaleMode::ConstantPixelSize))
-                        component.ScaleMode = CanvasScaleMode::ConstantPixelSize;
-                    if (ImGui::Selectable(
-                                "Scale With Screen Size",
-                                component.ScaleMode == CanvasScaleMode::ScaleWithScreenSize))
-                        component.ScaleMode = CanvasScaleMode::ScaleWithScreenSize;
-                    ImGui::EndCombo();
+                    const char* scaleModeLabels[] = {
+                        "Constant Pixel Size", "Scale With Screen Size"};
+                    int scaleModeIndex = static_cast<int>(component.ScaleMode);
+                    DrawEnumComboControl(
+                        "Scale Mode", scaleModeIndex, scaleModeLabels, 2,
+                        [&](int newIndex)
+                        {
+                            component.ScaleMode = static_cast<CanvasScaleMode>(newIndex);
+                        });
                 }
-                glm::vec3 referenceResolution = {
-                    component.ReferenceResolution.x, component.ReferenceResolution.y, 0.0f};
-                DrawVec3Control("Reference Resolution", referenceResolution, 1920.0f);
-                component.ReferenceResolution = {referenceResolution.x, referenceResolution.y};
+
+                DrawVec2Control("Reference Resolution", component.ReferenceResolution, 1.0f, 1.0f,
+                                16384.0f, nullptr, true, glm::vec2(1920.0f, 1080.0f));
+
                 if (component.ScaleMode == CanvasScaleMode::ScaleWithScreenSize)
                 {
-                    DrawFloatControl("Match Width Or Height", component.MatchWidthOrHeight, 0.01f);
+                    DrawFloatControl("Match Width Or Height", component.MatchWidthOrHeight, 0.01f,
+                                     0.0f, 1.0f, nullptr, nullptr, true, 0.5f);
                     component.MatchWidthOrHeight =
-                            glm::clamp(component.MatchWidthOrHeight, 0.0f, 1.0f);
+                        glm::clamp(component.MatchWidthOrHeight, 0.0f, 1.0f);
                 }
 
                 if (drawContext.scene)

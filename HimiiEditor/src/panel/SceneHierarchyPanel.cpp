@@ -11,6 +11,7 @@
 
 #include "panel/ComponentInspector/ComponentInspectorDrawContext.h"
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
+#include "InspectorControls.h"
 
 #include <imgui.h>
 #include <filesystem>
@@ -254,6 +255,7 @@ namespace Himii
         ImGui::End();
 
         ImGui::Begin("Properties", nullptr, ImGuiWindowFlags_NoCollapse);
+        BeginInspectorPropertiesStyle();
 
         if (m_SelectionContext)
         {
@@ -280,6 +282,8 @@ namespace Himii
                 ImGui::EndPopup();
             }
         }
+
+        EndInspectorPropertiesStyle();
         ImGui::End();
     }
 

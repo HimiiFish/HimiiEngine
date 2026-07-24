@@ -25,12 +25,17 @@ namespace Himii
             [&]()
             {
                 DrawVec2Control("Offset", component.Offset, 0.1f);
-                DrawFloatControl("Radius", component.Radius, 0.1f);
-                DrawFloatControl("Density", component.Density, 0.1f);
-                DrawFloatControl("Friction", component.Friction, 0.01f, 0.0f, 1.0f);
-                DrawFloatControl("Restitution", component.Restitution, 0.01f, 0.0f, 1.0f);
-                DrawFloatControl("Restitution Threshold", component.RestitutionThreshold, 0.1f);
-                DrawCheckboxControl("Is Trigger", component.IsTrigger);
+                DrawFloatControl("Radius", component.Radius, 0.1f, 0.0f, 0.0f, nullptr, nullptr, true,
+                                 0.5f);
+                DrawFloatControl("Density", component.Density, 0.1f, 0.0f, 0.0f, nullptr, nullptr, true,
+                                 1.0f);
+                DrawFloatControl("Friction", component.Friction, 0.01f, 0.0f, 1.0f, nullptr, nullptr,
+                                 true, 0.5f);
+                DrawFloatControl("Restitution", component.Restitution, 0.01f, 0.0f, 1.0f, nullptr,
+                                 nullptr, true, 0.0f);
+                DrawFloatControl("Restitution Threshold", component.RestitutionThreshold, 0.1f, 0.0f,
+                                 0.0f, nullptr, nullptr, true, 0.5f);
+                DrawCheckboxControl("Is Trigger", component.IsTrigger, false);
 
                 component.Layer = std::clamp(component.Layer, 0, Physics2DLayerCount - 1);
 

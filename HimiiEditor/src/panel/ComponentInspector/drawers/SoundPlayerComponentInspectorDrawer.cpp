@@ -5,7 +5,6 @@
 
 #include "Himii/Asset/AssetManager.h"
 #include "Himii/Audio/AudioEngine.h"
-#include "Himii/Audio/SoundAsset.h"
 #include "Himii/Audio/SoundPlayerUtility.h"
 #include "Himii/Project/Project.h"
 #include "Himii/Scene/Components.h"
@@ -15,11 +14,21 @@
 
 namespace Himii
 {
-    static bool IsSoundFileExtension(const std::filesystem::path& path)
+    static std::string ResolveAssetDisplayName(AssetHandle assetHandle, const char* emptyLabel)
     {
-        const auto extension = path.extension().string();
-        return extension == ".wav" || extension == ".ogg" || extension == ".mp3"
-               || extension == ".WAV" || extension == ".OGG" || extension == ".MP3";
+        if (assetHandle == 0)
+            return emptyLabel;
+
+        auto assetManager = Project::GetAssetManager();
+        if (!assetManager || !assetManager->IsAssetHandleValid(assetHandle))
+            return "Missing Asset";
+
+        const auto& registry = assetManager->GetAssetRegistry();
+        auto iterator = registry.find(assetHandle);
+        if (iterator == registry.end())
+            return "Missing Asset";
+
+        return iterator->second.FilePath.filename().string();
     }
 
     static void DrawSoundPlayerComponentInspectorUI(ComponentInspectorDrawContext& drawContext)
@@ -33,71 +42,53 @@ namespace Himii
             drawContext, "SoundPlayerComponent", "Sound Player", nullptr,
             [&]()
             {
-                auto assetManager = Project::GetAssetManager();
-                ImGui::PushID("SoundPlayerSoundHandle");
-                std::string label = "None (drag .wav/.ogg/.mp3)";
-                if (component.SoundHandle != 0 && assetManager
-                    && assetManager->IsAssetHandleValid(component.SoundHandle))
-                {
-                    const auto& registry = assetManager->GetAssetRegistry();
-                    auto iterator = registry.find(component.SoundHandle);
-                    if (iterator != registry.end())
-                        label = iterator->second.FilePath.filename().string();
-                    else
-                        label = "Sound: " + std::to_string((uint64_t)component.SoundHandle);
-                }
-                ImGui::Button(label.c_str(), ImVec2(-1.0f, 0.0f));
-                if (ImGui::BeginDragDropTarget())
-                {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                const std::string soundDisplayName =
+                    ResolveAssetDisplayName(component.SoundHandle, "None (drag .wav/.ogg/.mp3)");
+
+                DrawObjectReferenceField(
+                    "Sound", soundDisplayName.c_str(), component.SoundHandle != 0, nullptr,
+                    [&]()
                     {
-                        const wchar_t* pathWide = (const wchar_t*)payload->Data;
-                        std::filesystem::path assetPath(pathWide);
-                        if (IsSoundFileExtension(assetPath) && assetManager)
-                        {
-                            std::filesystem::path relativePath =
-                                    std::filesystem::relative(assetPath, Project::GetAssetDirectory());
-                            AssetHandle handle = assetManager->ImportAsset(relativePath);
-                            if (handle)
-                            {
-                                component.SoundHandle = handle;
-                                SoundPlayerUtility::ResolveSoundAsset(component);
-                            }
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                ImGui::PopID();
+                        component.SoundHandle = 0;
+                        component.Sound = nullptr;
+                        SoundPlayerUtility::Stop(component);
+                    },
+                    [&](const ImGuiPayload* payload)
+                    {
+                        if (!AssignSoundAssetFromContentBrowserPayload(payload, component.SoundHandle))
+                            return false;
+                        SoundPlayerUtility::ResolveSoundAsset(component);
+                        return true;
+                    });
 
                 float volume = component.Volume;
-                DrawFloatControl("Volume", volume, 0.01f, 0.0f, 1.0f);
+                DrawFloatControl("Volume", volume, 0.01f, 0.0f, 1.0f, nullptr, nullptr, true, 1.0f);
                 if (volume != component.Volume)
                 {
                     component.Volume = volume;
                     SoundPlayerUtility::ApplyVolume(component);
                 }
 
-                bool mute = component.Mute;
-                DrawPropertyRow("Mute", [&]() { ImGui::Checkbox("##Mute", &mute); });
-                if (mute != component.Mute)
-                {
-                    component.Mute = mute;
+                bool previousMute = component.Mute;
+                DrawCheckboxControl("Mute", component.Mute, false);
+                if (component.Mute != previousMute)
                     SoundPlayerUtility::ApplyVolume(component);
-                }
 
-                DrawPropertyRow("Loop", [&]() { ImGui::Checkbox("##Loop", &component.Loop); });
-                DrawPropertyRow("Play On Start",
-                                [&]() { ImGui::Checkbox("##PlayOnStart", &component.PlayOnStart); });
+                DrawCheckboxControl("Loop", component.Loop, false);
+                DrawCheckboxControl("Play On Start", component.PlayOnStart, false);
 
-                if (ImGui::Button("Preview", ImVec2(120.0f, 0.0f)))
+                DrawActionButtonRow("Preview", [&]()
                 {
-                    SoundPlayerUtility::ResolveSoundAsset(component);
-                    if (component.Sound)
-                        AudioEngine::Preview(component.Sound, component.EvaluateEffectiveVolume());
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Stop Preview", ImVec2(120.0f, 0.0f)))
-                    AudioEngine::StopPreview();
+                    if (ImGui::Button("Preview", ImVec2(120.0f, 0.0f)))
+                    {
+                        SoundPlayerUtility::ResolveSoundAsset(component);
+                        if (component.Sound)
+                            AudioEngine::Preview(component.Sound, component.EvaluateEffectiveVolume());
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::Button("Stop Preview", ImVec2(120.0f, 0.0f)))
+                        AudioEngine::StopPreview();
+                });
             },
             [&]()
             {

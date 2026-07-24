@@ -104,8 +104,9 @@ namespace Himii
                     }
                 }
 
-                DrawFloatControl("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f);
-                DrawCheckboxControl("Flip Horizontal", component.FlipHorizontal);
+                DrawFloatControl("Tiling Factor", component.TilingFactor, 0.1f, 0.0f, 100.0f, nullptr,
+                                 nullptr, true, 1.0f);
+                DrawCheckboxControl("Flip Horizontal", component.FlipHorizontal, false);
 
                 component.SortingLayer = std::clamp(component.SortingLayer, 0, SortingLayerCount - 1);
                 int sortingLayerIndex = component.SortingLayer;

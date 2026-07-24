@@ -11,12 +11,54 @@
 
 #include <algorithm>
 #include <cfloat>
+#include <cmath>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>
 
 namespace Himii
 {
+
+    namespace
+    {
+        constexpr float InspectorFloatResetEpsilon = 0.0001f;
+
+        bool IsFloatNear(float left, float right)
+        {
+            return std::fabs(left - right) <= InspectorFloatResetEpsilon;
+        }
+
+        bool IsVec2Near(const glm::vec2& left, const glm::vec2& right)
+        {
+            return IsFloatNear(left.x, right.x) && IsFloatNear(left.y, right.y);
+        }
+
+        bool IsVec3Near(const glm::vec3& left, const glm::vec3& right)
+        {
+            return IsFloatNear(left.x, right.x) && IsFloatNear(left.y, right.y)
+                   && IsFloatNear(left.z, right.z);
+        }
+
+        bool IsVec4Near(const glm::vec4& left, const glm::vec4& right)
+        {
+            return IsFloatNear(left.x, right.x) && IsFloatNear(left.y, right.y)
+                   && IsFloatNear(left.z, right.z) && IsFloatNear(left.w, right.w);
+        }
+    }
+
+    void BeginInspectorPropertiesStyle()
+    {
+        const ImGuiStyle& style = ImGui::GetStyle();
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,
+                            ImVec2(style.ItemSpacing.x, style.ItemSpacing.y * 0.5f));
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,
+                            ImVec2(style.FramePadding.x, style.FramePadding.y * 0.55f));
+    }
+
+    void EndInspectorPropertiesStyle()
+    {
+        ImGui::PopStyleVar(2);
+    }
 
     void DrawInspectorTooltipIfHovered(const char* tooltipText)
     {
@@ -28,322 +70,378 @@ namespace Himii
     }
 
     void DrawPropertyRow(const char* label, const std::function<void()>& drawValueColumn,
-                         const char* tooltipText)
+                         const char* tooltipText, bool showResetButton,
+                         const std::function<void()>& onReset)
     {
         ImGui::PushID(label);
-        if (ImGui::BeginTable("##PropertyRow", 2,
+        if (ImGui::BeginTable("##PropertyRow", 3,
                               ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
         {
             ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, InspectorLabelColumnWidth);
             ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Reset", ImGuiTableColumnFlags_WidthFixed, InspectorResetColumnWidth);
             ImGui::TableNextColumn();
             ImGui::TextUnformatted(label);
             ImGui::TableNextColumn();
             drawValueColumn();
+            ImGui::TableNextColumn();
+            if (showResetButton && onReset)
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(2.0f, 2.0f));
+                if (ImGui::SmallButton("↺"))
+                    onReset();
+                ImGui::PopStyleVar();
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Reset");
+            }
             ImGui::EndTable();
         }
         DrawInspectorTooltipIfHovered(tooltipText);
         ImGui::PopID();
     }
 
-    void DrawFloatControl(const std::string& label, float& value, float speed, float minimum, float maximum)
+    void DrawFloatControl(const std::string& label, float& value, float speed, float minimum, float maximum,
+                          const std::function<void()>& onEditBegin,
+                          const std::function<void()>& onEditEnd, bool enableRowReset, float resetValue)
     {
-        DrawPropertyRow(label.c_str(), [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            ImGui::DragFloat("##Value", &value, speed, minimum, maximum);
-            ImGui::PopItemWidth();
-        });
-    }
-
-    void DrawIntControl(const char* label, int& value, float speed, int minimum, int maximum)
-    {
-        DrawPropertyRow(label, [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            if (minimum != 0 || maximum != 0)
-                ImGui::DragInt("##Value", &value, speed, minimum, maximum);
-            else
-                ImGui::DragInt("##Value", &value, speed);
-            ImGui::PopItemWidth();
-        });
-    }
-
-    void DrawColorControl(const std::string& label, glm::vec4& value)
-    {
-        DrawPropertyRow(label.c_str(), [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            ImGui::ColorEdit4("##Value", glm::value_ptr(value));
-            ImGui::PopItemWidth();
-        });
-    }
-
-    void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue,
-                         const std::function<void()>& onEditBegin,
-                         const std::function<void()>& onEditEnd)
-    {
-        ImGuiIO& inputOutput = ImGui::GetIO();
-        ImFont* boldFont = inputOutput.Fonts->Fonts[0];
-
-        ImGui::PushID(label.c_str());
-        if (ImGui::BeginTable("##Vec3Control", 2,
-                              ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
-        {
-            ImGui::TableSetupColumn("Label", ImGuiTableColumnFlags_WidthFixed, InspectorLabelColumnWidth);
-            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(label.c_str());
-            ImGui::TableNextColumn();
-
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0.0f, 0.0f});
-
-            const float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-            const ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
-            const float widthEach = (ImGui::GetContentRegionAvail().x - 3.0f * buttonSize.x) / 3.0f;
-
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.8f, 0.23f, 0.12f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.9f, 0.2f, 0.2f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-            ImGui::PushFont(boldFont);
-            if (ImGui::Button("X", buttonSize))
-                values.x = resetValue;
-            ImGui::PopFont();
-            ImGui::PopStyleColor(3);
-
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(widthEach);
-            ImGui::DragFloat("##X", &values.x, 0.1f, 0.0f, 0.0f, "%.2f");
-            if (ImGui::IsItemActivated() && onEditBegin)
-                onEditBegin();
-            if (ImGui::IsItemDeactivatedAfterEdit() && onEditEnd)
-                onEditEnd();
-            ImGui::SameLine();
-
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.12f, 0.7f, 0.2f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.3f, 0.8f, 0.3f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
-            ImGui::PushFont(boldFont);
-            if (ImGui::Button("Y", buttonSize))
-                values.y = resetValue;
-            ImGui::PopFont();
-            ImGui::PopStyleColor(3);
-
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(widthEach);
-            ImGui::DragFloat("##Y", &values.y, 0.1f, 0.0f, 0.0f, "%.2f");
-            if (ImGui::IsItemActivated() && onEditBegin)
-                onEditBegin();
-            if (ImGui::IsItemDeactivatedAfterEdit() && onEditEnd)
-                onEditEnd();
-            ImGui::SameLine();
-
-            ImGui::PushStyleColor(ImGuiCol_Button, ImVec4{0.13f, 0.4f, 0.8f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4{0.2f, 0.35f, 0.9f, 1.0f});
-            ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
-            ImGui::PushFont(boldFont);
-            if (ImGui::Button("Z", buttonSize))
-                values.z = resetValue;
-            ImGui::PopFont();
-            ImGui::PopStyleColor(3);
-
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(widthEach);
-            ImGui::DragFloat("##Z", &values.z, 0.1f, 0.0f, 0.0f, "%.2f");
-            if (ImGui::IsItemActivated() && onEditBegin)
-                onEditBegin();
-            if (ImGui::IsItemDeactivatedAfterEdit() && onEditEnd)
-                onEditEnd();
-
-            ImGui::PopStyleVar();
-            ImGui::EndTable();
-        }
-        ImGui::PopID();
-    }
-
-    void DrawVec2AxisControl(const std::string& label, glm::vec2& values, float resetValue,
-                             const std::function<void()>& onEditBegin,
-                             const std::function<void()>& onEditEnd)
-    {
-        ImFont* boldFont = ImGui::GetIO().Fonts->Fonts[0];
-        ImGui::PushID(label.c_str());
-        if (ImGui::BeginTable(
-                    "##Vec2AxisControl", 2,
-                    ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_SizingStretchProp))
-        {
-            ImGui::TableSetupColumn(
-                    "Label", ImGuiTableColumnFlags_WidthFixed, InspectorLabelColumnWidth);
-            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
-            ImGui::TableNextColumn();
-            ImGui::TextUnformatted(label.c_str());
-            ImGui::TableNextColumn();
-            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0.0f, 0.0f});
-
-            const float lineHeight =
-                    GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
-            const ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
-            const float widthEach =
-                    (ImGui::GetContentRegionAvail().x - 2.0f * buttonSize.x) / 2.0f;
-
-            const auto drawAxis = [&](const char* axisLabel, float& value,
-                                      const ImVec4& color, const ImVec4& hoveredColor,
-                                      const ImVec4& activeColor)
+        const bool showReset = enableRowReset && !IsFloatNear(value, resetValue);
+        DrawPropertyRow(
+            label.c_str(),
+            [&]()
             {
-                ImGui::PushStyleColor(ImGuiCol_Button, color);
-                ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoveredColor);
-                ImGui::PushStyleColor(ImGuiCol_ButtonActive, activeColor);
-                ImGui::PushFont(boldFont);
-                if (ImGui::Button(axisLabel, buttonSize))
-                {
-                    if (onEditBegin)
-                        onEditBegin();
-                    value = resetValue;
-                    if (onEditEnd)
-                        onEditEnd();
-                }
-                ImGui::PopFont();
-                ImGui::PopStyleColor(3);
-
-                ImGui::SameLine();
-                ImGui::SetNextItemWidth(widthEach);
-                std::string inputIdentifier = std::string("##") + axisLabel;
-                ImGui::DragFloat(
-                        inputIdentifier.c_str(), &value, 0.1f, 0.0f, 0.0f, "%.2f");
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::DragFloat("##Value", &value, speed, minimum, maximum);
+                ImGui::PopItemWidth();
                 if (ImGui::IsItemActivated() && onEditBegin)
                     onEditBegin();
                 if (ImGui::IsItemDeactivatedAfterEdit() && onEditEnd)
                     onEditEnd();
-            };
+            },
+            nullptr, showReset,
+            [&]()
+            {
+                value = resetValue;
+                if (onEditEnd)
+                    onEditEnd();
+            });
+    }
 
-            drawAxis(
-                    "X", values.x,
-                    ImVec4{0.8f, 0.23f, 0.12f, 1.0f},
-                    ImVec4{0.9f, 0.2f, 0.2f, 1.0f},
-                    ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
-            ImGui::SameLine();
-            drawAxis(
-                    "Y", values.y,
-                    ImVec4{0.12f, 0.7f, 0.2f, 1.0f},
-                    ImVec4{0.3f, 0.8f, 0.3f, 1.0f},
-                    ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+    void DrawIntControl(const char* label, int& value, float speed, int minimum, int maximum,
+                        bool enableRowReset, int resetValue)
+    {
+        const bool showReset = enableRowReset && value != resetValue;
+        DrawPropertyRow(
+            label,
+            [&]()
+            {
+                ImGui::PushItemWidth(-1.0f);
+                if (minimum != 0 || maximum != 0)
+                    ImGui::DragInt("##Value", &value, speed, minimum, maximum);
+                else
+                    ImGui::DragInt("##Value", &value, speed);
+                ImGui::PopItemWidth();
+            },
+            nullptr, showReset, [&]() { value = resetValue; });
+    }
 
-            ImGui::PopStyleVar();
-            ImGui::EndTable();
-        }
-        ImGui::PopID();
+    void DrawColorControl(const std::string& label, glm::vec4& value, const glm::vec4& resetValue)
+    {
+        const bool showReset = !IsVec4Near(value, resetValue);
+        DrawPropertyRow(
+            label.c_str(),
+            [&]()
+            {
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::ColorEdit4("##Value", glm::value_ptr(value));
+                ImGui::PopItemWidth();
+            },
+            nullptr, showReset, [&]() { value = resetValue; });
+    }
+
+    void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue,
+                         const std::function<void()>& onEditBegin,
+                         const std::function<void()>& onEditEnd, bool enableRowReset)
+    {
+        const glm::vec3 defaultValues(resetValue);
+        const bool showReset = enableRowReset && !IsVec3Near(values, defaultValues);
+        ImFont* boldFont = ImGui::GetIO().Fonts->Fonts[0];
+
+        DrawPropertyRow(
+            label.c_str(),
+            [&]()
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0.0f, 0.0f});
+                const float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                const ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
+                const float widthEach =
+                    (ImGui::GetContentRegionAvail().x - 3.0f * buttonSize.x) / 3.0f;
+
+                auto drawAxis = [&](const char* axisLabel, float& axisValue, const ImVec4& color,
+                                    const ImVec4& hoveredColor, const ImVec4& activeColor)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Button, color);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoveredColor);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, activeColor);
+                    ImGui::PushFont(boldFont);
+                    if (ImGui::Button(axisLabel, buttonSize))
+                    {
+                        if (onEditBegin)
+                            onEditBegin();
+                        axisValue = resetValue;
+                        if (onEditEnd)
+                            onEditEnd();
+                    }
+                    ImGui::PopFont();
+                    ImGui::PopStyleColor(3);
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(widthEach);
+                    std::string inputIdentifier = std::string("##") + axisLabel;
+                    ImGui::DragFloat(inputIdentifier.c_str(), &axisValue, 0.1f, 0.0f, 0.0f, "%.2f");
+                    if (ImGui::IsItemActivated() && onEditBegin)
+                        onEditBegin();
+                    if (ImGui::IsItemDeactivatedAfterEdit() && onEditEnd)
+                        onEditEnd();
+                };
+
+                drawAxis("X", values.x, ImVec4{0.8f, 0.23f, 0.12f, 1.0f},
+                         ImVec4{0.9f, 0.2f, 0.2f, 1.0f}, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+                ImGui::SameLine();
+                drawAxis("Y", values.y, ImVec4{0.12f, 0.7f, 0.2f, 1.0f},
+                         ImVec4{0.3f, 0.8f, 0.3f, 1.0f}, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+                ImGui::SameLine();
+                drawAxis("Z", values.z, ImVec4{0.13f, 0.4f, 0.8f, 1.0f},
+                         ImVec4{0.2f, 0.35f, 0.9f, 1.0f}, ImVec4{0.1f, 0.25f, 0.8f, 1.0f});
+                ImGui::PopStyleVar();
+            },
+            nullptr, showReset,
+            [&]()
+            {
+                values = defaultValues;
+                if (onEditEnd)
+                    onEditEnd();
+            });
+    }
+
+    void DrawVec2AxisControl(const std::string& label, glm::vec2& values, float resetValue,
+                             const std::function<void()>& onEditBegin,
+                             const std::function<void()>& onEditEnd, bool enableRowReset)
+    {
+        const glm::vec2 defaultValues(resetValue);
+        const bool showReset = enableRowReset && !IsVec2Near(values, defaultValues);
+        ImFont* boldFont = ImGui::GetIO().Fonts->Fonts[0];
+
+        DrawPropertyRow(
+            label.c_str(),
+            [&]()
+            {
+                ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2{0.0f, 0.0f});
+                const float lineHeight = GImGui->FontSize + GImGui->Style.FramePadding.y * 2.0f;
+                const ImVec2 buttonSize = {lineHeight + 3.0f, lineHeight};
+                const float widthEach =
+                    (ImGui::GetContentRegionAvail().x - 2.0f * buttonSize.x) / 2.0f;
+
+                auto drawAxis = [&](const char* axisLabel, float& axisValue, const ImVec4& color,
+                                    const ImVec4& hoveredColor, const ImVec4& activeColor)
+                {
+                    ImGui::PushStyleColor(ImGuiCol_Button, color);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, hoveredColor);
+                    ImGui::PushStyleColor(ImGuiCol_ButtonActive, activeColor);
+                    ImGui::PushFont(boldFont);
+                    if (ImGui::Button(axisLabel, buttonSize))
+                    {
+                        if (onEditBegin)
+                            onEditBegin();
+                        axisValue = resetValue;
+                        if (onEditEnd)
+                            onEditEnd();
+                    }
+                    ImGui::PopFont();
+                    ImGui::PopStyleColor(3);
+                    ImGui::SameLine();
+                    ImGui::SetNextItemWidth(widthEach);
+                    std::string inputIdentifier = std::string("##") + axisLabel;
+                    ImGui::DragFloat(inputIdentifier.c_str(), &axisValue, 0.1f, 0.0f, 0.0f, "%.2f");
+                    if (ImGui::IsItemActivated() && onEditBegin)
+                        onEditBegin();
+                    if (ImGui::IsItemDeactivatedAfterEdit() && onEditEnd)
+                        onEditEnd();
+                };
+
+                drawAxis("X", values.x, ImVec4{0.8f, 0.23f, 0.12f, 1.0f},
+                         ImVec4{0.9f, 0.2f, 0.2f, 1.0f}, ImVec4{0.8f, 0.1f, 0.15f, 1.0f});
+                ImGui::SameLine();
+                drawAxis("Y", values.y, ImVec4{0.12f, 0.7f, 0.2f, 1.0f},
+                         ImVec4{0.3f, 0.8f, 0.3f, 1.0f}, ImVec4{0.2f, 0.7f, 0.2f, 1.0f});
+                ImGui::PopStyleVar();
+            },
+            nullptr, showReset,
+            [&]()
+            {
+                values = defaultValues;
+                if (onEditEnd)
+                    onEditEnd();
+            });
     }
 
     void DrawStdStringControl(const char* label, std::string& value,
-                              const std::function<void()>& onEdited)
+                              const std::function<void()>& onEdited, bool enableRowReset,
+                              const std::string& resetValue)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            char buffer[256];
-            std::memset(buffer, 0, sizeof(buffer));
-            std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
-
-            ImGui::PushItemWidth(-1.0f);
-            ImGui::InputText("##Value", buffer, sizeof(buffer));
-            ImGui::PopItemWidth();
-            if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
+        const bool showReset = enableRowReset && value != resetValue;
+        DrawPropertyRow(
+            label,
+            [&]()
             {
-                value = buffer;
-                onEdited();
-            }
-            else if (ImGui::IsItemDeactivatedAfterEdit())
+                char buffer[256];
+                std::memset(buffer, 0, sizeof(buffer));
+                std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::InputText("##Value", buffer, sizeof(buffer));
+                ImGui::PopItemWidth();
+                if (ImGui::IsItemDeactivatedAfterEdit())
+                {
+                    value = buffer;
+                    if (onEdited)
+                        onEdited();
+                }
+            },
+            nullptr, showReset,
+            [&]()
             {
-                value = buffer;
-            }
-        });
+                value = resetValue;
+                if (onEdited)
+                    onEdited();
+            });
     }
 
-    void DrawCheckboxControl(const std::string& label, bool& value)
+    void DrawCheckboxControl(const std::string& label, bool& value, bool resetValue,
+                             bool enableRowReset)
     {
-        DrawPropertyRow(label.c_str(), [&]()
-        {
-            ImGui::Checkbox("##Value", &value);
-        });
+        const bool showReset = enableRowReset && value != resetValue;
+        DrawPropertyRow(
+            label.c_str(), [&]() { ImGui::Checkbox("##Value", &value); }, nullptr, showReset,
+            [&]() { value = resetValue; });
     }
 
     void DrawEnumComboControl(const char* label, int& currentIndex, const char* const* labels,
-                              int labelCount, const std::function<void(int newIndex)>& onSelectionChanged)
+                              int labelCount, const std::function<void(int newIndex)>& onSelectionChanged,
+                              bool enableRowReset, int resetIndex)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            const char* preview = (currentIndex >= 0 && currentIndex < labelCount)
-                ? labels[currentIndex]
-                : "None";
-
-            ImGui::PushItemWidth(-1.0f);
-            if (ImGui::BeginCombo("##EnumCombo", preview))
+        const bool showReset =
+            enableRowReset && currentIndex != resetIndex && resetIndex >= 0 && resetIndex < labelCount;
+        DrawPropertyRow(
+            label,
+            [&]()
             {
-                for (int index = 0; index < labelCount; ++index)
+                const char* preview = (currentIndex >= 0 && currentIndex < labelCount)
+                                          ? labels[currentIndex]
+                                          : "None";
+                ImGui::PushItemWidth(-1.0f);
+                if (ImGui::BeginCombo("##EnumCombo", preview))
                 {
-                    const bool isSelected = index == currentIndex;
-                    if (ImGui::Selectable(labels[index], isSelected))
+                    for (int index = 0; index < labelCount; ++index)
                     {
-                        currentIndex = index;
-                        onSelectionChanged(index);
+                        const bool isSelected = index == currentIndex;
+                        if (ImGui::Selectable(labels[index], isSelected))
+                        {
+                            currentIndex = index;
+                            onSelectionChanged(index);
+                        }
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
                     }
-                    if (isSelected)
-                        ImGui::SetItemDefaultFocus();
+                    ImGui::EndCombo();
                 }
-                ImGui::EndCombo();
-            }
-            ImGui::PopItemWidth();
-        });
+                ImGui::PopItemWidth();
+            },
+            nullptr, showReset,
+            [&]()
+            {
+                currentIndex = resetIndex;
+                onSelectionChanged(resetIndex);
+            });
     }
 
-    void DrawUInt32Control(const char* label, uint32_t& value, float speed)
+    void DrawUInt32Control(const char* label, uint32_t& value, float speed, bool enableRowReset,
+                           uint32_t resetValue)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            ImGui::DragScalar("##Value", ImGuiDataType_U32, &value, speed, nullptr, nullptr, "%u");
-            ImGui::PopItemWidth();
-        });
+        const bool showReset = enableRowReset && value != resetValue;
+        DrawPropertyRow(
+            label,
+            [&]()
+            {
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::DragScalar("##Value", ImGuiDataType_U32, &value, speed, nullptr, nullptr, "%u");
+                ImGui::PopItemWidth();
+            },
+            nullptr, showReset, [&]() { value = resetValue; });
     }
 
-    void DrawIVec2Control(const char* label, glm::ivec2& value, float speed, int minimum, int maximum)
+    void DrawIVec2Control(const char* label, glm::ivec2& value, float speed, int minimum, int maximum,
+                          bool enableRowReset, glm::ivec2 resetValue)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            if (minimum != 0 || maximum != 0)
-                ImGui::DragInt2("##Value", &value.x, speed, minimum, maximum);
-            else
-                ImGui::DragInt2("##Value", &value.x, speed);
-            ImGui::PopItemWidth();
-        });
+        const bool showReset = enableRowReset && value != resetValue;
+        DrawPropertyRow(
+            label,
+            [&]()
+            {
+                ImGui::PushItemWidth(-1.0f);
+                if (minimum != 0 || maximum != 0)
+                    ImGui::DragInt2("##Value", &value.x, speed, minimum, maximum);
+                else
+                    ImGui::DragInt2("##Value", &value.x, speed);
+                ImGui::PopItemWidth();
+            },
+            nullptr, showReset, [&]() { value = resetValue; });
     }
 
     void DrawVec2Control(const char* label, glm::vec2& value, float speed, float minimum, float maximum,
-                         const std::function<void()>& onEdited)
+                         const std::function<void()>& onEdited, bool enableRowReset, glm::vec2 resetValue)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            if (minimum != 0.0f || maximum != 0.0f)
-                ImGui::DragFloat2("##Value", &value.x, speed, minimum, maximum);
-            else
-                ImGui::DragFloat2("##Value", &value.x, speed);
-            ImGui::PopItemWidth();
-            if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
-                onEdited();
-        });
+        const bool showReset = enableRowReset && !IsVec2Near(value, resetValue);
+        DrawPropertyRow(
+            label,
+            [&]()
+            {
+                ImGui::PushItemWidth(-1.0f);
+                if (minimum != 0.0f || maximum != 0.0f)
+                    ImGui::DragFloat2("##Value", &value.x, speed, minimum, maximum);
+                else
+                    ImGui::DragFloat2("##Value", &value.x, speed);
+                ImGui::PopItemWidth();
+                if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
+                    onEdited();
+            },
+            nullptr, showReset,
+            [&]()
+            {
+                value = resetValue;
+                if (onEdited)
+                    onEdited();
+            });
     }
 
     void DrawIVec4Control(const char* label, glm::ivec4& value, float speed, int minimum, int maximum,
-                          const std::function<void()>& onEdited)
+                          const std::function<void()>& onEdited, bool enableRowReset, glm::ivec4 resetValue)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            ImGui::PushItemWidth(-1.0f);
-            ImGui::DragInt4("##Value", &value.x, speed, minimum, maximum);
-            ImGui::PopItemWidth();
-            if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
-                onEdited();
-        });
+        const bool showReset = enableRowReset && value != resetValue;
+        DrawPropertyRow(
+            label,
+            [&]()
+            {
+                ImGui::PushItemWidth(-1.0f);
+                ImGui::DragInt4("##Value", &value.x, speed, minimum, maximum);
+                ImGui::PopItemWidth();
+                if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
+                    onEdited();
+            },
+            nullptr, showReset,
+            [&]()
+            {
+                value = resetValue;
+                if (onEdited)
+                    onEdited();
+            });
     }
 
     void DrawInputTextControl(const char* label, char* buffer, int bufferSize,
@@ -356,6 +454,34 @@ namespace Himii
             ImGui::PopItemWidth();
             if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
                 onEdited();
+        });
+    }
+
+    void DrawMultilineTextControl(const char* label, std::string& value, int lineCount,
+                                  const std::function<void()>& onEdited)
+    {
+        if (lineCount < 1)
+            lineCount = 1;
+
+        DrawPropertyRow(label, [&]()
+        {
+            char buffer[2048];
+            std::memset(buffer, 0, sizeof(buffer));
+            std::snprintf(buffer, sizeof(buffer), "%s", value.c_str());
+
+            const float lineHeight = ImGui::GetTextLineHeightWithSpacing();
+            const ImVec2 inputSize(-1.0f, lineHeight * static_cast<float>(lineCount));
+
+            ImGui::PushItemWidth(-1.0f);
+            const bool edited = ImGui::InputTextMultiline("##MultilineValue", buffer, sizeof(buffer), inputSize);
+            ImGui::PopItemWidth();
+
+            if (edited || ImGui::IsItemDeactivatedAfterEdit())
+            {
+                value = buffer;
+                if (onEdited && ImGui::IsItemDeactivatedAfterEdit())
+                    onEdited();
+            }
         });
     }
 
@@ -525,89 +651,158 @@ namespace Himii
         return true;
     }
 
-    void DrawObjectReferenceField(const char* label, const char* objectDisplayName, bool hasReference,
-                                 const Ref<Texture2D>& previewTexture,
-                                 const std::function<void()>& onClear,
-                                 const std::function<bool(const ImGuiPayload*)>& onAssignPayload,
-                                 const std::function<void()>& onDoubleClick)
+    bool AssignSoundAssetFromContentBrowserPayload(const ImGuiPayload* payload,
+                                                   AssetHandle& soundAssetHandle)
     {
-        DrawPropertyRow(label, [&]()
-        {
-            const float frameHeight = ImGui::GetFrameHeight();
-            const float verticalPadding = ImGui::GetStyle().FramePadding.y;
-            const float slotHeight = frameHeight + verticalPadding * 2.0f;
-            const float slotWidth = ImGui::GetContentRegionAvail().x;
-            const ImVec2 slotSize(slotWidth, slotHeight);
+        if (!payload)
+            return false;
 
-            const ImVec4 recessedBackground = ImGui::GetStyle().Colors[ImGuiCol_FrameBg];
-            ImGui::PushStyleColor(ImGuiCol_ChildBg, recessedBackground);
-            ImGui::PushStyleVar(ImGuiStyleVar_ChildRounding, ImGui::GetStyle().FrameRounding);
-            ImGui::PushStyleVar(ImGuiStyleVar_ChildBorderSize, 1.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(6.0f, verticalPadding));
+        const wchar_t* relativePathWide = static_cast<const wchar_t*>(payload->Data);
+        std::filesystem::path relativePath(relativePathWide);
+        std::filesystem::path soundFilePath = Project::GetAssetDirectory() / relativePath;
 
-            const ImGuiID slotIdentifier = ImGui::GetID("##ObjectReferenceSlot");
-            if (ImGui::BeginChild(slotIdentifier, slotSize, true,
-                                  ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse))
+        if (!std::filesystem::exists(soundFilePath))
+            return false;
+
+        std::string extension = soundFilePath.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+        if (extension != ".wav" && extension != ".ogg" && extension != ".mp3")
+            return false;
+
+        auto assetManager = Project::GetAssetManager();
+        if (!assetManager)
+            return false;
+
+        const AssetHandle importedHandle = assetManager->ImportAsset(relativePath);
+        if (importedHandle == 0)
+            return false;
+
+        soundAssetHandle = importedHandle;
+        return true;
+    }
+
+    bool AssignParticleEmitterAssetFromContentBrowserPayload(const ImGuiPayload* payload,
+                                                             AssetHandle& particleEmitterAssetHandle)
+    {
+        if (!payload)
+            return false;
+
+        const wchar_t* relativePathWide = static_cast<const wchar_t*>(payload->Data);
+        std::filesystem::path relativePath(relativePathWide);
+        std::filesystem::path emitterFilePath = Project::GetAssetDirectory() / relativePath;
+
+        if (!std::filesystem::exists(emitterFilePath))
+            return false;
+
+        std::string extension = emitterFilePath.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+        if (extension != ".particle")
+            return false;
+
+        auto assetManager = Project::GetAssetManager();
+        if (!assetManager)
+            return false;
+
+        const AssetHandle importedHandle = assetManager->ImportAsset(relativePath);
+        if (importedHandle == 0)
+            return false;
+
+        particleEmitterAssetHandle = importedHandle;
+        return true;
+    }
+
+    void DrawObjectReferenceField(const char* label, const char* objectDisplayName, bool hasReference,
+                                  const Ref<Texture2D>& previewTexture,
+                                  const std::function<void()>& onClear,
+                                  const std::function<bool(const ImGuiPayload*)>& onAssignPayload,
+                                  const std::function<void()>& onOpenEditor)
+    {
+        const bool showReset = hasReference && static_cast<bool>(onClear);
+        DrawPropertyRow(
+            label,
+            [&]()
             {
-                const ImVec2 slotPosition = ImGui::GetWindowPos();
-                const ImVec2 childInnerSize = ImGui::GetWindowSize();
-                ImDrawList* drawList = ImGui::GetWindowDrawList();
+                const float frameHeight = ImGui::GetFrameHeight();
+                const float itemSpacingX = ImGui::GetStyle().ItemSpacing.x;
+                const bool showPreview = previewTexture && previewTexture->GetRendererID() != 0;
+                const bool showOpenEditor = static_cast<bool>(onOpenEditor);
+                const float openEditorButtonWidth = showOpenEditor ? frameHeight : 0.0f;
+
+                float availableWidth = ImGui::GetContentRegionAvail().x;
+                if (showPreview)
+                    availableWidth -= frameHeight + itemSpacingX;
+                if (showOpenEditor)
+                    availableWidth -= openEditorButtonWidth + itemSpacingX;
+
+                const float nameFieldWidth =
+                    std::max(40.0f, std::min(InspectorObjectReferenceNameMaxWidth, availableWidth));
 
                 const char* nameText = "None";
                 if (hasReference && objectDisplayName && objectDisplayName[0] != '\0')
                     nameText = objectDisplayName;
 
-                const ImU32 nameColor = hasReference
-                    ? ImGui::GetColorU32(ImGuiCol_Text)
-                    : ImGui::GetColorU32(ImGuiCol_TextDisabled);
-
-                float nameOffsetX = ImGui::GetStyle().WindowPadding.x;
-                const float previewSize = slotHeight - verticalPadding * 2.0f;
-                const bool showPreview = previewTexture && previewTexture->GetRendererID() != 0;
-                if (showPreview)
-                    nameOffsetX += previewSize + 6.0f;
-
-                const ImVec2 nameTextSize = ImGui::CalcTextSize(nameText);
-                const float namePositionY =
-                    slotPosition.y + (slotSize.y - nameTextSize.y) * 0.5f;
-                drawList->AddText(ImVec2(slotPosition.x + nameOffsetX, namePositionY), nameColor, nameText);
-
                 if (showPreview)
                 {
-                    ImGui::SetCursorPos(ImVec2(ImGui::GetStyle().WindowPadding.x, verticalPadding));
                     DrawEditorTextureImageFull(previewTexture->GetRendererID(),
-                                               ImVec2(previewSize, previewSize));
+                                               ImVec2(frameHeight, frameHeight));
+                    ImGui::SameLine();
                 }
 
-                if (hasReference && onClear)
-                {
-                    const float clearButtonSize = frameHeight;
-                    ImGui::SetCursorPos(ImVec2(childInnerSize.x - clearButtonSize - 6.0f, verticalPadding));
-                    if (ImGui::Button("X", ImVec2(clearButtonSize, clearButtonSize)))
-                        onClear();
-                }
+                ImGui::PushStyleColor(ImGuiCol_Button, ImGui::GetStyle().Colors[ImGuiCol_FrameBg]);
+                ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                     ImGui::GetStyle().Colors[ImGuiCol_FrameBgHovered]);
+                ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                     ImGui::GetStyle().Colors[ImGuiCol_FrameBgActive]);
+                if (!hasReference)
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
 
-                ImGui::SetNextItemAllowOverlap();
-                ImGui::SetCursorPos(ImVec2(0.0f, 0.0f));
-                ImGui::InvisibleButton("##ObjectReferenceDropZone", childInnerSize);
-                if (ImGui::IsItemHovered() && onDoubleClick
+                ImGui::Button(nameText, ImVec2(nameFieldWidth, frameHeight));
+
+                if (!hasReference)
+                    ImGui::PopStyleColor();
+                ImGui::PopStyleColor(3);
+
+                if (ImGui::IsItemHovered() && onOpenEditor
                     && ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left))
                 {
-                    onDoubleClick();
+                    onOpenEditor();
                 }
 
                 if (ImGui::BeginDragDropTarget())
                 {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                        onAssignPayload(payload);
+                    if (const ImGuiPayload* payload =
+                            ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
+                    {
+                        if (onAssignPayload)
+                            onAssignPayload(payload);
+                    }
                     ImGui::EndDragDropTarget();
                 }
-            }
-            ImGui::EndChild();
 
-            ImGui::PopStyleVar(3);
-            ImGui::PopStyleColor();
-        });
+                if (showOpenEditor)
+                {
+                    ImGui::SameLine();
+                    if (ImGui::Button("##OpenEditor", ImVec2(openEditorButtonWidth, frameHeight)))
+                        onOpenEditor();
+                    ImDrawList* drawList = ImGui::GetWindowDrawList();
+                    const ImVec2 buttonMin = ImGui::GetItemRectMin();
+                    const ImVec2 buttonMax = ImGui::GetItemRectMax();
+                    const ImVec2 center((buttonMin.x + buttonMax.x) * 0.5f,
+                                       (buttonMin.y + buttonMax.y) * 0.5f);
+                    const float radius = frameHeight * 0.12f;
+                    const ImU32 iconColor = ImGui::GetColorU32(ImGuiCol_Text);
+                    drawList->AddCircleFilled(ImVec2(center.x - radius * 2.2f, center.y), radius,
+                                              iconColor);
+                    drawList->AddCircleFilled(center, radius, iconColor);
+                    drawList->AddCircleFilled(ImVec2(center.x + radius * 2.2f, center.y), radius,
+                                              iconColor);
+                    if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                        ImGui::SetTooltip("Open Editor");
+                }
+            },
+            nullptr, showReset, onClear);
     }
 
     void DrawEditorTextureImageFull(uint64_t textureRendererId, const ImVec2& displaySize)

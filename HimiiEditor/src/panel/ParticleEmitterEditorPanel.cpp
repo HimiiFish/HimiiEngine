@@ -1,9 +1,11 @@
 #include "ParticleEmitterEditorPanel.h"
 
+#include "InspectorControls.h"
+
 #include "imgui.h"
 #include <algorithm>
 #include <cfloat>
-#include <functional>
+#include <filesystem>
 #include "Himii/Asset/AssetManager.h"
 #include "Himii/Asset/AssetSerializer.h"
 #include "Himii/Project/Project.h"
@@ -130,115 +132,93 @@ namespace Himii
         ImGui::Image(reinterpret_cast<void*>(texId), ImVec2(displaySize, displaySize), { 0, 1 }, { 1, 0 });
     }
 
-    // 属性行：左侧参数名，右侧控件，中间分割（用两列实现）
-    static void PropRow(const char* label, const char* tooltip, std::function<void()> widget)
-    {
-        ImGui::TextUnformatted(label);
-        if (tooltip && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
-            ImGui::SetTooltip("%s", tooltip);
-        ImGui::NextColumn();
-        ImGui::SetNextItemWidth(-1);
-        widget();
-        ImGui::NextColumn();
-    }
-
     void ParticleEmitterEditorPanel::UI_Properties()
     {
         if (!m_Asset)
             return;
 
-        ParticleProps& p = m_Asset->TemplateProps;
-        const float labelWidth = 88.0f; // 左侧参数名宽度，避免文字超出
+        ParticleProps& particleProperties = m_Asset->TemplateProps;
+        auto assetManager = Project::GetAssetManager();
 
-        if (ImGui::CollapsingHeader("发射位置 (模板)", ImGuiTreeNodeFlags_DefaultOpen))
+        std::string emitterAssetDisplayName = "Unknown";
+        if (assetManager)
         {
-            ImGui::TextDisabled("运行时以实体位置为准");
-            ImGui::Columns(2, "##pos", false);
-            ImGui::SetColumnWidth(0, labelWidth);
-            PropRow("位置", nullptr, [&]() { ImGui::DragFloat3("##pos", &p.position.x, 0.05f); });
-            ImGui::Columns(1);
+            const auto& registry = assetManager->GetAssetRegistry();
+            auto iterator = registry.find(m_EmitterHandle);
+            if (iterator != registry.end())
+                emitterAssetDisplayName = iterator->second.FilePath.filename().string();
         }
+        DrawReadOnlyTextControl("Asset", emitterAssetDisplayName.c_str(),
+                                "当前编辑的粒子发射器资产文件名。");
 
-        if (ImGui::CollapsingHeader("初速度", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Columns(2, "##vel", false);
-            ImGui::SetColumnWidth(0, labelWidth);
-            PropRow("主速度", "平均速度向量，如 (0,1,0) 向上", [&]() { ImGui::DragFloat3("##vel", &p.velocity.x, 0.05f); });
-            PropRow("随机扩散", "每轴随机范围，越大越散开", [&]() { ImGui::DragFloat3("##velvar", &p.velocityVariation.x, 0.01f, 0.0f, 10.0f); });
-            ImGui::Columns(1);
-        }
+        DrawInspectorSectionHeader("Spawn Position (Template)",
+                                   "Runtime emission uses the entity world position.");
+        DrawVec3Control("Position", particleProperties.position, 0.0f);
 
-        if (ImGui::CollapsingHeader("生命周期", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Columns(2, "##life", false);
-            ImGui::SetColumnWidth(0, labelWidth);
-            PropRow("存活时间", "秒", [&]() { ImGui::DragFloat("##lifetime", &p.lifetime, 0.05f, 0.01f, 10.0f); });
-            ImGui::Columns(1);
-        }
+        DrawInspectorSectionHeader("Initial Velocity");
+        DrawVec3Control("Velocity", particleProperties.velocity, 0.0f);
+        DrawVec3Control("Velocity Variation", particleProperties.velocityVariation, 0.0f);
 
-        if (ImGui::CollapsingHeader("基础图形", ImGuiTreeNodeFlags_DefaultOpen))
+        DrawInspectorSectionHeader("Lifetime");
+        DrawFloatControl("Lifetime", particleProperties.lifetime, 0.05f, 0.01f, 10.0f);
+
+        DrawInspectorSectionHeader("Shape");
         {
-            ImGui::Columns(2, "##shape", false);
-            ImGui::SetColumnWidth(0, labelWidth);
-            PropRow("形状", "方形=Quad，圆形=Circle", [&]()
-            {
-                const char* items[] = { "方形 (Quad)", "圆形 (Circle)" };
-                int idx = static_cast<int>(p.shape);
-                if (ImGui::Combo("##shape", &idx, items, 2))
-                    p.shape = static_cast<ParticleShape>(idx);
-            });
-            PropRow("贴图", "拖入贴图资源，0=仅颜色", [&]()
-            {
-                auto am = Project::GetAssetManager();
-                std::string label = "无";
-                if (p.textureHandle != 0 && am && am->IsAssetHandleValid(static_cast<AssetHandle>(p.textureHandle)))
-                    label = "贴图 " + std::to_string(static_cast<uint64_t>(p.textureHandle));
-                ImGui::Button(label.c_str(), ImVec2(-1, 0));
-                if (ImGui::BeginDragDropTarget())
+            const char* shapeLabels[] = {"Quad", "Circle"};
+            int shapeIndex = static_cast<int>(particleProperties.shape);
+            DrawEnumComboControl(
+                "Shape", shapeIndex, shapeLabels, 2,
+                [&](int newIndex)
                 {
-                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
-                    {
-                        const wchar_t* path = static_cast<const wchar_t*>(payload->Data);
-                        std::filesystem::path assetPath(path);
-                        std::string ext = assetPath.extension().string();
-                        for (auto& c : ext) c = static_cast<char>(std::tolower(static_cast<unsigned char>(c)));
-                        if ((ext == ".png" || ext == ".jpg" || ext == ".jpeg") && am)
-                        {
-                            AssetHandle h = am->ImportAsset(assetPath);
-                            if (h != 0) p.textureHandle = static_cast<uint64_t>(h);
-                        }
-                    }
-                    ImGui::EndDragDropTarget();
-                }
-                if (p.textureHandle != 0)
+                    particleProperties.shape = static_cast<ParticleShape>(newIndex);
+                });
+        }
+
+        {
+            Ref<Texture2D> previewTexture;
+            std::string textureDisplayName = "None (color only)";
+            AssetHandle textureHandle = static_cast<AssetHandle>(particleProperties.textureHandle);
+            if (textureHandle != 0 && assetManager
+                && assetManager->IsAssetHandleValid(textureHandle))
+            {
+                const auto& registry = assetManager->GetAssetRegistry();
+                auto iterator = registry.find(textureHandle);
+                if (iterator != registry.end())
+                    textureDisplayName = iterator->second.FilePath.filename().string();
+                else
+                    textureDisplayName = "Missing Texture";
+
+                Ref<Asset> textureAsset = assetManager->GetAsset(textureHandle);
+                if (textureAsset)
+                    previewTexture = std::dynamic_pointer_cast<Texture2D>(textureAsset);
+            }
+
+            DrawObjectReferenceField(
+                "Texture", textureDisplayName.c_str(), textureHandle != 0, previewTexture,
+                [&]()
                 {
-                    ImGui::SameLine();
-                    if (ImGui::SmallButton("清除"))
-                        p.textureHandle = 0;
-                }
-            });
-            ImGui::Columns(1);
+                    particleProperties.textureHandle = 0;
+                },
+                [&](const ImGuiPayload* payload)
+                {
+                    Ref<Texture2D> assignedTexture;
+                    AssetHandle assignedHandle = 0;
+                    if (!AssignTextureFromContentBrowserPayload(payload, assignedTexture, assignedHandle))
+                        return false;
+                    particleProperties.textureHandle = static_cast<uint64_t>(assignedHandle);
+                    return true;
+                });
         }
 
-        if (ImGui::CollapsingHeader("外观渐变", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Columns(2, "##app", false);
-            ImGui::SetColumnWidth(0, labelWidth);
-            PropRow("起始颜色", nullptr, [&]() { ImGui::ColorEdit4("##colBeg", &p.colorBegin.x, ImGuiColorEditFlags_NoLabel); });
-            PropRow("结束颜色", nullptr, [&]() { ImGui::ColorEdit4("##colEnd", &p.colorEnd.x, ImGuiColorEditFlags_NoLabel); });
-            PropRow("起始大小", nullptr, [&]() { ImGui::DragFloat("##szBeg", &p.sizeBegin, 0.01f, 0.0f, 5.0f); });
-            PropRow("结束大小", "出生到消失线性插值", [&]() { ImGui::DragFloat("##szEnd", &p.sizeEnd, 0.01f, 0.0f, 5.0f); });
-            ImGui::Columns(1);
-        }
+        DrawInspectorSectionHeader("Appearance");
+        DrawColorControl("Color Begin", particleProperties.colorBegin);
+        DrawColorControl("Color End", particleProperties.colorEnd);
+        DrawFloatControl("Size Begin", particleProperties.sizeBegin, 0.01f, 0.0f, 5.0f);
+        DrawFloatControl("Size End", particleProperties.sizeEnd, 0.01f, 0.0f, 5.0f);
 
-        if (ImGui::CollapsingHeader("发射器", ImGuiTreeNodeFlags_DefaultOpen))
-        {
-            ImGui::Columns(2, "##emit", false);
-            ImGui::SetColumnWidth(0, labelWidth);
-            PropRow("发射率", "每秒粒子数", [&]() { ImGui::DragFloat("##rate", &m_Asset->EmissionRate, 1.0f, 0.0f, 500.0f, "%.0f"); });
-            PropRow("循环", nullptr, [&]() { ImGui::Checkbox("##loop", &m_Asset->Looping); });
-            ImGui::Columns(1);
-        }
+        DrawInspectorSectionHeader("Emitter");
+        DrawFloatControl("Emission Rate", m_Asset->EmissionRate, 1.0f, 0.0f, 500.0f);
+        DrawCheckboxControl("Looping", m_Asset->Looping);
     }
 
     void ParticleEmitterEditorPanel::SaveAsset()
@@ -282,13 +262,14 @@ namespace Himii
 
         UpdatePreview(ImGui::GetIO().DeltaTime);
 
-        if (ImGui::Button("Save"))
-            SaveAsset();
-        ImGui::SameLine();
-        if (ImGui::Button(m_PreviewPlaying ? "Pause" : "Play"))
-            m_PreviewPlaying = !m_PreviewPlaying;
-        ImGui::SameLine();
-        ImGui::Text("Handle: %llu", (uint64_t)m_EmitterHandle);
+        DrawActionButtonRow("Actions", [&]()
+        {
+            if (ImGui::Button("Save", ImVec2(80.0f, 0.0f)))
+                SaveAsset();
+            ImGui::SameLine();
+            if (ImGui::Button(m_PreviewPlaying ? "Pause" : "Play", ImVec2(80.0f, 0.0f)))
+                m_PreviewPlaying = !m_PreviewPlaying;
+        });
         ImGui::Separator();
 
         const float splitterWidth = 6.0f;

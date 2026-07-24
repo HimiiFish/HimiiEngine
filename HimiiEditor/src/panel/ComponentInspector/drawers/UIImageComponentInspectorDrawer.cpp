@@ -6,8 +6,6 @@
 
 #include "Himii/Scene/Components.h"
 
-#include <imgui.h>
-
 namespace Himii
 {
     static void DrawUIImageComponentInspectorUI(ComponentInspectorDrawContext& drawContext)
@@ -22,8 +20,9 @@ namespace Himii
             drawContext, "UIImageComponent", "Image", icon,
             [&]()
             {
-                DrawColorControl("Color", component.Color);
+                DrawInspectorSectionHeader("Appearance");
                 DrawTextureAssignControl("Texture", component.Texture, component.TextureHandle);
+                DrawColorControl("Color", component.Color);
             },
             [&]() { drawContext.entity.RemoveComponent<UIImageComponent>(); });
     }

@@ -134,18 +134,9 @@ namespace Himii
                 }
                 else if (assetManager && assetManager->IsAssetHandleValid(component.TileMapHandle))
                 {
-                    DrawActionButtonRow(
-                        "Tile Map",
-                        [&]()
-                        {
-                            if (ImGui::Button("Open TileMap Setup", ImVec2(-1.0f, 0.0f))
-                                && drawContext.requestTileMapEditor)
-                                drawContext.requestTileMapEditor(component.TileMapHandle);
-                        });
-
                     ImGui::TextDisabled(
                         "选中实体显示 Scene 网格。在 TileMap Setup 右侧点选图块后再绘制；"
-                        "Move Entity [H] 可移动实体。");
+                        "Move Entity [H] 可移动实体。双击引用或点名称旁按钮打开编辑器。");
                 }
             },
             [&]() { drawContext.entity.RemoveComponent<TilemapComponent>(); });

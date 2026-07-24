@@ -1,12 +1,9 @@
 #include "panel/ComponentInspector/ComponentInspectorDrawContext.h"
 #include "panel/ComponentInspector/ComponentInspectorHeader.h"
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
-#include "panel/ComponentInspector/ComponentInspectorUtils.h"
 #include "InspectorControls.h"
 
 #include "Himii/Scene/Components.h"
-
-#include <imgui.h>
 
 namespace Himii
 {
@@ -22,14 +19,21 @@ namespace Himii
             drawContext, "UIButtonComponent", "Button", icon,
             [&]()
             {
-                ImGui::Checkbox("Interactable", &component.Interactable);
+                DrawInspectorSectionHeader("Interaction");
+                DrawCheckboxControl("Interactable", component.Interactable);
+
+                DrawInspectorSectionHeader("Style");
                 DrawColorControl("Normal", component.Colors.NormalColor);
                 DrawColorControl("Highlighted", component.Colors.HighlightedColor);
                 DrawColorControl("Pressed", component.Colors.PressedColor);
                 DrawColorControl("Disabled", component.Colors.DisabledColor);
 
                 if (!drawContext.entity.HasComponent<UIImageComponent>())
-                    ImGui::TextDisabled("No Image: acts as an invisible hit area.");
+                {
+                    DrawReadOnlyTextControl(
+                        "Image", "None (invisible hit area)",
+                        "未挂 Image 时，Button 仅作为透明点击区域，类似 UE 无刷按钮。");
+                }
             },
             [&]() { drawContext.entity.RemoveComponent<UIButtonComponent>(); });
     }

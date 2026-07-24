@@ -22,56 +22,52 @@ namespace Himii
             drawContext, "UITextComponent", "Text", icon,
             [&]()
             {
-                ImGui::Text("Content");
-                ImGui::PushID("Content");
-                char buffer[1024];
-                memset(buffer, 0, sizeof(buffer));
-                snprintf(buffer, sizeof(buffer), "%s", component.TextString.c_str());
-                if (ImGui::InputTextMultiline("##TextContent", buffer, sizeof(buffer),
-                                              ImVec2(-1, ImGui::GetFontSize() * 3)))
-                {
-                    component.TextString = std::string(buffer);
-                }
-                ImGui::PopID();
+                DrawInspectorSectionHeader("Content");
+                DrawMultilineTextControl("Text", component.TextString, 3);
 
-                DrawColorControl("Text Color", component.Color);
-                DrawFloatControl("Font Size", component.FontSize, 1.0f);
+                DrawInspectorSectionHeader("Appearance");
+                DrawColorControl("Color", component.Color);
+                DrawFloatControl("Font Size", component.FontSize, 1.0f, 0.0f, 0.0f, nullptr, nullptr,
+                                 true, 48.0f);
                 if (component.FontSize < 1.0f)
                     component.FontSize = 1.0f;
                 DrawFloatControl("Kerning", component.Kerning, 0.01f);
                 DrawFloatControl("Line Spacing", component.LineSpacing, 0.01f);
 
-                static const char* horizontalAlignmentLabels[] = {
-                        "Left", "Center", "Right"};
-                int horizontalAlignmentIndex =
-                        static_cast<int>(component.HorizontalAlignment);
-                DrawEnumComboControl(
-                        "Horizontal Alignment", horizontalAlignmentIndex,
-                        horizontalAlignmentLabels, 3,
+                DrawReadOnlyTextControl(
+                    "Font", component.FontAsset ? "Default Font Assigned" : "None (Default)",
+                    "当前使用引擎默认字体资源；自定义字体选择后续开放。");
+                if (!component.FontAsset)
+                {
+                    DrawActionButtonRow("Font", [&]()
+                    {
+                        if (ImGui::Button("Attach Default Font", ImVec2(-1.0f, 0.0f)))
+                            component.FontAsset = Font::GetDefault();
+                    });
+                }
+
+                DrawInspectorSectionHeader("Alignment");
+                {
+                    static const char* horizontalAlignmentLabels[] = {"Left", "Center", "Right"};
+                    int horizontalAlignmentIndex = static_cast<int>(component.HorizontalAlignment);
+                    DrawEnumComboControl(
+                        "Horizontal", horizontalAlignmentIndex, horizontalAlignmentLabels, 3,
                         [&](int selectedIndex)
                         {
                             component.HorizontalAlignment =
-                                    static_cast<TextHorizontalAlignment>(selectedIndex);
+                                static_cast<TextHorizontalAlignment>(selectedIndex);
                         });
-
-                static const char* verticalAlignmentLabels[] = {
-                        "Top", "Middle", "Bottom"};
-                int verticalAlignmentIndex =
-                        static_cast<int>(component.VerticalAlignment);
-                DrawEnumComboControl(
-                        "Vertical Alignment", verticalAlignmentIndex,
-                        verticalAlignmentLabels, 3,
+                }
+                {
+                    static const char* verticalAlignmentLabels[] = {"Top", "Middle", "Bottom"};
+                    int verticalAlignmentIndex = static_cast<int>(component.VerticalAlignment);
+                    DrawEnumComboControl(
+                        "Vertical", verticalAlignmentIndex, verticalAlignmentLabels, 3,
                         [&](int selectedIndex)
                         {
                             component.VerticalAlignment =
-                                    static_cast<TextVerticalAlignment>(selectedIndex);
+                                static_cast<TextVerticalAlignment>(selectedIndex);
                         });
-
-                ImGui::Text("Font: %s", component.FontAsset ? "Assigned" : "None (Default)");
-                if (!component.FontAsset)
-                {
-                    if (ImGui::Button("Attach Default Font"))
-                        component.FontAsset = Font::GetDefault();
                 }
             },
             [&]() { drawContext.entity.RemoveComponent<UITextComponent>(); });

@@ -37,6 +37,27 @@
 
 ---
 
+## Inspector 属性行（UE 风格）
+
+- 行骨架为三列：`标签 | 值 | Reset`；右侧列只放 Reset，不放「打开 Editor」等其它按钮。
+- Reset 使用箭头图标 `↺`，仅在当前值偏离该字段默认值时显示；引用字段的 Reset 表示清空为 None。
+- 对象引用字段：缩略图 + 限宽名称框（约 200px）+ 名称旁可选打开 Editor 按钮；双击名称与该按钮共用同一打开回调。
+- Properties 面板通过 `BeginInspectorPropertiesStyle` / `EndInspectorPropertiesStyle` 收紧行距，不修改全局 ImGui Style。
+
+## Vector 控件约定
+
+- **彩色 X / Y / Z 轴按钮**仅用于空间轴语义：`DrawVec3Control`、`DrawVec2AxisControl`（如 Position、Rotation、Scale、Rect 锚点/位移、粒子速度）。
+- **非空间二维量**（分辨率、碰撞 Size/Offset、Sprite Pivot 等）使用无轴色的 `DrawVec2Control`，禁止塞假 Z 再调用 `DrawVec3Control`。
+- **颜色**使用 `DrawColorControl`（色盘），不要用 Vector 轴色按钮表达 RGBA。
+
+## GUI 组件 Inspector 布局（参考 UE 分区）
+
+- 使用 `DrawInspectorSectionHeader` 分组，例如 Appearance、Style、Content、Alignment、Scaler。
+- Canvas 根实体上的 Rect Transform：只读摘要（系统由 Game 目标尺寸驱动），不展示可编辑锚点/尺寸字段。
+- 全套 GUI Drawer（Canvas / Rect Transform / Image / Text / Button）属性行必须走 `InspectorControls`。
+
+---
+
 ## 文案与可发现性（短约束）
 
 - UI 标签使用**产品语义**（如 “Sprite”“Volume”），不要把引擎类型名当作唯一用户文案。
