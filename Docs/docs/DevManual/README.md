@@ -11,9 +11,5 @@
 2.  **[架构概览 (Architecture)](Architecture.md)**
     *   [技术总览](Architecture.md) (原文档)
 
-3.  **[Agent 约束](../AgentConstraints.md)**
-    *   共享规范源：仓库根目录 `AGENTS.md`
-    *   本机 IDE 适配目录不入库
-
-4.  **核心系统 (Core Systems)**
+3.  **核心系统 (Core Systems)**
     *   **[场景序列化](CoreSystems/Serialization.md)** (原文档)

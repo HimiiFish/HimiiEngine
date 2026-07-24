@@ -20,6 +20,5 @@ HimiiEngine 是一套面向 **2D 游戏开发** 的集成引擎，包含 C++ 运
 | **教程** | 动手学习 | [2D 平台跳跃](UserManual/Tutorial2DPlatformer.md) |
 | **脚本 API 参考** | 编写脚本 | [Scripting API](UserManual/ScriptingAPI.md) |
 | **开发手册** | 引擎贡献者 | [Developer Manual](DevManual/README.md) |
-| **Agent 约束** | 使用 AI 编程的贡献者 | [AgentConstraints](AgentConstraints.md) → 根目录 `AGENTS.md` |
 | **发布说明** | 版本变更 | [v1.0.0 Alpha](releases/v1.0.0-alpha.md) |
 | **开发路线图** | 功能规划 | [Roadmap](Roadmap.md) |
