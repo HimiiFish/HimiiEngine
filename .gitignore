@@ -55,12 +55,12 @@ bin/
 # VS Code
 .vscode/
 
-# Cursor / 其他 AI IDE：Trellis 平台适配均为本机生成物，不入库
+# AI IDE 本机适配不入库；共享约束见根目录 AGENTS.md（已入库）
 .cursor/
 .claude/
 .codex/
 .agents/
-AGENTS.md
+.trellis/
 
 # Qt Creator
 *.pro.user

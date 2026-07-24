@@ -67,7 +67,7 @@ nav:
       - 开发者手册总览: DevManual/README.md
       - 源码构建: DevManual/BuildingFromSource.md
       - 架构概览: DevManual/Architecture.md
-      - Agent 约束与 Trellis: AgentConstraints.md
+      - Agent 约束: AgentConstraints.md
       - 场景序列化: DevManual/CoreSystems/Serialization.md
   - 发布说明:
       - v1.0.0 Alpha: releases/v1.0.0-alpha.md
