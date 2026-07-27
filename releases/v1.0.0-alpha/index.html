@@ -1661,11 +1661,18 @@
 <a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>  engine.hpck            # 引擎内置资源二进制包
 <a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>  ScriptCore.dll         # C# 脚本宿主
 <a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  ScriptCore.runtimeconfig.json
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>ExportTemplates/Windows/ # Build Project 玩家壳模板
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  HimiiRuntime.exe
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  HimiiEngine/
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>    engine.hpck
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>    ScriptCore.dll
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>    ScriptCore.runtimeconfig.json
 </code></pre></div>
 <ul>
 <li><strong>HimiiEngine.exe</strong>：编辑器主程序（Release 配置输出名）</li>
-<li><strong>HimiiEngine/</strong>：引擎运行时数据目录</li>
-<li><strong>HimiiRuntime</strong>（源码构建）：无 UI 运行时，可加载 <code>.hproj</code> 运行游戏</li>
+<li><strong>HimiiEngine/</strong>：编辑器引擎运行时数据目录</li>
+<li><strong>ExportTemplates/Windows/</strong>：随编辑器分发的 Export Template；<code>File → Build Project</code> 打包游戏时优先使用</li>
+<li><strong>HimiiRuntime</strong>（源码构建）：无 UI 运行时，亦可作为开发机 Templates 回退来源</li>
 </ul>
 <hr />
 <h2 id="_3">快速开始</h2>
@@ -1706,9 +1713,9 @@
 <p>本版本为 <strong>早期预览</strong>，当前重点在 2D 游戏原型与内容生产。以下能力仍在路线图中或仅为基础实现：</p>
 <ul>
 <li>3D 高级渲染与后处理栈</li>
-<li>完整的项目一键打包管线（编辑器 <strong>File → Build Project</strong> 提供基础导出）</li>
 <li>资源导入器与 Console 增强</li>
 </ul>
+<p><strong>Build Pipeline</strong>：编辑器 <strong>File → Build Project</strong> 可基于嵌入的 <code>ExportTemplates/Windows</code> 输出完整可运行目录（含 <code>AssetRegistry.yaml</code> 与发布用 <code>Game.hproj</code>）。缺模板或关键输入时会失败并提示原因。</p>
 <p>API、资源格式与编辑器行为可能随版本迭代调整。欢迎通过 <a href="https://github.com/HimiiFish/Himii-Engine/issues">Issue</a> 反馈问题与建议。</p>
 <hr />
 <h2 id="_5">文档</h2>

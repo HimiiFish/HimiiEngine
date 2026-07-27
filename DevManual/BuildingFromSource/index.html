@@ -1772,26 +1772,40 @@
 </tr>
 </tbody>
 </table>
-<p>Release 分发目录结构（Godot 式顶层入口）：</p>
+<p>Release 分发目录结构（Godot 式顶层入口 + Export Templates）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>HimiiEngine.exe
-<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>HimiiEngine/
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>  engine.hpck
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  ScriptCore.dll
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  ScriptCore.runtimeconfig.json
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>editor_layout.ini
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>HimiiEngine/                    # 编辑器自身引擎数据
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  engine.hpck
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  ScriptCore.dll
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  ScriptCore.runtimeconfig.json
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>ExportTemplates/Windows/        # Build Project 用的玩家壳模板
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>  HimiiRuntime.exe
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  &lt;原生依赖 DLL...&gt;
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>  HimiiEngine/
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    engine.hpck
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    ScriptCore.dll
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    ScriptCore.runtimeconfig.json
 </code></pre></div>
+<p><code>cmake --install</code> 会将 Release <code>HimiiRuntime</code> 安装到 <code>ExportTemplates/Windows/</code>（不再与编辑器 <code>HimiiEngine/</code> 混放）。HimiiEditor 的 <strong>Release POST_BUILD</strong> 也会把同套产物同步到 Editor 输出旁的 <code>ExportTemplates/Windows/</code>。</p>
 <p>安装 Release 包：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span>
 <a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-install</span> <span class="n">build</span><span class="p">/</span><span class="n">x64-release</span> <span class="p">-</span><span class="n">-prefix</span> <span class="n">install</span><span class="p">/</span><span class="n">x64-release</span>
 </code></pre></div>
+<p>安装后检查：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>install/x64-release/ExportTemplates/Windows/HimiiRuntime.exe
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>install/x64-release/ExportTemplates/Windows/HimiiEngine/engine.hpck
+</code></pre></div>
 <h2 id="himiiruntime">运行 HimiiRuntime（本地构建）</h2>
 <p>在完整构建 HimiiRuntime 目标后，可从输出目录启动：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe
 </code></pre></div>
 <p>在 <strong>HimiiRuntime 可执行文件所在目录</strong>（或将其设为当前工作目录）放置 <code>.hproj</code> 文件；启动后会加载该目录下找到的第一个 <code>.hproj</code>。</p>
 <p>运行前请确认同目录下已有 <code>ScriptCore.dll</code>、<code>ScriptCore.runtimeconfig.json</code>，以及项目所需的 <code>assets</code>（Debug 构建由 Post-build 从 <code>HimiiEditor</code> 拷贝；Release 使用 <code>HimiiEngine/engine.hpck</code>）。</p>
 <h2 id="_4">故障排除</h2>
 <ul>
 <li><strong>找不到 ScriptCore.dll</strong>：先完整构建 HimiiEditor，或单独 <code>dotnet build ScriptCore</code>。</li>
+<li><strong>Build Project 找不到 Export Templates</strong>：确认已构建 Release Editor（POST_BUILD 同步）或执行过 <code>cmake --install</code>；开发机也可依赖 <code>bin/HimiiRuntime/Release/</code> 回退路径。</li>
 <li><strong>vcpkg 依赖失败</strong>：确认仓库内 <code>vcpkg</code> 子模块存在，并确认已从 <code>CMakePresets.json.example</code> 复制出本地 <code>CMakePresets.json</code>，然后重跑 <code>cmake --preset x64-debug</code>。</li>
 <li>更多平台说明见仓库 <a href="https://github.com/HimiiFish/Himii-Engine/blob/main/README.md">README</a>（含 Linux 与 <code>build.py</code> 用法）。</li>
 </ul>
