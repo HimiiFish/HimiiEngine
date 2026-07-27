@@ -35,6 +35,11 @@
 #include <filesystem>
 #include <GLFW/glfw3.h>
 
+#ifdef HIMII_PLATFORM_WINDOWS
+#include <Windows.h>
+#include <shellapi.h>
+#endif
+
 namespace Himii
 {
     EditorLayer::EditorLayer() :
@@ -225,10 +230,16 @@ namespace Himii
             return;
         }
 
-        const bool wasCompiling = m_WasScriptCompiling;
-        ScriptCompiler::Update();
+        UpdateBuildPipelineSession();
 
-        if (Project::GetActive())
+        const bool buildPipelineLocksEditor = IsBuildPipelineBusy();
+        const bool wasCompiling = m_WasScriptCompiling;
+        // Build session already pumps ScriptCompiler::Update while active; still update when idle.
+        if (!ProjectBuildPipeline::IsSessionActive())
+            ScriptCompiler::Update();
+
+        // Avoid file-watcher-triggered Debug compiles racing the Release packaging compile.
+        if (Project::GetActive() && !buildPipelineLocksEditor)
         {
             m_ScriptFileWatcher.Update(ts.GetSeconds());
             m_ScriptProjectFileWatcher.Update(ts.GetSeconds());
@@ -236,27 +247,32 @@ namespace Himii
 
         if (wasCompiling && !ScriptCompiler::IsCompiling())
         {
-            if (ScriptCompiler::GetLastExitCode() == 0)
+            // Release GameAssembly compile belongs to Build Pipeline — do not clear editor dirty
+            // state or queue another Debug compile mid-session.
+            if (!buildPipelineLocksEditor)
             {
-                m_ScriptFileWatcher.ClearPendingChange();
-                m_ScriptProjectFileWatcher.ClearPendingChange();
-
-                if (m_NeedsScriptRebuild)
+                if (ScriptCompiler::GetLastExitCode() == 0)
                 {
-                    m_NeedsScriptRebuild = false;
-                    m_ScriptsDirty = true;
-                    RequestScriptCompile();
-                }
-                else
-                {
-                    m_ScriptsDirty = false;
-                }
-            }
+                    m_ScriptFileWatcher.ClearPendingChange();
+                    m_ScriptProjectFileWatcher.ClearPendingChange();
 
-            if (m_NotifyReloadAfterCompile)
-            {
-                m_ShowScriptReloadNotice = true;
-                m_NotifyReloadAfterCompile = false;
+                    if (m_NeedsScriptRebuild)
+                    {
+                        m_NeedsScriptRebuild = false;
+                        m_ScriptsDirty = true;
+                        RequestScriptCompile();
+                    }
+                    else
+                    {
+                        m_ScriptsDirty = false;
+                    }
+                }
+
+                if (m_NotifyReloadAfterCompile)
+                {
+                    m_ShowScriptReloadNotice = true;
+                    m_NotifyReloadAfterCompile = false;
+                }
             }
         }
         m_WasScriptCompiling = ScriptCompiler::IsCompiling();
@@ -529,6 +545,8 @@ namespace Himii
                 ImGui::EndPopup();
             }
 
+            DrawBuildProgressModal();
+
             m_SceneHierarchyPanel.OnImGuiRender();
             m_ContentBrowserPanel.OnImGuiRender();
             if (m_ShowScriptConsole)
@@ -619,7 +637,7 @@ namespace Himii
 
             m_ViewportFocused = ImGui::IsWindowFocused();
             m_ViewportHovered = ImGui::IsWindowHovered();
-            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered);
+            Application::Get().GetImGuiLayer()->BlockEvents(!m_ViewportHovered || IsBuildPipelineBusy());
 
             ImVec2 viewportPanelSize = ImGui::GetContentRegionAvail();
             if (m_ViewportSize != *((glm::vec2 *)&viewportPanelSize))
@@ -1015,10 +1033,15 @@ namespace Himii
         Application::Get().GetImGuiLayer()->BlockEvents(
                 !(m_ViewportHovered
                   || (m_SceneState == SceneState::Play && m_GameViewportHovered)));
+        if (IsBuildPipelineBusy())
+            Application::Get().GetImGuiLayer()->BlockEvents(true);
     }
 
     void EditorLayer::OnEvent(Himii::Event &event)
     {
+        if (IsBuildPipelineBusy())
+            return;
+
         m_CameraController.OnEvent(event);
         if (m_ViewportHovered)
             m_EditorCamera.OnEvent(event);
@@ -1558,7 +1581,7 @@ namespace Himii
                 SaveProject();
             if (ImGui::MenuItem("Project Settings..."))
                 m_ShowProjectSettings = true;
-            if (ImGui::MenuItem("Build Project..."))
+            if (ImGui::MenuItem("Build Project...", nullptr, false, !IsBuildPipelineBusy()))
                 BuildProject();
             ImGui::EndMenu();
         }
@@ -1710,6 +1733,9 @@ namespace Himii
 
     void EditorLayer::BuildProject()
     {
+        if (IsBuildPipelineBusy())
+            return;
+
         if (!Project::GetActive())
         {
             HIMII_CORE_ERROR("Build Project: no active project.");
@@ -1720,6 +1746,11 @@ namespace Himii
         if (!FlushProjectStateForBuild(flushErrorMessage))
         {
             HIMII_CORE_ERROR("Build Project failed: {0}", flushErrorMessage);
+            m_BuildPipelineUiState = BuildPipelineUiState::Failed;
+            m_BuildResultMessage = flushErrorMessage;
+            m_BuildProgressStageLabel = "Build failed";
+            m_BuildProgressNormalized = 0.0f;
+            m_BuildProgressModalOpenRequested = true;
             return;
         }
 
@@ -1727,16 +1758,135 @@ namespace Himii
         if (filepath.empty())
             return;
 
-        const ProjectBuildPipelineResult buildResult =
-                ProjectBuildPipeline::Build(std::filesystem::path(filepath));
-        if (!buildResult.Succeeded)
+        const ProjectBuildPipelineResult beginResult =
+                ProjectBuildPipeline::BeginSession(std::filesystem::path(filepath));
+        if (!beginResult.Succeeded)
         {
-            HIMII_CORE_ERROR("Build Project failed: {0}", buildResult.ErrorMessage);
+            HIMII_CORE_ERROR("Build Project failed: {0}", beginResult.ErrorMessage);
+            m_BuildPipelineUiState = BuildPipelineUiState::Failed;
+            m_BuildResultMessage = beginResult.ErrorMessage;
+            m_BuildProgressStageLabel = "Build failed";
+            m_BuildProgressNormalized = 0.0f;
+            m_BuildProgressModalOpenRequested = true;
             return;
         }
 
-        HIMII_CORE_INFO("Build Project completed: {0}",
-                        std::filesystem::path(filepath).parent_path().string());
+        m_BuildOutputDirectory = std::filesystem::path(filepath).parent_path();
+        m_BuildPipelineUiState = BuildPipelineUiState::Running;
+        m_BuildProgressStageLabel = "Compiling Release GameAssembly...";
+        m_BuildProgressNormalized = 0.1f;
+        m_BuildResultMessage.clear();
+        m_BuildProgressModalOpenRequested = true;
+    }
+
+    bool EditorLayer::IsBuildPipelineBusy() const
+    {
+        return m_BuildPipelineUiState == BuildPipelineUiState::Running
+                || ProjectBuildPipeline::IsSessionActive();
+    }
+
+    void EditorLayer::UpdateBuildPipelineSession()
+    {
+        if (m_BuildPipelineUiState != BuildPipelineUiState::Running)
+            return;
+
+        ProjectBuildPipelineProgress progress;
+        const bool stillRunning = ProjectBuildPipeline::UpdateSession(progress);
+        m_BuildProgressStageLabel = progress.StageLabel;
+        m_BuildProgressNormalized = progress.ProgressNormalized;
+
+        if (stillRunning)
+            return;
+
+        const ProjectBuildPipelineResult sessionResult = ProjectBuildPipeline::GetSessionResult();
+        m_BuildOutputDirectory = ProjectBuildPipeline::GetSessionOutputDirectory();
+
+        if (sessionResult.Succeeded)
+        {
+            m_BuildPipelineUiState = BuildPipelineUiState::Succeeded;
+            m_BuildResultMessage = "Build completed successfully.";
+            m_BuildProgressNormalized = 1.0f;
+            m_BuildProgressStageLabel = "Build succeeded";
+            HIMII_CORE_INFO("Build Project completed: {0}", m_BuildOutputDirectory.string());
+            OpenBuildOutputDirectory(m_BuildOutputDirectory);
+        }
+        else
+        {
+            m_BuildPipelineUiState = BuildPipelineUiState::Failed;
+            m_BuildResultMessage = sessionResult.ErrorMessage.empty()
+                                           ? "Build failed."
+                                           : sessionResult.ErrorMessage;
+            HIMII_CORE_ERROR("Build Project failed: {0}", m_BuildResultMessage);
+        }
+    }
+
+    void EditorLayer::DrawBuildProgressModal()
+    {
+        if (m_BuildProgressModalOpenRequested)
+        {
+            ImGui::OpenPopup("Build Project");
+            m_BuildProgressModalOpenRequested = false;
+        }
+
+        // Escape can dismiss ImGui modals; keep the progress dialog open while packaging runs (C1).
+        if (m_BuildPipelineUiState == BuildPipelineUiState::Running && !ImGui::IsPopupOpen("Build Project"))
+            ImGui::OpenPopup("Build Project");
+
+        if (m_BuildPipelineUiState == BuildPipelineUiState::Idle)
+            return;
+
+        ImGui::SetNextWindowSize(ImVec2(420.0f, 0.0f), ImGuiCond_Appearing);
+        if (!ImGui::BeginPopupModal("Build Project", nullptr,
+                                    ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoMove))
+            return;
+
+        ImGui::TextUnformatted(m_BuildProgressStageLabel.c_str());
+        ImGui::ProgressBar(m_BuildProgressNormalized, ImVec2(-1.0f, 0.0f));
+
+        if (m_BuildPipelineUiState == BuildPipelineUiState::Running)
+        {
+            ImGui::TextUnformatted("Please wait. The editor is locked until the build finishes.");
+        }
+        else if (m_BuildPipelineUiState == BuildPipelineUiState::Succeeded)
+        {
+            ImGui::TextWrapped("%s", m_BuildResultMessage.c_str());
+            if (!m_BuildOutputDirectory.empty())
+                ImGui::TextWrapped("Output: %s", m_BuildOutputDirectory.string().c_str());
+            if (ImGui::Button("OK", ImVec2(120.0f, 0.0f)))
+            {
+                m_BuildPipelineUiState = BuildPipelineUiState::Idle;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+        else if (m_BuildPipelineUiState == BuildPipelineUiState::Failed)
+        {
+            ImGui::TextWrapped("%s", m_BuildResultMessage.c_str());
+            if (ImGui::Button("OK", ImVec2(120.0f, 0.0f)))
+            {
+                m_BuildPipelineUiState = BuildPipelineUiState::Idle;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        ImGui::EndPopup();
+    }
+
+    void EditorLayer::OpenBuildOutputDirectory(const std::filesystem::path& directoryPath)
+    {
+        if (directoryPath.empty() || !std::filesystem::exists(directoryPath))
+            return;
+
+#ifdef HIMII_PLATFORM_WINDOWS
+        const std::wstring wideDirectoryPath = directoryPath.wstring();
+        const HINSTANCE shellResult = ShellExecuteW(
+                nullptr, L"open", wideDirectoryPath.c_str(), nullptr, nullptr, SW_SHOWNORMAL);
+        if (reinterpret_cast<INT_PTR>(shellResult) <= 32)
+        {
+            HIMII_CORE_WARNING("Failed to open build output directory: {0}", directoryPath.string());
+        }
+#else
+        HIMII_CORE_INFO("Build output directory: {0}", directoryPath.string());
+#endif
     }
 
     void EditorLayer::OpenCSProject()
@@ -2276,6 +2426,12 @@ namespace Himii
     {
         if (!Project::GetActive() || m_CSharpProjectPath.empty())
             return;
+
+        if (IsBuildPipelineBusy())
+        {
+            m_ScriptsDirty = true;
+            return;
+        }
 
         // Play / Simulate 中只标记 dirty，不强制 Stop、不自动编译
         if (m_SceneState == SceneState::Play || m_SceneState == SceneState::Simulate)

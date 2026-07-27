@@ -55,6 +55,10 @@ namespace Himii
         void BuildProject();
         /// Build Project 前：停止 Play、落盘脏资产、确保 StartScene / AssetRegistry 在磁盘上。
         bool FlushProjectStateForBuild(std::string& errorMessage);
+        void UpdateBuildPipelineSession();
+        void DrawBuildProgressModal();
+        void OpenBuildOutputDirectory(const std::filesystem::path& directoryPath);
+        bool IsBuildPipelineBusy() const;
 
         void OpenCSProject();
 
@@ -101,6 +105,13 @@ namespace Himii
             Panels,
             ProjectData,
             Complete
+        };
+
+        enum class BuildPipelineUiState {
+            Idle = 0,
+            Running,
+            Succeeded,
+            Failed
         };
 
         static constexpr float MinimumSplashDisplaySeconds = 1.2f;
@@ -246,5 +257,12 @@ namespace Himii
         void LoadRecentProjects();
         void SaveRecentProjects();
         void DrawProjectHub();
+
+        BuildPipelineUiState m_BuildPipelineUiState = BuildPipelineUiState::Idle;
+        bool m_BuildProgressModalOpenRequested = false;
+        std::string m_BuildProgressStageLabel;
+        float m_BuildProgressNormalized = 0.0f;
+        std::string m_BuildResultMessage;
+        std::filesystem::path m_BuildOutputDirectory;
     };
 }

@@ -100,21 +100,38 @@ Release 下编辑器目标在 CMake 中仍名为 `HimiiEditor`，输出文件名
 | Debug | 松散目录 `assets/`、`resources/`（POST_BUILD 拷贝到 exe 旁） | exe 同目录 |
 | Release | 二进制包 `HimiiEngine/engine.hpck`（由 `ResourcePacker` 构建） | `HimiiEngine/` 子目录 |
 
-Release 分发目录结构（Godot 式顶层入口）：
+Release 分发目录结构（Godot 式顶层入口 + Export Templates）：
 
 ```text
 HimiiEngine.exe
-HimiiEngine/
+editor_layout.ini
+HimiiEngine/                    # 编辑器自身引擎数据
   engine.hpck
   ScriptCore.dll
   ScriptCore.runtimeconfig.json
+ExportTemplates/Windows/        # Build Project 用的玩家壳模板
+  HimiiRuntime.exe
+  <原生依赖 DLL...>
+  HimiiEngine/
+    engine.hpck
+    ScriptCore.dll
+    ScriptCore.runtimeconfig.json
 ```
+
+`cmake --install` 会将 Release `HimiiRuntime` 安装到 `ExportTemplates/Windows/`（不再与编辑器 `HimiiEngine/` 混放）。HimiiEditor 的 **Release POST_BUILD** 也会把同套产物同步到 Editor 输出旁的 `ExportTemplates/Windows/`。
 
 安装 Release 包：
 
 ```powershell
 cmake --build --preset build-x64-release-win
 cmake --install build/x64-release --prefix install/x64-release
+```
+
+安装后检查：
+
+```text
+install/x64-release/ExportTemplates/Windows/HimiiRuntime.exe
+install/x64-release/ExportTemplates/Windows/HimiiEngine/engine.hpck
 ```
 
 ## 运行 HimiiRuntime（本地构建）
@@ -132,5 +149,6 @@ build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe
 ## 故障排除
 
 * **找不到 ScriptCore.dll**：先完整构建 HimiiEditor，或单独 `dotnet build ScriptCore`。
+* **Build Project 找不到 Export Templates**：确认已构建 Release Editor（POST_BUILD 同步）或执行过 `cmake --install`；开发机也可依赖 `bin/HimiiRuntime/Release/` 回退路径。
 * **vcpkg 依赖失败**：确认仓库内 `vcpkg` 子模块存在，并确认已从 `CMakePresets.json.example` 复制出本地 `CMakePresets.json`，然后重跑 `cmake --preset x64-debug`。
 * 更多平台说明见仓库 [README](https://github.com/HimiiFish/Himii-Engine/blob/main/README.md)（含 Linux 与 `build.py` 用法）。

@@ -43,7 +43,7 @@ set_target_properties(HimiiEditor PROPERTIES
     OUTPUT_NAME_MINSIZEREL "HimiiEngine"
 )
 
-add_dependencies(HimiiEditor PackEngineResources)
+add_dependencies(HimiiEditor PackEngineResources HimiiRuntime)
 
 add_custom_command(TARGET HimiiEditor POST_BUILD
     COMMAND ${CMAKE_COMMAND}
@@ -53,7 +53,12 @@ add_custom_command(TARGET HimiiEditor POST_BUILD
         -DSCRIPT_CORE_DIR=${CMAKE_SOURCE_DIR}/ScriptCore/bin/$<IF:$<CONFIG:Debug>,Debug,Release>/net8.0
         -DCONFIG=$<CONFIG>
         -P ${CMAKE_SOURCE_DIR}/cmake/EditorPostBuild.cmake
-    COMMENT "Post-Build: staging editor/runtime files for Debug or Release layout"
+    COMMAND ${CMAKE_COMMAND}
+        -DRUNTIME_TARGET_DIR=$<TARGET_FILE_DIR:HimiiRuntime>
+        -DEDITOR_TARGET_DIR=$<TARGET_FILE_DIR:HimiiEditor>
+        -DCONFIG=$<CONFIG>
+        -P ${CMAKE_SOURCE_DIR}/cmake/SyncExportTemplates.cmake
+    COMMENT "Post-Build: staging editor files and Release ExportTemplates"
 )
 
 install(TARGETS HimiiEditor RUNTIME DESTINATION . CONFIGURATIONS Release RelWithDebInfo MinSizeRel)

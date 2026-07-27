@@ -1,0 +1,46 @@
+# Sync Release HimiiRuntime outputs into Editor ExportTemplates/Windows.
+# Required variables: RUNTIME_TARGET_DIR, EDITOR_TARGET_DIR, CONFIG
+
+if(NOT DEFINED RUNTIME_TARGET_DIR)
+    message(FATAL_ERROR "SyncExportTemplates.cmake: RUNTIME_TARGET_DIR is required")
+endif()
+if(NOT DEFINED EDITOR_TARGET_DIR)
+    message(FATAL_ERROR "SyncExportTemplates.cmake: EDITOR_TARGET_DIR is required")
+endif()
+if(NOT DEFINED CONFIG)
+    message(FATAL_ERROR "SyncExportTemplates.cmake: CONFIG is required")
+endif()
+
+if(NOT (CONFIG STREQUAL "Release" OR CONFIG STREQUAL "RelWithDebInfo" OR CONFIG STREQUAL "MinSizeRel"))
+    return()
+endif()
+
+set(EXPORT_TEMPLATE_DIRECTORY "${EDITOR_TARGET_DIR}/ExportTemplates/Windows")
+file(MAKE_DIRECTORY "${EXPORT_TEMPLATE_DIRECTORY}")
+
+set(RUNTIME_EXECUTABLE "${RUNTIME_TARGET_DIR}/HimiiRuntime.exe")
+if(EXISTS "${RUNTIME_EXECUTABLE}")
+    file(COPY_FILE "${RUNTIME_EXECUTABLE}" "${EXPORT_TEMPLATE_DIRECTORY}/HimiiRuntime.exe" ONLY_IF_DIFFERENT)
+else()
+    message(WARNING "SyncExportTemplates: HimiiRuntime.exe not found at ${RUNTIME_EXECUTABLE}")
+endif()
+
+file(GLOB RUNTIME_DLL_FILES "${RUNTIME_TARGET_DIR}/*.dll")
+foreach(runtime_dll_file IN LISTS RUNTIME_DLL_FILES)
+    get_filename_component(dll_file_name "${runtime_dll_file}" NAME)
+    file(COPY_FILE "${runtime_dll_file}" "${EXPORT_TEMPLATE_DIRECTORY}/${dll_file_name}" ONLY_IF_DIFFERENT)
+endforeach()
+
+set(RUNTIME_ENGINE_CONTENT_DIRECTORY "${RUNTIME_TARGET_DIR}/HimiiEngine")
+set(EXPORT_ENGINE_CONTENT_DIRECTORY "${EXPORT_TEMPLATE_DIRECTORY}/HimiiEngine")
+if(EXISTS "${RUNTIME_ENGINE_CONTENT_DIRECTORY}")
+    file(MAKE_DIRECTORY "${EXPORT_ENGINE_CONTENT_DIRECTORY}")
+    foreach(engine_content_file engine.hpck ScriptCore.dll ScriptCore.runtimeconfig.json)
+        set(source_file "${RUNTIME_ENGINE_CONTENT_DIRECTORY}/${engine_content_file}")
+        if(EXISTS "${source_file}")
+            file(COPY_FILE "${source_file}" "${EXPORT_ENGINE_CONTENT_DIRECTORY}/${engine_content_file}" ONLY_IF_DIFFERENT)
+        endif()
+    endforeach()
+else()
+    message(WARNING "SyncExportTemplates: HimiiEngine content missing at ${RUNTIME_ENGINE_CONTENT_DIRECTORY}")
+endif()

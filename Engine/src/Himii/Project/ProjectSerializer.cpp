@@ -11,7 +11,7 @@ namespace Himii
     {
     }
 
-    bool ProjectSerializer::Serialize(const std::filesystem::path &filepath)
+    bool ProjectSerializer::Serialize(const std::filesystem::path &filepath, bool omitScriptIDEFields)
     {
         const auto &config = m_Project->m_Config;
 
@@ -26,9 +26,12 @@ namespace Himii
                 out << YAML::Key << "AssetDirectory" << YAML::Value << config.AssetDirectory.string();
                 out << YAML::Key << "ScriptModulePath" << YAML::Value << config.ScriptModulePath.string();
                 out << YAML::Key << "Is2D" << YAML::Value << config.Is2D;
-                out << YAML::Key << "ScriptIDE" << YAML::Value << ScriptIDETypeToString(config.ScriptIDEOverride);
-                out << YAML::Key << "CustomScriptIDEPath" << YAML::Value << config.CustomScriptIDEPath;
-                out << YAML::Key << "CustomScriptIDEArguments" << YAML::Value << config.CustomScriptIDEArguments;
+                if (!omitScriptIDEFields)
+                {
+                    out << YAML::Key << "ScriptIDE" << YAML::Value << ScriptIDETypeToString(config.ScriptIDEOverride);
+                    out << YAML::Key << "CustomScriptIDEPath" << YAML::Value << config.CustomScriptIDEPath;
+                    out << YAML::Key << "CustomScriptIDEArguments" << YAML::Value << config.CustomScriptIDEArguments;
+                }
 
                 out << YAML::Key << "Physics2DLayers" << YAML::Value;
                 {

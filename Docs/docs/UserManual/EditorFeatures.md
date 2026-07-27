@@ -164,9 +164,13 @@ Himii 使用 **`.anim` 资产** 组织 2D 逐帧动画：一个文件绑定一�
 
 通过 **File → Build Project...** 将当前游戏项目导出为可独立运行的 **Release 分发目录**：
 
-1. 选择输出可执行文件路径（例如 `MyGame/MyGame.exe`）。**请使用专用输出目录**：成功时该 exe 所在目录会被整体替换为发布包；失败则保留该目录中上一份完整包。
-2. 编辑器会先以 **Release** 配置编译 `GameAssembly`，再从同构建树中的 **Release HimiiRuntime** 打包。
-3. 成功后输出目录大致为：
+1. 选择输出可执行文件路径（例如 `MyGame/MyGame.exe`）。**请使用专用输出目录**：
+   - 允许：空目录；或已是完整发布包（同时含 `Game.hproj`、`HimiiEngine/engine.hpck`、`GameAssembly.dll`，可覆盖）
+   - 其它非空目录会被拒绝
+   - 成功时该 exe 所在目录会被整体替换为发布包；失败则尽量保留上一份完整包
+2. 编辑器显示模态阶段进度（编译 → 校验 Export Template → 写出 → 提交）；期间不可操作编辑器，**无取消**。成功后会自动打开输出目录（不自动启动游戏）。
+3. 玩家壳来自 **Export Templates**（优先 `编辑器目录/ExportTemplates/Windows/`）；开发机构建时若无 Templates，可回退到同构建树 `bin/HimiiRuntime/Release/`。
+4. 成功后输出目录大致为：
 
 ```text
 MyGame.exe
@@ -176,13 +180,14 @@ HimiiEngine/
   ScriptCore.dll
   ScriptCore.runtimeconfig.json
 assets/                 # 仅项目资源
+AssetRegistry.yaml      # AssetHandle 解析所需
 GameAssembly.dll
-Game.hproj              # ScriptModulePath = GameAssembly.dll（不改写开发用源 .hproj）
+Game.hproj              # 发布配置：ScriptModulePath / AssetDirectory=assets；不含本机 IDE 字段
 ```
 
-4. 在输出目录运行生成的 exe（工作目录为该目录）即可加载 `Game.hproj` 与 StartScene。
+5. 在输出目录运行生成的 exe（工作目录为该目录）即可加载 `Game.hproj` 与 StartScene。
 
-**前置条件**：本机需先构建过 **Release** 的 `HimiiRuntime`（含 `HimiiEngine/engine.hpck` 与 ScriptCore）。若缺失关键文件、脚本编译失败或 StartScene 不存在，Build 会失败并保留目标目录中上一份完整包。
+**前置条件**：发布版 Editor 需随附 `ExportTemplates/Windows/`（含 `HimiiRuntime.exe`、旁路 DLL、`HimiiEngine/engine.hpck` 与 ScriptCore）。源码开发机也可先构建 **Release** `HimiiRuntime` 作为回退。若缺失模板、脚本编译失败、StartScene 为绝对路径或不存在等，Build 会失败并给出原因。
 
 > **【配图占位】** `images/build-project-menu.png` — **File → Build Project...** 菜单项
 
