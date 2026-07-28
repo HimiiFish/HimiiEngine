@@ -1761,13 +1761,23 @@
 </thead>
 <tbody>
 <tr>
-<td>Debug</td>
+<td>Debug Editor</td>
 <td>松散目录 <code>assets/</code>、<code>resources/</code>（POST_BUILD 拷贝到 exe 旁）</td>
 <td>exe 同目录</td>
 </tr>
 <tr>
-<td>Release</td>
-<td>二进制包 <code>HimiiEngine/engine.hpck</code>（由 <code>ResourcePacker</code> 构建）</td>
+<td>Debug Runtime</td>
+<td>仅松散 <code>assets/shaders/</code>（字体/天空盒由游戏项目提供）</td>
+<td>exe 同目录</td>
+</tr>
+<tr>
+<td>Release Editor</td>
+<td><strong>胖</strong> <code>HimiiEngine/engine.hpck</code>（shaders + fonts + resources）</td>
+<td><code>HimiiEngine/</code> 子目录</td>
+</tr>
+<tr>
+<td>Release Runtime / Templates</td>
+<td><strong>瘦</strong> <code>HimiiEngine/engine.hpck</code>（仅 shaders）</td>
 <td><code>HimiiEngine/</code> 子目录</td>
 </tr>
 </tbody>
@@ -1775,18 +1785,20 @@
 <p>Release 分发目录结构（Godot 式顶层入口 + Export Templates）：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>HimiiEngine.exe
 <a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>editor_layout.ini
-<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>HimiiEngine/                    # 编辑器自身引擎数据
-<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>  engine.hpck
-<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  ScriptCore.dll
-<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  ScriptCore.runtimeconfig.json
-<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>ExportTemplates/Windows/        # Build Project 用的玩家壳模板
-<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>  HimiiRuntime.exe
-<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  &lt;原生依赖 DLL...&gt;
-<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>  HimiiEngine/
-<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>    engine.hpck
-<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    ScriptCore.dll
-<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    ScriptCore.runtimeconfig.json
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>shader_cache/                   # 运行期可写着色器缓存（可选出现）
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>HimiiEngine/                    # 编辑器自身引擎数据（胖 engine.hpck）
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>  engine.hpck
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>  ScriptCore.dll
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>  ScriptCore.runtimeconfig.json
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>ExportTemplates/Windows/        # Build Project 用的玩家壳模板（瘦 engine.hpck）
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a>  HimiiRuntime.exe
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a>  &lt;原生依赖 DLL...&gt;
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a>  HimiiEngine/
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a>    engine.hpck
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>    ScriptCore.dll
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a>    ScriptCore.runtimeconfig.json
 </code></pre></div>
+<p><code>ResourcePacker</code> 构建两份包：<code>engine.editor.hpck</code>（胖）与 <code>engine.runtime.hpck</code>（瘦），POST_BUILD / install 按目标落盘为同名 <code>engine.hpck</code>。</p>
 <p><code>cmake --install</code> 会将 Release <code>HimiiRuntime</code> 安装到 <code>ExportTemplates/Windows/</code>（不再与编辑器 <code>HimiiEngine/</code> 混放）。HimiiEditor 的 <strong>Release POST_BUILD</strong> 也会把同套产物同步到 Editor 输出旁的 <code>ExportTemplates/Windows/</code>。</p>
 <p>安装 Release 包：</p>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="n">cmake</span> <span class="p">-</span><span class="n">-build</span> <span class="p">-</span><span class="n">-preset</span> <span class="n">build-x64-release-win</span>
