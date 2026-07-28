@@ -12,19 +12,9 @@ namespace Himii
     {
         std::filesystem::path ResolveScriptCoreAssemblyPath()
         {
-            const std::filesystem::path executableDirectory = Application::Get().GetExecutableDir();
-            std::filesystem::path scriptCoreAssemblyPath = executableDirectory / "ScriptCore.dll";
-
-            if (std::filesystem::exists(scriptCoreAssemblyPath))
-                return scriptCoreAssemblyPath;
-
-            const std::filesystem::path engineDirectory = Application::GetEngineDir();
-#ifdef HIMII_DEBUG
-            scriptCoreAssemblyPath = engineDirectory / "ScriptCore/bin/Debug/net8.0/ScriptCore.dll";
-#else
-            scriptCoreAssemblyPath = engineDirectory / "ScriptCore/bin/Release/net8.0/ScriptCore.dll";
-#endif
-            return scriptCoreAssemblyPath;
+            // Debug: GetEngineDir() == exe dir (ScriptCore next to editor).
+            // Release: GetEngineDir() == exe/HimiiEngine (published layout).
+            return Application::GetEngineDir() / "ScriptCore.dll";
         }
 
         void CopyIfExists(const std::filesystem::path &sourcePath, const std::filesystem::path &destinationPath)
