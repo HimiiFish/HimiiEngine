@@ -37,6 +37,7 @@ namespace Himii
         m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         Renderer::Init();
+        Renderer::OnWindowResize(m_Window->GetFramebufferWidth(), m_Window->GetFramebufferHeight());
         AudioEngine::Init();
         JobSystem::Initialize();
         ScriptEngine::Init();
@@ -158,15 +159,19 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
-        if (e.GetWidth() == 0 || e.GetHeight() == 0)
+        const uint32_t framebufferWidth = m_Window->GetFramebufferWidth();
+        const uint32_t framebufferHeight = m_Window->GetFramebufferHeight();
+
+        if (framebufferWidth == 0 || framebufferHeight == 0)
         {
             m_Minimized = true;
             return false;
         }
 
         m_Minimized = false;
-        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+        Renderer::OnWindowResize(framebufferWidth, framebufferHeight);
 
+        (void)e;
         return false;
     }
 

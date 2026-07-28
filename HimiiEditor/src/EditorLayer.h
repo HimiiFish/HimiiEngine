@@ -87,6 +87,7 @@ namespace Himii
         void DrawMainMenuBar();
         void UpdateMainWindowTitle();
         void UpdateEditorCameraForActiveProject();
+        void RefreshEditorSkyboxForActiveProject();
         void DrawStartupSplash();
         void AdvanceEditorStartupLoading();
         void ApplySplashWindowSize();

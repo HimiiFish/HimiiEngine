@@ -32,8 +32,18 @@ namespace Himii
 
         virtual void Update() = 0;
 
+        /// Client area size in window/logical pixels (GLFW window size).
         virtual uint32_t GetWidth() const = 0;
         virtual uint32_t GetHeight() const = 0;
+
+        /// Default framebuffer size in physical pixels (GLFW framebuffer size).
+        virtual uint32_t GetFramebufferWidth() const = 0;
+        virtual uint32_t GetFramebufferHeight() const = 0;
+
+        /// Maps GLFW cursor position (window/logical pixels, Y-down) to framebuffer pixels (Y-down).
+        virtual void MapWindowCursorToFramebufferPixels(float windowCursorX, float windowCursorY,
+                                                        float &outFramebufferX,
+                                                        float &outFramebufferY) const = 0;
 
         virtual void SetEventCallback(const EventCallbackFn &callback) = 0;
         virtual void SetVSync(bool enabled) = 0;

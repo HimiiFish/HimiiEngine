@@ -17,11 +17,17 @@ if(CONFIG STREQUAL "Release" OR CONFIG STREQUAL "RelWithDebInfo" OR CONFIG STREQ
         endif()
     endforeach()
 else()
-    file(MAKE_DIRECTORY "${TARGET_DIR}/assets")
-    file(MAKE_DIRECTORY "${TARGET_DIR}/resources")
+    # Debug Runtime mirrors slim pack: shaders only (fonts/skybox come from the game project).
+    # Remove stale full-tree copies from older POST_BUILD layouts.
+    if(EXISTS "${TARGET_DIR}/resources")
+        file(REMOVE_RECURSE "${TARGET_DIR}/resources")
+    endif()
+    if(EXISTS "${TARGET_DIR}/assets/fonts")
+        file(REMOVE_RECURSE "${TARGET_DIR}/assets/fonts")
+    endif()
 
-    file(COPY "${HIMII_EDITOR_DIR}/assets/." DESTINATION "${TARGET_DIR}/assets")
-    file(COPY "${HIMII_EDITOR_DIR}/resources/." DESTINATION "${TARGET_DIR}/resources")
+    file(MAKE_DIRECTORY "${TARGET_DIR}/assets/shaders")
+    file(COPY "${HIMII_EDITOR_DIR}/assets/shaders/." DESTINATION "${TARGET_DIR}/assets/shaders")
 
     foreach(script_core_file ScriptCore.dll ScriptCore.pdb ScriptCore.runtimeconfig.json)
         set(source_file "${SCRIPT_CORE_DIR}/${script_core_file}")

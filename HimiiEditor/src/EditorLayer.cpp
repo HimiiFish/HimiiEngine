@@ -106,7 +106,7 @@ namespace Himii
     {
         Window &window = Application::Get().GetWindow();
         window.MaximizeForEditor();
-        Renderer::OnWindowResize(window.GetWidth(), window.GetHeight());
+        Renderer::OnWindowResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
     }
 
     void EditorLayer::AdvanceEditorStartupLoading()
@@ -138,11 +138,11 @@ namespace Himii
             }
             case EditorStartupLoadingStep::Fonts:
             {
-                m_StartupStatusMessage = "正在加载字体…";
-                Font::InitDefault("assets/fonts/msyh.ttc");
+                m_StartupStatusMessage = "正在加载编辑器字体…";
+                // Gameplay default font is initialized from project assets after OpenProject (G1).
                 if (ImGuiLayer *imgui_layer = Application::Get().GetImGuiLayer())
                     imgui_layer->LoadEditorFonts();
-                HIMII_CORE_INFO("Default font loaded successfully!");
+                HIMII_CORE_INFO("Editor UI fonts loaded from engine content.");
                 m_StartupProgress = 0.45f;
                 m_StartupLoadingStep = EditorStartupLoadingStep::Scene;
                 break;
@@ -1488,6 +1488,9 @@ namespace Himii
         {
             auto projectDir = Project::GetProjectDirectory();
             Project::SyncScriptCoreToProjectDirectory(projectDir);
+            Project::EnsureSeededDefaultAssets();
+            Project::InitializeGameplayDefaultFont();
+            RefreshEditorSkyboxForActiveProject();
             m_ProjectSettingsPanel.Reset();
 
             // 更新最近项目列表
@@ -1552,6 +1555,43 @@ namespace Himii
             UpdateEditorCameraForActiveProject();
             UpdateMainWindowTitle();
         }
+    }
+
+    void EditorLayer::RefreshEditorSkyboxForActiveProject()
+    {
+        if (!Project::GetActive())
+            return;
+
+        if (Project::GetConfig().Is2D)
+            return;
+
+        static const char *skyboxFaceNames[] = {"right", "left", "top", "bottom", "front", "back"};
+        std::vector<std::string> projectSkyboxFaces;
+        projectSkyboxFaces.reserve(6);
+        for (const char *faceName : skyboxFaceNames)
+        {
+            const std::filesystem::path facePath =
+                    Project::GetAssetFileSystemPath(std::filesystem::path("skybox") / (std::string(faceName) + ".bmp"));
+            if (!std::filesystem::exists(facePath))
+            {
+                HIMII_CORE_INFO("Project skybox incomplete; keeping engine editor skybox.");
+                return;
+            }
+            projectSkyboxFaces.push_back(facePath.string());
+        }
+
+        Ref<TextureCube> projectSkybox = TextureCube::Create(projectSkyboxFaces);
+        if (!projectSkybox)
+        {
+            HIMII_CORE_WARNING("Failed to load project skybox; keeping engine editor skybox.");
+            return;
+        }
+
+        m_SkyboxTexture = projectSkybox;
+        if (m_EditorScene)
+            m_EditorScene->SetSkybox(m_SkyboxTexture);
+        if (m_ActiveScene && m_ActiveScene != m_EditorScene)
+            m_ActiveScene->SetSkybox(m_SkyboxTexture);
     }
 
     void EditorLayer::UpdateEditorCameraForActiveProject()

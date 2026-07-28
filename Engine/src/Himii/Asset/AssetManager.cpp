@@ -140,7 +140,8 @@ namespace Himii
         std::string extensionLower = extension;
         std::transform(extensionLower.begin(), extensionLower.end(), extensionLower.begin(),
                        [](unsigned char character) { return std::tolower(character); });
-        if (extensionLower == ".png" || extensionLower == ".jpg" || extensionLower == ".jpeg")
+        if (extensionLower == ".png" || extensionLower == ".jpg" || extensionLower == ".jpeg" ||
+            extensionLower == ".bmp")
             return AssetType::Texture2D;
         if (extensionLower == ".anim")
             return AssetType::SpriteAnimation;

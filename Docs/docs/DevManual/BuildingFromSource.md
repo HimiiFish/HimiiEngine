@@ -97,19 +97,22 @@ Release 下编辑器目标在 CMake 中仍名为 `HimiiEditor`，输出文件名
 
 | 配置 | 引擎资源 | ScriptCore |
 |------|----------|------------|
-| Debug | 松散目录 `assets/`、`resources/`（POST_BUILD 拷贝到 exe 旁） | exe 同目录 |
-| Release | 二进制包 `HimiiEngine/engine.hpck`（由 `ResourcePacker` 构建） | `HimiiEngine/` 子目录 |
+| Debug Editor | 松散目录 `assets/`、`resources/`（POST_BUILD 拷贝到 exe 旁） | exe 同目录 |
+| Debug Runtime | 仅松散 `assets/shaders/`（字体/天空盒由游戏项目提供） | exe 同目录 |
+| Release Editor | **胖** `HimiiEngine/engine.hpck`（shaders + fonts + resources） | `HimiiEngine/` 子目录 |
+| Release Runtime / Templates | **瘦** `HimiiEngine/engine.hpck`（仅 shaders） | `HimiiEngine/` 子目录 |
 
 Release 分发目录结构（Godot 式顶层入口 + Export Templates）：
 
 ```text
 HimiiEngine.exe
 editor_layout.ini
-HimiiEngine/                    # 编辑器自身引擎数据
+shader_cache/                   # 运行期可写着色器缓存（可选出现）
+HimiiEngine/                    # 编辑器自身引擎数据（胖 engine.hpck）
   engine.hpck
   ScriptCore.dll
   ScriptCore.runtimeconfig.json
-ExportTemplates/Windows/        # Build Project 用的玩家壳模板
+ExportTemplates/Windows/        # Build Project 用的玩家壳模板（瘦 engine.hpck）
   HimiiRuntime.exe
   <原生依赖 DLL...>
   HimiiEngine/
@@ -117,6 +120,8 @@ ExportTemplates/Windows/        # Build Project 用的玩家壳模板
     ScriptCore.dll
     ScriptCore.runtimeconfig.json
 ```
+
+`ResourcePacker` 构建两份包：`engine.editor.hpck`（胖）与 `engine.runtime.hpck`（瘦），POST_BUILD / install 按目标落盘为同名 `engine.hpck`。
 
 `cmake --install` 会将 Release `HimiiRuntime` 安装到 `ExportTemplates/Windows/`（不再与编辑器 `HimiiEngine/` 混放）。HimiiEditor 的 **Release POST_BUILD** 也会把同套产物同步到 Editor 输出旁的 `ExportTemplates/Windows/`。
 

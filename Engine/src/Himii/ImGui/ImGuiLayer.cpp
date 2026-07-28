@@ -1,7 +1,9 @@
-﻿#include "ImGuiLayer.h"
+#include "ImGuiLayer.h"
 #include "GLFW/glfw3.h"
 #include "Himii/Core/Application.h"
 #include "Himii/Core/FileSystem.h"
+#include "Himii/Core/Log.h"
+#include "Himii/Project/Project.h"
 #include "imgui_internal.h"
 
 #include <filesystem>
@@ -44,6 +46,39 @@ namespace Himii
             std::error_code error_code;
             std::filesystem::remove(layout_ini_path, error_code);
         }
+
+        /// Editor: engine fat pack / Debug loose assets.
+        /// Player/Runtime: project publish layout exeDir/assets/fonts (slim engine.hpck has no fonts).
+        std::filesystem::path ResolveUserInterfaceFontFilePath()
+        {
+            const std::filesystem::path engineFontRelativePath =
+                    std::filesystem::path("assets") / Project::GetDefaultGameplayFontRelativePath();
+            const std::string engineFontRelativePathString = engineFontRelativePath.generic_string();
+
+            if (FileSystem::Exists(engineFontRelativePathString))
+            {
+                const std::filesystem::path materializedPath =
+                        FileSystem::MaterializeLooseFile(engineFontRelativePathString);
+                if (std::filesystem::exists(materializedPath))
+                    return materializedPath;
+            }
+
+            if (Project::GetActive())
+            {
+                const std::filesystem::path projectFontPath =
+                        Project::GetAssetFileSystemPath(Project::GetDefaultGameplayFontRelativePath());
+                if (std::filesystem::exists(projectFontPath))
+                    return projectFontPath;
+            }
+
+            const std::filesystem::path publishFontPath =
+                    Application::Get().GetExecutableDir() / "assets"
+                    / Project::GetDefaultGameplayFontRelativePath();
+            if (std::filesystem::exists(publishFontPath))
+                return publishFontPath;
+
+            return {};
+        }
     }
 
     ImGuiLayer::ImGuiLayer() : Layer("ImGuiLayer")
@@ -85,6 +120,11 @@ namespace Himii
         ImGui_ImplOpenGL3_Init("#version 410");
 
         LoadEditorFonts();
+
+        float x_scale = 1.0f;
+        float y_scale = 1.0f;
+        glfwGetWindowContentScale(window, &x_scale, &y_scale);
+        ImGui::GetStyle().ScaleAllSizes(x_scale);
     }
 
     void ImGuiLayer::EnableLayoutPersistence()
@@ -130,15 +170,25 @@ namespace Himii
         HIMII_CORE_INFO("Window Content Scale: {0}, {1}", x_scale, y_scale);
 
         io.Fonts->Clear();
-        const std::filesystem::path fontPath = FileSystem::MaterializeLooseFile("assets/fonts/msyh.ttc");
+        const std::filesystem::path fontPath = ResolveUserInterfaceFontFilePath();
         const float font_size = 15.0f * user_interface_scale;
-        io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), font_size);
-        io.FontDefault = io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), font_size, nullptr,
-                                                       io.Fonts->GetGlyphRangesChineseFull());
-        io.Fonts->Build();
 
-        ImGuiStyle &style = ImGui::GetStyle();
-        style.ScaleAllSizes(user_interface_scale);
+        if (!fontPath.empty() && std::filesystem::exists(fontPath))
+        {
+            io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), font_size);
+            io.FontDefault = io.Fonts->AddFontFromFileTTF(fontPath.string().c_str(), font_size, nullptr,
+                                                           io.Fonts->GetGlyphRangesChineseFull());
+            HIMII_CORE_INFO("ImGui fonts loaded from: {0}", fontPath.string());
+        }
+        else
+        {
+            io.FontDefault = io.Fonts->AddFontDefault();
+            HIMII_CORE_WARNING(
+                    "ImGui UI font not found in engine content or project assets/fonts/msyh.ttc; "
+                    "using ImGui default font.");
+        }
+
+        io.Fonts->Build();
 
         ImGui_ImplOpenGL3_DestroyDeviceObjects();
         ImGui_ImplOpenGL3_CreateDeviceObjects();

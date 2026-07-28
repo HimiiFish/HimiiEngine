@@ -86,6 +86,15 @@ namespace Himii
         /// 将 ScriptCore.dll / .pdb / .xml 与 Himii 脚本 API 源文件同步到项目目录，供 IDE 智能提示解析
         static void SyncScriptCoreToProjectDirectory(const std::filesystem::path &projectDir);
 
+        /// 缺省时从引擎内容拷贝默认字体（及 3D 天空盒）到项目 assets，并登记 AssetRegistry。
+        static void EnsureSeededDefaultAssets();
+
+        /// 玩法默认字体路径（相对 assets）：fonts/msyh.ttc
+        static std::filesystem::path GetDefaultGameplayFontRelativePath();
+
+        /// 从项目 assets 初始化玩法默认字体；缺文件则告警且不回退引擎包。
+        static void InitializeGameplayDefaultFont();
+
     private:
         ProjectConfig m_Config;
         std::filesystem::path m_ProjectDirectory;

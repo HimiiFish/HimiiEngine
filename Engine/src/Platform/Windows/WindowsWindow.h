@@ -21,6 +21,20 @@ namespace Himii
             return m_Data.Height;
         };
 
+        uint32_t GetFramebufferWidth() const override
+        {
+            return m_Data.FramebufferWidth;
+        };
+
+        uint32_t GetFramebufferHeight() const override
+        {
+            return m_Data.FramebufferHeight;
+        };
+
+        void MapWindowCursorToFramebufferPixels(float windowCursorX, float windowCursorY,
+                                                float &outFramebufferX,
+                                                float &outFramebufferY) const override;
+
         void SetEventCallback(const EventCallbackFn &callback) override
         {
             m_Data.EventCallback = callback;
@@ -54,6 +68,8 @@ namespace Himii
         struct WindowData {
             std::string Title;
             uint32_t Width, Height;
+            uint32_t FramebufferWidth = 0;
+            uint32_t FramebufferHeight = 0;
             bool VSync;
 
             EventCallbackFn EventCallback;

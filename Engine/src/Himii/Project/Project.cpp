@@ -1,6 +1,8 @@
 #include "Project.h"
 #include "Hepch.h"
 #include "Himii/Core/Application.h"
+#include "Himii/Core/FileSystem.h"
+#include "Himii/Renderer/Font.h"
 
 #include "ProjectSerializer.h"
 
@@ -132,6 +134,8 @@ namespace Himii
         std::filesystem::create_directories(projectDir / "assets" / "scenes");
         std::filesystem::create_directories(projectDir / "assets" / "scripts");
         std::filesystem::create_directories(projectDir / "assets" / "textures");
+        std::filesystem::create_directories(projectDir / "assets" / "fonts");
+        std::filesystem::create_directories(projectDir / "assets" / "skybox");
 
         SyncScriptCoreToProjectDirectory(projectDir);
 
@@ -231,6 +235,108 @@ namespace Himii
             slnFile << ss1.str();
             slnFile.close();
         }
+    }
+
+    std::filesystem::path Project::GetDefaultGameplayFontRelativePath()
+    {
+        return std::filesystem::path("fonts") / "msyh.ttc";
+    }
+
+    void Project::EnsureSeededDefaultAssets()
+    {
+        if (!s_ActiveProject || !s_ActiveProject->m_AssetManager)
+            return;
+
+        bool registryChanged = false;
+        Ref<AssetManager> assetManager = s_ActiveProject->m_AssetManager;
+
+        auto copyEngineContentIntoProjectIfMissing =
+                [&](const std::string &engineRelativePath, const std::filesystem::path &projectRelativePath) -> bool {
+            const std::filesystem::path destinationPath = GetAssetFileSystemPath(projectRelativePath);
+            bool didCopy = false;
+
+            if (!std::filesystem::exists(destinationPath))
+            {
+                const std::filesystem::path sourcePath = FileSystem::MaterializeLooseFile(engineRelativePath);
+                if (!std::filesystem::exists(sourcePath))
+                {
+                    HIMII_CORE_WARNING("Seed asset source missing: {0}", engineRelativePath);
+                    return false;
+                }
+
+                std::error_code createDirectoryError;
+                std::filesystem::create_directories(destinationPath.parent_path(), createDirectoryError);
+                std::error_code copyError;
+                std::filesystem::copy_file(sourcePath, destinationPath,
+                                           std::filesystem::copy_options::overwrite_existing, copyError);
+                if (copyError)
+                {
+                    HIMII_CORE_WARNING("Failed to seed project asset {0}: {1}", destinationPath.string(),
+                                       copyError.message());
+                    return false;
+                }
+                didCopy = true;
+            }
+
+            bool alreadyRegistered = false;
+            for (const auto &[handle, metadata] : assetManager->GetAssetRegistry())
+            {
+                if (metadata.FilePath.generic_string() == projectRelativePath.generic_string())
+                {
+                    alreadyRegistered = true;
+                    break;
+                }
+            }
+
+            if (!alreadyRegistered)
+            {
+                const AssetHandle importedHandle = assetManager->ImportAsset(projectRelativePath);
+                if (importedHandle == 0)
+                {
+                    HIMII_CORE_WARNING("Seeded file but failed to register asset: {0}",
+                                       projectRelativePath.string());
+                    return didCopy;
+                }
+                registryChanged = true;
+            }
+
+            return true;
+        };
+
+        copyEngineContentIntoProjectIfMissing("assets/fonts/msyh.ttc", GetDefaultGameplayFontRelativePath());
+
+        if (!GetConfig().Is2D)
+        {
+            static const char *skyboxFaceNames[] = {"right", "left", "top", "bottom", "front", "back"};
+            for (const char *faceName : skyboxFaceNames)
+            {
+                const std::string engineRelativePath =
+                        std::string("resources/skybox/") + faceName + ".bmp";
+                const std::filesystem::path projectRelativePath =
+                        std::filesystem::path("skybox") / (std::string(faceName) + ".bmp");
+                copyEngineContentIntoProjectIfMissing(engineRelativePath, projectRelativePath);
+            }
+        }
+
+        if (registryChanged)
+            assetManager->SerializeAssetRegistry();
+    }
+
+    void Project::InitializeGameplayDefaultFont()
+    {
+        if (!s_ActiveProject)
+            return;
+
+        const std::filesystem::path fontPath = GetAssetFileSystemPath(GetDefaultGameplayFontRelativePath());
+        if (!std::filesystem::exists(fontPath))
+        {
+            HIMII_CORE_ERROR(
+                    "Gameplay default font missing at {0}. Seed assets or place fonts/msyh.ttc under project assets.",
+                    fontPath.string());
+            return;
+        }
+
+        Font::InitDefault(fontPath);
     }
 
 } // namespace Himii

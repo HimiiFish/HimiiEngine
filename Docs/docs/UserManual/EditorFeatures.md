@@ -176,18 +176,20 @@ Himii 使用 **`.anim` 资产** 组织 2D 逐帧动画：一个文件绑定一�
 MyGame.exe
 <原生依赖 DLL...>
 HimiiEngine/
-  engine.hpck
+  engine.hpck               # 瘦包：仅运行时 shaders（不含编辑器 resources / 引擎字体）
   ScriptCore.dll
   ScriptCore.runtimeconfig.json
-assets/                 # 仅项目资源
-AssetRegistry.yaml      # AssetHandle 解析所需
+assets/                     # 项目资源全量（含默认 fonts/；3D 项目含 skybox/）
+AssetRegistry.yaml          # AssetHandle 解析所需
 GameAssembly.dll
-Game.hproj              # 发布配置：ScriptModulePath / AssetDirectory=assets；不含本机 IDE 字段
+Game.hproj                  # 发布配置：ScriptModulePath / AssetDirectory=assets；不含本机 IDE 字段
 ```
 
 5. 在输出目录运行生成的 exe（工作目录为该目录）即可加载 `Game.hproj` 与 StartScene。
 
-**前置条件**：发布版 Editor 需随附 `ExportTemplates/Windows/`（含 `HimiiRuntime.exe`、旁路 DLL、`HimiiEngine/engine.hpck` 与 ScriptCore）。源码开发机也可先构建 **Release** `HimiiRuntime` 作为回退。若缺失模板、脚本编译失败、StartScene 为绝对路径或不存在等，Build 会失败并给出原因。
+**引擎包分层**：编辑器安装目录下的 `HimiiEngine/engine.hpck` 为**胖包**（shaders + 编辑器字体 + icons/splash/天空盒等）；`ExportTemplates` / 玩家包中的同名文件为**瘦包**（仅 shaders）。玩法默认字体来自项目 `assets/fonts/`（新建或打开项目时自动种子拷贝）；不要把编辑器旁的 `shader_cache/` 当作发布内容。
+
+**前置条件**：发布版 Editor 需随附 `ExportTemplates/Windows/`（含 `HimiiRuntime.exe`、旁路 DLL、**瘦** `HimiiEngine/engine.hpck` 与 ScriptCore）。源码开发机也可先构建 **Release** `HimiiRuntime` 作为回退。若缺失模板、脚本编译失败、StartScene 为绝对路径或不存在等，Build 会失败并给出原因。
 
 > **【配图占位】** `images/build-project-menu.png` — **File → Build Project...** 菜单项
 

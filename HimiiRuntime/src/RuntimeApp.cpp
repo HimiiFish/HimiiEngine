@@ -35,6 +35,17 @@ namespace Himii
 
             HIMII_CORE_INFO("Loading Project: {0}", projectFile.string());
             Ref<Project> project = Project::Load(projectFile);
+            if (!project)
+            {
+                HIMII_CORE_ERROR("Failed to load project: {0}", projectFile.string());
+                return;
+            }
+
+            Project::EnsureSeededDefaultAssets();
+            Project::InitializeGameplayDefaultFont();
+
+            if (ImGuiLayer *imguiLayer = Application::Get().GetImGuiLayer())
+                imguiLayer->LoadEditorFonts();
 
             std::filesystem::path gameDllPath =
                     std::filesystem::absolute(Project::GetProjectDirectory() / Project::GetConfig().ScriptModulePath);
@@ -53,7 +64,8 @@ namespace Himii
                     m_ActiveScene->OnRuntimeStart();
 
                     auto &window = Application::Get().GetWindow();
-                    m_ActiveScene->OnViewportResize(window.GetWidth(), window.GetHeight());
+                    m_ActiveScene->OnViewportResize(
+                            window.GetFramebufferWidth(), window.GetFramebufferHeight());
                 }
             }
             else
@@ -68,16 +80,22 @@ namespace Himii
                 return;
 
             auto& window = Application::Get().GetWindow();
-            m_ActiveScene->OnViewportResize(window.GetWidth(), window.GetHeight());
+            const uint32_t framebufferWidth = window.GetFramebufferWidth();
+            const uint32_t framebufferHeight = window.GetFramebufferHeight();
+            m_ActiveScene->OnViewportResize(framebufferWidth, framebufferHeight);
 
             Scene::UserInterfacePointerFrameInput userInterfacePointerInput{};
             userInterfacePointerInput.Enabled = true;
             userInterfacePointerInput.HasPosition = true;
             const glm::vec2 mousePosition = Input::GetMousePosition();
-            // 窗口坐标 Y 向下；UI ortho Y 向上。
+            float framebufferCursorX = 0.0f;
+            float framebufferCursorY = 0.0f;
+            window.MapWindowCursorToFramebufferPixels(
+                    mousePosition.x, mousePosition.y, framebufferCursorX, framebufferCursorY);
+            // 窗口/帧缓冲光标 Y 向下；UI ortho Y 向上。
             userInterfacePointerInput.PositionInTargetPixels = {
-                    mousePosition.x,
-                    static_cast<float>(window.GetHeight()) - mousePosition.y};
+                    framebufferCursorX,
+                    static_cast<float>(framebufferHeight) - framebufferCursorY};
             const bool primaryButtonHeld = Input::IsMouseButtonPressed(Mouse::ButtonLeft);
             userInterfacePointerInput.PrimaryButtonHeld = primaryButtonHeld;
             userInterfacePointerInput.PrimaryButtonPressedThisFrame =

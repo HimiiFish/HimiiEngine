@@ -27,7 +27,7 @@ Himii-Engine/
 ├── HimiiEditor/      # 编辑器可执行程序（Layer：EditorLayer + 各 Panel）
 ├── HimiiRuntime/     # 无 UI 的运行时启动器
 ├── ScriptCore/       # C# 脚本宿主 API（Entity、Input、Log、InternalCalls）
-├── Tools/            # 构建期工具（ResourcePacker → engine.hpck）
+├── Tools/            # 构建期工具（ResourcePacker → 胖/瘦 engine.hpck）
 ├── cmake/            # Post-build 脚本（Editor / Runtime 输出目录 staging）
 ├── Docs/docs/        # 用户 / 开发者文档
 ├── HimiiEditor/assets/           # 编辑器附带资源（Debug 松散文件 / 打包输入）

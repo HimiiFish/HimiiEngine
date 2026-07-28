@@ -111,7 +111,7 @@
 ### 收束：发布管线
 | 状态 | 最小执行单元 (Minimum Execution Unit) | 预期内容 |
 | :--- | :--- | :--- |
-| [x] | **Build Pipeline** | 编辑器一键输出可运行目录树：统一配置、`engine.hpck`、资源校验、Runtime / 依赖 / `GameAssembly` / 项目资源；缺关键文件则 Build 失败并报错。不要求干净机器冒烟或自动拉起 Runtime |
+| [x] | **Build Pipeline** | 编辑器一键输出可运行目录树：统一配置、**瘦** `engine.hpck`、项目 `assets` 全量、资源校验、Runtime / 依赖 / `GameAssembly`；Editor 与 Templates 双 hpck 分层；缺关键文件则 Build 失败并报错。不要求干净机器冒烟或自动拉起 Runtime |
 
 ### Phase A 明确排除（本阶段不做、不算进度）
 | 类别 | 排除项 |

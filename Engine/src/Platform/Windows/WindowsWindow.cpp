@@ -150,20 +150,59 @@ namespace Himii
         if (props.CenterOnScreen)
             CenterOnScreen();
 
+        {
+            int windowWidth = 0;
+            int windowHeight = 0;
+            glfwGetWindowSize(m_Window, &windowWidth, &windowHeight);
+            m_Data.Width = static_cast<uint32_t>(windowWidth);
+            m_Data.Height = static_cast<uint32_t>(windowHeight);
+
+            int framebufferWidth = 0;
+            int framebufferHeight = 0;
+            glfwGetFramebufferSize(m_Window, &framebufferWidth, &framebufferHeight);
+            m_Data.FramebufferWidth = static_cast<uint32_t>(framebufferWidth);
+            m_Data.FramebufferHeight = static_cast<uint32_t>(framebufferHeight);
+        }
+
         glfwSetWindowUserPointer(m_Window, &m_Data);
 
         SetVSync(true);
 
-        // 设置窗口回调
+        // 逻辑客户区尺寸；渲染/UI 视口以帧缓冲回调为准。
         glfwSetWindowSizeCallback(m_Window,
                                   [](GLFWwindow *window, int width, int height)
                                   {
                                       WindowData &data = *(WindowData *)glfwGetWindowUserPointer(window);
-                                      data.Width = width;
-                                      data.Height = height;
-                                      WindowResizeEvent event(width, height);
-                                      data.EventCallback(event);
+                                      data.Width = static_cast<uint32_t>(width);
+                                      data.Height = static_cast<uint32_t>(height);
+
+                                      int framebufferWidth = 0;
+                                      int framebufferHeight = 0;
+                                      glfwGetFramebufferSize(window, &framebufferWidth, &framebufferHeight);
+                                      data.FramebufferWidth = static_cast<uint32_t>(framebufferWidth);
+                                      data.FramebufferHeight = static_cast<uint32_t>(framebufferHeight);
+
+                                      if (data.EventCallback)
+                                      {
+                                          WindowResizeEvent event(framebufferWidth, framebufferHeight);
+                                          data.EventCallback(event);
+                                      }
                                   });
+
+        glfwSetFramebufferSizeCallback(m_Window,
+                                       [](GLFWwindow *window, int width, int height)
+                                       {
+                                           WindowData &data =
+                                                   *(WindowData *)glfwGetWindowUserPointer(window);
+                                           data.FramebufferWidth = static_cast<uint32_t>(width);
+                                           data.FramebufferHeight = static_cast<uint32_t>(height);
+
+                                           if (data.EventCallback)
+                                           {
+                                               WindowResizeEvent event(width, height);
+                                               data.EventCallback(event);
+                                           }
+                                       });
 
         glfwSetWindowCloseCallback(m_Window,
                                    [](GLFWwindow *window)
@@ -276,6 +315,26 @@ namespace Himii
         m_Context->SwapBuffers();
         glfwPollEvents();
     }
+
+    void WindowsWindow::MapWindowCursorToFramebufferPixels(float windowCursorX, float windowCursorY,
+                                                           float &outFramebufferX,
+                                                           float &outFramebufferY) const
+    {
+        if (m_Data.Width == 0 || m_Data.Height == 0)
+        {
+            outFramebufferX = windowCursorX;
+            outFramebufferY = windowCursorY;
+            return;
+        }
+
+        const float scaleX =
+                static_cast<float>(m_Data.FramebufferWidth) / static_cast<float>(m_Data.Width);
+        const float scaleY =
+                static_cast<float>(m_Data.FramebufferHeight) / static_cast<float>(m_Data.Height);
+        outFramebufferX = windowCursorX * scaleX;
+        outFramebufferY = windowCursorY * scaleY;
+    }
+
     void WindowsWindow::SetVSync(bool enabled)
     {
         HIMII_PROFILE_FUNCTION();

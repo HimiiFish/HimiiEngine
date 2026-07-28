@@ -25,7 +25,7 @@ add_custom_command(TARGET HimiiRuntime POST_BUILD
     COMMAND ${CMAKE_COMMAND}
         -DTARGET_DIR=$<TARGET_FILE_DIR:HimiiRuntime>
         -DHIMII_EDITOR_DIR=${CMAKE_SOURCE_DIR}/HimiiEditor
-        -DENGINE_HPCK=${HIMII_ENGINE_HPCK}
+        -DENGINE_HPCK=${HIMII_RUNTIME_ENGINE_HPCK}
         -DSCRIPT_CORE_DIR=${CMAKE_SOURCE_DIR}/ScriptCore/bin/$<IF:$<CONFIG:Debug>,Debug,Release>/net8.0
         -DCONFIG=$<CONFIG>
         -P ${CMAKE_SOURCE_DIR}/cmake/RuntimePostBuild.cmake
@@ -39,7 +39,7 @@ install(TARGETS HimiiRuntime
     CONFIGURATIONS Release RelWithDebInfo MinSizeRel
 )
 
-install(FILES "${HIMII_ENGINE_HPCK}"
+install(FILES "${HIMII_RUNTIME_ENGINE_HPCK}"
     DESTINATION ExportTemplates/Windows/HimiiEngine
     CONFIGURATIONS Release RelWithDebInfo MinSizeRel
     RENAME engine.hpck
