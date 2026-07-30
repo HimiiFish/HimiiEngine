@@ -1,0 +1,3 @@
+# Exclude vendored third-party sources from GitHub language statistics.
+Engine/vender/** linguist-vendored
+vcpkg/** linguist-vendored
