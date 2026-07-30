@@ -207,12 +207,12 @@ namespace Himii
                                                  bool keepWorldPosition)
         : m_Scene(scene)
         , m_ChildIdentifier(child.GetUUID())
-        , m_ParentAfterIdentifier(newParent ? newParent.GetUUID() : 0)
+        , m_ParentAfterIdentifier(newParent ? newParent.GetUUID() : UUID(0))
         , m_KeepWorldPosition(keepWorldPosition)
     {
         m_IsUserInterface = child.HasComponent<RectTransformComponent>();
         Entity parentBefore = scene->GetParentEntity(child);
-        m_ParentBeforeIdentifier = parentBefore ? parentBefore.GetUUID() : 0;
+        m_ParentBeforeIdentifier = parentBefore ? parentBefore.GetUUID() : UUID(0);
 
         if (m_IsUserInterface)
             m_RectTransformBefore = child.GetComponent<RectTransformComponent>();

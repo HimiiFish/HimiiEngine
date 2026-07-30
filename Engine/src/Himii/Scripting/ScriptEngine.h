@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstring>
 #include <filesystem>
 #include <string>
 #include <map>
@@ -62,7 +63,7 @@ namespace Himii {
         void SetValue(T value)
         {
             static_assert(sizeof(T) <= 16, "Type too large!");
-            memcpy(m_Buffer, &value, sizeof(T));
+            std::memcpy(m_Buffer, &value, sizeof(T));
         }
     };
 

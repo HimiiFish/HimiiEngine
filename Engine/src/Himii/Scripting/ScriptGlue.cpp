@@ -308,7 +308,7 @@ namespace Himii {
             return 0;
 
         Entity parentEntity = scene->GetParentEntity(entity);
-        return parentEntity ? parentEntity.GetUUID() : 0;
+        return parentEntity ? (uint64_t)parentEntity.GetUUID() : 0;
     }
 
     static void Entity_SetParent(uint64_t childEntityID, uint64_t parentEntityID, uint8_t keepWorldPosition)

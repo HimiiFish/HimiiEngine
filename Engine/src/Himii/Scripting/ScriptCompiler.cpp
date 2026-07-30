@@ -29,6 +29,17 @@ namespace Himii
         std::mutex s_CallbackMutex;
         std::thread s_BuildThread;
 
+        void DisableDotnetBuildServerForChildProcesses()
+        {
+#ifdef _WIN32
+            _wputenv_s(L"DOTNET_CLI_USE_MSBUILD_SERVER", L"0");
+            _wputenv_s(L"MSBUILDDISABLENODEREUSE", L"1");
+#else
+            setenv("DOTNET_CLI_USE_MSBUILD_SERVER", "0", 1);
+            setenv("MSBUILDDISABLENODEREUSE", "1", 1);
+#endif
+        }
+
 #ifdef _WIN32
         HANDLE s_JobObject = nullptr;
         HANDLE s_ActiveProcessHandle = nullptr;
@@ -62,17 +73,6 @@ namespace Himii
                 return false;
 
             return AssignProcessToJobObject(jobObject, processHandle) != FALSE;
-        }
-
-        static void DisableDotnetBuildServerForChildProcesses()
-        {
-#ifdef _WIN32
-            _wputenv_s(L"DOTNET_CLI_USE_MSBUILD_SERVER", L"0");
-            _wputenv_s(L"MSBUILDDISABLENODEREUSE", L"1");
-#else
-            setenv("DOTNET_CLI_USE_MSBUILD_SERVER", "0", 1);
-            setenv("MSBUILDDISABLENODEREUSE", "1", 1);
-#endif
         }
 
         int RunDotnetBuildWindows(const std::filesystem::path& projectPath,
