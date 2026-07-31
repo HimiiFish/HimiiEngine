@@ -5,7 +5,7 @@
 #include "commands/EditorCommandHistory.h"
 #include "commands/EditorCommands.h"
 
-#include "Himii/Scene/Components.h"
+#include "World/Scene/Components.h"
 
 #include <cstdio>
 #include <glm/gtc/constants.hpp>
@@ -81,7 +81,7 @@ namespace Himii
                                 != transformAfterEdit.RotationRadians
                         || transformBeforeEdit.SizeDelta != transformAfterEdit.SizeDelta)
                     {
-                        drawContext.commandHistory->Execute(std::make_unique<ModifyRectTransformCommand>(
+                        drawContext.commandHistory->Execute(CreateScope<ModifyRectTransformCommand>(
                             drawContext.scene,
                             drawContext.entity.GetUUID(),
                             transformBeforeEdit,

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Himii/Scene/TileMapData.h"
+#include "Module/Tilemap/TileMapData.h"
 
 #include <glm/glm.hpp>
 

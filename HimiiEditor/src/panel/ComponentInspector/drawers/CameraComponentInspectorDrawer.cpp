@@ -3,8 +3,8 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/SceneCamera.h"
+#include "World/Scene/Components.h"
+#include "World/Scene/SceneCamera.h"
 
 #include <glm/gtc/constants.hpp>
 

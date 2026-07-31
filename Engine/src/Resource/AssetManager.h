@@ -1,0 +1,72 @@
+#pragma once
+
+#include "Resource/AssetMetadata.h"
+#include "Resource/Sprite.h"
+#include "EngineCore/Core/Core.h"
+
+#include <map>
+#include <unordered_map>
+
+namespace Himii
+{
+
+    using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
+
+    struct SpriteRegistryEntry
+    {
+        AssetHandle TextureHandle = 0;
+        uint32_t SpriteIndex = 0;
+    };
+
+    class AssetManager {
+    public:
+        AssetManager();
+        ~AssetManager() = default;
+
+        Ref<Asset> GetAsset(AssetHandle handle);
+
+        AssetHandle ImportAsset(const std::filesystem::path &filepath);
+
+        bool IsAssetHandleValid(AssetHandle handle) const;
+        bool IsAssetLoaded(AssetHandle handle) const;
+        bool IsSpriteHandle(AssetHandle handle) const;
+
+        const AssetRegistry &GetAssetRegistry() const
+        {
+            return m_AssetRegistry;
+        }
+
+        static AssetType GetAssetTypeFromExtension(const std::string &extension);
+
+        void SerializeAssetRegistry();
+        bool DeserializeAssetRegistry();
+
+        TextureImportData& GetOrCreateTextureImportData(AssetHandle textureHandle);
+        const TextureImportData* GetTextureImportData(AssetHandle textureHandle) const;
+
+        bool LoadTextureImportData(AssetHandle textureHandle);
+        bool SaveTextureImportData(AssetHandle textureHandle);
+
+        void EnsureDefaultTextureMeta(AssetHandle textureHandle);
+        void ApplyGridSliceToTexture(AssetHandle textureHandle);
+
+        const SpriteDefinition* GetSpriteDefinition(AssetHandle spriteHandle) const;
+        SpriteResolved ResolveSprite(AssetHandle spriteHandle);
+        SpriteResolved ResolveSpriteFromTexture(AssetHandle textureHandle, uint32_t spriteIndex = 0);
+
+        const std::vector<SpriteDefinition>& GetSpritesForTexture(AssetHandle textureHandle);
+        AssetHandle GetDefaultSpriteHandleForTexture(AssetHandle textureHandle);
+
+        AssetHandle GetTextureHandleForSprite(AssetHandle spriteAssetHandle) const;
+
+    private:
+        void RegisterSpritesFromImportData(const TextureImportData& importData);
+        void UnregisterSpritesForTexture(AssetHandle textureHandle);
+
+        AssetRegistry m_AssetRegistry;
+        std::unordered_map<AssetHandle, Ref<Asset>> m_LoadedAssets;
+
+        std::unordered_map<AssetHandle, TextureImportData> m_TextureImportData;
+        std::unordered_map<AssetHandle, SpriteRegistryEntry> m_SpriteRegistry;
+    };
+} // namespace Himii

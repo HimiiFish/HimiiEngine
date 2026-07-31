@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Himii/Asset/Asset.h"
-#include "Himii/Core/Core.h"
-#include "Himii/Renderer/Texture.h"
+#include "Resource/Asset.h"
+#include "EngineCore/Core/Core.h"
+#include "Module/Render/Texture.h"
 
 #include <glm/glm.hpp>
 #include <cstdint>

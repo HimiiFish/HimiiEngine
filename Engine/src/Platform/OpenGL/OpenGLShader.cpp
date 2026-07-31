@@ -1,7 +1,7 @@
 #include "Hepch.h"
 #include "Platform/OpenGL/OpenGLShader.h"
 
-#include "Himii/Core/FileSystem.h"
+#include "EngineCore/Core/FileSystem.h"
 #include "fstream"
 #include "filesystem"
 #include "glad/glad.h"
@@ -12,7 +12,7 @@
 #include "spirv_cross/spirv_cross.hpp"
 #include "spirv_cross/spirv_glsl.hpp"
 
-#include "Himii/Core/Timer.h"
+#include "EngineCore/Core/Timer.h"
 
 #include <sstream>
 #include <iomanip>

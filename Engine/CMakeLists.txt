@@ -34,20 +34,21 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 # 头文件为src目录下的所有.h文件
 file(GLOB_RECURSE HEADERS "src/*.h")
 
+# GLOB_RECURSE 会同时扫到各平台实现；按目标 OS 剔除对方源文件，避免交叉编译。
 if (WIN32)
-    list(APPEND SOURCES "src/Platform/Windows/WindowsPlatformUtils.cpp")
+    list(REMOVE_ITEM SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Linux/LinuxPlatformUtils.cpp")
 elseif (UNIX AND NOT APPLE)
-    list(REMOVE_ITEM SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows/WindowsPlatformUtils.cpp")
+    list(REMOVE_ITEM SOURCES
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/Platform/Windows/WindowsPlatformUtils.cpp")
     file(GLOB_RECURSE DIRECTX_SOURCES "src/Platform/DirectX/*.cpp")
     if (DIRECTX_SOURCES)
         list(REMOVE_ITEM SOURCES ${DIRECTX_SOURCES})
     endif()
-    # 添加跨平台的GLFW实现
+    # Linux 仍复用 Windows 目录下的 GLFW 窗口/输入实现（跨平台 GLFW 封装）
     list(APPEND SOURCES "src/Platform/Windows/WindowsInput.cpp")
     list(APPEND SOURCES "src/Platform/Windows/WindowsWindow.cpp")
     list(APPEND HEADERS "src/Platform/Windows/WindowsWindow.h")
-    # 确保Linux平台文件被包含
-    list(APPEND SOURCES "src/Platform/Linux/LinuxPlatformUtils.cpp")
 endif()
 
 set(IMGUI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/imgui")

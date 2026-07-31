@@ -1,8 +1,8 @@
 #include "Hepch.h"
 #include "ProjectSettingsPanel.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Utils/PlatformUtils.h"
-#include "Himii/Scripting/ScriptIDE.h"
+#include "Project/Project.h"
+#include "EngineCore/Utils/PlatformUtils.h"
+#include "Module/Script/ScriptIDE.h"
 
 #include <imgui.h>
 #include <cstring>

@@ -1,9 +1,10 @@
 #include "Hepch.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Project/Project.h"
+#include "Resource/AssetManager.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -582,7 +583,7 @@ namespace Himii
         if (!IsImageFileExtension(textureFilePath))
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return false;
 
@@ -608,7 +609,7 @@ namespace Himii
         if (!std::filesystem::exists(textureFilePath) || !IsImageFileExtension(textureFilePath))
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return false;
 
@@ -639,7 +640,7 @@ namespace Himii
         if (extension != ".anim")
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return false;
 
@@ -670,7 +671,7 @@ namespace Himii
         if (extension != ".wav" && extension != ".ogg" && extension != ".mp3")
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return false;
 
@@ -701,7 +702,7 @@ namespace Himii
         if (extension != ".particle")
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return false;
 

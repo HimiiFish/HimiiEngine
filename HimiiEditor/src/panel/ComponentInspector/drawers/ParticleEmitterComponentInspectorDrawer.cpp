@@ -3,11 +3,12 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/AssetSerializer.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/ParticleEmitterAsset.h"
+#include "Resource/AssetManager.h"
+#include "Resource/AssetSerializer.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "World/Scene/Components.h"
+#include "Module/Particle/ParticleEmitterAsset.h"
 
 #include <filesystem>
 #include <imgui.h>
@@ -19,7 +20,7 @@ namespace Himii
         if (emitterHandle == 0)
             return "None (drag .particle)";
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || !assetManager->IsAssetHandleValid(emitterHandle))
             return "Missing Asset";
 
@@ -42,7 +43,7 @@ namespace Himii
             drawContext, "ParticleEmitterComponent", "Particle Emitter", nullptr,
             [&]()
             {
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
                 const std::string emitterDisplayName =
                     ResolveParticleEmitterDisplayName(component.EmitterHandle);
 
@@ -80,7 +81,7 @@ namespace Himii
                                     path = directory
                                         / ("new_emitter_" + std::to_string(++nameIndex) + ".particle");
 
-                                auto emitterAsset = std::make_shared<ParticleEmitterAsset>();
+                                auto emitterAsset = CreateRef<ParticleEmitterAsset>();
                                 emitterAsset->Handle = AssetHandle();
                                 ParticleEmitterAssetSerializer::Serialize(path, emitterAsset);
                                 auto relativePath = std::filesystem::relative(path, assetDirectory);

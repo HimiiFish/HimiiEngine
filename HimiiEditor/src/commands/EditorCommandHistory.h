@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IEditorCommand.h"
-#include <memory>
+#include "EngineCore/Core/Core.h"
 #include <vector>
 
 namespace Himii
@@ -11,7 +11,7 @@ namespace Himii
     public:
         explicit EditorCommandHistory(size_t maximumDepth = 50);
 
-        void Execute(std::unique_ptr<IEditorCommand> command);
+        void Execute(Scope<IEditorCommand> command);
         bool Undo();
         bool Redo();
         void Clear();
@@ -21,7 +21,7 @@ namespace Himii
 
     private:
         size_t m_MaximumDepth;
-        std::vector<std::unique_ptr<IEditorCommand>> m_UndoStack;
-        std::vector<std::unique_ptr<IEditorCommand>> m_RedoStack;
+        std::vector<Scope<IEditorCommand>> m_UndoStack;
+        std::vector<Scope<IEditorCommand>> m_RedoStack;
     };
 }

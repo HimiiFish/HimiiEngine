@@ -12,10 +12,11 @@
 #include "panel/TextureInspectorPanel.h"
 #include "panel/FontDiagnosticsPanel.h"
 
-#include "Himii/Core/FileWatcher.h"
-#include "Himii/Scene/TileMapCoordinateUtility.h"
-#include "Himii/Renderer/EditorCamera.h"
+#include "EngineCore/Core/FileWatcher.h"
+#include "Module/Tilemap/TileMapCoordinateUtility.h"
+#include "Module/Render/EditorCamera.h"
 #include "commands/EditorCommandHistory.h"
+#include "World/World.h"
 
 namespace Himii
 {
@@ -119,6 +120,7 @@ namespace Himii
         static constexpr uint32_t SplashStatusOverlayHeightPixels = 56;
 
     private:
+        Ref<World> m_World;
         Ref<Scene> m_ActiveScene;
         Ref<Scene> m_EditorScene;
 

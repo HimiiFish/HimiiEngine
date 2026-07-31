@@ -4,10 +4,10 @@
 #include <functional>
 #include <string>
 
-#include "Himii/Core/UUID.h"
-#include "Himii/Scene/Entity.h"
-#include "Himii/Scene/Scene.h"
-#include "Himii/Renderer/Texture.h"
+#include "EngineCore/Core/UUID.h"
+#include "World/Scene/Entity.h"
+#include "World/Scene/Scene.h"
+#include "Module/Render/Texture.h"
 
 namespace Himii
 {

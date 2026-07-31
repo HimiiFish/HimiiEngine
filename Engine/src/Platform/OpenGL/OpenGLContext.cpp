@@ -1,5 +1,5 @@
 #include"Hepch.h"
-#include "Himii/Core/Log.h"
+#include "EngineCore/Core/Log.h"
 #include "OpenGLContext.h"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"

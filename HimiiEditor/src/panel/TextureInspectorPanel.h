@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Himii/Core/Core.h"
-#include "Himii/Asset/Asset.h"
-#include "Himii/Asset/Sprite.h"
-#include "Himii/Renderer/Texture.h"
+#include "EngineCore/Core/Core.h"
+#include "Resource/Asset.h"
+#include "Resource/Sprite.h"
+#include "Module/Render/Texture.h"
 
 #include <glm/glm.hpp>
 

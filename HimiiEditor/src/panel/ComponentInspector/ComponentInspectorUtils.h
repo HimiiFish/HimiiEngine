@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Himii/Asset/Asset.h"
-#include "Himii/Renderer/Texture.h"
+#include "Resource/Asset.h"
+#include "Module/Render/Texture.h"
 
 namespace Himii
 {

@@ -1,13 +1,14 @@
 #include "AnimationEditorPanel.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetSerializer.h"
-#include "Himii/Asset/Sprite.h"
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Core/Log.h"
-#include "Himii/Scene/SpriteAnimationUtility.h"
-#include "Himii/Utils/PlatformUtils.h"
+#include "Resource/AssetSerializer.h"
+#include "Resource/Sprite.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "EngineCore/Core/Log.h"
+#include "Module/Animation/SpriteAnimationUtility.h"
+#include "EngineCore/Utils/PlatformUtils.h"
 
 #include <imgui.h>
 #include <algorithm>
@@ -419,7 +420,7 @@ namespace Himii
                 "Atlas Picker",
                 "左键格子：追加到时间轴，或替换当前选中帧（见左侧选项）。格子高亮表示已用于播放序列。");
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || !m_CurrentAnimation)
             return;
 
@@ -716,7 +717,7 @@ namespace Himii
 
     void AnimationEditorPanel::CreateNewAnimation()
     {
-        m_CurrentAnimation = std::make_shared<SpriteAnimation>();
+        m_CurrentAnimation = CreateRef<SpriteAnimation>();
         m_CurrentAnimation->EnsureClip(SpriteAnimationDefaultClipName);
         m_CurrentAnimationName = SpriteAnimationDefaultClipName;
         m_CurrentFilePath.clear();
@@ -786,7 +787,7 @@ namespace Himii
         if (!Project::GetActive())
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -833,7 +834,7 @@ namespace Himii
         if (!m_CurrentAnimation || m_CurrentAnimation->GetAtlasTextureHandle() == 0)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -856,7 +857,7 @@ namespace Himii
     void AnimationEditorPanel::ImportTextureAsAtlas(const std::filesystem::path& assetPath,
                                                     bool fillAllGridCells)
     {
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || !m_CurrentAnimation)
             return;
 
@@ -926,7 +927,7 @@ namespace Himii
         if (!m_CurrentAnimation)
             return preview;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return preview;
 
@@ -1045,7 +1046,7 @@ namespace Himii
         if (handle == 0)
             return nullptr;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return nullptr;
 

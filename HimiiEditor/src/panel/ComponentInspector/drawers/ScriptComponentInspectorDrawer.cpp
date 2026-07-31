@@ -3,10 +3,10 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scripting/ScriptEngine.h"
-#include "Himii/Scripting/ScriptIDELauncher.h"
+#include "Project/Project.h"
+#include "World/Scene/Components.h"
+#include "Module/Script/ScriptEngine.h"
+#include "Module/Script/ScriptIDELauncher.h"
 
 #include <filesystem>
 

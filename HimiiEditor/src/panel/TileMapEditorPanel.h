@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Himii/Core/Core.h"
-#include "Himii/Asset/Asset.h"
-#include "Himii/Scene/TileSet.h"
-#include "Himii/Scene/TileMapData.h"
-#include "Himii/Scene/TileMapCoordinateUtility.h"
+#include "EngineCore/Core/Core.h"
+#include "Resource/Asset.h"
+#include "Module/Tilemap/TileSet.h"
+#include "Module/Tilemap/TileMapData.h"
+#include "Module/Tilemap/TileMapCoordinateUtility.h"
 
 #include <glm/glm.hpp>
 

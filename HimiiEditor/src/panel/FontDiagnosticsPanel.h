@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Himii/Renderer/Font.h"
+#include "Module/Render/Font.h"
 #include <string>
 
 namespace Himii

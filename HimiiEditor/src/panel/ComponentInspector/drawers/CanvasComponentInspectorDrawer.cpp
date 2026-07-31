@@ -3,7 +3,7 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Scene/Components.h"
+#include "World/Scene/Components.h"
 
 #include <glm/glm.hpp>
 

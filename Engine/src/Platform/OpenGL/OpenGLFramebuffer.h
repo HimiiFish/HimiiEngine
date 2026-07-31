@@ -1,6 +1,6 @@
 #pragma once
-#include "Himii/Renderer/Framebuffer.h"
-#include "Himii/Core/Log.h"
+#include "Module/Render/Framebuffer.h"
+#include "EngineCore/Core/Log.h"
 #include "glad/glad.h"
 
 namespace Himii

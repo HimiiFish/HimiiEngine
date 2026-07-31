@@ -7,7 +7,7 @@ namespace Himii
     {
     }
 
-    void EditorCommandHistory::Execute(std::unique_ptr<IEditorCommand> command)
+    void EditorCommandHistory::Execute(Scope<IEditorCommand> command)
     {
         if (!command)
             return;

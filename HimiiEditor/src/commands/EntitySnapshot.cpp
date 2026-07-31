@@ -1,5 +1,5 @@
 #include "EntitySnapshot.h"
-#include "Himii/Scene/SceneSerializer.h"
+#include "World/Scene/SceneSerializer.h"
 #include <functional>
 #include <yaml-cpp/yaml.h>
 

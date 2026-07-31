@@ -1,10 +1,10 @@
 #include "ProjectBuildPipeline.h"
 
-#include "Himii/Core/Application.h"
-#include "Himii/Core/Log.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Project/ProjectSerializer.h"
-#include "Himii/Scripting/ScriptCompiler.h"
+#include "EngineCore/Core/Application.h"
+#include "EngineCore/Core/Log.h"
+#include "Project/Project.h"
+#include "Project/ProjectSerializer.h"
+#include "Module/Script/ScriptCompiler.h"
 
 #include <cctype>
 #include <vector>

@@ -3,9 +3,9 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/Physics2DLayerSettings.h"
+#include "Project/Project.h"
+#include "World/Scene/Components.h"
+#include "Project/Physics2DLayerSettings.h"
 
 #include <algorithm>
 

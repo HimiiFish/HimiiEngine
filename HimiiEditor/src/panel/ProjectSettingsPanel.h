@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Himii/Scripting/ScriptIDE.h"
-#include "Himii/Scene/Physics2DLayerSettings.h"
-#include "Himii/Scene/SortingLayerSettings.h"
+#include "Module/Script/ScriptIDE.h"
+#include "Project/Physics2DLayerSettings.h"
+#include "Project/SortingLayerSettings.h"
 
 namespace Himii
 {

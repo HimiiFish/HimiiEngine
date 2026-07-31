@@ -1,5 +1,5 @@
 #pragma once
-#include "Himii/Renderer/VertexArray.h"
+#include "Module/Render/VertexArray.h"
 
 namespace Himii
 {

@@ -1,8 +1,8 @@
 #include "Hepch.h"
 #include "ScriptConsolePanel.h"
-#include "Himii/Scripting/ScriptCompiler.h"
-#include "Himii/Scripting/ScriptIDELauncher.h"
-#include "Himii/Project/Project.h"
+#include "Module/Script/ScriptCompiler.h"
+#include "Module/Script/ScriptIDELauncher.h"
+#include "Project/Project.h"
 
 #include <imgui.h>
 #include <sstream>

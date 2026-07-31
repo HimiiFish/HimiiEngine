@@ -3,12 +3,13 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/TileMapData.h"
-#include "Himii/Scene/TileSet.h"
-#include "Himii/Scene/TilemapColliderBuilder.h"
+#include "Resource/AssetManager.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "World/Scene/Components.h"
+#include "Module/Tilemap/TileMapData.h"
+#include "Module/Tilemap/TileSet.h"
+#include "Module/Tilemap/TilemapColliderBuilder.h"
 
 #include <imgui.h>
 
@@ -35,7 +36,7 @@ namespace Himii
                 if (tilemapComponent.TileMapHandle == 0 || !drawContext.scene || !Project::GetActive())
                     return;
 
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
                 if (!assetManager)
                     return;
 

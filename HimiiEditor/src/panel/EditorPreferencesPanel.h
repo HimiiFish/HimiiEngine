@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Himii/Scripting/ScriptIDE.h"
+#include "Module/Script/ScriptIDE.h"
 
 namespace Himii
 {

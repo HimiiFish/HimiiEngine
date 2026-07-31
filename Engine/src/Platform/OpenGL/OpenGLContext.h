@@ -1,5 +1,5 @@
 #pragma once
-#include "Himii/Renderer/GraphicsContext.h"
+#include "Module/Render/GraphicsContext.h"
 
 struct GLFWwindow;
 

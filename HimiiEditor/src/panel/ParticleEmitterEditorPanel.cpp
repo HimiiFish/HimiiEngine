@@ -6,14 +6,15 @@
 #include <algorithm>
 #include <cfloat>
 #include <filesystem>
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/AssetSerializer.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Renderer/Renderer2D.h"
-#include "Himii/Renderer/RenderCommand.h"
-#include "Himii/Renderer/Texture.h"
-#include "Himii/Core/Log.h"
-#include "Himii/Particle/ParticleSystem.h"
+#include "Resource/AssetManager.h"
+#include "Resource/AssetSerializer.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "Module/Render/Renderer2D.h"
+#include "Module/Render/RenderCommand.h"
+#include "Module/Render/Texture.h"
+#include "EngineCore/Core/Log.h"
+#include "Module/Particle/ParticleSystem.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -39,7 +40,7 @@ namespace Himii
     {
         if (!Project::GetActive() || m_EmitterHandle == 0)
             return;
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
         Ref<Asset> ref = assetManager->GetAsset(m_EmitterHandle);
@@ -88,14 +89,14 @@ namespace Himii
         RenderCommand::SetClearColor({ 0.12f, 0.12f, 0.15f, 1.0f });
         RenderCommand::Clear();
 
-        Ref<Texture2D> previewTex;
+        Ref<Texture2D> previewTexture;
         if (m_Asset && m_Asset->TemplateProps.textureHandle != 0)
         {
-            auto am = Project::GetAssetManager();
-            if (am && am->IsAssetHandleValid(static_cast<AssetHandle>(m_Asset->TemplateProps.textureHandle)))
+            auto assetManager = ResourceSystem::GetAssetManager();
+            if (assetManager && assetManager->IsAssetHandleValid(static_cast<AssetHandle>(m_Asset->TemplateProps.textureHandle)))
             {
-                Ref<Asset> a = am->GetAsset(static_cast<AssetHandle>(m_Asset->TemplateProps.textureHandle));
-                previewTex = std::dynamic_pointer_cast<Texture2D>(a);
+                Ref<Asset> textureAsset = assetManager->GetAsset(static_cast<AssetHandle>(m_Asset->TemplateProps.textureHandle));
+                previewTexture = std::dynamic_pointer_cast<Texture2D>(textureAsset);
             }
         }
 
@@ -113,8 +114,8 @@ namespace Himii
                 Renderer2D::DrawCircle(transform, color, 1.0f, 0.0025f);
             else
             {
-                if (previewTex)
-                    Renderer2D::DrawQuad(transform, previewTex, 1.0f, color);
+                if (previewTexture)
+                    Renderer2D::DrawQuad(transform, previewTexture, 1.0f, color);
                 else
                     Renderer2D::DrawQuad(transform, color);
             }
@@ -138,7 +139,7 @@ namespace Himii
             return;
 
         ParticleProps& particleProperties = m_Asset->TemplateProps;
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
 
         std::string emitterAssetDisplayName = "Unknown";
         if (assetManager)
@@ -225,7 +226,7 @@ namespace Himii
     {
         if (!m_Asset || m_EmitterHandle == 0 || !Project::GetActive())
             return;
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
         const auto& registry = assetManager->GetAssetRegistry();

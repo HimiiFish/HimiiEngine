@@ -36,9 +36,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "Himii/Core/Core.h"
-#include "Himii/Core/Log.h"
+#include "EngineCore/Core/Core.h"
+#include "EngineCore/Core/Log.h"
 
-#include "Himii/Instrument/Instrumentor.h"
+#include "EngineCore/Instrument/Instrumentor.h"
 
 

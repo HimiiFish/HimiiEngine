@@ -1,11 +1,12 @@
 #include "Hepch.h"
 #include "ContentBrowserPanel.h"
 #include "EditorExternalFileDrop.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Utils/PlatformUtils.h"
-#include "Himii/Core/Log.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "Resource/AssetManager.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "EngineCore/Utils/PlatformUtils.h"
+#include "EngineCore/Core/Log.h"
 
 #include <fstream>
 #include <algorithm>
@@ -41,7 +42,7 @@ namespace Himii
         if (cacheIterator != m_ImageThumbnailCache.end())
             return cacheIterator->second;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return nullptr;
 
@@ -433,7 +434,7 @@ namespace Himii
                         }
                         else if (IsImageFileExtension(path))
                         {
-                            if (auto assetManager = Project::GetAssetManager())
+                            if (auto assetManager = ResourceSystem::GetAssetManager())
                             {
                                 const AssetHandle textureHandle = assetManager->ImportAsset(relativePath);
                                 if (textureHandle != 0)
@@ -585,7 +586,7 @@ namespace Himii
             return;
         }
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -621,7 +622,7 @@ namespace Himii
             }
         }
 
-        if (auto assetManager = Project::GetAssetManager())
+        if (auto assetManager = ResourceSystem::GetAssetManager())
             assetManager->SerializeAssetRegistry();
     }
 

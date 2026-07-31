@@ -1,6 +1,9 @@
 #include "Hepch.h"
-#include "Himii/Utils/PlatformUtils.h"
-#include "Himii/Core/Application.h"
+#include "EngineCore/Utils/PlatformUtils.h"
+#include "EngineCore/Core/Application.h"
+
+#include <unistd.h>
+#include <cstdlib>
 
 #include <nfd.h>
 
@@ -152,4 +155,24 @@ namespace Himii {
 
 		return folderPath;
 	}
+
+    std::filesystem::path PlatformProcess::GetExecutableDirectory()
+    {
+        char buffer[1024];
+        ssize_t count = readlink("/proc/self/exe", buffer, sizeof(buffer));
+        if (count != -1)
+            return std::filesystem::path(std::string(buffer, static_cast<size_t>(count))).parent_path();
+        return std::filesystem::current_path();
+    }
+
+    void PlatformProcess::SetDynamicLibrarySearchDirectory(const std::filesystem::path &directory)
+    {
+        (void)directory;
+        // Linux 主要通过 rpath / LD_LIBRARY_PATH；此处保留空实现以统一 API。
+    }
+
+    bool PlatformProcess::SetEnvironmentVariableValue(const std::string &name, const std::string &value)
+    {
+        return setenv(name.c_str(), value.c_str(), 1) == 0;
+    }
 }

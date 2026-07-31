@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine.h"
-#include "Himii/Renderer/Texture.h"
+#include "Module/Render/Texture.h"
 
 #include <filesystem>
 #include <unordered_map>

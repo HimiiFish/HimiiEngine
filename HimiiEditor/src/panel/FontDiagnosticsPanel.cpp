@@ -1,6 +1,6 @@
 #include "FontDiagnosticsPanel.h"
 #include "imgui.h"
-#include "Himii/Core/JobSystem.h"
+#include "EngineCore/Core/JobSystem.h"
 #include <algorithm>
 
 namespace Himii

@@ -1,6 +1,6 @@
 #include "EditorLayoutDefaults.h"
 
-#include "Himii/Core/Application.h"
+#include "EngineCore/Core/Application.h"
 #include "imgui_internal.h"
 
 #include <filesystem>

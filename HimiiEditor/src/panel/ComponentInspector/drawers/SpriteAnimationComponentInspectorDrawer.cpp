@@ -3,11 +3,12 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/SpriteAnimation.h"
-#include "Himii/Scene/SpriteAnimationUtility.h"
+#include "Resource/AssetManager.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "World/Scene/Components.h"
+#include "Module/Animation/SpriteAnimation.h"
+#include "Module/Animation/SpriteAnimationUtility.h"
 
 #include <imgui.h>
 
@@ -30,7 +31,7 @@ namespace Himii
                     ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
                                        "需要 Sprite Renderer 组件才能显示动画。");
 
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
 
                 std::string animationDisplayName = "None";
                 if (component.AnimationHandle != 0 && assetManager

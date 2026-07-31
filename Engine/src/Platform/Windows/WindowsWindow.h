@@ -1,7 +1,7 @@
 #pragma once
 #include "GLFW/glfw3.h"
-#include "Himii/Core/Window.h"
-#include "Himii/Renderer/GraphicsContext.h"
+#include "EngineCore/Core/Window.h"
+#include "Module/Render/GraphicsContext.h"
 
 namespace Himii
 {
@@ -34,6 +34,8 @@ namespace Himii
         void MapWindowCursorToFramebufferPixels(float windowCursorX, float windowCursorY,
                                                 float &outFramebufferX,
                                                 float &outFramebufferY) const override;
+
+        void GetContentScale(float &scaleX, float &scaleY) const override;
 
         void SetEventCallback(const EventCallbackFn &callback) override
         {

@@ -3,8 +3,8 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Renderer/Font.h"
-#include "Himii/Scene/Components.h"
+#include "Module/Render/Font.h"
+#include "World/Scene/Components.h"
 
 #include <imgui.h>
 

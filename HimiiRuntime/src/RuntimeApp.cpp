@@ -1,8 +1,9 @@
 #include "Engine.h"
-#include "Himii/Core/EntryPoint.h"
-#include "Himii/Core/Input.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scripting/ScriptEngine.h"
+#include "EngineCore/Core/EntryPoint.h"
+#include "EngineCore/Core/Input.h"
+#include "Project/Project.h"
+#include "Module/Script/ScriptEngine.h"
+#include "World/World.h"
 
 namespace Himii
 {
@@ -53,6 +54,9 @@ namespace Himii
 
             std::filesystem::path startScenePath = Project::GetAssetDirectory() / Project::GetConfig().StartScene;
 
+            m_World = CreateRef<World>();
+            Application::Get().SetCurrentWorld(m_World);
+
             if (std::filesystem::exists(startScenePath))
             {
                 HIMII_CORE_INFO("Loading Start Scene: {0}", startScenePath.string());
@@ -61,7 +65,8 @@ namespace Himii
                 if (serializer.Deserialize(startScenePath.string()))
                 {
                     m_ActiveScene = newScene;
-                    m_ActiveScene->OnRuntimeStart();
+                    m_World->SetActiveScene(m_ActiveScene);
+                    m_World->OnRuntimeStart();
 
                     auto &window = Application::Get().GetWindow();
                     m_ActiveScene->OnViewportResize(
@@ -76,7 +81,7 @@ namespace Himii
 
         void OnUpdate(Timestep ts) override
         {
-            if (!m_ActiveScene)
+            if (!m_ActiveScene || !m_World)
                 return;
 
             auto& window = Application::Get().GetWindow();
@@ -107,10 +112,11 @@ namespace Himii
 
             RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
             RenderCommand::Clear();
-            m_ActiveScene->OnUpdateRuntime(ts);
+            m_World->OnUpdateRuntime(ts);
         }
 
         private:
+        Ref<World> m_World;
         Ref<Scene> m_ActiveScene;
         bool m_PrimaryButtonWasHeld = false;
     };

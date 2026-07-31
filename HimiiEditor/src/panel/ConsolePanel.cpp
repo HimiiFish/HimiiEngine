@@ -1,6 +1,6 @@
 #include "Hepch.h"
 #include "ConsolePanel.h"
-#include "Himii/Core/ConsoleLog.h"
+#include "EngineCore/Core/ConsoleLog.h"
 
 #include <imgui.h>
 

@@ -3,11 +3,12 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Audio/AudioEngine.h"
-#include "Himii/Audio/SoundPlayerUtility.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
+#include "Resource/AssetManager.h"
+#include "Module/Audio/AudioEngine.h"
+#include "Module/Audio/SoundPlayerUtility.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "World/Scene/Components.h"
 
 #include <filesystem>
 #include <imgui.h>
@@ -19,7 +20,7 @@ namespace Himii
         if (assetHandle == 0)
             return emptyLabel;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || !assetManager->IsAssetHandleValid(assetHandle))
             return "Missing Asset";
 

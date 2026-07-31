@@ -9,6 +9,10 @@
 
 - **严禁缩写命名**：变量、函数、类、常量等须使用完整英文单词（例如用 `index` 而非 `idx`；不要用随意缩写的 `config` / `msg` / `ctx` 等）。
 - 命名风格遵循各语言惯例与项目既有风格，但「不缩写」优先。
+- **智能指针统一走 `EngineCore/Core/Core.h`**：
+  - 使用 `Scope<T>` / `Ref<T>`，禁止在业务代码中直接写 `std::unique_ptr` / `std::shared_ptr` 作为对外类型别名用法。
+  - 创建对象使用 `CreateScope<T>(...)` / `CreateRef<T>(...)`，禁止 `std::make_unique` / `std::make_shared`。
+  - 仅允许在 `Core.h` 内部实现里调用 `std::make_unique` / `std::make_shared`；第三方库边界若必须接 `std::shared_ptr` API，应尽量经 `CreateRef` / `Ref`  wrapping 后再交给第三方。
 
 ---
 

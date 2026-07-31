@@ -1,6 +1,6 @@
 #include "EditorLayer.h"
 #include "Engine.h"
-#include "Himii/Core/EntryPoint.h"
+#include "EngineCore/Core/EntryPoint.h"
 
 namespace Himii
 {

@@ -2,7 +2,7 @@
 #include "panel/ComponentInspector/ComponentInspectorHeader.h"
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 
-#include "Himii/Scene/Components.h"
+#include "World/Scene/Components.h"
 #include "InspectorControls.h"
 #include "commands/EditorCommandHistory.h"
 #include "commands/EditorCommands.h"
@@ -62,7 +62,7 @@ namespace Himii
                         || transformBeforeEdit.Rotation != transformAfterEdit.Rotation
                         || transformBeforeEdit.Scale != transformAfterEdit.Scale)
                     {
-                        drawContext.commandHistory->Execute(std::make_unique<ModifyTransformCommand>(
+                        drawContext.commandHistory->Execute(CreateScope<ModifyTransformCommand>(
                             drawContext.scene,
                             drawContext.entity.GetUUID(),
                             transformBeforeEdit,
@@ -89,7 +89,7 @@ namespace Himii
                         || transformBeforeEdit.Rotation != transformAfterEdit.Rotation
                         || transformBeforeEdit.Scale != transformAfterEdit.Scale)
                     {
-                        drawContext.commandHistory->Execute(std::make_unique<ModifyTransformCommand>(
+                        drawContext.commandHistory->Execute(CreateScope<ModifyTransformCommand>(
                             drawContext.scene,
                             drawContext.entity.GetUUID(),
                             transformBeforeEdit,

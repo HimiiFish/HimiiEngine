@@ -1,10 +1,11 @@
 #include "TextureInspectorPanel.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/Sprite.h"
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Project/Project.h"
+#include "Resource/AssetManager.h"
+#include "Resource/Sprite.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
 
 #include <imgui.h>
 #include <algorithm>
@@ -31,7 +32,7 @@ namespace Himii
         if (m_TextureHandle == 0 || !Project::GetActive())
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -72,7 +73,7 @@ namespace Himii
         if (m_TextureHandle == 0 || !Project::GetActive())
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -91,7 +92,7 @@ namespace Himii
         if (!UsesSliceWorkflow() || !Project::GetActive())
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -108,7 +109,7 @@ namespace Himii
         if (m_TextureHandle == 0 || !Project::GetActive())
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return false;
 
@@ -118,7 +119,7 @@ namespace Himii
 
     void TextureInspectorPanel::AddNewSprite()
     {
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || !m_PreviewTexture)
             return;
 
@@ -139,7 +140,7 @@ namespace Himii
 
     void TextureInspectorPanel::DeleteSelectedSprite()
     {
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -170,7 +171,7 @@ namespace Himii
         if (!UsesSliceWorkflow() || !Project::GetActive())
             return -1;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return -1;
 
@@ -286,7 +287,7 @@ namespace Himii
         {
             if (ImGui::Button("Apply Grid Slice", ImVec2(-1.0f, 0.0f)))
             {
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
                 if (assetManager)
                 {
                     SyncUIToImportData();
@@ -297,7 +298,7 @@ namespace Himii
             }
         });
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -391,7 +392,7 @@ namespace Himii
             return;
         }
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 

@@ -1,8 +1,8 @@
 #include "Hepch.h"
 #include "EditorPreferencesPanel.h"
-#include "Himii/Editor/EditorSettings.h"
-#include "Himii/Utils/PlatformUtils.h"
-#include "Himii/Scripting/ScriptIDE.h"
+#include "EngineCore/Editor/EditorSettings.h"
+#include "EngineCore/Utils/PlatformUtils.h"
+#include "Module/Script/ScriptIDE.h"
 
 #include <imgui.h>
 #include <cstring>

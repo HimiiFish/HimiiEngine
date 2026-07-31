@@ -3,11 +3,12 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/Sprite.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/SortingLayerSettings.h"
+#include "Resource/AssetManager.h"
+#include "Resource/Sprite.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "World/Scene/Components.h"
+#include "Project/SortingLayerSettings.h"
 
 #include <algorithm>
 #include <filesystem>
@@ -29,7 +30,7 @@ namespace Himii
             {
                 DrawColorControl("Color", component.Color);
 
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
 
                 Ref<Texture2D> previewTexture;
                 std::string displayNameStorage = "None";

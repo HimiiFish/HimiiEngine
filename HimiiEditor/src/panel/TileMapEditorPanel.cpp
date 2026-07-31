@@ -3,12 +3,13 @@
 #include "TilemapEditorUtility.h"
 
 #include "imgui.h"
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/AssetSerializer.h"
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Scene/TileMapCoordinateUtility.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Core/Log.h"
+#include "Resource/AssetManager.h"
+#include "Resource/AssetSerializer.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "Module/Tilemap/TileMapCoordinateUtility.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "EngineCore/Core/Log.h"
 
 #include <glm/glm.hpp>
 
@@ -74,7 +75,7 @@ namespace Himii
         if (!Project::GetActive() || m_TileMapHandle == 0)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -196,7 +197,7 @@ namespace Himii
                 "在右侧图集点选图块，再在 Scene 中绘制。Ctrl+S 保存 TileMap 与 TileSet。");
 
         std::string tileMapFileName = "Unknown";
-        if (auto assetManager = Project::GetAssetManager())
+        if (auto assetManager = ResourceSystem::GetAssetManager())
         {
             const auto& registry = assetManager->GetAssetRegistry();
             const auto iterator = registry.find(m_TileMapHandle);
@@ -345,7 +346,7 @@ namespace Himii
             return;
         }
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -412,7 +413,7 @@ namespace Himii
         if (!selectedTileDefinition || !m_TileSet)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || m_AtlasTextureHandle == 0)
             return;
 
@@ -443,7 +444,7 @@ namespace Himii
         if (!m_TileSet)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -589,7 +590,7 @@ namespace Himii
         if (!m_TileSet || m_AtlasTextureHandle == 0)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -715,7 +716,7 @@ namespace Himii
         if (!m_MapData || m_TileMapHandle == 0 || !Project::GetActive())
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -738,7 +739,7 @@ namespace Himii
         if (tileSetHandle == 0)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 

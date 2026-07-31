@@ -1,13 +1,13 @@
 #include "WindowsWindow.h"
 #include "Hepch.h"
-#include "Himii/Core/Input.h"
-#include "Himii/Core/FileSystem.h"
-#include "Himii/Core/Log.h"
+#include "EngineCore/Core/Input.h"
+#include "EngineCore/Core/FileSystem.h"
+#include "EngineCore/Core/Log.h"
 #include "Platform/OpenGL/OpenGLContext.h"
 
-#include "Himii/Events/ApplicationEvent.h"
-#include "Himii/Events/KeyEvent.h"
-#include "Himii/Events/MouseEvent.h"
+#include "EngineCore/Events/ApplicationEvent.h"
+#include "EngineCore/Events/KeyEvent.h"
+#include "EngineCore/Events/MouseEvent.h"
 
 // Windows 平台下，用 Win32 API 为 GLFW 创建的窗口设置图标
 #include <GLFW/glfw3.h>
@@ -333,6 +333,14 @@ namespace Himii
                 static_cast<float>(m_Data.FramebufferHeight) / static_cast<float>(m_Data.Height);
         outFramebufferX = windowCursorX * scaleX;
         outFramebufferY = windowCursorY * scaleY;
+    }
+
+    void WindowsWindow::GetContentScale(float &scaleX, float &scaleY) const
+    {
+        scaleX = 1.0f;
+        scaleY = 1.0f;
+        if (m_Window)
+            glfwGetWindowContentScale(m_Window, &scaleX, &scaleY);
     }
 
     void WindowsWindow::SetVSync(bool enabled)

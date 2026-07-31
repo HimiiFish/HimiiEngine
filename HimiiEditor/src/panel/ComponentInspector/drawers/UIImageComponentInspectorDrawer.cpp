@@ -4,7 +4,7 @@
 #include "panel/ComponentInspector/ComponentInspectorUtils.h"
 #include "InspectorControls.h"
 
-#include "Himii/Scene/Components.h"
+#include "World/Scene/Components.h"
 
 namespace Himii
 {

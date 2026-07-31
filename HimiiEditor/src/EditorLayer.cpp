@@ -2,34 +2,35 @@
 #include "EditorLayoutDefaults.h"
 #include "imgui.h"
 #include "imgui_internal.h"
-#include "Himii/Core/ConsoleLog.h"
-#include "Himii/Core/FileSystem.h"
-#include "Himii/Scripting/ScriptEngine.h"
-#include "Himii/Scene/PrefabSerializer.h"
-#include "Himii/Scripting/ScriptCompiler.h"
-#include "Himii/Scripting/ScriptIDELauncher.h"
-#include "Himii/Editor/EditorSettings.h"
-#include "Himii/Project/Project.h"
+#include "EngineCore/Core/ConsoleLog.h"
+#include "EngineCore/Core/FileSystem.h"
+#include "Module/Script/ScriptEngine.h"
+#include "World/Scene/PrefabSerializer.h"
+#include "Module/Script/ScriptCompiler.h"
+#include "Module/Script/ScriptIDELauncher.h"
+#include "EngineCore/Editor/EditorSettings.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
 #include "ProjectBuildPipeline.h"
 
-#include "Himii/Renderer/Renderer3D.h"
+#include "Module/Render/Renderer3D.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 
-#include "Himii/Utils/PlatformUtils.h"
+#include "EngineCore/Utils/PlatformUtils.h"
 #include "ImGuizmo.h"
 #include "yaml-cpp/yaml.h"
 #include "commands/EditorCommands.h"
 #include "EditorExternalFileDrop.h"
 #include "TilemapEditorUtility.h"
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Scene/SpriteRendererUtility.h"
-#include "Himii/Scene/TileSet.h"
-#include "Himii/Scene/TileMapCoordinateUtility.h"
-#include "Himii/Scene/TilemapColliderBuilder.h"
-#include "Himii/ImGui/ImGuiLayer.h"
-#include "Himii/Renderer/Renderer.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "Module/Render/SpriteRendererUtility.h"
+#include "Module/Tilemap/TileSet.h"
+#include "Module/Tilemap/TileMapCoordinateUtility.h"
+#include "Module/Tilemap/TilemapColliderBuilder.h"
+#include "EngineCore/ImGui/ImGuiLayer.h"
+#include "Module/Render/Renderer.h"
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -150,9 +151,12 @@ namespace Himii
             case EditorStartupLoadingStep::Scene:
             {
                 m_StartupStatusMessage = "正在初始化场景…";
+                m_World = CreateRef<World>();
+                Application::Get().SetCurrentWorld(m_World);
                 m_EditorScene = CreateRef<Scene>();
                 m_EditorScene->SetSkybox(m_SkyboxTexture);
                 m_ActiveScene = m_EditorScene;
+                m_World->SetActiveScene(m_ActiveScene);
 
                 FramebufferSpecification framebuffer_specification{1280, 720};
                 framebuffer_specification.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER,
@@ -360,7 +364,7 @@ namespace Himii
 
                     m_EditorCamera.SetOrthographicProjection(is2D);
                     m_EditorCamera.OnUpdate(ts, m_ViewportHovered, is2D);
-                    m_ActiveScene->OnUpdateSimulation(ts, m_EditorCamera);
+                    m_World->OnUpdateSimulation(ts, m_EditorCamera);
                 }
                 break;
             default:
@@ -449,7 +453,7 @@ namespace Himii
                     !primaryButtonHeld && m_GameUserInterfacePrimaryButtonWasHeld;
             m_GameUserInterfacePrimaryButtonWasHeld = primaryButtonHeld;
             m_ActiveScene->SetUserInterfacePointerInput(userInterfacePointerInput);
-            m_ActiveScene->OnUpdateRuntime(ts, m_ShowGameUserInterface);
+            m_World->OnUpdateRuntime(ts, m_ShowGameUserInterface);
         }
         else if (m_GameViewHasValidPrimaryCamera)
         {
@@ -889,7 +893,7 @@ namespace Himii
                                     || m_GizmoStartRectTransform.SizeDelta
                                             != afterTransform.SizeDelta)
                                 {
-                                    m_CommandHistory.Execute(std::make_unique<ModifyRectTransformCommand>(
+                                    m_CommandHistory.Execute(CreateScope<ModifyRectTransformCommand>(
                                         m_EditorScene, selectEntity.GetUUID(), m_GizmoStartRectTransform,
                                         afterTransform));
                                 }
@@ -902,7 +906,7 @@ namespace Himii
                                     || m_GizmoStartTransform.Rotation != afterTransform.Rotation
                                     || m_GizmoStartTransform.Scale != afterTransform.Scale)
                                 {
-                                    m_CommandHistory.Execute(std::make_unique<ModifyTransformCommand>(
+                                    m_CommandHistory.Execute(CreateScope<ModifyTransformCommand>(
                                         m_EditorScene, selectEntity.GetUUID(), m_GizmoStartTransform,
                                         afterTransform));
                                 }
@@ -1131,7 +1135,7 @@ namespace Himii
                     if (selectedEntity)
                     {
                         m_SceneHierarchyPanel.SetSelectedEntity({});
-                        m_CommandHistory.Execute(std::make_unique<DeleteEntityCommand>(
+                        m_CommandHistory.Execute(CreateScope<DeleteEntityCommand>(
                             m_EditorScene, selectedEntity,
                             [this](Entity restoredEntity)
                             {
@@ -1310,7 +1314,7 @@ namespace Himii
             }
 
             {
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
                 auto view = m_ActiveScene->GetAllEntitiesWith<TransformComponent, TilemapComponent,
                                                                TilemapCollider2DComponent>();
                 view.each([&](auto entityHandle, auto& transformComponent,
@@ -1374,7 +1378,7 @@ namespace Himii
                     {
                         const SpriteRendererComponent &spriteRenderer =
                                 selectedEntity.GetComponent<SpriteRendererComponent>();
-                        if (auto assetManager = Project::TryGetAssetManager())
+                        if (auto assetManager = ResourceSystem::GetAssetManager())
                         {
                             const SpriteResolved resolved = ResolveSpriteRendererDrawable(
                                 selectedEntity, spriteRenderer, assetManager.get());
@@ -1752,7 +1756,7 @@ namespace Himii
                     "Only the Start Scene on disk will be included as the launch scene.");
         }
 
-        Ref<AssetManager> assetManager = Project::GetAssetManager();
+        Ref<AssetManager> assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
         {
             errorMessage = "AssetManager is unavailable.";
@@ -1946,7 +1950,9 @@ namespace Himii
         m_SceneHierarchyPanel.SetSelectedEntity({});
         m_HoveredEntity = {};
 
-        m_ActiveScene = CreateRef<Scene>();
+        m_EditorScene = CreateRef<Scene>();
+        m_ActiveScene = m_EditorScene;
+        m_World->SetActiveScene(m_ActiveScene);
         m_ActiveScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 
         if (m_SkyboxTexture)
@@ -2224,6 +2230,7 @@ namespace Himii
             m_EditorScene->OnViewportResize((uint32_t)m_ViewportSize.x, (uint32_t)m_ViewportSize.y);
 
             m_ActiveScene = m_EditorScene;
+            m_World->SetActiveScene(m_ActiveScene);
             m_EditorScenePath = path;
 
             if (Project::GetActive())
@@ -2332,7 +2339,8 @@ namespace Himii
         m_SceneState = SceneState::Play;
 
         m_ActiveScene = Scene::Copy(m_EditorScene);
-        m_ActiveScene->OnRuntimeStart();
+        m_World->SetActiveScene(m_ActiveScene);
+        m_World->OnRuntimeStart();
 
         if (Project::GetActive() && !m_EditorScenePath.empty())
         {
@@ -2355,7 +2363,8 @@ namespace Himii
         m_SceneState = SceneState::Simulate;
 
         m_ActiveScene = Scene::Copy(m_EditorScene);
-        m_ActiveScene->OnSimulationStart();
+        m_World->SetActiveScene(m_ActiveScene);
+        m_World->OnSimulationStart();
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
     }
@@ -2366,13 +2375,14 @@ namespace Himii
         const bool wasPlaying = m_SceneState == SceneState::Play;
 
         if (wasPlaying)
-            m_ActiveScene->OnRuntimeStop();
+            m_World->OnRuntimeStop();
         else if (m_SceneState == SceneState::Simulate)
-            m_ActiveScene->OnSimulationStop();
+            m_World->OnSimulationStop();
 
         m_SceneState = SceneState::Edit;
 
         m_ActiveScene = m_EditorScene;
+        m_World->SetActiveScene(m_EditorScene);
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -2682,7 +2692,7 @@ namespace Himii
             const TilemapComponent& tilemapComponent = selectedEntity.GetComponent<TilemapComponent>();
             if (tilemapComponent.TileMapHandle != 0 && Project::GetActive())
             {
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
                 if (assetManager && assetManager->IsAssetHandleValid(tilemapComponent.TileMapHandle)
                     && assetManager->GetAsset(tilemapComponent.TileMapHandle))
                 {
@@ -2729,7 +2739,7 @@ namespace Himii
         if (!Project::GetActive())
             return false;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager || !assetManager->IsAssetHandleValid(tilemapComponent.TileMapHandle))
             return false;
 
@@ -2982,7 +2992,7 @@ namespace Himii
         if (!tileDefinition || tileDefinition->SourceType != TileSourceType::Atlas)
             return;
 
-        auto assetManager = Project::GetAssetManager();
+        auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
             return;
 
@@ -3135,7 +3145,7 @@ namespace Himii
                         const auto &atlasSources = tileSet->GetAtlasSources();
                         if (tileDefinition->AtlasSourceIndex < atlasSources.size())
                         {
-                            auto assetManager = Project::GetAssetManager();
+                            auto assetManager = ResourceSystem::GetAssetManager();
                             if (assetManager)
                             {
                                 const TileAtlasSource &atlasSource =

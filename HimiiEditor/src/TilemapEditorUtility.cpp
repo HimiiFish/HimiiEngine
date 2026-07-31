@@ -1,7 +1,7 @@
 #include "TilemapEditorUtility.h"
 
-#include "Himii/Asset/SpriteSheetUtility.h"
-#include "Himii/Scene/TileMapCoordinateUtility.h"
+#include "Resource/SpriteSheetUtility.h"
+#include "Module/Tilemap/TileMapCoordinateUtility.h"
 
 #include <cmath>
 

@@ -1,13 +1,14 @@
-﻿#include "SceneHierarchyPanel.h"
+#include "SceneHierarchyPanel.h"
 #include "commands/EditorCommandHistory.h"
 #include "commands/EditorCommands.h"
-#include "Himii/Project/Project.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
 
-#include "Himii/Scene/PrefabSerializer.h"
-#include "Himii/Utils/PlatformUtils.h"
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Renderer/Font.h"
-#include "Himii/Core/Log.h"
+#include "World/Scene/PrefabSerializer.h"
+#include "EngineCore/Utils/PlatformUtils.h"
+#include "Resource/AssetManager.h"
+#include "Module/Render/Font.h"
+#include "EngineCore/Core/Log.h"
 
 #include "panel/ComponentInspector/ComponentInspectorDrawContext.h"
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
@@ -78,7 +79,7 @@ namespace Himii
         if (m_CommandHistory)
         {
             m_CommandHistory->Execute(
-                    std::make_unique<ReparentEntityCommand>(m_Context, draggedEntity, newParentEntity, true));
+                    CreateScope<ReparentEntityCommand>(m_Context, draggedEntity, newParentEntity, true));
         }
         else
         {
@@ -113,7 +114,7 @@ namespace Himii
             {
                 if (m_CommandHistory)
                 {
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
                         m_Context,
                         [](const Ref<Scene>& scene) { return scene->CreateEntity("Empty Entity"); }));
                 }
@@ -128,7 +129,7 @@ namespace Himii
                 }
                 else if (m_CommandHistory)
                 {
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
                         m_Context,
                         [](const Ref<Scene>& scene) { return scene->CreateCanvasEntity("Canvas"); }));
                 }
@@ -160,7 +161,7 @@ namespace Himii
                 };
 
                 if (m_CommandHistory)
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(m_Context, createTextEntity));
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(m_Context, createTextEntity));
                 else
                     createTextEntity(m_Context);
             }
@@ -178,7 +179,7 @@ namespace Himii
                 };
 
                 if (m_CommandHistory)
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(m_Context, createButtonEntity));
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(m_Context, createButtonEntity));
                 else
                     createButtonEntity(m_Context);
             }
@@ -186,7 +187,7 @@ namespace Himii
             {
                 if (m_CommandHistory)
                 {
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
                         m_Context,
                         [](const Ref<Scene>& scene) { return scene->CreateUIEntity("Empty UI Entity"); }));
                 }
@@ -197,7 +198,7 @@ namespace Himii
             {
                 if (m_CommandHistory)
                 {
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
                         m_Context,
                         [](const Ref<Scene>& scene)
                         {
@@ -216,7 +217,7 @@ namespace Himii
             {
                 if (m_CommandHistory)
                 {
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
                         m_Context,
                         [](const Ref<Scene>& scene)
                         {
@@ -235,7 +236,7 @@ namespace Himii
             {
                 if (m_CommandHistory)
                 {
-                    m_CommandHistory->Execute(std::make_unique<CreateEntityCommand>(
+                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
                         m_Context,
                         [](const Ref<Scene>& scene)
                         {
@@ -353,7 +354,7 @@ namespace Himii
                         {
                             std::filesystem::path relativePath =
                                     std::filesystem::relative(filePath, Project::GetAssetDirectory());
-                            if (auto assetManager = Project::GetAssetManager())
+                            if (auto assetManager = ResourceSystem::GetAssetManager())
                                 assetManager->ImportAsset(relativePath);
                         }
                     }
@@ -387,7 +388,7 @@ namespace Himii
                     m_SelectionContext = restoredEntity;
                 };
                 m_CommandHistory->Execute(
-                    std::make_unique<DeleteEntityCommand>(m_Context, entity, onEntityRestored));
+                    CreateScope<DeleteEntityCommand>(m_Context, entity, onEntityRestored));
             }
             else
                 m_Context->DestroyEntity(entity);
@@ -418,7 +419,7 @@ namespace Himii
             {
                 if (tag != m_TagEditStartValue)
                 {
-                    m_CommandHistory->Execute(std::make_unique<ModifyEntityTagCommand>(
+                    m_CommandHistory->Execute(CreateScope<ModifyEntityTagCommand>(
                         m_Context, entity.GetUUID(), m_TagEditStartValue, tag));
                 }
             }

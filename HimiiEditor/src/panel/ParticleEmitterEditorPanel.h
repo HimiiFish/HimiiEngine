@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Himii/Core/Core.h"
-#include "Himii/Asset/Asset.h"
-#include "Himii/Renderer/OrthographicCamera.h"
-#include "Himii/Renderer/Framebuffer.h"
-#include "Himii/Scene/ParticleEmitterAsset.h"
-#include "Himii/Particle/ParticleSystem.h"
+#include "EngineCore/Core/Core.h"
+#include "Resource/Asset.h"
+#include "Module/Render/OrthographicCamera.h"
+#include "Module/Render/Framebuffer.h"
+#include "Module/Particle/ParticleEmitterAsset.h"
+#include "Module/Particle/ParticleSystem.h"
 
 #include <glm/glm.hpp>
 

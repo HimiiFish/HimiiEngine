@@ -1,5 +1,5 @@
 #pragma once
-#include "Himii/Renderer/Texture.h"
+#include "Module/Render/Texture.h"
 
 #include "glad/glad.h"
 

@@ -1,7 +1,7 @@
 #pragma once
 #include "Hepch.h"
-#include "Himii/Core/Application.h"
-#include "Himii/Utils/PlatformUtils.h"
+#include "EngineCore/Core/Application.h"
+#include "EngineCore/Utils/PlatformUtils.h"
 
 // 使用windows sdk里提供的头文件
 #include <GLFW/glfw3.h>
@@ -106,4 +106,21 @@ namespace Himii
         }
         return result;
     }
-} // namespace Hazel
+
+    std::filesystem::path PlatformProcess::GetExecutableDirectory()
+    {
+        char buffer[MAX_PATH];
+        GetModuleFileNameA(NULL, buffer, MAX_PATH);
+        return std::filesystem::path(buffer).parent_path();
+    }
+
+    void PlatformProcess::SetDynamicLibrarySearchDirectory(const std::filesystem::path &directory)
+    {
+        SetDllDirectoryW(directory.wstring().c_str());
+    }
+
+    bool PlatformProcess::SetEnvironmentVariableValue(const std::string &name, const std::string &value)
+    {
+        return _putenv_s(name.c_str(), value.c_str()) == 0;
+    }
+} // namespace Himii

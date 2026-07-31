@@ -1,6 +1,6 @@
 #include "Hepch.h"
-#include "Himii/Core/Input.h"
-#include "Himii/Core/Application.h"
+#include "EngineCore/Core/Input.h"
+#include "EngineCore/Core/Application.h"
 #include "GLFW/glfw3.h"
 
 #include <unordered_map>

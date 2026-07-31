@@ -3,12 +3,13 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Himii/Asset/AssetManager.h"
-#include "Himii/Asset/AssetSerializer.h"
-#include "Himii/Project/Project.h"
-#include "Himii/Scene/Components.h"
-#include "Himii/Scene/TileMapData.h"
-#include "Himii/Scene/TileSet.h"
+#include "Resource/AssetManager.h"
+#include "Resource/AssetSerializer.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
+#include "World/Scene/Components.h"
+#include "Module/Tilemap/TileMapData.h"
+#include "Module/Tilemap/TileSet.h"
 
 #include <filesystem>
 #include <imgui.h>
@@ -26,7 +27,7 @@ namespace Himii
             drawContext, "TilemapComponent", "Tilemap", nullptr,
             [&]()
             {
-                auto assetManager = Project::GetAssetManager();
+                auto assetManager = ResourceSystem::GetAssetManager();
 
                 std::string tileMapDisplayName = "None";
                 if (component.TileMapHandle != 0 && assetManager
@@ -80,7 +81,7 @@ namespace Himii
 
                                 const auto assetDirectory = Project::GetAssetDirectory();
 
-                                auto tileSetAsset = std::make_shared<TileSet>();
+                                auto tileSetAsset = CreateRef<TileSet>();
                                 tileSetAsset->Handle = AssetHandle();
 
                                 TileAtlasSource atlasSource;
@@ -103,7 +104,7 @@ namespace Himii
                                 tileSetAsset->Handle = tileSetHandle;
                                 TileSetSerializer::Serialize(tileSetPath, tileSetAsset);
 
-                                auto mapAsset = std::make_shared<TileMapData>();
+                                auto mapAsset = CreateRef<TileMapData>();
                                 mapAsset->Handle = AssetHandle();
                                 mapAsset->SetTileSetHandle(tileSetHandle);
                                 mapAsset->SetCellSize(1.0f);

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Himii/Core/Core.h"
-#include "Himii/Renderer/Texture.h"
-#include "Himii/Scene/SpriteAnimation.h"
+#include "EngineCore/Core/Core.h"
+#include "Module/Render/Texture.h"
+#include "Module/Animation/SpriteAnimation.h"
 
 #include <imgui.h>
 #include <filesystem>
