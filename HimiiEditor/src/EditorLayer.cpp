@@ -629,10 +629,7 @@ namespace Himii
             ImGui::End();
 
             ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2{0, 0});
-            if (m_RequestSceneViewportFocus)
-                ImGui::SetNextWindowFocus();
             ImGui::Begin("ViewPort");
-            m_RequestSceneViewportFocus = false;
             auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
             auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
             auto viewportOffset = ImGui::GetWindowPos();
@@ -1033,6 +1030,9 @@ namespace Himii
                     ImGui::GetColorU32(ImGuiCol_Text), errorMessage);
         }
         ImGui::End();
+
+        if (m_RequestSceneViewportFocus && TrySelectSceneViewportTab())
+            m_RequestSceneViewportFocus = false;
 
         Application::Get().GetImGuiLayer()->BlockEvents(
                 !(m_ViewportHovered
@@ -1558,6 +1558,10 @@ namespace Himii
 
             UpdateEditorCameraForActiveProject();
             UpdateMainWindowTitle();
+
+            // 从 Hub / 对话框进入工程时进入编辑态，应显示 Scene ViewPort 而非 Game。
+            m_RequestSceneViewportFocus = true;
+            m_RequestGameViewportFocus = false;
         }
     }
 
@@ -1596,6 +1600,32 @@ namespace Himii
             m_EditorScene->SetSkybox(m_SkyboxTexture);
         if (m_ActiveScene && m_ActiveScene != m_EditorScene)
             m_ActiveScene->SetSkybox(m_SkyboxTexture);
+    }
+
+    bool EditorLayer::TrySelectSceneViewportTab()
+    {
+        ImGuiWindow *viewportWindow = ImGui::FindWindowByName("ViewPort");
+        if (!viewportWindow)
+            return false;
+
+        ImGuiDockNode *dockNode = viewportWindow->DockNode;
+        if (!dockNode)
+        {
+            ImGui::FocusWindow(viewportWindow);
+            return true;
+        }
+
+        // 必须在改写前读取：本帧 TabBar 可能已按 ini / 后 Begin(Game) 选中了 Game。
+        const bool alreadySelected =
+                (dockNode->TabBar && dockNode->TabBar->SelectedTabId == viewportWindow->TabId)
+                || (!dockNode->TabBar && dockNode->SelectedTabId == viewportWindow->TabId);
+
+        dockNode->SelectedTabId = viewportWindow->TabId;
+        if (dockNode->TabBar)
+            dockNode->TabBar->NextSelectedTabId = viewportWindow->TabId;
+
+        ImGui::FocusWindow(viewportWindow);
+        return alreadySelected;
     }
 
     void EditorLayer::UpdateEditorCameraForActiveProject()

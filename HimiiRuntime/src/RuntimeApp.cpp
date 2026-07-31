@@ -110,7 +110,12 @@ namespace Himii
             m_PrimaryButtonWasHeld = primaryButtonHeld;
             m_ActiveScene->SetUserInterfacePointerInput(userInterfacePointerInput);
 
-            RenderCommand::SetClearColor({0.1f, 0.12f, 0.16f, 1.0f});
+            glm::vec4 clearColor{0.0f, 0.0f, 0.0f, 1.0f};
+            Entity primaryCameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+            if (primaryCameraEntity)
+                clearColor =
+                        primaryCameraEntity.GetComponent<CameraComponent>().Camera.GetBackgroundColor();
+            RenderCommand::SetClearColor(clearColor);
             RenderCommand::Clear();
             m_World->OnUpdateRuntime(ts);
         }

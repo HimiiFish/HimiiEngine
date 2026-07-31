@@ -84,6 +84,8 @@ namespace Himii
                                                                   &dock_id_left);
 
             ImGui::DockBuilderDockWindow("##toolbar", dock_id_toolbar);
+            // Game 与 ViewPort 同组标签；后 Dock 的 ViewPort 更易成为默认选中页。
+            ImGui::DockBuilderDockWindow("Game", dock_id_left);
             ImGui::DockBuilderDockWindow("ViewPort", dock_id_left);
             ImGui::DockBuilderDockWindow("Content Browser", dock_id_left_bottom);
             ImGui::DockBuilderDockWindow("Console", dock_id_console_area);

@@ -89,6 +89,8 @@ namespace Himii
         void UpdateMainWindowTitle();
         void UpdateEditorCameraForActiveProject();
         void RefreshEditorSkyboxForActiveProject();
+        /// 将 Game/ViewPort 同组 Dock 标签前台设为 ViewPort（覆盖 layout ini 的 Selected）。
+        bool TrySelectSceneViewportTab();
         void DrawStartupSplash();
         void AdvanceEditorStartupLoading();
         void ApplySplashWindowSize();
