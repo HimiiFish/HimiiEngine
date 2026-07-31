@@ -11,7 +11,7 @@
       
       
       
-        <link rel="prev" href="../../Architecture/">
+        <link rel="prev" href="../GraphicsNotes/">
       
       
         <link rel="next" href="../../../releases/v1.0.0-alpha/">
@@ -1212,6 +1212,118 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../EditorRuntime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器运行时
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Scripting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本系统（C++）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../Logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    日志数据流
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GraphicsNotes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    图形笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -1279,6 +1391,17 @@
     <span class="md-ellipsis">
       
         目标
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景 vs 资产序列化
       
     </span>
   </a>
@@ -1577,6 +1700,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#vs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        场景 vs 资产序列化
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1746,12 +1880,43 @@
 
 
 <h1 id="yaml">场景序列化（YAML）</h1>
-<p>本文档描述 <code>.himii</code> 场景文件的序列化/反序列化设计，实现位于 <code>Engine/src/Himii/Scene/SceneSerializer.cpp</code>。</p>
+<p>本文档描述 <code>.himii</code> 场景文件的序列化/反序列化设计，实现位于 <code>Engine/src/World/Scene/SceneSerializer.cpp</code>。</p>
 <h2 id="_1">目标</h2>
 <ul>
 <li>将场景中实体与组件保存为可读 YAML（<code>.himii</code>）。</li>
 <li>支持从文件还原场景，并在编辑器中 <strong>File → Open Scene</strong> / <strong>Save Scene As</strong> 使用。</li>
 </ul>
+<h2 id="vs">场景 vs 资产序列化</h2>
+<table>
+<thead>
+<tr>
+<th>种类</th>
+<th>典型扩展名</th>
+<th>谁实现</th>
+<th>谁分发</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>场景实体图</strong></td>
+<td><code>.himii</code>（作为场景打开时）</td>
+<td><code>World/Scene/SceneSerializer</code></td>
+<td>编辑器 / 项目 Start Scene 直接调用</td>
+</tr>
+<tr>
+<td><strong>领域资产</strong></td>
+<td><code>.anim</code>、<code>.tileset</code>、<code>.tilemap</code>、<code>.particle</code>、纹理、字体、声音等</td>
+<td>各 <code>Module/**</code> 内的 <code>IAssetSerializer</code> 实现</td>
+<td><code>Resource/AssetSerializerRegistry</code>（<code>ResourceModule</code> 启动时注册）</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li><code>ResourceSystem</code> 提供 Import / GetAsset / AssetRegistry 等门面；<strong>具体字段格式</strong>仍在 Module（或 Scene）序列化器中。</li>
+<li>扩展名到 <code>AssetType</code>、类型到反序列化实现的映射见 <code>Resource/BuiltinAssetSerializerRegistration.cpp</code>。</li>
+<li><code>.himii</code> 也可作为资产类型出现在注册表中；<strong>编辑器打开场景</strong>走的是 <code>SceneSerializer</code>，不要与「仅当资源导入」路径混淆。</li>
+</ul>
+<p>分层边界见 <a href="../../Architecture/#8-resource-与序列化边界">架构概览 · Resource</a>。</p>
 <h2 id="_2">文件格式概览</h2>
 <div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="nt">Scene</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ExampleScene</span>
 <a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nt">Entities</span><span class="p">:</span>
@@ -1858,7 +2023,7 @@
 <li>游戏脚本 <strong>public 实例字段</strong> 与 <strong><code>[SerializeField]</code> private 字段</strong>（<code>HimiiEngine.SerializeField</code>，定义于 ScriptCore）参与反射与保存；<code>static</code> / <code>readonly</code> / <code>[NonSerialized]</code> 字段不参与。</li>
 </ul>
 <h2 id="anim">动画资产（<code>.anim</code>）</h2>
-<p>由 <code>AssetSerializer</code> / <code>SpriteAnimationSerializer</code> 读写，非场景 YAML 内嵌。</p>
+<p>由 <code>Module/Animation</code> 侧序列化器经 <code>AssetSerializerRegistry</code> 读写，非场景 YAML 内嵌。</p>
 <ul>
 <li>新格式：<code>AssetType: SpriteFrames</code>，<code>Animations[]</code> 每条含 <code>Name</code>、<code>FrameRate</code>、<code>LoopMode</code>、<code>AtlasFrameCoordinates</code>。</li>
 <li>旧格式：<code>AssetType: SpriteAnimation</code> 加载时迁移为单条 <code>default</code> 动画。</li>
@@ -1910,8 +2075,10 @@
 <h2 id="_9">代码索引</h2>
 <ul>
 <li><code>SceneSerializer::Serialize</code> / <code>Deserialize</code> / <code>SerializeEntity</code> / <code>DeserializeEntity</code></li>
-<li><code>Engine/src/Himii/Scene/Components.h</code></li>
-<li><code>Engine/src/Himii/Scene/Scene.h</code></li>
+<li><code>Engine/src/World/Scene/Components.h</code></li>
+<li><code>Engine/src/World/Scene/Scene.h</code></li>
+<li><code>Engine/src/Resource/AssetSerializerRegistry.h</code>、<code>IAssetSerializer.h</code></li>
+<li><code>Engine/src/Resource/BuiltinAssetSerializerRegistration.cpp</code></li>
 </ul>
 
 

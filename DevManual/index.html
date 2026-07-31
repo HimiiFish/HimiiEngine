@@ -1273,6 +1273,118 @@
   
   
     <li class="md-nav__item">
+      <a href="CoreSystems/EditorRuntime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器运行时
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CoreSystems/Scripting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本系统（C++）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CoreSystems/Logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    日志数据流
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="CoreSystems/GraphicsNotes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    图形笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="CoreSystems/Serialization/" class="md-nav__link">
         
   
@@ -1448,28 +1560,25 @@
 
 
 <h1 id="_1">开发者手册</h1>
-<p>本手册面向 HimiiEngine 的源码贡献者与深入研究者。</p>
+<p>本手册面向 HimiiEngine 的源码贡献者与深入研究者。文档站点上与用户手册分区展示；本分区可写内部路径与模块边界。</p>
 <h2 id="_2">目录</h2>
 <ol>
 <li>
-<p><strong><a href="BuildingFromSource/">源码构建 (Building From Source)</a></strong></p>
-<ul>
-<li>环境要求 (Pre-requisites)</li>
-<li>构建步骤</li>
-</ul>
+<p><strong><a href="BuildingFromSource/">源码构建 (Building From Source)</a></strong><br />
+   环境要求、CMake Preset、输出目录</p>
 </li>
 <li>
-<p><strong><a href="Architecture/">架构概览 (Architecture)</a></strong></p>
-<ul>
-<li><a href="Architecture/">技术总览</a> (原文档)</li>
-</ul>
+<p><strong><a href="Architecture/">架构概览 (Architecture)</a></strong><br />
+   分层、目录地图、Application / Module / World / Resource / Project</p>
 </li>
 <li>
 <p><strong>核心系统 (Core Systems)</strong></p>
-<ul>
-<li><strong><a href="CoreSystems/Serialization/">场景序列化</a></strong> (原文档)</li>
-</ul>
 </li>
+<li><strong><a href="CoreSystems/EditorRuntime/">编辑器运行时</a></strong> — Play / Simulate、World 帧调度</li>
+<li><strong><a href="CoreSystems/Scripting/">脚本系统（C++）</a></strong> — 宿主加载链与阶段</li>
+<li><strong><a href="CoreSystems/Logging/">日志数据流</a></strong> — spdlog / ConsoleLog</li>
+<li><strong><a href="CoreSystems/GraphicsNotes/">图形笔记</a></strong> — OpenGL / GLM / ImGui 速查</li>
+<li><strong><a href="CoreSystems/Serialization/">场景序列化</a></strong> — <code>.himii</code> 与资产序列化分工</li>
 </ol>
 
 

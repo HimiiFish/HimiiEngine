@@ -11,6 +11,10 @@
       
       
       
+        <link rel="prev" href="../EditorRuntime/">
+      
+      
+        <link rel="next" href="../Logging/">
       
       
         
@@ -18,19 +22,19 @@
         
       
       
-      <link rel="icon" href="/assets/images/favicon.png">
+      <link rel="icon" href="../../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
     
     
       
-        <title>HimiiEngine 引擎文档</title>
+        <title>脚本系统（C++） - HimiiEngine 引擎文档</title>
       
     
     
-      <link rel="stylesheet" href="/assets/stylesheets/main.ec1eaa64.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.ec1eaa64.min.css">
       
         
-        <link rel="stylesheet" href="/assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
       
       
 
@@ -49,7 +53,7 @@
       
     
     
-    <script>__md_scope=new URL("/",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -73,6 +77,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#c" class="md-skip">
+          跳转至
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -83,7 +92,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="页眉">
-    <a href="/." title="HimiiEngine 引擎文档" class="md-header__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
+    <a href="../../.." title="HimiiEngine 引擎文档" class="md-header__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -103,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              
+              脚本系统（C++）
             
           </span>
         </div>
@@ -238,7 +247,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/." class="md-tabs__link">
+        <a href="../../.." class="md-tabs__link">
           
   
   
@@ -258,7 +267,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/UserManual/GettingStarted/" class="md-tabs__link">
+        <a href="../../../UserManual/GettingStarted/" class="md-tabs__link">
           
   
   
@@ -278,7 +287,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/UserManual/" class="md-tabs__link">
+        <a href="../../../UserManual/" class="md-tabs__link">
           
   
   
@@ -298,7 +307,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/UserManual/Tutorial2DPlatformer/" class="md-tabs__link">
+        <a href="../../../UserManual/Tutorial2DPlatformer/" class="md-tabs__link">
           
   
   
@@ -318,7 +327,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/UserManual/ScriptingAPI/" class="md-tabs__link">
+        <a href="../../../UserManual/ScriptingAPI/" class="md-tabs__link">
           
   
   
@@ -334,11 +343,13 @@
   
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="/DevManual/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../" class="md-tabs__link">
           
   
   
@@ -358,7 +369,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="/releases/v1.0.0-alpha/" class="md-tabs__link">
+        <a href="../../../releases/v1.0.0-alpha/" class="md-tabs__link">
           
   
   
@@ -392,7 +403,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="导航栏" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="/." title="HimiiEngine 引擎文档" class="md-nav__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
+    <a href="../../.." title="HimiiEngine 引擎文档" class="md-nav__button md-logo" aria-label="HimiiEngine 引擎文档" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -476,7 +487,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/." class="md-nav__link">
+      <a href="../../.." class="md-nav__link">
         
   
   
@@ -504,7 +515,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/Roadmap/" class="md-nav__link">
+      <a href="../../../Roadmap/" class="md-nav__link">
         
   
   
@@ -593,7 +604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/GettingStarted/" class="md-nav__link">
+      <a href="../../../UserManual/GettingStarted/" class="md-nav__link">
         
   
   
@@ -682,7 +693,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/" class="md-nav__link">
+      <a href="../../../UserManual/" class="md-nav__link">
         
   
   
@@ -710,7 +721,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/EditorFeatures/" class="md-nav__link">
+      <a href="../../../UserManual/EditorFeatures/" class="md-nav__link">
         
   
   
@@ -738,7 +749,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/EditorInterface/" class="md-nav__link">
+      <a href="../../../UserManual/EditorInterface/" class="md-nav__link">
         
   
   
@@ -766,7 +777,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/SpriteAnimation/" class="md-nav__link">
+      <a href="../../../UserManual/SpriteAnimation/" class="md-nav__link">
         
   
   
@@ -794,7 +805,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/Physics2D/" class="md-nav__link">
+      <a href="../../../UserManual/Physics2D/" class="md-nav__link">
         
   
   
@@ -822,7 +833,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/ScriptWorkflow/" class="md-nav__link">
+      <a href="../../../UserManual/ScriptWorkflow/" class="md-nav__link">
         
   
   
@@ -850,7 +861,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/Character2D/" class="md-nav__link">
+      <a href="../../../UserManual/Character2D/" class="md-nav__link">
         
   
   
@@ -939,7 +950,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/Tutorial2DPlatformer/" class="md-nav__link">
+      <a href="../../../UserManual/Tutorial2DPlatformer/" class="md-nav__link">
         
   
   
@@ -1028,7 +1039,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/UserManual/ScriptingAPI/" class="md-nav__link">
+      <a href="../../../UserManual/ScriptingAPI/" class="md-nav__link">
         
   
   
@@ -1060,28 +1071,31 @@
       
   
   
+    
   
   
+  
     
     
     
     
+      
+        
+        
       
       
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
       
         
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
         
           
-        
-        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_6" >
-        
-          
-          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
             
   
   
@@ -1099,7 +1113,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_6">
             <span class="md-nav__icon md-icon"></span>
             
@@ -1117,7 +1131,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/" class="md-nav__link">
+      <a href="../../" class="md-nav__link">
         
   
   
@@ -1145,7 +1159,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/BuildingFromSource/" class="md-nav__link">
+      <a href="../../BuildingFromSource/" class="md-nav__link">
         
   
   
@@ -1173,7 +1187,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/Architecture/" class="md-nav__link">
+      <a href="../../Architecture/" class="md-nav__link">
         
   
   
@@ -1201,7 +1215,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/CoreSystems/EditorRuntime/" class="md-nav__link">
+      <a href="../EditorRuntime/" class="md-nav__link">
         
   
   
@@ -1226,10 +1240,37 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="/DevManual/CoreSystems/Scripting/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本系统（C++）
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -1245,6 +1286,70 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="目录">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) 组件位置
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) 加载与调用链
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) 与 World 阶段的关系
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        代码索引
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -1257,7 +1362,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/CoreSystems/Logging/" class="md-nav__link">
+      <a href="../Logging/" class="md-nav__link">
         
   
   
@@ -1285,7 +1390,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/CoreSystems/GraphicsNotes/" class="md-nav__link">
+      <a href="../GraphicsNotes/" class="md-nav__link">
         
   
   
@@ -1313,7 +1418,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/DevManual/CoreSystems/Serialization/" class="md-nav__link">
+      <a href="../Serialization/" class="md-nav__link">
         
   
   
@@ -1402,7 +1507,7 @@
   
   
     <li class="md-nav__item">
-      <a href="/releases/v1.0.0-alpha/" class="md-nav__link">
+      <a href="../../../releases/v1.0.0-alpha/" class="md-nav__link">
         
   
   
@@ -1447,6 +1552,60 @@
   
   
   
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      目录
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1) 组件位置
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2) 加载与调用链
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3) 与 World 阶段的关系
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        代码索引
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
   
 </nav>
                   </div>
@@ -1459,8 +1618,102 @@
               
               <article class="md-content__inner md-typeset">
                 
-  <h1>404 - Not found</h1>
+                  
 
+
+  
+  
+
+
+<h1 id="c">脚本系统（C++ 宿主）</h1>
+<p>本文档描述引擎侧脚本宿主与编辑器加载链。C# API 面向游戏作者，见 <a href="../../../UserManual/ScriptingAPI/">脚本 API</a> 与 <a href="../../../UserManual/ScriptWorkflow/">脚本工作流</a>。</p>
+<hr />
+<h2 id="1">1) 组件位置</h2>
+<table>
+<thead>
+<tr>
+<th>层</th>
+<th>路径 / 程序集</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application 模块</td>
+<td><code>Module/Script/ScriptModule</code></td>
+<td>与进程同寿的宿主初始化</td>
+</tr>
+<tr>
+<td>World 模块</td>
+<td><code>ScriptUpdateModule</code> / <code>ScriptFixedUpdateModule</code></td>
+<td>按阶段调用实体脚本 Update / FixedUpdate</td>
+</tr>
+<tr>
+<td>实现</td>
+<td><code>ScriptEngine</code>、<code>ScriptGlue</code>、<code>ScriptCompiler</code>、<code>ScriptIDELauncher</code></td>
+<td>CoreCLR、native 互操作、编译、IDE</td>
+</tr>
+<tr>
+<td>C#</td>
+<td><code>ScriptCore</code></td>
+<td>Entity、Input、Log、<code>InternalCalls</code></td>
+</tr>
+<tr>
+<td>游戏</td>
+<td>项目 <code>GameAssembly</code></td>
+<td>用户脚本类</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="2">2) 加载与调用链</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>sequenceDiagram
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    participant Editor as HimiiEditor
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    participant SE as ScriptEngine
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>    participant CLR as CoreCLR
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>    participant SM as ScriptManager
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>  Editor-&gt;&gt;SE: LoadAssembly ScriptCore.dll
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>  SE-&gt;&gt;CLR: hostfxr + GetDelegate
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>  Editor-&gt;&gt;SE: LoadAppAssembly GameAssembly.dll
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  SE-&gt;&gt;SM: LoadGameAssembly
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  Note over Editor,SM: Play: World OnRuntimeStart → 各实体 OnCreateEntity
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  Editor-&gt;&gt;SE: OnCreateEntity
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  SE-&gt;&gt;SM: InstantiateClass
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  loop 每帧 Play
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>    Note over Editor: World ScriptUpdate / ScriptFixedUpdate 阶段
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>    Editor-&gt;&gt;SE: OnUpdateScript / FixedUpdate
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>    SE-&gt;&gt;SM: OnUpdateInstance
+<a id="__codelineno-0-17" name="__codelineno-0-17" href="#__codelineno-0-17"></a>  end
+</code></pre></div>
+<p><code>ScriptGlue</code> 填充 native 函数表，经 <code>InternalCalls.Initialize</code> 绑定到 C# 委托（含日志、Transform、Input、Physics2D 等）。</p>
+<p>打开项目时：若 <code>GameAssembly.dll</code> 较新则直接加载，否则 <code>dotnet build</code> 再加载（见 <code>EditorLayer::OpenProject</code>）。</p>
+<hr />
+<h2 id="3-world">3) 与 World 阶段的关系</h2>
+<ul>
+<li><strong>ScriptUpdate</strong>：变量步，对应游戏 <code>OnUpdate</code>。</li>
+<li><strong>ScriptFixedUpdate</strong>：与物理等固定步相关的脚本回调。</li>
+<li>Play 模式下由 <code>World::OnUpdateRuntime</code> 显式调用对应阶段；Simulate 不跑完整 ScriptUpdate 路径（见 <a href="../EditorRuntime/">编辑器运行时</a>）。</li>
+</ul>
+<hr />
+<h2 id="_1">代码索引</h2>
+<ul>
+<li><code>Engine/src/Module/Script/</code></li>
+<li><code>ScriptCore/</code>（C#）</li>
+<li>场景中的 <code>ScriptComponent</code> 序列化见 <a href="../Serialization/">场景序列化</a></li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
               </article>
             </div>
           
@@ -1498,10 +1751,10 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "/", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "/assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "\u5df2\u590d\u5236", "clipboard.copy": "\u590d\u5236", "search.result.more.one": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.more.other": "\u5728\u8be5\u9875\u4e0a\u8fd8\u6709 # \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.none": "\u6ca1\u6709\u627e\u5230\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.one": "\u627e\u5230 1 \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.other": "# \u4e2a\u7b26\u5408\u6761\u4ef6\u7684\u7ed3\u679c", "search.result.placeholder": "\u952e\u5165\u4ee5\u5f00\u59cb\u641c\u7d22", "search.result.term.missing": "\u7f3a\u5c11", "select.version": "\u9009\u62e9\u5f53\u524d\u7248\u672c"}, "version": null}</script>
     
     
-      <script src="/assets/javascripts/bundle.d7400e89.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.d7400e89.min.js"></script>
       
     
   </body>

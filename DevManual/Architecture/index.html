@@ -14,7 +14,7 @@
         <link rel="prev" href="../BuildingFromSource/">
       
       
-        <link rel="next" href="../CoreSystems/Serialization/">
+        <link rel="next" href="../CoreSystems/EditorRuntime/">
       
       
         
@@ -1261,7 +1261,7 @@
   <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2) 仓库结构
+        2) 目标分层（逻辑）
       
     </span>
   </a>
@@ -1269,22 +1269,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3" class="md-nav__link">
+  <a href="#3-enginesrc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3) 模块划分
+        3) 目标目录（Engine/src/）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3) 模块划分">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Application
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4) Application">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#core" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core
+        职责
       
     </span>
   </a>
@@ -1292,10 +1303,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#renderer" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Renderer
+        明确不负责
       
     </span>
   </a>
@@ -1303,32 +1314,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sceneecs" class="md-nav__link">
+  <a href="#application" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scene（ECS）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scripting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scripting
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#himiieditor" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        HimiiEditor
+        当前 Application 级模块（注册次序）
       
     </span>
   </a>
@@ -1341,77 +1330,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4" class="md-nav__link">
+  <a href="#5-imodule-iworldmodule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4) 应用生命周期
+        5) 两级模块：IModule 与 IWorldModule
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5) 脚本加载与调用链
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6) 日志数据流
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7) 渲染帧（编辑器视口）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8) 构建与运行
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-opengl-glm-imgui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9) OpenGL / GLM / ImGui 速查
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="9) OpenGL / GLM / ImGui 速查">
+    <nav class="md-nav" aria-label="5) 两级模块：IModule 与 IWorldModule">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#opengl" class="md-nav__link">
+  <a href="#world" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OpenGL
+        更新顺序（World）
       
     </span>
   </a>
@@ -1419,21 +1353,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#glm" class="md-nav__link">
+  <a href="#scene" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GLM
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#imgui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ImGui
+        换 Scene 与模块重建
       
     </span>
   </a>
@@ -1446,10 +1369,104 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10" class="md-nav__link">
+  <a href="#6-world-scene" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10) 延伸阅读
+        6) World 与 Scene
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7) Project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8) Resource 与序列化边界
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8) Resource 与序列化边界">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource 负责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#module-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module / World 负责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        推荐数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9) 当前 Module 地图（骨架）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-himiieditor-himiiruntime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10) HimiiEditor 与 HimiiRuntime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        延伸阅读
       
     </span>
   </a>
@@ -1460,6 +1477,118 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CoreSystems/EditorRuntime/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    编辑器运行时
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CoreSystems/Scripting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    脚本系统（C++）
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CoreSystems/Logging/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    日志数据流
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../CoreSystems/GraphicsNotes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    图形笔记
+  
+
+    
+  </span>
+  
+  
+
+      </a>
     </li>
   
 
@@ -1630,7 +1759,7 @@
   <a href="#2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        2) 仓库结构
+        2) 目标分层（逻辑）
       
     </span>
   </a>
@@ -1638,22 +1767,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#3" class="md-nav__link">
+  <a href="#3-enginesrc" class="md-nav__link">
     <span class="md-ellipsis">
       
-        3) 模块划分
+        3) 目标目录（Engine/src/）
       
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="3) 模块划分">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4) Application
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4) Application">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#core" class="md-nav__link">
+  <a href="#_2" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Core
+        职责
       
     </span>
   </a>
@@ -1661,10 +1801,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#renderer" class="md-nav__link">
+  <a href="#_3" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Renderer
+        明确不负责
       
     </span>
   </a>
@@ -1672,32 +1812,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#sceneecs" class="md-nav__link">
+  <a href="#application" class="md-nav__link">
     <span class="md-ellipsis">
       
-        Scene（ECS）
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#scripting" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Scripting
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#himiieditor" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        HimiiEditor
+        当前 Application 级模块（注册次序）
       
     </span>
   </a>
@@ -1710,77 +1828,22 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#4" class="md-nav__link">
+  <a href="#5-imodule-iworldmodule" class="md-nav__link">
     <span class="md-ellipsis">
       
-        4) 应用生命周期
+        5) 两级模块：IModule 与 IWorldModule
       
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#5" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        5) 脚本加载与调用链
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#6" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        6) 日志数据流
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#7" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        7) 渲染帧（编辑器视口）
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#8" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        8) 构建与运行
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#9-opengl-glm-imgui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        9) OpenGL / GLM / ImGui 速查
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="9) OpenGL / GLM / ImGui 速查">
+    <nav class="md-nav" aria-label="5) 两级模块：IModule 与 IWorldModule">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#opengl" class="md-nav__link">
+  <a href="#world" class="md-nav__link">
     <span class="md-ellipsis">
       
-        OpenGL
+        更新顺序（World）
       
     </span>
   </a>
@@ -1788,21 +1851,10 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#glm" class="md-nav__link">
+  <a href="#scene" class="md-nav__link">
     <span class="md-ellipsis">
       
-        GLM
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#imgui" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        ImGui
+        换 Scene 与模块重建
       
     </span>
   </a>
@@ -1815,10 +1867,104 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#10" class="md-nav__link">
+  <a href="#6-world-scene" class="md-nav__link">
     <span class="md-ellipsis">
       
-        10) 延伸阅读
+        6) World 与 Scene
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7) Project
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8) Resource 与序列化边界
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8) Resource 与序列化边界">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resource" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource 负责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#module-world" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Module / World 负责
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#_4" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        推荐数据流
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-module" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9) 当前 Module 地图（骨架）
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-himiieditor-himiiruntime" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10) HimiiEditor 与 HimiiRuntime
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#_5" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        延伸阅读
       
     </span>
   </a>
@@ -1845,8 +1991,9 @@
   
 
 
-<h1 id="_1">技术总览（引擎与编辑器）</h1>
-<p>本文档描述 Himii-Engine 当前的技术栈、仓库结构、核心子系统与典型数据流，供贡献者快速上手。</p>
+<h1 id="_1">架构概览（引擎与编辑器）</h1>
+<p>本文档面向 <strong>引擎源码贡献者</strong>，描述 HimiiEngine 的目标分层、<code>Engine/src/</code> 目录地图、Application / Module / World / Resource / Project 边界，以及与编辑器、运行时的关系。</p>
+<p>用户侧入门请看 <a href="../../UserManual/GettingStarted/">快速开始</a>。构建步骤见 <a href="../BuildingFromSource/">源码构建</a>。帧循环、脚本宿主、日志与图形速查见 <a href="#延伸阅读">核心系统</a>。</p>
 <hr />
 <h2 id="1">1) 技术栈</h2>
 <table>
@@ -1863,27 +2010,27 @@
 </tr>
 <tr>
 <td>渲染</td>
-<td>OpenGL（GLAD）、GLM</td>
+<td>OpenGL（GLAD）、GLM；经 <code>RendererAPI</code> 等抽象，平台实现在 <code>Platform/**</code></td>
 </tr>
 <tr>
 <td>窗口 / 输入</td>
-<td>GLFW</td>
+<td>抽象 <code>Window</code> / <code>Input</code>；Windows 等后端在 <code>Platform/**</code>（如 GLFW）</td>
 </tr>
 <tr>
 <td>UI</td>
-<td>Dear ImGui（Docking）、ImGuizmo</td>
+<td>Dear ImGui（Docking）、ImGuizmo；ImGui 平台后端在 <code>Platform/ImGui/</code></td>
 </tr>
 <tr>
 <td>物理 2D</td>
-<td>Box2D v3</td>
+<td>Box2D v3（<code>Module/Physics</code>）</td>
 </tr>
 <tr>
 <td>脚本</td>
-<td>.NET 8、CoreCLR、<code>hostfxr</code>、可收集 ALC</td>
+<td>.NET 8、CoreCLR、<code>hostfxr</code>、可收集 ALC（<code>Module/Script</code> + <code>ScriptCore</code>）</td>
 </tr>
 <tr>
 <td>序列化</td>
-<td>yaml-cpp</td>
+<td>yaml-cpp；场景见 <code>SceneSerializer</code>，资产见 <code>AssetSerializerRegistry</code></td>
 </tr>
 <tr>
 <td>日志</td>
@@ -1892,150 +2039,275 @@
 </tbody>
 </table>
 <hr />
-<h2 id="2">2) 仓库结构</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Himii-Engine/
-<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>├── Engine/           # 静态库：Core、Renderer、Scene、Scripting、Physics…
-<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>├── HimiiEditor/      # 编辑器可执行程序（Layer：EditorLayer + 各 Panel）
-<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>├── HimiiRuntime/     # 无 UI 的运行时启动器
-<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>├── ScriptCore/       # C# 脚本宿主 API（Entity、Input、Log、InternalCalls）
-<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>├── Tools/            # 构建期工具（ResourcePacker → 胖/瘦 engine.hpck）
-<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>├── cmake/            # Post-build 脚本（Editor / Runtime 输出目录 staging）
-<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>├── Docs/docs/        # 用户 / 开发者文档
-<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>├── HimiiEditor/assets/           # 编辑器附带资源（Debug 松散文件 / 打包输入）
-<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>└── build/            # CMake 生成目录（x64-debug 等）
+<h2 id="2">2) 目标分层（逻辑）</h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>Game / Gameplay
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>Editor / Tools
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>World / ECS          ← 项目运行时会话 + Scene/Level
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>Module 子系统        ← Render | Physics | Audio | Animation …
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>Resource             ← 句柄、引用计数、加载调度、序列化分发
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>HimiiEngine 内核     ← Application、事件、数学、平台抽象入口
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>Platform Abstraction
 </code></pre></div>
-<blockquote>
-<p><strong>说明</strong>：早期示例工程 <strong>TemplateProject</strong>（CubeLayer 体素地形等）已不再作为默认产品入口；当前以 <strong>HimiiEditor</strong> 为主开发界面。</p>
-</blockquote>
-<hr />
-<h2 id="3">3) 模块划分</h2>
-<h3 id="core">Core</h3>
-<ul>
-<li><code>Application</code> / <code>LayerStack</code>：主循环、层生命周期</li>
-<li><code>Window</code> / <code>Input</code> / <code>Events</code></li>
-<li><code>Log</code>：<code>Print</code>（带源码位置）、<code>PrintMessage</code>（脚本/分类消息）</li>
-<li><code>ConsoleLog</code>：线程安全环形缓冲，供编辑器 Console 面板读取</li>
-</ul>
-<h3 id="renderer">Renderer</h3>
-<ul>
-<li>抽象：<code>Renderer2D</code>、<code>Shader</code>、<code>Texture</code>、<code>Framebuffer</code></li>
-<li>平台：<code>Platform/OpenGL</code> 实现</li>
-<li>编辑器视口：场景渲染到 FBO，ImGui <code>Image</code> 显示</li>
-</ul>
-<h3 id="sceneecs">Scene（ECS）</h3>
-<ul>
-<li><code>entt::registry</code> + <code>Entity</code> 句柄</li>
-<li>组件：<code>Transform</code>、<code>SpriteRenderer</code>、<code>Camera</code>、<code>ScriptComponent</code>、2D 物理组件等</li>
-<li><code>SceneSerializer</code>：<code>.himii</code> 场景 YAML 读写</li>
-<li><code>OnRuntimeStart</code> / <code>OnSimulationStart</code>：脚本实例化、Box2D 世界创建</li>
-</ul>
-<h3 id="scripting">Scripting</h3>
-<ul>
-<li><strong>C++</strong>：<code>ScriptEngine</code>（CoreCLR 宿主、实例表、<code>OnUpdate</code> / 碰撞分发）</li>
-<li><strong>C++</strong>：<code>ScriptGlue</code>（<code>NativeLog</code>、<code>Transform</code>、Input、Physics2D 等 native 函数表）</li>
-<li><strong>C++</strong>：<code>ScriptCompiler</code>（异步 <code>dotnet build</code>）、<code>ScriptIDELauncher</code></li>
-<li><strong>C#</strong>：<code>ScriptManager</code>（加载 <code>GameAssembly</code>、实例生命周期）</li>
-<li><strong>C#</strong>：<code>ReflectionBridge</code>（Inspector 字段读写）</li>
-<li><strong>C#</strong>：<code>InternalCalls</code> + <code>NativeFunctionsMap</code> 互操作</li>
-</ul>
-<h3 id="himiieditor">HimiiEditor</h3>
-<ul>
-<li><code>EditorLayer</code>：DockSpace、Play/Simulate/Stop、项目与场景 IO</li>
-<li>面板：Hierarchy、Content Browser、Console、Script Console、Preferences 等</li>
-</ul>
-<hr />
-<h2 id="4">4) 应用生命周期</h2>
-<ol>
-<li><code>Log::Init</code>、窗口与 OpenGL、ImGui 初始化</li>
-<li>压入 <code>EditorLayer</code>（及可选其他 Layer）</li>
-<li>主循环：事件 → <code>OnUpdate</code> → ImGui → 呈现</li>
-<li>退出时释放层与 CoreCLR 脚本实例</li>
-</ol>
-<p><strong>Play 模式</strong>（<code>EditorLayer::StartScenePlay</code>）：</p>
-<ol>
-<li><code>ConsoleLog::Clear</code></li>
-<li>复制 <code>EditorScene</code> → <code>ActiveScene</code></li>
-<li><code>Scene::OnRuntimeStart</code> → <code>ScriptEngine::OnRuntimeStart</code> → 各实体 <code>OnCreateEntity</code></li>
-<li>每帧：<code>OnUpdateRuntime</code>（脚本 <code>OnUpdate</code>、Box2D Step、接触事件 → <code>OnCollisionEnter2D/Exit2D</code>）</li>
-</ol>
-<p><strong>Simulate</strong>：仅 <code>OnPhysics2DStart</code> + 物理步进，不实例化游戏脚本。</p>
-<hr />
-<h2 id="5">5) 脚本加载与调用链</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>sequenceDiagram
-<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>    participant Editor as HimiiEditor
-<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>    participant SE as ScriptEngine
-<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>    participant CLR as CoreCLR
-<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    participant SM as ScriptManager
-<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>  Editor-&gt;&gt;SE: LoadAssembly ScriptCore.dll
-<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>  SE-&gt;&gt;CLR: hostfxr + GetDelegate
-<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>  Editor-&gt;&gt;SE: LoadAppAssembly GameAssembly.dll
-<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>  SE-&gt;&gt;SM: LoadGameAssembly
-<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>  Editor-&gt;&gt;SE: OnCreateEntity
-<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>  SE-&gt;&gt;SM: InstantiateClass
-<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>  loop每帧
-<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    Editor-&gt;&gt;SE: OnUpdateScript
-<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    SE-&gt;&gt;SM: OnUpdateInstance
-<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a>  end
+<p>仓库顶层：</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>Himii-Engine/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>├── Engine/           # 静态库（EngineCore / Module / World / Resource / Project / Platform）
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>├── HimiiEditor/      # 编辑器可执行程序
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>├── HimiiRuntime/     # 无编辑器 UI 的运行时启动器
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>├── ScriptCore/       # C# 脚本宿主 API
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>├── Tools/            # 构建期工具（如 ResourcePacker）
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>├── cmake/            # Post-build staging
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>├── Docs/docs/        # 用户手册 + 开发手册（发布到文档站点）
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>└── build/            # CMake 生成目录（本地，不提交）
 </code></pre></div>
-<p><code>ScriptGlue::GetNativeFunctions()</code> 填充 <code>ScriptEngineData</code>，经 <code>InternalCalls.Initialize</code> 绑定到 C# 委托（含 <code>NativeLog(level, msg)</code>）。</p>
+<p>命名空间目前仍为 <code>Himii</code>。对外 include 根为 <code>EngineCore/**</code>、<code>Module/**</code>、<code>Resource/**</code>、<code>World/**</code>、<code>Project/**</code>。</p>
 <hr />
-<h2 id="6">6) 日志数据流</h2>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>flowchart LR
-<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    LogCS[&quot;C# Log.Info&quot;]
-<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    NativeLog[&quot;ScriptGlue::NativeLog&quot;]
-<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    PrintMsg[&quot;Log::PrintMessage&quot;]
-<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    Spdlog[&quot;spdlog stdout&quot;]
-<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    Buffer[&quot;ConsoleLog&quot;]
-<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    Panel[&quot;ConsolePanel ImGui&quot;]
-<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    LogCS --&gt; NativeLog --&gt; PrintMsg
-<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    PrintMsg --&gt; Spdlog
-<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    PrintMsg --&gt; Buffer --&gt; Panel
-</code></pre></div>
-<p>引擎内部 <code>HIMII_*</code> 宏走 <code>Log::Print</code>，也会写入 <code>ConsoleLog</code>（source=<code>Engine</code>）；Console 面板默认仅显示 <code>Script</code>，可勾选 <strong>Show Engine Logs</strong>。</p>
+<h2 id="3-enginesrc">3) 目标目录（<code>Engine/src/</code>）</h2>
+<table>
+<thead>
+<tr>
+<th>目录</th>
+<th>职责</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EngineCore/</code></td>
+<td>内核：Application、Core、Events、Math、ImGui、基础工具；不含磁盘工程描述</td>
+</tr>
+<tr>
+<td><code>Module/</code></td>
+<td>功能子系统（Audio、Render、Physics、Animation、Particle、Script、Tilemap、UserInterface、Resource 模块入口等）</td>
+</tr>
+<tr>
+<td><code>World/</code></td>
+<td>World 会话、世界级模块表与阶段调度；<code>World/Scene/</code> 为关卡切片（实体、组件、场景序列化）</td>
+</tr>
+<tr>
+<td><code>Resource/</code></td>
+<td>资源门面、句柄与 AssetManager、序列化器注册表</td>
+</tr>
+<tr>
+<td><code>Project/</code></td>
+<td>磁盘工程描述（<code>.hproj</code>、路径与层设置等），与 World 分目录、分寿命</td>
+</tr>
+<tr>
+<td><code>Platform/</code></td>
+<td>窗口、时钟、进程、ImGui 后端等平台实现</td>
+</tr>
+</tbody>
+</table>
+<p>约定：</p>
+<ul>
+<li>高阶渲染（Renderer2D/3D、批处理、<code>SceneRenderer</code> 等）归 <strong>Module/Render</strong>，不堆在内核。</li>
+<li>领域资产类型与 <strong>具体序列化逻辑</strong> 归各 Module（或 World 的 Scene/Prefab）；Resource 做公共管线与按类型/扩展名分发。</li>
+<li>平台专有 API 下沉到 <code>Platform/**</code>，上层（Editor / Scene / ScriptGlue）不散落裸调用。</li>
+</ul>
 <hr />
-<h2 id="7">7) 渲染帧（编辑器视口）</h2>
+<h2 id="4-application">4) Application</h2>
+<h3 id="_2">职责</h3>
+<ul>
+<li>程序生命周期：窗口创建、Layer 栈、事件冒泡、主循环。</li>
+<li>持有 <strong>Application 级</strong> <code>ModuleRegistry</code>，对已注册 <code>IModule</code> 做 Init / Update / Shutdown。</li>
+<li>持有 <strong>当前 World</strong> 句柄（可热替换）；不把物理等世界系统挂在 Application 上。</li>
+</ul>
+<h3 id="_3">明确不负责</h3>
+<ul>
+<li>不知具体图形/窗口 API 细节（清屏、GLFW 直调等应在模块或 Platform）。</li>
+<li>不注册、不拥有 Project 业务细节。</li>
+<li>不直接 Init 各领域「单例式上帝启动器」。</li>
+</ul>
+<h3 id="application">当前 Application 级模块（注册次序）</h3>
 <ol>
-<li>根据视口尺寸 Resize 场景 FBO</li>
-<li><code>Renderer2D::BeginScene(camera)</code> 绘制精灵、UI 等</li>
-<li><code>EndScene</code>，将颜色附件交给 ImGui 显示</li>
-<li>Edit 模式下 ImGuizmo 操作选中实体 Transform</li>
+<li><code>ResourceModule</code> — 注册内置资产序列化器；Shutdown 时清理并 Unbind  </li>
+<li><code>RenderModule</code> — 图形初始化（需在窗口创建之后）  </li>
+<li><code>AudioModule</code>  </li>
+<li><code>ScriptModule</code> — CoreCLR / 脚本宿主寿命  </li>
 </ol>
-<p>（3D 网格、天空盒等能力因项目/scene 内容而异，2D 批处理为主路径。）</p>
+<p>实现见 <code>Engine/src/EngineCore/Core/Application.cpp</code>。</p>
 <hr />
-<h2 id="8">8) 构建与运行</h2>
-<p>见 <a href="../BuildingFromSource/">源码构建</a>。典型输出：</p>
+<h2 id="5-imodule-iworldmodule">5) 两级模块：IModule 与 IWorldModule</h2>
+<table>
+<thead>
+<tr>
+<th>级别</th>
+<th>接口 / 注册表</th>
+<th>例子</th>
+<th>谁 Tick</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Application 级</td>
+<td><code>IModule</code> + <code>ModuleRegistry</code></td>
+<td>Resource、Render、Audio、Script</td>
+<td>Application</td>
+</tr>
+<tr>
+<td>World 级</td>
+<td><code>IWorldModule</code> + <code>WorldModuleRegistry</code></td>
+<td>Physics2D、UI、动画、粒子、场景绘制、脚本 Update/FixedUpdate</td>
+<td>World（由调用方按阶段显式驱动）</td>
+</tr>
+</tbody>
+</table>
+<h3 id="world">更新顺序（World）</h3>
 <ul>
-<li><code>build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe</code></li>
+<li><strong>禁止</strong>用注册先后或 priority 数字决定跨阶段时序。</li>
+<li>调用方通过 <code>Update(WorldUpdatePhase)</code> <strong>枚举显式驱动</strong>；跨阶段顺序只认调用序列。</li>
+<li>同阶段内多模块保留稳定注册次序。</li>
+</ul>
+<p>当前阶段枚举（<code>World/WorldUpdatePhase.h</code>）：</p>
+<p><code>UserInterface</code> → <code>ScriptUpdate</code> → <code>Animation</code> → <code>Physics</code> → <code>ScriptFixedUpdate</code> → <code>Presentation</code> → <code>Render</code></p>
+<p>Runtime 帧由 <code>World::OnUpdateRuntime</code> 按上述顺序调用；Simulation 帧由 <code>World::OnUpdateSimulation</code> 使用子集（物理 → 动画 → ScriptFixedUpdate → Render）。细节见 <a href="../CoreSystems/EditorRuntime/">编辑器运行时</a>。</p>
+<h3 id="scene">换 Scene 与模块重建</h3>
+<p><code>World::SetActiveScene</code> 在活动场景变化时会 <code>TearDownModules</code> 再 <code>BuildModulesForActiveScene</code>：世界模块绑定具体 <code>Scene*</code>，因此每次打开/新建/Play 复制场景都会重新注册一轮 World 模块（日志中出现两次「registered」通常是启动空场景 + 随后加载项目场景，属预期行为）。</p>
+<hr />
+<h2 id="6-world-scene">6) World 与 Scene</h2>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>World</strong></td>
+<td>某个已打开 Project 的 <strong>运行时会话</strong>：世界模块表、阶段调度、当前活动 Scene</td>
+</tr>
+<tr>
+<td><strong>Scene / Level</strong></td>
+<td>可加载、可切换的场景切片；主要承载实体与关卡数据（<code>entt</code> + 组件）</td>
+</tr>
+</tbody>
+</table>
+<p>换 Scene 时重置/重建与关卡绑定的世界模块状态（如物理世界），而不必拆掉整个 Application。</p>
+<p>Scene 侧保留实体 API、视口尺寸、Runtime/Simulation 起停入口；世界绘制由 <code>SceneRenderer</code> 承担，经 <code>SceneRenderModule</code> 挂在 <code>WorldUpdatePhase::Render</code>。UI 推进经 <code>UserInterfaceModule</code>。</p>
+<hr />
+<h2 id="7-project">7) Project</h2>
+<ul>
+<li>Project 是 <strong>持久化工程描述</strong>（名称、资产目录、Start Scene、2D/3D 等配置）。</li>
+<li>与 World <strong>分目录、分寿命</strong>：编辑器可在未 Play 时编辑 Project；打开工程时读取并绑定资源。</li>
+<li><strong>不</strong>把 Project 元数据当作普通 Resource 资产（除非将来单独立项）。</li>
 </ul>
 <hr />
-<h2 id="9-opengl-glm-imgui">9) OpenGL / GLM / ImGui 速查</h2>
-<h3 id="opengl">OpenGL</h3>
+<h2 id="8-resource">8) Resource 与序列化边界</h2>
+<h3 id="resource">Resource 负责</h3>
 <ul>
-<li>透视：<code>glm::perspective(fovyRad, aspect, near, far)</code></li>
-<li>深度：常规 <code>GL_LESS</code>；天空盒可用 <code>GL_LEQUAL</code> + 关闭深度写</li>
-<li>FBO：颜色纹理 + 深度 RBO；Resize 时重建附件</li>
+<li>句柄、引用计数、加载/卸载调度。</li>
+<li>对外门面：<code>ResourceSystem</code>（Bind 的 <code>AssetManager</code> 为权威；提供 Get/Import/Registry 等糖衣）。</li>
+<li><code>AssetSerializerRegistry</code> / <code>IAssetSerializer</code>：按类型与扩展名分发。</li>
+<li>调用内核提供的基础 IO，不实现全套平台读写。</li>
 </ul>
-<h3 id="glm">GLM</h3>
+<h3 id="module-world">Module / World 负责</h3>
 <ul>
-<li><code>glm::lookAt</code>、<code>glm::radians</code> / <code>degrees</code></li>
-<li><code>#include &lt;glm/gtc/matrix_transform.hpp&gt;</code></li>
+<li><strong>具体序列化逻辑</strong>（字段、格式、领域不变量）写在各自模块内，初始化时向 Resource 注册。</li>
+<li>场景实体图由 <code>World/Scene/SceneSerializer</code> 读写 <code>.himii</code>（与资产注册表分工见 <a href="../CoreSystems/Serialization/">场景序列化</a>）。</li>
 </ul>
-<h3 id="imgui">ImGui</h3>
+<h3 id="_4">推荐数据流</h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>业务 → ResourceSystem 对外 API
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>         → 公共：IO / 句柄 / 引用计数 / 查注册表
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>         → Module（或 World）自己的 Serializer 实现
+</code></pre></div>
+<hr />
+<h2 id="9-module">9) 当前 Module 地图（骨架）</h2>
+<table>
+<thead>
+<tr>
+<th>路径</th>
+<th>内容（摘要）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Module/Audio/</code></td>
+<td>音频实现；<code>AudioModule : IModule</code></td>
+</tr>
+<tr>
+<td><code>Module/Render/</code></td>
+<td>Renderer2D/3D、<code>RenderModule</code>；<code>SceneRenderModule</code> + <code>SceneRenderer</code></td>
+</tr>
+<tr>
+<td><code>Module/Physics/</code></td>
+<td><code>Physics2DModule</code>、<code>Physics2DWorld</code></td>
+</tr>
+<tr>
+<td><code>Module/Animation/</code></td>
+<td>SpriteAnimation 资产/系统；<code>SpriteAnimationModule</code> → <code>Animation</code> 阶段</td>
+</tr>
+<tr>
+<td><code>Module/Particle/</code></td>
+<td>粒子资产/系统；<code>ParticleModule</code> → <code>Presentation</code></td>
+</tr>
+<tr>
+<td><code>Module/Script/</code></td>
+<td>ScriptEngine / Glue / Compiler；<code>ScriptUpdateModule</code> / <code>ScriptFixedUpdateModule</code></td>
+</tr>
+<tr>
+<td><code>Module/Tilemap/</code></td>
+<td>TileSet / TileMap 等</td>
+</tr>
+<tr>
+<td><code>Module/UserInterface/</code></td>
+<td><code>UserInterfaceModule</code>；场景 UI 实现</td>
+</tr>
+<tr>
+<td><code>Module/Resource/</code></td>
+<td><code>ResourceModule</code>：注册内置序列化器</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-himiieditor-himiiruntime">10) HimiiEditor 与 HimiiRuntime</h2>
 <ul>
-<li>Docking 布局；<code>ImGui::Image</code> 显示 FBO 时 UV 常为 <code>(0,1)-(1,0)</code> 翻转</li>
-<li>面板尺寸用 <code>GetContentRegionAvail()</code> 回传渲染层</li>
+<li><strong>HimiiEditor</strong>：<code>EditorLayer</code> + 各 Panel；持有 <code>World</code>，Edit / Play / Simulate 下切换活动 Scene 并调用 <code>World</code> 的 Runtime/Simulation API。</li>
+<li><strong>HimiiRuntime</strong>：无编辑器 UI 的启动器，同样经引擎模块与 World 跑场景。</li>
+<li><strong>ScriptCore</strong>：C# 侧 Entity、Input、Log、<code>InternalCalls</code> 等，供游戏程序集引用。</li>
 </ul>
 <hr />
-<h2 id="10">10) 延伸阅读</h2>
-<ul>
-<li><a href="../CoreSystems/Serialization/">场景序列化</a></li>
-<li><a href="../../Roadmap/">开发路线图</a></li>
-<li><a href="../../UserManual/ScriptingAPI/">用户手册：脚本 API</a></li>
-</ul>
-<hr />
-<blockquote>
-<p><strong>历史说明</strong>：仓库早期曾含 TemplateProject / CubeLayer 等 3D 地形演示，已移除。当前默认流程以 <code>HimiiEditor</code> + <code>Engine</code> + <code>ScriptCore</code> 为准。</p>
-</blockquote>
+<h2 id="_5">延伸阅读</h2>
+<table>
+<thead>
+<tr>
+<th>主题</th>
+<th>文档</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>编辑器主循环、Play / Simulate</td>
+<td><a href="../CoreSystems/EditorRuntime/">编辑器运行时</a></td>
+</tr>
+<tr>
+<td>脚本宿主与调用链</td>
+<td><a href="../CoreSystems/Scripting/">脚本系统（C++）</a></td>
+</tr>
+<tr>
+<td>日志与 Console</td>
+<td><a href="../CoreSystems/Logging/">日志数据流</a></td>
+</tr>
+<tr>
+<td>OpenGL / GLM / ImGui 速查</td>
+<td><a href="../CoreSystems/GraphicsNotes/">图形笔记</a></td>
+</tr>
+<tr>
+<td><code>.himii</code> 与资产序列化</td>
+<td><a href="../CoreSystems/Serialization/">场景序列化</a></td>
+</tr>
+<tr>
+<td>源码构建</td>
+<td><a href="../BuildingFromSource/">Building From Source</a></td>
+</tr>
+<tr>
+<td>用户：脚本 API</td>
+<td><a href="../../UserManual/ScriptingAPI/">Scripting API</a></td>
+</tr>
+<tr>
+<td>功能规划</td>
+<td><a href="../../Roadmap/">Roadmap</a></td>
+</tr>
+</tbody>
+</table>
 
 
 
