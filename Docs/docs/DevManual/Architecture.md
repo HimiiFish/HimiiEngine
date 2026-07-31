@@ -1,6 +1,8 @@
-# 技术总览（引擎与编辑器）
+# 架构概览（引擎与编辑器）
 
-本文档描述 Himii-Engine 当前的技术栈、仓库结构、核心子系统与典型数据流，供贡献者快速上手。
+本文档面向 **引擎源码贡献者**，描述 HimiiEngine 的目标分层、`Engine/src/` 目录地图、Application / Module / World / Resource / Project 边界，以及与编辑器、运行时的关系。
+
+用户侧入门请看 [快速开始](../UserManual/GettingStarted.md)。构建步骤见 [源码构建](BuildingFromSource.md)。帧循环、脚本宿主、日志与图形速查见 [核心系统](#延伸阅读)。
 
 ---
 
@@ -9,179 +11,193 @@
 | 类别 | 选型 |
 |------|------|
 | 语言 / 构建 | C++17、CMake、vcpkg 清单模式 |
-| 渲染 | OpenGL（GLAD）、GLM |
-| 窗口 / 输入 | GLFW |
-| UI | Dear ImGui（Docking）、ImGuizmo |
-| 物理 2D | Box2D v3 |
-| 脚本 | .NET 8、CoreCLR、`hostfxr`、可收集 ALC |
-| 序列化 | yaml-cpp |
+| 渲染 | OpenGL（GLAD）、GLM；经 `RendererAPI` 等抽象，平台实现在 `Platform/**` |
+| 窗口 / 输入 | 抽象 `Window` / `Input`；Windows 等后端在 `Platform/**`（如 GLFW） |
+| UI | Dear ImGui（Docking）、ImGuizmo；ImGui 平台后端在 `Platform/ImGui/` |
+| 物理 2D | Box2D v3（`Module/Physics`） |
+| 脚本 | .NET 8、CoreCLR、`hostfxr`、可收集 ALC（`Module/Script` + `ScriptCore`） |
+| 序列化 | yaml-cpp；场景见 `SceneSerializer`，资产见 `AssetSerializerRegistry` |
 | 日志 | spdlog + 编辑器 `ConsoleLog` 缓冲 |
 
 ---
 
-## 2) 仓库结构
+## 2) 目标分层（逻辑）
 
+```text
+Game / Gameplay
+Editor / Tools
+World / ECS          ← 项目运行时会话 + Scene/Level
+Module 子系统        ← Render | Physics | Audio | Animation …
+Resource             ← 句柄、引用计数、加载调度、序列化分发
+HimiiEngine 内核     ← Application、事件、数学、平台抽象入口
+Platform Abstraction
 ```
+
+仓库顶层：
+
+```text
 Himii-Engine/
-├── Engine/           # 静态库：Core、Renderer、Scene、Scripting、Physics…
-├── HimiiEditor/      # 编辑器可执行程序（Layer：EditorLayer + 各 Panel）
-├── HimiiRuntime/     # 无 UI 的运行时启动器
-├── ScriptCore/       # C# 脚本宿主 API（Entity、Input、Log、InternalCalls）
-├── Tools/            # 构建期工具（ResourcePacker → 胖/瘦 engine.hpck）
-├── cmake/            # Post-build 脚本（Editor / Runtime 输出目录 staging）
-├── Docs/docs/        # 用户 / 开发者文档
-├── HimiiEditor/assets/           # 编辑器附带资源（Debug 松散文件 / 打包输入）
-└── build/            # CMake 生成目录（x64-debug 等）
+├── Engine/           # 静态库（EngineCore / Module / World / Resource / Project / Platform）
+├── HimiiEditor/      # 编辑器可执行程序
+├── HimiiRuntime/     # 无编辑器 UI 的运行时启动器
+├── ScriptCore/       # C# 脚本宿主 API
+├── Tools/            # 构建期工具（如 ResourcePacker）
+├── cmake/            # Post-build staging
+├── Docs/docs/        # 用户手册 + 开发手册（发布到文档站点）
+└── build/            # CMake 生成目录（本地，不提交）
 ```
 
-> **说明**：早期示例工程 **TemplateProject**（CubeLayer 体素地形等）已不再作为默认产品入口；当前以 **HimiiEditor** 为主开发界面。
+命名空间目前仍为 `Himii`。对外 include 根为 `EngineCore/**`、`Module/**`、`Resource/**`、`World/**`、`Project/**`。
 
 ---
 
-## 3) 模块划分
+## 3) 目标目录（`Engine/src/`）
 
-### Core
+| 目录 | 职责 |
+|------|------|
+| `EngineCore/` | 内核：Application、Core、Events、Math、ImGui、基础工具；不含磁盘工程描述 |
+| `Module/` | 功能子系统（Audio、Render、Physics、Animation、Particle、Script、Tilemap、UserInterface、Resource 模块入口等） |
+| `World/` | World 会话、世界级模块表与阶段调度；`World/Scene/` 为关卡切片（实体、组件、场景序列化） |
+| `Resource/` | 资源门面、句柄与 AssetManager、序列化器注册表 |
+| `Project/` | 磁盘工程描述（`.hproj`、路径与层设置等），与 World 分目录、分寿命 |
+| `Platform/` | 窗口、时钟、进程、ImGui 后端等平台实现 |
 
-- `Application` / `LayerStack`：主循环、层生命周期
-- `Window` / `Input` / `Events`
-- `Log`：`Print`（带源码位置）、`PrintMessage`（脚本/分类消息）
-- `ConsoleLog`：线程安全环形缓冲，供编辑器 Console 面板读取
+约定：
 
-### Renderer
-
-- 抽象：`Renderer2D`、`Shader`、`Texture`、`Framebuffer`
-- 平台：`Platform/OpenGL` 实现
-- 编辑器视口：场景渲染到 FBO，ImGui `Image` 显示
-
-### Scene（ECS）
-
-- `entt::registry` + `Entity` 句柄
-- 组件：`Transform`、`SpriteRenderer`、`Camera`、`ScriptComponent`、2D 物理组件等
-- `SceneSerializer`：`.himii` 场景 YAML 读写
-- `OnRuntimeStart` / `OnSimulationStart`：脚本实例化、Box2D 世界创建
-
-### Scripting
-
-- **C++**：`ScriptEngine`（CoreCLR 宿主、实例表、`OnUpdate` / 碰撞分发）
-- **C++**：`ScriptGlue`（`NativeLog`、`Transform`、Input、Physics2D 等 native 函数表）
-- **C++**：`ScriptCompiler`（异步 `dotnet build`）、`ScriptIDELauncher`
-- **C#**：`ScriptManager`（加载 `GameAssembly`、实例生命周期）
-- **C#**：`ReflectionBridge`（Inspector 字段读写）
-- **C#**：`InternalCalls` + `NativeFunctionsMap` 互操作
-
-### HimiiEditor
-
-- `EditorLayer`：DockSpace、Play/Simulate/Stop、项目与场景 IO
-- 面板：Hierarchy、Content Browser、Console、Script Console、Preferences 等
+- 高阶渲染（Renderer2D/3D、批处理、`SceneRenderer` 等）归 **Module/Render**，不堆在内核。
+- 领域资产类型与 **具体序列化逻辑** 归各 Module（或 World 的 Scene/Prefab）；Resource 做公共管线与按类型/扩展名分发。
+- 平台专有 API 下沉到 `Platform/**`，上层（Editor / Scene / ScriptGlue）不散落裸调用。
 
 ---
 
-## 4) 应用生命周期
+## 4) Application
 
-1. `Log::Init`、窗口与 OpenGL、ImGui 初始化
-2. 压入 `EditorLayer`（及可选其他 Layer）
-3. 主循环：事件 → `OnUpdate` → ImGui → 呈现
-4. 退出时释放层与 CoreCLR 脚本实例
+### 职责
 
-**Play 模式**（`EditorLayer::StartScenePlay`）：
+- 程序生命周期：窗口创建、Layer 栈、事件冒泡、主循环。
+- 持有 **Application 级** `ModuleRegistry`，对已注册 `IModule` 做 Init / Update / Shutdown。
+- 持有 **当前 World** 句柄（可热替换）；不把物理等世界系统挂在 Application 上。
 
-1. `ConsoleLog::Clear`
-2. 复制 `EditorScene` → `ActiveScene`
-3. `Scene::OnRuntimeStart` → `ScriptEngine::OnRuntimeStart` → 各实体 `OnCreateEntity`
-4. 每帧：`OnUpdateRuntime`（脚本 `OnUpdate`、Box2D Step、接触事件 → `OnCollisionEnter2D/Exit2D`）
+### 明确不负责
 
-**Simulate**：仅 `OnPhysics2DStart` + 物理步进，不实例化游戏脚本。
+- 不知具体图形/窗口 API 细节（清屏、GLFW 直调等应在模块或 Platform）。
+- 不注册、不拥有 Project 业务细节。
+- 不直接 Init 各领域「单例式上帝启动器」。
+
+### 当前 Application 级模块（注册次序）
+
+1. `ResourceModule` — 注册内置资产序列化器；Shutdown 时清理并 Unbind  
+2. `RenderModule` — 图形初始化（需在窗口创建之后）  
+3. `AudioModule`  
+4. `ScriptModule` — CoreCLR / 脚本宿主寿命  
+
+实现见 `Engine/src/EngineCore/Core/Application.cpp`。
 
 ---
 
-## 5) 脚本加载与调用链
+## 5) 两级模块：IModule 与 IWorldModule
 
-```mermaid
-sequenceDiagram
-    participant Editor as HimiiEditor
-    participant SE as ScriptEngine
-    participant CLR as CoreCLR
-    participant SM as ScriptManager
-  Editor->>SE: LoadAssembly ScriptCore.dll
-  SE->>CLR: hostfxr + GetDelegate
-  Editor->>SE: LoadAppAssembly GameAssembly.dll
-  SE->>SM: LoadGameAssembly
-  Editor->>SE: OnCreateEntity
-  SE->>SM: InstantiateClass
-  loop每帧
-    Editor->>SE: OnUpdateScript
-    SE->>SM: OnUpdateInstance
-  end
+| 级别 | 接口 / 注册表 | 例子 | 谁 Tick |
+|------|----------------|------|---------|
+| Application 级 | `IModule` + `ModuleRegistry` | Resource、Render、Audio、Script | Application |
+| World 级 | `IWorldModule` + `WorldModuleRegistry` | Physics2D、UI、动画、粒子、场景绘制、脚本 Update/FixedUpdate | World（由调用方按阶段显式驱动） |
+
+### 更新顺序（World）
+
+- **禁止**用注册先后或 priority 数字决定跨阶段时序。
+- 调用方通过 `Update(WorldUpdatePhase)` **枚举显式驱动**；跨阶段顺序只认调用序列。
+- 同阶段内多模块保留稳定注册次序。
+
+当前阶段枚举（`World/WorldUpdatePhase.h`）：
+
+`UserInterface` → `ScriptUpdate` → `Animation` → `Physics` → `ScriptFixedUpdate` → `Presentation` → `Render`
+
+Runtime 帧由 `World::OnUpdateRuntime` 按上述顺序调用；Simulation 帧由 `World::OnUpdateSimulation` 使用子集（物理 → 动画 → ScriptFixedUpdate → Render）。细节见 [编辑器运行时](CoreSystems/EditorRuntime.md)。
+
+### 换 Scene 与模块重建
+
+`World::SetActiveScene` 在活动场景变化时会 `TearDownModules` 再 `BuildModulesForActiveScene`：世界模块绑定具体 `Scene*`，因此每次打开/新建/Play 复制场景都会重新注册一轮 World 模块（日志中出现两次「registered」通常是启动空场景 + 随后加载项目场景，属预期行为）。
+
+---
+
+## 6) World 与 Scene
+
+| 概念 | 含义 |
+|------|------|
+| **World** | 某个已打开 Project 的 **运行时会话**：世界模块表、阶段调度、当前活动 Scene |
+| **Scene / Level** | 可加载、可切换的场景切片；主要承载实体与关卡数据（`entt` + 组件） |
+
+换 Scene 时重置/重建与关卡绑定的世界模块状态（如物理世界），而不必拆掉整个 Application。
+
+Scene 侧保留实体 API、视口尺寸、Runtime/Simulation 起停入口；世界绘制由 `SceneRenderer` 承担，经 `SceneRenderModule` 挂在 `WorldUpdatePhase::Render`。UI 推进经 `UserInterfaceModule`。
+
+---
+
+## 7) Project
+
+- Project 是 **持久化工程描述**（名称、资产目录、Start Scene、2D/3D 等配置）。
+- 与 World **分目录、分寿命**：编辑器可在未 Play 时编辑 Project；打开工程时读取并绑定资源。
+- **不**把 Project 元数据当作普通 Resource 资产（除非将来单独立项）。
+
+---
+
+## 8) Resource 与序列化边界
+
+### Resource 负责
+
+- 句柄、引用计数、加载/卸载调度。
+- 对外门面：`ResourceSystem`（Bind 的 `AssetManager` 为权威；提供 Get/Import/Registry 等糖衣）。
+- `AssetSerializerRegistry` / `IAssetSerializer`：按类型与扩展名分发。
+- 调用内核提供的基础 IO，不实现全套平台读写。
+
+### Module / World 负责
+
+- **具体序列化逻辑**（字段、格式、领域不变量）写在各自模块内，初始化时向 Resource 注册。
+- 场景实体图由 `World/Scene/SceneSerializer` 读写 `.himii`（与资产注册表分工见 [场景序列化](CoreSystems/Serialization.md)）。
+
+### 推荐数据流
+
+```text
+业务 → ResourceSystem 对外 API
+         → 公共：IO / 句柄 / 引用计数 / 查注册表
+         → Module（或 World）自己的 Serializer 实现
 ```
 
-`ScriptGlue::GetNativeFunctions()` 填充 `ScriptEngineData`，经 `InternalCalls.Initialize` 绑定到 C# 委托（含 `NativeLog(level, msg)`）。
+---
+
+## 9) 当前 Module 地图（骨架）
+
+| 路径 | 内容（摘要） |
+|------|----------------|
+| `Module/Audio/` | 音频实现；`AudioModule : IModule` |
+| `Module/Render/` | Renderer2D/3D、`RenderModule`；`SceneRenderModule` + `SceneRenderer` |
+| `Module/Physics/` | `Physics2DModule`、`Physics2DWorld` |
+| `Module/Animation/` | SpriteAnimation 资产/系统；`SpriteAnimationModule` → `Animation` 阶段 |
+| `Module/Particle/` | 粒子资产/系统；`ParticleModule` → `Presentation` |
+| `Module/Script/` | ScriptEngine / Glue / Compiler；`ScriptUpdateModule` / `ScriptFixedUpdateModule` |
+| `Module/Tilemap/` | TileSet / TileMap 等 |
+| `Module/UserInterface/` | `UserInterfaceModule`；场景 UI 实现 |
+| `Module/Resource/` | `ResourceModule`：注册内置序列化器 |
 
 ---
 
-## 6) 日志数据流
+## 10) HimiiEditor 与 HimiiRuntime
 
-```mermaid
-flowchart LR
-    LogCS["C# Log.Info"]
-    NativeLog["ScriptGlue::NativeLog"]
-    PrintMsg["Log::PrintMessage"]
-    Spdlog["spdlog stdout"]
-    Buffer["ConsoleLog"]
-    Panel["ConsolePanel ImGui"]
-    LogCS --> NativeLog --> PrintMsg
-    PrintMsg --> Spdlog
-    PrintMsg --> Buffer --> Panel
-```
-
-引擎内部 `HIMII_*` 宏走 `Log::Print`，也会写入 `ConsoleLog`（source=`Engine`）；Console 面板默认仅显示 `Script`，可勾选 **Show Engine Logs**。
+- **HimiiEditor**：`EditorLayer` + 各 Panel；持有 `World`，Edit / Play / Simulate 下切换活动 Scene 并调用 `World` 的 Runtime/Simulation API。
+- **HimiiRuntime**：无编辑器 UI 的启动器，同样经引擎模块与 World 跑场景。
+- **ScriptCore**：C# 侧 Entity、Input、Log、`InternalCalls` 等，供游戏程序集引用。
 
 ---
 
-## 7) 渲染帧（编辑器视口）
+## 延伸阅读
 
-1. 根据视口尺寸 Resize 场景 FBO
-2. `Renderer2D::BeginScene(camera)` 绘制精灵、UI 等
-3. `EndScene`，将颜色附件交给 ImGui 显示
-4. Edit 模式下 ImGuizmo 操作选中实体 Transform
-
-（3D 网格、天空盒等能力因项目/scene 内容而异，2D 批处理为主路径。）
-
----
-
-## 8) 构建与运行
-
-见 [源码构建](BuildingFromSource.md)。典型输出：
-
-- `build/x64-debug/bin/HimiiEditor/Debug/HimiiEditor.exe`
-
----
-
-## 9) OpenGL / GLM / ImGui 速查
-
-### OpenGL
-
-- 透视：`glm::perspective(fovyRad, aspect, near, far)`
-- 深度：常规 `GL_LESS`；天空盒可用 `GL_LEQUAL` + 关闭深度写
-- FBO：颜色纹理 + 深度 RBO；Resize 时重建附件
-
-### GLM
-
-- `glm::lookAt`、`glm::radians` / `degrees`
-- `#include <glm/gtc/matrix_transform.hpp>`
-
-### ImGui
-
-- Docking 布局；`ImGui::Image` 显示 FBO 时 UV 常为 `(0,1)-(1,0)` 翻转
-- 面板尺寸用 `GetContentRegionAvail()` 回传渲染层
-
----
-
-## 10) 延伸阅读
-
-- [场景序列化](CoreSystems/Serialization.md)
-- [开发路线图](../Roadmap.md)
-- [用户手册：脚本 API](../UserManual/ScriptingAPI.md)
-
----
-
-> **历史说明**：仓库早期曾含 TemplateProject / CubeLayer 等 3D 地形演示，已移除。当前默认流程以 `HimiiEditor` + `Engine` + `ScriptCore` 为准。
+| 主题 | 文档 |
+|------|------|
+| 编辑器主循环、Play / Simulate | [编辑器运行时](CoreSystems/EditorRuntime.md) |
+| 脚本宿主与调用链 | [脚本系统（C++）](CoreSystems/Scripting.md) |
+| 日志与 Console | [日志数据流](CoreSystems/Logging.md) |
+| OpenGL / GLM / ImGui 速查 | [图形笔记](CoreSystems/GraphicsNotes.md) |
+| `.himii` 与资产序列化 | [场景序列化](CoreSystems/Serialization.md) |
+| 源码构建 | [Building From Source](BuildingFromSource.md) |
+| 用户：脚本 API | [Scripting API](../UserManual/ScriptingAPI.md) |
+| 功能规划 | [Roadmap](../Roadmap.md) |

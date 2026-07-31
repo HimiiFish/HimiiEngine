@@ -115,7 +115,7 @@ Animations:
 
 | 操作 | 行为 |
 |------|------|
-| Animation Editor 内 **Save** | 写入当前 `.anim` 并 **Import** 到 AssetManager |
+| Animation Editor 内 **Save** | 写入当前 `.anim` 并导入到项目资源库 |
 | 全局 **Ctrl+S**（保存工程） | 仅当 **已打开过磁盘上的 `.anim` 且内容有修改** 时才自动写入动画；**不会**为未保存的新动画弹出另存为 |
 | 首次保存新动画 | 在 Animation Editor 用 **Save As** 指定路径，或先 Save As 再使用 Ctrl+S |
 

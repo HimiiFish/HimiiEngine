@@ -1,11 +1,24 @@
 # 场景序列化（YAML）
 
-本文档描述 `.himii` 场景文件的序列化/反序列化设计，实现位于 `Engine/src/Himii/Scene/SceneSerializer.cpp`。
+本文档描述 `.himii` 场景文件的序列化/反序列化设计，实现位于 `Engine/src/World/Scene/SceneSerializer.cpp`。
 
 ## 目标
 
 - 将场景中实体与组件保存为可读 YAML（`.himii`）。
 - 支持从文件还原场景，并在编辑器中 **File → Open Scene** / **Save Scene As** 使用。
+
+## 场景 vs 资产序列化
+
+| 种类 | 典型扩展名 | 谁实现 | 谁分发 |
+|------|------------|--------|--------|
+| **场景实体图** | `.himii`（作为场景打开时） | `World/Scene/SceneSerializer` | 编辑器 / 项目 Start Scene 直接调用 |
+| **领域资产** | `.anim`、`.tileset`、`.tilemap`、`.particle`、纹理、字体、声音等 | 各 `Module/**` 内的 `IAssetSerializer` 实现 | `Resource/AssetSerializerRegistry`（`ResourceModule` 启动时注册） |
+
+- `ResourceSystem` 提供 Import / GetAsset / AssetRegistry 等门面；**具体字段格式**仍在 Module（或 Scene）序列化器中。
+- 扩展名到 `AssetType`、类型到反序列化实现的映射见 `Resource/BuiltinAssetSerializerRegistration.cpp`。
+- `.himii` 也可作为资产类型出现在注册表中；**编辑器打开场景**走的是 `SceneSerializer`，不要与「仅当资源导入」路径混淆。
+
+分层边界见 [架构概览 · Resource](../Architecture.md#8-resource-与序列化边界)。
 
 ## 文件格式概览
 
@@ -74,7 +87,7 @@ Entities:
 
 ## 动画资产（`.anim`）
 
-由 `AssetSerializer` / `SpriteAnimationSerializer` 读写，非场景 YAML 内嵌。
+由 `Module/Animation` 侧序列化器经 `AssetSerializerRegistry` 读写，非场景 YAML 内嵌。
 
 - 新格式：`AssetType: SpriteFrames`，`Animations[]` 每条含 `Name`、`FrameRate`、`LoopMode`、`AtlasFrameCoordinates`。
 - 旧格式：`AssetType: SpriteAnimation` 加载时迁移为单条 `default` 动画。
@@ -130,5 +143,7 @@ Entities:
 ## 代码索引
 
 - `SceneSerializer::Serialize` / `Deserialize` / `SerializeEntity` / `DeserializeEntity`
-- `Engine/src/Himii/Scene/Components.h`
-- `Engine/src/Himii/Scene/Scene.h`
+- `Engine/src/World/Scene/Components.h`
+- `Engine/src/World/Scene/Scene.h`
+- `Engine/src/Resource/AssetSerializerRegistry.h`、`IAssetSerializer.h`
+- `Engine/src/Resource/BuiltinAssetSerializerRegistration.cpp`
