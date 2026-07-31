@@ -7,7 +7,7 @@
 #include "EngineCore/Core/UUID.h"
 #include "World/Scene/Entity.h"
 #include "World/Scene/Scene.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 
 namespace Himii
 {

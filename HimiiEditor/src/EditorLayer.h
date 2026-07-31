@@ -14,7 +14,7 @@
 
 #include "EngineCore/Core/FileWatcher.h"
 #include "Module/Tilemap/TileMapCoordinateUtility.h"
-#include "Module/Render/EditorCamera.h"
+#include "Module/Render/Renderer/EditorCamera.h"
 #include "commands/EditorCommandHistory.h"
 #include "World/World.h"
 

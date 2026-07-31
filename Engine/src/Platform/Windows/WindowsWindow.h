@@ -1,7 +1,7 @@
 #pragma once
 #include "GLFW/glfw3.h"
 #include "EngineCore/Core/Window.h"
-#include "Module/Render/GraphicsContext.h"
+#include "Module/Render/RenderCore/GraphicsContext.h"
 
 namespace Himii
 {

@@ -2,8 +2,8 @@
 
 #include "EngineCore/Core/Core.h"
 #include "Resource/Asset.h"
-#include "Module/Render/OrthographicCamera.h"
-#include "Module/Render/Framebuffer.h"
+#include "Module/Render/Renderer/OrthographicCamera.h"
+#include "Module/Render/RenderCore/Framebuffer.h"
 #include "Module/Particle/ParticleEmitterAsset.h"
 #include "Module/Particle/ParticleSystem.h"
 

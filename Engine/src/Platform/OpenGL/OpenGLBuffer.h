@@ -1,5 +1,5 @@
 #pragma once
-#include "Module/Render/Buffer.h"
+#include "Module/Render/RenderCore/Buffer.h"
 
 namespace Himii
 {

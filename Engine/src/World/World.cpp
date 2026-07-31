@@ -5,7 +5,7 @@
 #include "Module/Animation/SpriteAnimationModule.h"
 #include "Module/Physics/Physics2DModule.h"
 #include "Module/Particle/ParticleModule.h"
-#include "Module/Render/SceneRenderModule.h"
+#include "Module/Render/Renderer/SceneRenderModule.h"
 #include "Module/Script/ScriptUpdateModule.h"
 #include "Module/Script/ScriptFixedUpdateModule.h"
 #include "Module/UserInterface/UserInterfaceModule.h"

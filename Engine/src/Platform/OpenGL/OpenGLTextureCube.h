@@ -1,4 +1,4 @@
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 
 namespace Himii
 {

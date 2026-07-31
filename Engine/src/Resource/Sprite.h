@@ -2,7 +2,7 @@
 
 #include "Resource/Asset.h"
 #include "EngineCore/Core/UUID.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 
 #include <array>
 #include <string>

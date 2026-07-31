@@ -1,7 +1,7 @@
 #include "Resource/AssetManager.h"
 #include "EngineCore/Core/Log.h"
 #include "Project/Project.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 #include "Resource/AssetSerializerRegistry.h"
 #include "Resource/TextureImportSerializer.h"
 #include "Resource/SpriteSheetUtility.h"

@@ -1,5 +1,5 @@
 #pragma once
-#include "Module/Render/Camera.h"
+#include "Module/Render/RenderCore/Camera.h"
 
 namespace Himii
 {

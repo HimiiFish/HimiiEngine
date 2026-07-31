@@ -6,7 +6,7 @@
 #include "EngineCore/Utils/PlatformClock.h"
 #include "EngineCore/Utils/PlatformUtils.h"
 #include "Module/Audio/AudioModule.h"
-#include "Module/Render/RenderModule.h"
+#include "Module/Render/Renderer/RenderModule.h"
 #include "Module/Resource/ResourceModule.h"
 #include "Module/Script/ScriptModule.h"
 #include "World/World.h"

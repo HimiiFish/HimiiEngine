@@ -1,6 +1,6 @@
 #pragma once
 #include "Resource/Asset.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 
 #include <filesystem>
 #include <functional>

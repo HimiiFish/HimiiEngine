@@ -7,12 +7,12 @@
 #include "Module/Animation/SpriteAnimationSystem.h"
 #include "Module/Particle/ParticleEmitterSystem.h"
 #include "Project/Project.h"
-#include "Module/Render/Renderer2D.h"
-#include "Module/Render/Renderer3D.h"
-#include "Module/Render/RenderCommand.h"
+#include "Module/Render/Renderer/Renderer2D.h"
+#include "Module/Render/Renderer/Renderer3D.h"
+#include "Module/Render/RHI/RenderCommand.h"
 #include "Module/Audio/AudioEngine.h"
 #include "Module/Audio/SoundPlayerUtility.h"
-#include "Module/Render/Font.h"
+#include "Module/Render/Renderer/Font.h"
 #include "Module/Particle/ParticleSystem.h"
 #include "Module/Script/ScriptEngine.h"
 #include "ScriptableEntity.h"
@@ -20,7 +20,7 @@
 #include "EngineCore/Core/Log.h"
 #include "World/World.h"
 #include "Module/Physics/Physics2DWorld.h"
-#include "Module/Render/SceneRenderer.h"
+#include "Module/Render/Renderer/SceneRenderer.h"
 
 #include <glm/glm.hpp>
 #include <memory>

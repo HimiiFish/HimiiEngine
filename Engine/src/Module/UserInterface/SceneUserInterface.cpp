@@ -3,9 +3,9 @@
 #include "Hepch.h"
 #include "World/Scene/Components.h"
 #include "World/Scene/SceneInternal.h"
-#include "Module/Render/Renderer2D.h"
-#include "Module/Render/RenderCommand.h"
-#include "Module/Render/Font.h"
+#include "Module/Render/Renderer/Renderer2D.h"
+#include "Module/Render/RHI/RenderCommand.h"
+#include "Module/Render/Renderer/Font.h"
 #include "Module/Script/ScriptEngine.h"
 #include "EngineCore/Core/Log.h"
 

@@ -1,9 +1,9 @@
 #pragma once
 #include "SceneCamera.h"
 #include "EngineCore/Core/UUID.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 #include "Module/Script/ScriptEngine.h"
-#include "Module/Render/Font.h"
+#include "Module/Render/Renderer/Font.h"
 #include "Module/Audio/SoundAsset.h"
 #include "Module/Audio/AudioEngine.h"
 #include "Resource/Sprite.h"

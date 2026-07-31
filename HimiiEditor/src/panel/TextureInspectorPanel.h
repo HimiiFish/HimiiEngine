@@ -3,7 +3,7 @@
 #include "EngineCore/Core/Core.h"
 #include "Resource/Asset.h"
 #include "Resource/Sprite.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 
 #include <glm/glm.hpp>
 

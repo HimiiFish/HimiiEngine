@@ -25,6 +25,7 @@ namespace Himii
 
         HIMII_CORE_ASSERT(false, "Unknown severity level!");
     }
+
     void OpenGLRendererAPI::Init()
     {
         HIMII_PROFILE_FUNCTION();
@@ -57,7 +58,8 @@ namespace Himii
         glDrawElements(GL_TRIANGLES, count, GL_UNSIGNED_INT, nullptr);
     }
 
-    void OpenGLRendererAPI::DrawIndexedInstanced(const Ref<VertexArray> &vertexArray, uint32_t indexCount, uint32_t instanceCount)
+    void OpenGLRendererAPI::DrawIndexedInstanced(
+            const Ref<VertexArray> &vertexArray, uint32_t indexCount, uint32_t instanceCount)
     {
         vertexArray->Bind();
         uint32_t count = indexCount ? indexCount : vertexArray->GetIndexBuffer()->GetCount();
@@ -67,7 +69,6 @@ namespace Himii
     void OpenGLRendererAPI::DrawArrays(const Ref<VertexArray> &vertexArray, uint32_t vertexCount)
     {
         vertexArray->Bind();
-        // 绘制非索引的三角形
         glDrawArrays(GL_TRIANGLES, 0, vertexCount);
     }
 
@@ -81,7 +82,7 @@ namespace Himii
     {
         glLineWidth(width);
     }
-    
+
     void OpenGLRendererAPI::SetDepthTest(bool enabled)
     {
         if (enabled)
@@ -89,18 +90,35 @@ namespace Himii
         else
             glDisable(GL_DEPTH_TEST);
     }
-    void OpenGLRendererAPI::SetDepthFunc(RendererAPI::DepthComp func)
+
+    void OpenGLRendererAPI::SetDepthFunc(RHI::DepthComp function)
     {
-        switch (func)
+        switch (function)
         {
-            case DepthComp::Never: glDepthFunc(GL_NEVER); break;
-            case DepthComp::Less: glDepthFunc(GL_LESS); break;
-            case DepthComp::Equal: glDepthFunc(GL_EQUAL); break;
-            case DepthComp::Lequal: glDepthFunc(GL_LEQUAL); break;
-            case DepthComp::Greater: glDepthFunc(GL_GREATER); break;
-            case DepthComp::Notequal: glDepthFunc(GL_NOTEQUAL); break;
-            case DepthComp::Gequal: glDepthFunc(GL_GEQUAL); break;
-            case DepthComp::Always: glDepthFunc(GL_ALWAYS); break;
+            case DepthComp::Never:
+                glDepthFunc(GL_NEVER);
+                break;
+            case DepthComp::Less:
+                glDepthFunc(GL_LESS);
+                break;
+            case DepthComp::Equal:
+                glDepthFunc(GL_EQUAL);
+                break;
+            case DepthComp::Lequal:
+                glDepthFunc(GL_LEQUAL);
+                break;
+            case DepthComp::Greater:
+                glDepthFunc(GL_GREATER);
+                break;
+            case DepthComp::Notequal:
+                glDepthFunc(GL_NOTEQUAL);
+                break;
+            case DepthComp::Gequal:
+                glDepthFunc(GL_GEQUAL);
+                break;
+            case DepthComp::Always:
+                glDepthFunc(GL_ALWAYS);
+                break;
         }
     }
 
@@ -109,9 +127,9 @@ namespace Himii
         glDepthMask(enabled ? GL_TRUE : GL_FALSE);
     }
 
-    void OpenGLRendererAPI::SetCullMode(RendererAPI::CullMode mode)
+    void OpenGLRendererAPI::SetCullMode(RHI::CullMode mode)
     {
-        if (mode == RendererAPI::CullMode::None)
+        if (mode == RHI::CullMode::None)
         {
             glDisable(GL_CULL_FACE);
             return;
@@ -120,10 +138,17 @@ namespace Himii
         glEnable(GL_CULL_FACE);
         switch (mode)
         {
-            case CullMode::Front: glCullFace(GL_FRONT); break;
-            case CullMode::Back: glCullFace(GL_BACK); break;
-            case CullMode::FrontAndBack: glCullFace(GL_FRONT_AND_BACK); break;
-            case CullMode::None: break;
+            case CullMode::Front:
+                glCullFace(GL_FRONT);
+                break;
+            case CullMode::Back:
+                glCullFace(GL_BACK);
+                break;
+            case CullMode::FrontAndBack:
+                glCullFace(GL_FRONT_AND_BACK);
+                break;
+            case CullMode::None:
+                break;
         }
     }
-} // namespace Himii
+}

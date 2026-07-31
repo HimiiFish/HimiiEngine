@@ -13,7 +13,7 @@
 #include "Resource/ResourceSystem.h"
 #include "ProjectBuildPipeline.h"
 
-#include "Module/Render/Renderer3D.h"
+#include "Module/Render/Renderer/Renderer3D.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -25,12 +25,12 @@
 #include "EditorExternalFileDrop.h"
 #include "TilemapEditorUtility.h"
 #include "Resource/SpriteSheetUtility.h"
-#include "Module/Render/SpriteRendererUtility.h"
+#include "Module/Render/Renderer/SpriteRendererUtility.h"
 #include "Module/Tilemap/TileSet.h"
 #include "Module/Tilemap/TileMapCoordinateUtility.h"
 #include "Module/Tilemap/TilemapColliderBuilder.h"
 #include "EngineCore/ImGui/ImGuiLayer.h"
-#include "Module/Render/Renderer.h"
+#include "Module/Render/Renderer/Renderer.h"
 #include <algorithm>
 #include <array>
 #include <filesystem>

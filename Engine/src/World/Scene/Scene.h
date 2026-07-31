@@ -6,9 +6,9 @@
 #include <vector>
 #include "EngineCore/Core/Timestep.h"
 #include "EngineCore/Core/UUID.h"
-#include "Module/Render/EditorCamera.h"
+#include "Module/Render/Renderer/EditorCamera.h"
 #include "World/Scene/SceneCamera.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 #include "World/WorldModuleRegistry.h"
 
 #include "Module/Particle/ParticleSystem.h"

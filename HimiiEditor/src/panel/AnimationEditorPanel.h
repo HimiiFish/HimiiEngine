@@ -1,7 +1,7 @@
 #pragma once
 
 #include "EngineCore/Core/Core.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 #include "Module/Animation/SpriteAnimation.h"
 
 #include <imgui.h>

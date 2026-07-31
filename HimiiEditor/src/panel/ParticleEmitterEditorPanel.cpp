@@ -10,9 +10,9 @@
 #include "Resource/AssetSerializer.h"
 #include "Project/Project.h"
 #include "Resource/ResourceSystem.h"
-#include "Module/Render/Renderer2D.h"
-#include "Module/Render/RenderCommand.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/Renderer/Renderer2D.h"
+#include "Module/Render/RHI/RenderCommand.h"
+#include "Module/Render/RenderCore/Texture.h"
 #include "EngineCore/Core/Log.h"
 #include "Module/Particle/ParticleSystem.h"
 

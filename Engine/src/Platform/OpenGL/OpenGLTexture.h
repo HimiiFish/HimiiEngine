@@ -1,5 +1,5 @@
 #pragma once
-#include "Module/Render/Texture.h"
+#include "Module/Render/RenderCore/Texture.h"
 
 #include "glad/glad.h"
 

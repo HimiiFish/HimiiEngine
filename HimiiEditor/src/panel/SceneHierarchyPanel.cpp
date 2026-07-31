@@ -7,7 +7,7 @@
 #include "World/Scene/PrefabSerializer.h"
 #include "EngineCore/Utils/PlatformUtils.h"
 #include "Resource/AssetManager.h"
-#include "Module/Render/Font.h"
+#include "Module/Render/Renderer/Font.h"
 #include "EngineCore/Core/Log.h"
 
 #include "panel/ComponentInspector/ComponentInspectorDrawContext.h"

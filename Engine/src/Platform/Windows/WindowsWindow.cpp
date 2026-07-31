@@ -3,7 +3,7 @@
 #include "EngineCore/Core/Input.h"
 #include "EngineCore/Core/FileSystem.h"
 #include "EngineCore/Core/Log.h"
-#include "Platform/OpenGL/OpenGLContext.h"
+#include "Module/Render/RHI/RHI.h"
 
 #include "EngineCore/Events/ApplicationEvent.h"
 #include "EngineCore/Events/KeyEvent.h"
@@ -113,7 +113,7 @@ namespace Himii
             return;
         }
 
-        m_Context = CreateScope<OpenGLContext>(m_Window);
+        m_Context = RHI::CreateGraphicsContext(m_Window);
         m_Context->Init();
 
 #ifdef HIMII_PLATFORM_WINDOWS

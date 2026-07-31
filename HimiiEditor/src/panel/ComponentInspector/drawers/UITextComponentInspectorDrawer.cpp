@@ -3,7 +3,7 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
-#include "Module/Render/Font.h"
+#include "Module/Render/Renderer/Font.h"
 #include "World/Scene/Components.h"
 
 #include <imgui.h>

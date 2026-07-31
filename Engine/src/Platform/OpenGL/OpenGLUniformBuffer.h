@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Module/Render/UniformBuffer.h"
+#include "Module/Render/RenderCore/UniformBuffer.h"
 
 namespace Himii
 {

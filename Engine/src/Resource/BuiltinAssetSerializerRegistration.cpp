@@ -5,8 +5,8 @@
 #include "Module/Animation/SpriteAnimationSerializer.h"
 #include "Module/Audio/SoundAsset.h"
 #include "Module/Particle/ParticleEmitterAssetSerializer.h"
-#include "Module/Render/Font.h"
-#include "Module/Render/Texture.h"
+#include "Module/Render/Renderer/Font.h"
+#include "Module/Render/RenderCore/Texture.h"
 #include "Module/Tilemap/TileMapDataSerializer.h"
 #include "Module/Tilemap/TileSetSerializer.h"
 
