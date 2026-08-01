@@ -37,11 +37,15 @@ endif()
 
 himii_set_output_dirs(HimiiEditor)
 
-set_target_properties(HimiiEditor PROPERTIES
-    OUTPUT_NAME_RELEASE "HimiiEngine"
-    OUTPUT_NAME_RELWITHDEBINFO "HimiiEngine"
-    OUTPUT_NAME_MINSIZEREL "HimiiEngine"
-)
+# Windows Release 产物品牌名为 HimiiEngine.exe，与 HimiiEngine/ 数据目录可共存；
+# Linux 可执行文件无扩展名，若同名则与 HimiiEngine/ 数据目录冲突，故保持 HimiiEditor。
+if(WIN32)
+    set_target_properties(HimiiEditor PROPERTIES
+        OUTPUT_NAME_RELEASE "HimiiEngine"
+        OUTPUT_NAME_RELWITHDEBINFO "HimiiEngine"
+        OUTPUT_NAME_MINSIZEREL "HimiiEngine"
+    )
+endif()
 
 add_dependencies(HimiiEditor PackEngineResources HimiiRuntime)
 
