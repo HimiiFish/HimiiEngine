@@ -5,6 +5,10 @@
 #include "Module/Animation/SpriteAnimationSerializer.h"
 #include "Module/Audio/SoundAsset.h"
 #include "Module/Particle/ParticleEmitterAssetSerializer.h"
+#include "Module/Render/Mesh/MaterialAsset.h"
+#include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Render/Mesh/MeshAsset.h"
+#include "Module/Render/Mesh/MeshAssetSerializer.h"
 #include "Module/Render/Renderer/Font.h"
 #include "Module/Render/RenderCore/Texture.h"
 #include "Module/Tilemap/TileMapDataSerializer.h"
@@ -93,6 +97,9 @@ namespace Himii
         AssetSerializerRegistry::RegisterExtension(".wav", AssetType::SoundAsset);
         AssetSerializerRegistry::RegisterExtension(".ogg", AssetType::SoundAsset);
         AssetSerializerRegistry::RegisterExtension(".mp3", AssetType::SoundAsset);
+        AssetSerializerRegistry::RegisterExtension(".glb", AssetType::Mesh);
+        AssetSerializerRegistry::RegisterExtension(".gltf", AssetType::Mesh);
+        AssetSerializerRegistry::RegisterExtension(".hmaterial", AssetType::Material);
 
         AssetSerializerRegistry::Register(CreateScope<Texture2DAssetSerializer>());
         AssetSerializerRegistry::Register(CreateScope<FontAssetSerializer>());
@@ -109,5 +116,11 @@ namespace Himii
         AssetSerializerRegistry::Register(
                 CreateScope<FunctionAssetSerializer<ParticleEmitterAsset, AssetType::ParticleEmitter>>(
                         &ParticleEmitterAssetSerializer::Deserialize));
+        AssetSerializerRegistry::Register(
+                CreateScope<FunctionAssetSerializer<MeshAsset, AssetType::Mesh>>(
+                        &MeshAssetSerializer::Deserialize));
+        AssetSerializerRegistry::Register(
+                CreateScope<FunctionAssetSerializer<MaterialAsset, AssetType::Material>>(
+                        &MaterialAssetSerializer::Deserialize));
     }
 }

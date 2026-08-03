@@ -16,6 +16,9 @@
 #include "Module/Render/RenderCore/Shader.h"
 #include "Module/Render/RenderCore/UniformBuffer.h"
 #include "Module/Render/RenderCore/VertexArray.h"
+#include "Module/Render/Mesh/MeshAsset.h"
+#include "Module/Render/Mesh/MaterialAsset.h"
+#include "Resource/ResourceSystem.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 
@@ -80,7 +83,19 @@ namespace Himii
         uint32_t CapsuleVertexCount = 0; // Added for stats
 
         // Shader (Shared)
-        Ref<Shader> CubeShader; 
+        Ref<Shader> CubeShader;
+        Ref<Shader> MeshUnlitShader;
+        Ref<Texture2D> WhiteTexture;
+        struct MeshUnlitData
+        {
+            glm::mat4 Transform{1.0f};
+            glm::vec4 AlbedoColor{1.0f};
+            int UseAlbedoTexture = 0;
+            int EntityID = -1;
+            int Padding0 = 0;
+            int Padding1 = 0;
+        };
+        Ref<UniformBuffer> MeshUnlitUniformBuffer; 
 
         // Resources
         Ref<VertexArray> SkyboxVAO;
@@ -199,7 +214,20 @@ namespace Himii
         s_Data.CubeVAO->SetIndexBuffer(cubeIB);
 
         s_Data.CubeShader = Shader::Create("assets/shaders/Renderer3D_Cube.glsl");
+        s_Data.MeshUnlitShader = Shader::Create("assets/shaders/Renderer3D_MeshUnlit.glsl");
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer3DData::CameraData), 0);
+        s_Data.MeshUnlitUniformBuffer =
+                UniformBuffer::Create(sizeof(Renderer3DData::MeshUnlitData), 3);
+
+        {
+            TextureSpecification whiteSpecification;
+            whiteSpecification.Width = 1;
+            whiteSpecification.Height = 1;
+            whiteSpecification.Format = ImageFormat::RGBA8;
+            s_Data.WhiteTexture = Texture2D::Create(whiteSpecification);
+            uint32_t whitePixel = 0xffffffff;
+            s_Data.WhiteTexture->SetData(&whitePixel, sizeof(uint32_t));
+        }
 
         // 3. Plane Setup
         s_Data.PlaneVAO = VertexArray::Create();
@@ -575,6 +603,77 @@ namespace Himii
         s_Data.Stats.QuadCount++;
         s_Data.Stats.TotalVertexCount += 4;
         s_Data.Stats.TotalIndexCount += 6;
+    }
+
+    void Renderer3D::DrawMeshAsset(const Ref<MeshAsset> &meshAsset,
+                                   const std::vector<AssetHandle> &materialAssetHandles,
+                                   const glm::mat4 &transform, const glm::vec4 &colorTint,
+                                   int entityID)
+    {
+        if (!meshAsset || !s_Data.MeshUnlitShader)
+            return;
+
+        meshAsset->EnsureGpuResources();
+        const auto &gpuSubmeshes = meshAsset->GetGpuSubmeshes();
+        if (gpuSubmeshes.empty())
+            return;
+
+        Flush();
+
+        s_Data.MeshUnlitShader->Bind();
+        s_Data.CameraUniformBuffer->Bind();
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+
+        for (const MeshSubmeshGpu &gpuSubmesh : gpuSubmeshes)
+        {
+            glm::vec4 albedoColor = colorTint;
+            Ref<Texture2D> albedoTexture = s_Data.WhiteTexture;
+            int useAlbedoTexture = 0;
+
+            AssetHandle materialHandle = 0;
+            if (gpuSubmesh.MaterialSlotIndex < materialAssetHandles.size())
+                materialHandle = materialAssetHandles[gpuSubmesh.MaterialSlotIndex];
+            else if (gpuSubmesh.MaterialSlotIndex < meshAsset->DefaultMaterialHandles.size())
+                materialHandle = meshAsset->DefaultMaterialHandles[gpuSubmesh.MaterialSlotIndex];
+
+            if (materialHandle != 0 && assetManager)
+            {
+                Ref<Asset> materialBase = assetManager->GetAsset(materialHandle);
+                if (materialBase && materialBase->GetType() == AssetType::Material)
+                {
+                    Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
+                    albedoColor = materialAsset->AlbedoColor * colorTint;
+                    if (materialAsset->AlbedoTextureHandle != 0)
+                    {
+                        Ref<Asset> textureBase = assetManager->GetAsset(materialAsset->AlbedoTextureHandle);
+                        if (textureBase && textureBase->GetType() == AssetType::Texture2D)
+                        {
+                            albedoTexture = std::static_pointer_cast<Texture2D>(textureBase);
+                            useAlbedoTexture = 1;
+                        }
+                    }
+                }
+            }
+
+            Renderer3DData::MeshUnlitData meshUnlitData;
+            meshUnlitData.Transform = transform;
+            meshUnlitData.AlbedoColor = albedoColor;
+            meshUnlitData.UseAlbedoTexture = useAlbedoTexture;
+            meshUnlitData.EntityID = entityID;
+            s_Data.MeshUnlitUniformBuffer->SetData(&meshUnlitData, sizeof(Renderer3DData::MeshUnlitData));
+            s_Data.MeshUnlitUniformBuffer->Bind();
+
+            if (albedoTexture)
+                albedoTexture->Bind(0);
+
+            gpuSubmesh.VertexArray->Bind();
+            RenderCommand::DrawIndexed(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount);
+            s_Data.Stats.DrawCalls++;
+            s_Data.Stats.TotalIndexCount += gpuSubmesh.IndexCount;
+        }
+
+        StartBatch();
     }
 
     void Renderer3D::DrawGrid(const EditorCamera &camera, bool xyPlane) { 

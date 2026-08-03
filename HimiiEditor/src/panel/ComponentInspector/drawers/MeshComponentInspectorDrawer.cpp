@@ -3,35 +3,121 @@
 #include "panel/ComponentInspector/ComponentInspectorRegistry.h"
 #include "InspectorControls.h"
 
+#include "Module/Render/Mesh/MeshAsset.h"
+#include "Project/Project.h"
+#include "Resource/ResourceSystem.h"
 #include "World/Scene/Components.h"
+
+#include <imgui.h>
+#include <string>
 
 namespace Himii
 {
-    static void DrawMeshComponentInspectorUI(ComponentInspectorDrawContext& drawContext)
+    static std::string ResolveAssetDisplayName(AssetHandle handle, const char *emptyHint)
+    {
+        if (handle == 0)
+            return emptyHint;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager || !assetManager->IsAssetHandleValid(handle))
+            return "Missing Asset";
+
+        const auto &registry = assetManager->GetAssetRegistry();
+        auto iterator = registry.find(handle);
+        if (iterator == registry.end())
+            return "Missing Asset";
+
+        return iterator->second.FilePath.filename().string();
+    }
+
+    static void ApplyDefaultMaterialsFromMesh(MeshComponent &component)
+    {
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager || component.MeshAssetHandle == 0)
+            return;
+
+        Ref<Asset> meshBase = assetManager->GetAsset(component.MeshAssetHandle);
+        if (!meshBase || meshBase->GetType() != AssetType::Mesh)
+            return;
+
+        Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
+        component.MaterialAssetHandles = meshAsset->DefaultMaterialHandles;
+    }
+
+    static void DrawMeshComponentInspectorUI(ComponentInspectorDrawContext &drawContext)
     {
         if (!drawContext.entity.HasComponent<MeshComponent>())
             return;
 
-        auto& component = drawContext.entity.GetComponent<MeshComponent>();
+        auto &component = drawContext.entity.GetComponent<MeshComponent>();
         Ref<Texture2D> icon =
-            drawContext.getComponentIcon ? drawContext.getComponentIcon("Mesh Renderer") : nullptr;
+                drawContext.getComponentIcon ? drawContext.getComponentIcon("Mesh Renderer") : nullptr;
 
         DrawComponentInspectorHeaderUI(
-            drawContext, "MeshComponent", "Mesh Renderer", icon,
-            [&]()
-            {
-                const char* meshTypeStrings[] = {"Cube", "Plane", "Sphere", "Capsule"};
-                int meshTypeIndex = static_cast<int>(component.Type);
-                DrawEnumComboControl(
-                    "Mesh Type", meshTypeIndex, meshTypeStrings, 4,
-                    [&](int newIndex)
-                    {
-                        component.Type = static_cast<MeshComponent::MeshType>(newIndex);
-                    });
+                drawContext, "MeshComponent", "Mesh Renderer", icon,
+                [&]()
+                {
+                    const char *sourceStrings[] = {"Builtin", "Asset"};
+                    int sourceIndex = static_cast<int>(component.Source);
+                    DrawEnumComboControl(
+                            "Source", sourceIndex, sourceStrings, 2,
+                            [&](int newIndex)
+                            {
+                                component.Source = static_cast<MeshComponent::MeshSource>(newIndex);
+                            });
 
-                DrawColorControl("Color", component.Color);
-            },
-            [&]() { drawContext.entity.RemoveComponent<MeshComponent>(); });
+                    if (component.Source == MeshComponent::MeshSource::Builtin)
+                    {
+                        const char *meshTypeStrings[] = {"Cube", "Plane", "Sphere", "Capsule"};
+                        int meshTypeIndex = static_cast<int>(component.Type);
+                        DrawEnumComboControl(
+                                "Mesh Type", meshTypeIndex, meshTypeStrings, 4,
+                                [&](int newIndex)
+                                {
+                                    component.Type = static_cast<MeshComponent::MeshType>(newIndex);
+                                });
+                    }
+                    else
+                    {
+                        const std::string meshDisplayName =
+                                ResolveAssetDisplayName(component.MeshAssetHandle, "None (drag .glb/.gltf)");
+                        DrawObjectReferenceField(
+                                "Mesh", meshDisplayName.c_str(), component.MeshAssetHandle != 0, nullptr,
+                                [&]()
+                                {
+                                    component.MeshAssetHandle = 0;
+                                    component.MaterialAssetHandles.clear();
+                                },
+                                [&](const ImGuiPayload *payload)
+                                {
+                                    if (!AssignMeshAssetFromContentBrowserPayload(payload,
+                                                                                  component.MeshAssetHandle))
+                                        return false;
+                                    ApplyDefaultMaterialsFromMesh(component);
+                                    return true;
+                                });
+
+                        for (size_t materialIndex = 0; materialIndex < component.MaterialAssetHandles.size();
+                             ++materialIndex)
+                        {
+                            AssetHandle &materialHandle = component.MaterialAssetHandles[materialIndex];
+                            const std::string label = "Material " + std::to_string(materialIndex);
+                            const std::string materialDisplayName =
+                                    ResolveAssetDisplayName(materialHandle, "None (drag .hmaterial)");
+                            DrawObjectReferenceField(
+                                    label.c_str(), materialDisplayName.c_str(), materialHandle != 0, nullptr,
+                                    [&]() { materialHandle = 0; },
+                                    [&](const ImGuiPayload *payload)
+                                    {
+                                        return AssignMaterialAssetFromContentBrowserPayload(payload,
+                                                                                            materialHandle);
+                                    });
+                        }
+                    }
+
+                    DrawColorControl("Color", component.Color);
+                },
+                [&]() { drawContext.entity.RemoveComponent<MeshComponent>(); });
     }
 
     struct MeshComponentInspectorRegistrar
@@ -39,7 +125,7 @@ namespace Himii
         MeshComponentInspectorRegistrar()
         {
             ComponentInspectorRegistry::Get().RegisterComponentInspector<MeshComponent>(
-                "MeshComponent", "Mesh Renderer", "Mesh Renderer", 40, &DrawMeshComponentInspectorUI);
+                    "MeshComponent", "Mesh Renderer", "Mesh Renderer", 40, &DrawMeshComponentInspectorUI);
         }
     };
 

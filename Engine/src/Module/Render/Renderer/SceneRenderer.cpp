@@ -13,6 +13,7 @@
 #include "Module/Tilemap/TileSet.h"
 #include "Module/Tilemap/TileMapData.h"
 #include "Module/Particle/ParticleSystem.h"
+#include "Module/Render/Mesh/MeshAsset.h"
 
 #include <algorithm>
 #include <vector>
@@ -90,6 +91,20 @@ namespace Himii
                 {
                     const glm::mat4 worldTransform =
                             scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
+                    if (mesh.Source == MeshComponent::MeshSource::Asset && mesh.MeshAssetHandle != 0)
+                    {
+                        auto assetManager = ResourceSystem::GetAssetManager();
+                        if (!assetManager)
+                            return;
+                        Ref<Asset> meshBase = assetManager->GetAsset(mesh.MeshAssetHandle);
+                        if (!meshBase || meshBase->GetType() != AssetType::Mesh)
+                            return;
+                        Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
+                        Renderer3D::DrawMeshAsset(meshAsset, mesh.MaterialAssetHandles, worldTransform,
+                                                  mesh.Color, (int)entityHandle);
+                        return;
+                    }
+
                     if (mesh.Type == MeshComponent::MeshType::Cube)
                         Renderer3D::DrawCube(worldTransform, mesh.Color, (int)entityHandle);
                     else if (mesh.Type == MeshComponent::MeshType::Plane)
@@ -245,6 +260,20 @@ namespace Himii
                       {
                           const glm::mat4 worldTransform =
                                   scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
+                          if (mesh.Source == MeshComponent::MeshSource::Asset && mesh.MeshAssetHandle != 0)
+                          {
+                              auto assetManager = ResourceSystem::GetAssetManager();
+                              if (!assetManager)
+                                  return;
+                              Ref<Asset> meshBase = assetManager->GetAsset(mesh.MeshAssetHandle);
+                              if (!meshBase || meshBase->GetType() != AssetType::Mesh)
+                                  return;
+                              Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
+                              Renderer3D::DrawMeshAsset(meshAsset, mesh.MaterialAssetHandles, worldTransform,
+                                                        mesh.Color, (int)entityHandle);
+                              return;
+                          }
+
                           if (mesh.Type == MeshComponent::MeshType::Cube)
                               Renderer3D::DrawCube(worldTransform, mesh.Color, (int)entityHandle);
                           else if (mesh.Type == MeshComponent::MeshType::Plane)

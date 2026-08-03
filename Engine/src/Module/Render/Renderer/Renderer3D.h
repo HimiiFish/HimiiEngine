@@ -2,8 +2,13 @@
 #include "Module/Render/Renderer/EditorCamera.h"
 #include "Module/Render/RenderCore/Camera.h"
 #include "Module/Render/RenderCore/Texture.h"
+#include "Resource/Asset.h"
+
+#include <vector>
 
 namespace Himii {
+
+    class MeshAsset;
 
     class Renderer3D
     {
@@ -28,6 +33,12 @@ namespace Himii {
         static void DrawCapsule(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
 
         static void DrawPlane(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+
+        /// Phase 1：按 submesh 提交 Unlit 网格（使用 Material 反照色/贴图）。
+        static void DrawMeshAsset(const Ref<MeshAsset> &meshAsset,
+                                  const std::vector<AssetHandle> &materialAssetHandles,
+                                  const glm::mat4 &transform, const glm::vec4 &colorTint,
+                                  int entityID = -1);
 
         // Skybox
         static void DrawSkybox(const Ref<TextureCube> &cubemap, const Camera &camera, const glm::mat4 &cameraTransform);

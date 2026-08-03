@@ -19,7 +19,9 @@ namespace Himii {
         ParticleEmitter,
         Prefab,
         Font,
-        SoundAsset
+        SoundAsset,
+        Mesh,
+        Material
     };
 
     class Asset {
@@ -44,6 +46,8 @@ namespace Himii {
                 case AssetType::Prefab:          return "Prefab";
                 case AssetType::Font:            return "Font";
                 case AssetType::SoundAsset:      return "SoundAsset";
+                case AssetType::Mesh:            return "Mesh";
+                case AssetType::Material:        return "Material";
             }
             return "None";
         }
@@ -60,6 +64,8 @@ namespace Himii {
             if (assetType == "Prefab")          return AssetType::Prefab;
             if (assetType == "Font")            return AssetType::Font;
             if (assetType == "SoundAsset")      return AssetType::SoundAsset;
+            if (assetType == "Mesh")            return AssetType::Mesh;
+            if (assetType == "Material")        return AssetType::Material;
 
             return AssetType::None;
         }

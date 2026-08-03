@@ -351,8 +351,14 @@ namespace Himii
             out << YAML::Key << "MeshComponent";
             out << YAML::BeginMap;
             auto& mesh = entity.GetComponent<MeshComponent>();
+            out << YAML::Key << "Source" << YAML::Value << (int)mesh.Source;
             out << YAML::Key << "Type" << YAML::Value << (int)mesh.Type;
             out << YAML::Key << "Color" << YAML::Value << mesh.Color;
+            out << YAML::Key << "MeshAssetHandle" << YAML::Value << (uint64_t)mesh.MeshAssetHandle;
+            out << YAML::Key << "MaterialAssetHandles" << YAML::Value << YAML::BeginSeq;
+            for (AssetHandle materialHandle : mesh.MaterialAssetHandles)
+                out << (uint64_t)materialHandle;
+            out << YAML::EndSeq;
             out << YAML::EndMap;
         }
         if (entity.HasComponent<Rigidbody2DComponent>())
@@ -750,6 +756,16 @@ namespace Himii
             mc.Color = meshComponent["Color"].as<glm::vec4>();
             if (meshComponent["Type"])
                 mc.Type = (MeshComponent::MeshType)meshComponent["Type"].as<int>();
+            if (meshComponent["Source"])
+                mc.Source = (MeshComponent::MeshSource)meshComponent["Source"].as<int>();
+            if (meshComponent["MeshAssetHandle"])
+                mc.MeshAssetHandle = meshComponent["MeshAssetHandle"].as<uint64_t>();
+            if (meshComponent["MaterialAssetHandles"] && meshComponent["MaterialAssetHandles"].IsSequence())
+            {
+                mc.MaterialAssetHandles.clear();
+                for (const auto &handleNode : meshComponent["MaterialAssetHandles"])
+                    mc.MaterialAssetHandles.push_back(handleNode.as<uint64_t>());
+            }
         }
 
         auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

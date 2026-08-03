@@ -114,6 +114,12 @@ namespace Himii
     };
 
     struct MeshComponent {
+        enum class MeshSource
+        {
+            Builtin = 0,
+            Asset = 1
+        };
+
         enum class MeshType
         {
             Cube = 0,
@@ -121,9 +127,12 @@ namespace Himii
             Sphere = 2,
             Capsule = 3
         };
-        
+
+        MeshSource Source = MeshSource::Builtin;
         MeshType Type = MeshType::Cube;
         glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+        AssetHandle MeshAssetHandle = 0;
+        std::vector<AssetHandle> MaterialAssetHandles;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) = default;

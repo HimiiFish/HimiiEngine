@@ -714,6 +714,68 @@ namespace Himii
         return true;
     }
 
+    bool AssignMeshAssetFromContentBrowserPayload(const ImGuiPayload *payload, AssetHandle &meshAssetHandle)
+    {
+        if (!payload)
+            return false;
+
+        const wchar_t *relativePathWide = static_cast<const wchar_t *>(payload->Data);
+        std::filesystem::path relativePath(relativePathWide);
+        std::filesystem::path meshFilePath = Project::GetAssetDirectory() / relativePath;
+
+        if (!std::filesystem::exists(meshFilePath))
+            return false;
+
+        std::string extension = meshFilePath.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+        if (extension != ".glb" && extension != ".gltf")
+            return false;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return false;
+
+        const AssetHandle importedHandle = assetManager->ImportAsset(relativePath);
+        if (importedHandle == 0)
+            return false;
+
+        meshAssetHandle = importedHandle;
+        assetManager->SerializeAssetRegistry();
+        return true;
+    }
+
+    bool AssignMaterialAssetFromContentBrowserPayload(const ImGuiPayload *payload,
+                                                      AssetHandle &materialAssetHandle)
+    {
+        if (!payload)
+            return false;
+
+        const wchar_t *relativePathWide = static_cast<const wchar_t *>(payload->Data);
+        std::filesystem::path relativePath(relativePathWide);
+        std::filesystem::path materialFilePath = Project::GetAssetDirectory() / relativePath;
+
+        if (!std::filesystem::exists(materialFilePath))
+            return false;
+
+        std::string extension = materialFilePath.extension().string();
+        std::transform(extension.begin(), extension.end(), extension.begin(),
+                       [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+        if (extension != ".hmaterial")
+            return false;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return false;
+
+        const AssetHandle importedHandle = assetManager->ImportAsset(relativePath);
+        if (importedHandle == 0)
+            return false;
+
+        materialAssetHandle = importedHandle;
+        return true;
+    }
+
     void DrawObjectReferenceField(const char* label, const char* objectDisplayName, bool hasReference,
                                   const Ref<Texture2D>& previewTexture,
                                   const std::function<void()>& onClear,

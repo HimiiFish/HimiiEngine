@@ -2,6 +2,7 @@
 #include "EngineCore/Core/Log.h"
 #include "Project/Project.h"
 #include "Module/Render/RenderCore/Texture.h"
+#include "Module/Render/Mesh/GltfMeshImporter.h"
 #include "Resource/AssetSerializerRegistry.h"
 #include "Resource/TextureImportSerializer.h"
 #include "Resource/SpriteSheetUtility.h"
@@ -70,6 +71,8 @@ namespace Himii
 
             if (metadata.Type == AssetType::Texture2D)
                 EnsureDefaultTextureMeta(metadata.Handle);
+            else if (metadata.Type == AssetType::Mesh)
+                GltfMeshImporter::ImportCompanionAssets(*this, relativePath, metadata.Handle);
 
             return metadata.Handle;
         }

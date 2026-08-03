@@ -128,6 +128,10 @@ namespace Himii
     bool AssignParticleEmitterAssetFromContentBrowserPayload(const ImGuiPayload* payload,
                                                              AssetHandle& particleEmitterAssetHandle);
 
+    bool AssignMeshAssetFromContentBrowserPayload(const ImGuiPayload *payload, AssetHandle &meshAssetHandle);
+    bool AssignMaterialAssetFromContentBrowserPayload(const ImGuiPayload *payload,
+                                                      AssetHandle &materialAssetHandle);
+
     /**
      * 紧凑引用字段：缩略图 + 限宽名称 + 可选「打开 Editor」。
      * 行级 Reset（清空）在有引用时显示；onOpenEditor 同时用于双击与名称旁按钮。
