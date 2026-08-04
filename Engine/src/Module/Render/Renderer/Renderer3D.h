@@ -10,11 +10,24 @@ namespace Himii {
 
     class MeshAsset;
 
+    struct SceneLightingParameters
+    {
+        bool HasDirectionalLight = false;
+        /// 光线传播方向（从光源指向被照表面），由 Transform forward（局部 -Z）推导。
+        glm::vec3 DirectionalLightDirection{0.0f, -1.0f, 0.0f};
+        glm::vec3 DirectionalLightColor{1.0f, 1.0f, 1.0f};
+        float DirectionalLightIntensity = 1.0f;
+        glm::vec3 AmbientColor{0.0f, 0.0f, 0.0f};
+        float AmbientIntensity = 0.0f;
+    };
+
     class Renderer3D
     {
     public:
         static void Init();
         static void Shutdown();
+
+        static void SetSceneLighting(const SceneLightingParameters &parameters);
 
         static void BeginScene(const EditorCamera& camera);
         static void BeginScene(const Camera& camera, const glm::mat4& transform);
@@ -22,19 +35,27 @@ namespace Himii {
 
         static void Flush();
 
-        // Primitives
+        // Primitives（Color 为 Albedo；无材质时由调用方传入默认 Specular/Shininess）
         static void DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color, int entityID = -1);
-        static void DrawCube(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+        static void DrawCube(const glm::mat4& transform, const glm::vec4& color, int entityID = -1,
+                             float specular = 0.5f, float shininess = 32.0f,
+                             const Ref<Texture2D> &albedoTexture = nullptr);
 
         static void DrawSphere(const glm::vec3& position, float radius, const glm::vec4& color, int entityID = -1);
-        static void DrawSphere(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+        static void DrawSphere(const glm::mat4& transform, const glm::vec4& color, int entityID = -1,
+                               float specular = 0.5f, float shininess = 32.0f,
+                               const Ref<Texture2D> &albedoTexture = nullptr);
 
         static void DrawCapsule(const glm::vec3& position, float radius, float height, const glm::vec4& color, int entityID = -1);
-        static void DrawCapsule(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+        static void DrawCapsule(const glm::mat4& transform, const glm::vec4& color, int entityID = -1,
+                                float specular = 0.5f, float shininess = 32.0f,
+                                const Ref<Texture2D> &albedoTexture = nullptr);
 
-        static void DrawPlane(const glm::mat4& transform, const glm::vec4& color, int entityID = -1);
+        static void DrawPlane(const glm::mat4& transform, const glm::vec4& color, int entityID = -1,
+                              float specular = 0.5f, float shininess = 32.0f,
+                              const Ref<Texture2D> &albedoTexture = nullptr);
 
-        /// Phase 1：按 submesh 提交 Unlit 网格（使用 Material 反照色/贴图）。
+        /// 按 submesh 提交网格；默认 Lit，材质标记 Unlit 时走 Unlit 回退。
         static void DrawMeshAsset(const Ref<MeshAsset> &meshAsset,
                                   const std::vector<AssetHandle> &materialAssetHandles,
                                   const glm::mat4 &transform, const glm::vec4 &colorTint,
@@ -70,6 +91,8 @@ namespace Himii {
     private:
         static void StartBatch();
         static void NextBatch();
+        static void UploadCameraAndLighting();
+        static float ResolveTextureIndex(const Ref<Texture2D> &albedoTexture);
     };
 
 }

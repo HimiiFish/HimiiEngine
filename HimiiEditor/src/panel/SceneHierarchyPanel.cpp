@@ -272,6 +272,8 @@ namespace Himii
                 DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
                 DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
                 DisplayAddComponentEntry<MeshComponent>("Mesh Renderer");
+                DisplayAddComponentEntry<LightComponent>("Light");
+                DisplayAddComponentEntry<EnvironmentComponent>("Environment");
                 DisplayAddComponentEntry<TilemapComponent>("Tilemap");
                 DisplayAddComponentEntry<TilemapCollider2DComponent>("Tilemap Collider 2D");
                 DisplayAddComponentEntry<ParticleEmitterComponent>("Particle Emitter");
@@ -439,6 +441,8 @@ namespace Himii
             DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
             DisplayAddComponentEntry<SpriteAnimationComponent>("Sprite Animation");
             DisplayAddComponentEntry<MeshComponent>("Mesh Renderer");
+            DisplayAddComponentEntry<LightComponent>("Light");
+            DisplayAddComponentEntry<EnvironmentComponent>("Environment");
             DisplayAddComponentEntry<TilemapComponent>("Tilemap");
             DisplayAddComponentEntry<TilemapCollider2DComponent>("Tilemap Collider 2D");
             DisplayAddComponentEntry<ParticleEmitterComponent>("Particle Emitter");
@@ -475,6 +479,11 @@ namespace Himii
         componentInspectorDrawContext.requestParticleEmitterEditor = [this](AssetHandle handle)
         {
             m_ParticleEmitterEditorRequest = handle;
+        };
+
+        componentInspectorDrawContext.requestMaterialEditor = [this](AssetHandle handle)
+        {
+            m_MaterialEditorRequest = handle;
         };
 
         componentInspectorDrawContext.requestAnimationEditor =

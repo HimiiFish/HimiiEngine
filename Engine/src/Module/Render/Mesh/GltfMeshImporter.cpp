@@ -152,12 +152,16 @@ namespace Himii
         {
             Ref<MaterialAsset> materialAsset = CreateRef<MaterialAsset>();
             materialAsset->Handle = AssetHandle();
+            materialAsset->ShadingMode = MaterialShadingMode::Lit;
+            materialAsset->Specular = 0.5f;
+            materialAsset->Shininess = 32.0f;
 
             if (data->materials_count > 0)
             {
                 const cgltf_material &material = data->materials[materialIndex];
                 if (material.has_pbr_metallic_roughness)
                 {
+                    // Phase 1：仅 baseColor → Albedo；metallic/roughness 不参与着色。
                     const cgltf_float *factor = material.pbr_metallic_roughness.base_color_factor;
                     materialAsset->AlbedoColor = {factor[0], factor[1], factor[2], factor[3]};
                     materialAsset->AlbedoTextureHandle =

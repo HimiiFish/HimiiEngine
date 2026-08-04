@@ -50,6 +50,13 @@ namespace Himii
             return handle;
         }
 
+        AssetHandle GetMaterialEditorRequest()
+        {
+            AssetHandle handle = m_MaterialEditorRequest;
+            m_MaterialEditorRequest = 0;
+            return handle;
+        }
+
         std::filesystem::path GetAnimationEditorRequest()
         {
             std::filesystem::path path = m_AnimationEditorRequest;
@@ -73,6 +80,7 @@ namespace Himii
         AssetHandle m_TileMapEditorRequest = 0;
         AssetHandle m_ParticleEmitterEditorRequest = 0;
         AssetHandle m_TextureInspectorRequest = 0;
+        AssetHandle m_MaterialEditorRequest = 0;
         std::filesystem::path m_AnimationEditorRequest;
 
         EditorCommandHistory* m_CommandHistory = nullptr;

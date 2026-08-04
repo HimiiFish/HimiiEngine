@@ -10,6 +10,7 @@
 #include "panel/EditorPreferencesPanel.h"
 #include "panel/ProjectSettingsPanel.h"
 #include "panel/TextureInspectorPanel.h"
+#include "panel/MaterialEditorPanel.h"
 #include "panel/FontDiagnosticsPanel.h"
 
 #include "EngineCore/Core/FileWatcher.h"
@@ -183,6 +184,9 @@ namespace Himii
 
         TextureInspectorPanel m_TextureInspectorPanel;
         bool m_ShowTextureInspector = false;
+
+        MaterialEditorPanel m_MaterialEditorPanel;
+        bool m_ShowMaterialEditor = false;
 
         FontDiagnosticsPanel m_FontDiagnosticsPanel;
         bool m_ShowFontDiagnostics = false;

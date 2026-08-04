@@ -14,6 +14,7 @@
 #include "Module/Tilemap/TileMapData.h"
 #include "Module/Particle/ParticleSystem.h"
 #include "Module/Render/Mesh/MeshAsset.h"
+#include "Module/Render/Mesh/MaterialAsset.h"
 
 #include <algorithm>
 #include <vector>
@@ -29,6 +30,115 @@ namespace Himii
             TransformComponent *Transform = nullptr;
             SpriteRendererComponent *Sprite = nullptr;
         };
+
+        struct BuiltinSurfaceParameters
+        {
+            glm::vec4 AlbedoColor{1.0f};
+            float Specular = 0.5f;
+            float Shininess = 32.0f;
+            Ref<Texture2D> AlbedoTexture;
+        };
+
+        glm::vec3 GetTransformForwardDirection(const glm::mat4 &worldTransform)
+        {
+            const glm::vec3 forwardAxis = -glm::vec3(worldTransform[2]);
+            const float lengthSquared = glm::dot(forwardAxis, forwardAxis);
+            if (lengthSquared < 1e-8f)
+                return glm::vec3(0.0f, -1.0f, 0.0f);
+            return glm::normalize(forwardAxis);
+        }
+
+        SceneLightingParameters GatherSceneLighting(Scene &scene)
+        {
+            SceneLightingParameters parameters{};
+
+            auto lightView = scene.Registry().view<TransformComponent, LightComponent>();
+            for (auto entityHandle : lightView)
+            {
+                const LightComponent &light = lightView.get<LightComponent>(entityHandle);
+                if (!light.Enabled || light.Type != LightType::Directional)
+                    continue;
+
+                const glm::mat4 worldTransform =
+                        scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
+                parameters.HasDirectionalLight = true;
+                parameters.DirectionalLightDirection = GetTransformForwardDirection(worldTransform);
+                parameters.DirectionalLightColor = glm::vec3(light.Color);
+                parameters.DirectionalLightIntensity = light.Intensity;
+                break;
+            }
+
+            auto environmentView = scene.Registry().view<EnvironmentComponent>();
+            for (auto entityHandle : environmentView)
+            {
+                const EnvironmentComponent &environment =
+                        environmentView.get<EnvironmentComponent>(entityHandle);
+                if (!environment.Enabled)
+                    continue;
+
+                parameters.AmbientColor = glm::vec3(environment.AmbientColor);
+                parameters.AmbientIntensity = environment.AmbientIntensity;
+                break;
+            }
+
+            if (!parameters.HasDirectionalLight)
+            {
+                parameters.AmbientColor = glm::vec3(0.0f);
+                parameters.AmbientIntensity = 0.0f;
+            }
+
+            return parameters;
+        }
+
+        BuiltinSurfaceParameters ResolveBuiltinSurface(const MeshComponent &mesh)
+        {
+            BuiltinSurfaceParameters surface;
+            surface.AlbedoColor = mesh.Color;
+
+            if (mesh.MaterialAssetHandles.empty())
+                return surface;
+
+            auto assetManager = ResourceSystem::GetAssetManager();
+            if (!assetManager)
+                return surface;
+
+            const AssetHandle materialHandle = mesh.MaterialAssetHandles.front();
+            if (materialHandle == 0)
+                return surface;
+
+            Ref<Asset> materialBase = assetManager->GetAsset(materialHandle);
+            if (!materialBase || materialBase->GetType() != AssetType::Material)
+                return surface;
+
+            Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
+            surface.AlbedoColor = materialAsset->AlbedoColor;
+            surface.Specular = materialAsset->Specular;
+            surface.Shininess = materialAsset->Shininess;
+            if (materialAsset->AlbedoTextureHandle != 0)
+            {
+                Ref<Asset> textureBase = assetManager->GetAsset(materialAsset->AlbedoTextureHandle);
+                if (textureBase && textureBase->GetType() == AssetType::Texture2D)
+                    surface.AlbedoTexture = std::static_pointer_cast<Texture2D>(textureBase);
+            }
+            return surface;
+        }
+
+        void DrawBuiltinMesh(const MeshComponent &mesh, const glm::mat4 &worldTransform, int entityIdentifier)
+        {
+            const BuiltinSurfaceParameters surface = ResolveBuiltinSurface(mesh);
+            if (mesh.Type == MeshComponent::MeshType::Cube)
+                Renderer3D::DrawCube(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
+                                     surface.Shininess, surface.AlbedoTexture);
+            else if (mesh.Type == MeshComponent::MeshType::Plane)
+                Renderer3D::DrawPlane(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
+                                      surface.Shininess, surface.AlbedoTexture);
+            else if (mesh.Type == MeshComponent::MeshType::Sphere)
+                Renderer3D::DrawSphere(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
+                                       surface.Shininess, surface.AlbedoTexture);
+            else if (mesh.Type == MeshComponent::MeshType::Capsule)
+                Renderer3D::DrawCapsule(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
+                                        surface.Shininess, surface.AlbedoTexture);
+        }
 
         void DrawSpriteRenderersSorted(Scene *scene, entt::registry &registry, AssetManager *assetManager)
         {
@@ -62,6 +172,32 @@ namespace Himii
                                        static_cast<int>(entry.EntityHandle));
             }
         }
+
+        void DrawMeshComponents(Scene &scene)
+        {
+            auto meshView = scene.Registry().view<TransformComponent, MeshComponent>();
+            meshView.each(
+                    [&](entt::entity entityHandle, TransformComponent &, MeshComponent &mesh)
+                    {
+                        const glm::mat4 worldTransform =
+                                scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
+                        if (mesh.Source == MeshComponent::MeshSource::Asset && mesh.MeshAssetHandle != 0)
+                        {
+                            auto assetManager = ResourceSystem::GetAssetManager();
+                            if (!assetManager)
+                                return;
+                            Ref<Asset> meshBase = assetManager->GetAsset(mesh.MeshAssetHandle);
+                            if (!meshBase || meshBase->GetType() != AssetType::Mesh)
+                                return;
+                            Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
+                            Renderer3D::DrawMeshAsset(meshAsset, mesh.MaterialAssetHandles, worldTransform,
+                                                      mesh.Color, (int)entityHandle);
+                            return;
+                        }
+
+                        DrawBuiltinMesh(mesh, worldTransform, (int)entityHandle);
+                    });
+        }
     }
 
     bool SceneRenderer::RenderGameWorld(Scene &scene, uint32_t targetWidth, uint32_t targetHeight)
@@ -78,6 +214,7 @@ namespace Himii
         const glm::mat4 cameraTransform = scene.GetEntityWorldTransformMatrix(cameraEntity);
 
         RenderCommand::SetDepthTest(true);
+        Renderer3D::SetSceneLighting(GatherSceneLighting(scene));
         Renderer3D::BeginScene(cameraComponent.Camera, cameraTransform);
         const bool isTwoDimensional =
                 Project::GetActive() && Project::GetActive()->GetConfig().Is2D;
@@ -85,35 +222,7 @@ namespace Himii
             Renderer3D::DrawSkybox(
                     scene.m_SkyboxTexture, cameraComponent.Camera, cameraTransform);
 
-        auto meshView = scene.m_Registry.view<TransformComponent, MeshComponent>();
-        meshView.each(
-                [&](entt::entity entityHandle, TransformComponent &, MeshComponent &mesh)
-                {
-                    const glm::mat4 worldTransform =
-                            scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
-                    if (mesh.Source == MeshComponent::MeshSource::Asset && mesh.MeshAssetHandle != 0)
-                    {
-                        auto assetManager = ResourceSystem::GetAssetManager();
-                        if (!assetManager)
-                            return;
-                        Ref<Asset> meshBase = assetManager->GetAsset(mesh.MeshAssetHandle);
-                        if (!meshBase || meshBase->GetType() != AssetType::Mesh)
-                            return;
-                        Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
-                        Renderer3D::DrawMeshAsset(meshAsset, mesh.MaterialAssetHandles, worldTransform,
-                                                  mesh.Color, (int)entityHandle);
-                        return;
-                    }
-
-                    if (mesh.Type == MeshComponent::MeshType::Cube)
-                        Renderer3D::DrawCube(worldTransform, mesh.Color, (int)entityHandle);
-                    else if (mesh.Type == MeshComponent::MeshType::Plane)
-                        Renderer3D::DrawPlane(worldTransform, mesh.Color, (int)entityHandle);
-                    else if (mesh.Type == MeshComponent::MeshType::Sphere)
-                        Renderer3D::DrawSphere(worldTransform, mesh.Color, (int)entityHandle);
-                    else if (mesh.Type == MeshComponent::MeshType::Capsule)
-                        Renderer3D::DrawCapsule(worldTransform, mesh.Color, (int)entityHandle);
-                });
+        DrawMeshComponents(scene);
         Renderer3D::EndScene();
 
         RenderCommand::SetDepthTest(true);
@@ -246,6 +355,7 @@ namespace Himii
         Renderer2D::EndScene();
 
         {
+            Renderer3D::SetSceneLighting(GatherSceneLighting(scene));
             Renderer3D::BeginScene(camera);
 
             bool isTwoDimensional = false;
@@ -255,34 +365,7 @@ namespace Himii
             if (scene.m_SkyboxTexture && !isTwoDimensional)
                 Renderer3D::DrawSkybox(scene.m_SkyboxTexture, camera);
 
-            auto view = scene.m_Registry.view<TransformComponent, MeshComponent>();
-            view.each([&](entt::entity entityHandle, TransformComponent &, MeshComponent &mesh)
-                      {
-                          const glm::mat4 worldTransform =
-                                  scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
-                          if (mesh.Source == MeshComponent::MeshSource::Asset && mesh.MeshAssetHandle != 0)
-                          {
-                              auto assetManager = ResourceSystem::GetAssetManager();
-                              if (!assetManager)
-                                  return;
-                              Ref<Asset> meshBase = assetManager->GetAsset(mesh.MeshAssetHandle);
-                              if (!meshBase || meshBase->GetType() != AssetType::Mesh)
-                                  return;
-                              Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
-                              Renderer3D::DrawMeshAsset(meshAsset, mesh.MaterialAssetHandles, worldTransform,
-                                                        mesh.Color, (int)entityHandle);
-                              return;
-                          }
-
-                          if (mesh.Type == MeshComponent::MeshType::Cube)
-                              Renderer3D::DrawCube(worldTransform, mesh.Color, (int)entityHandle);
-                          else if (mesh.Type == MeshComponent::MeshType::Plane)
-                              Renderer3D::DrawPlane(worldTransform, mesh.Color, (int)entityHandle);
-                          else if (mesh.Type == MeshComponent::MeshType::Sphere)
-                              Renderer3D::DrawSphere(worldTransform, mesh.Color, (int)entityHandle);
-                          else if (mesh.Type == MeshComponent::MeshType::Capsule)
-                              Renderer3D::DrawCapsule(worldTransform, mesh.Color, (int)entityHandle);
-                      });
+            DrawMeshComponents(scene);
             Renderer3D::EndScene();
         }
     }

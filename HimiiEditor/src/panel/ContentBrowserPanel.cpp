@@ -5,6 +5,8 @@
 #include "Resource/ResourceSystem.h"
 #include "Resource/AssetManager.h"
 #include "Resource/SpriteSheetUtility.h"
+#include "Module/Render/Mesh/MaterialAsset.h"
+#include "Module/Render/Mesh/MaterialAssetSerializer.h"
 #include "EngineCore/Utils/PlatformUtils.h"
 #include "EngineCore/Core/Log.h"
 
@@ -274,7 +276,9 @@ namespace Himii
             ImGui::Separator();
 
             static bool openCreateScriptPopup = false;
+            static bool openCreateMaterialPopup = false;
             static char scriptName[128] = "NewScript";
+            static char materialName[128] = "NewMaterial";
 
             if (ImGui::BeginDragDropTarget())
             {
@@ -293,6 +297,8 @@ namespace Himii
             {
                 if (ImGui::MenuItem("Create C# Script"))
                     openCreateScriptPopup = true;
+                if (ImGui::MenuItem("Create Material"))
+                    openCreateMaterialPopup = true;
                 if (ImGui::MenuItem("Import Asset..."))
                 {
                     std::string selectedPath = FileDialog::OpenFile(
@@ -311,6 +317,8 @@ namespace Himii
 
             if (openCreateScriptPopup)
                 ImGui::OpenPopup("CreateScriptPopup");
+            if (openCreateMaterialPopup)
+                ImGui::OpenPopup("CreateMaterialPopup");
 
             if (ImGui::BeginPopupModal("CreateScriptPopup", &openCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize))
             {
@@ -329,6 +337,25 @@ namespace Himii
                 if (ImGui::Button("Cancel"))
                 {
                     openCreateScriptPopup = false;
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndPopup();
+            }
+
+            if (ImGui::BeginPopupModal("CreateMaterialPopup", &openCreateMaterialPopup, ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::InputText("Material Name", materialName, sizeof(materialName));
+                if (ImGui::Button("Create"))
+                {
+                    if (CreateMaterialAsset(m_CurrentDirectory, materialName))
+                        Refresh();
+                    openCreateMaterialPopup = false;
+                    ImGui::CloseCurrentPopup();
+                }
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel"))
+                {
+                    openCreateMaterialPopup = false;
                     ImGui::CloseCurrentPopup();
                 }
                 ImGui::EndPopup();
@@ -444,6 +471,15 @@ namespace Himii
                         else if (path.extension() == ".anim")
                         {
                             m_AnimationEditorRequest = Project::GetAssetFileSystemPath(relativePath);
+                        }
+                        else if (path.extension() == ".hmaterial")
+                        {
+                            if (auto assetManager = ResourceSystem::GetAssetManager())
+                            {
+                                const AssetHandle materialHandle = assetManager->ImportAsset(relativePath);
+                                if (materialHandle != 0)
+                                    m_MaterialEditorRequest = materialHandle;
+                            }
                         }
                     }
                     else if (thumbnailClicked)
@@ -653,6 +689,36 @@ namespace Himii
         file << "}\n";
         file.close();
 
+        return true;
+    }
+
+    bool ContentBrowserPanel::CreateMaterialAsset(const std::filesystem::path &directory,
+                                                  const std::string &materialName)
+    {
+        if (materialName.empty() || !Project::GetActive())
+            return false;
+
+        const std::filesystem::path absoluteMaterialPath = directory / (materialName + ".hmaterial");
+        if (std::filesystem::exists(absoluteMaterialPath))
+            return false;
+
+        Ref<MaterialAsset> materialAsset = CreateRef<MaterialAsset>();
+        materialAsset->ShadingMode = MaterialShadingMode::Lit;
+        MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return true;
+
+        const std::filesystem::path relativeMaterialPath =
+                std::filesystem::relative(absoluteMaterialPath, Project::GetAssetDirectory());
+        const AssetHandle materialHandle = assetManager->ImportAsset(relativeMaterialPath.generic_string());
+        if (materialHandle != 0)
+        {
+            materialAsset->Handle = materialHandle;
+            MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
+            assetManager->SerializeAssetRegistry();
+        }
         return true;
     }
 } // namespace Himii

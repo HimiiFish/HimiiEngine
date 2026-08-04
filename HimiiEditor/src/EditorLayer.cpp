@@ -570,6 +570,7 @@ namespace Himii
                 m_ProjectSettingsPanel.OnImGuiRender(&m_ShowProjectSettings);
             m_AnimationEditorPanel.OnImGuiRender(m_ShowAnimationEditorPanel);
             m_TextureInspectorPanel.OnImGuiRender(m_ShowTextureInspector);
+            m_MaterialEditorPanel.OnImGuiRender(m_ShowMaterialEditor);
             m_TileMapEditorPanel.OnImGuiRender(m_ShowTileMapEditor);
             UpdateTilemapPaintSession();
             m_ParticleEmitterEditorPanel.OnImGuiRender(m_ShowParticleEmitterEditor);
@@ -604,6 +605,15 @@ namespace Himii
             {
                 m_ShowParticleEmitterEditor = true;
                 m_ParticleEmitterEditorPanel.Open(peEditorRequest);
+            }
+
+            AssetHandle materialEditorRequest = m_SceneHierarchyPanel.GetMaterialEditorRequest();
+            if (materialEditorRequest == 0)
+                materialEditorRequest = m_ContentBrowserPanel.GetMaterialEditorRequest();
+            if (materialEditorRequest != 0)
+            {
+                m_ShowMaterialEditor = true;
+                m_MaterialEditorPanel.SetMaterialHandle(materialEditorRequest);
             }
 
             ImGui::Begin("Stats");
@@ -1693,6 +1703,7 @@ namespace Himii
         {
             ImGui::MenuItem("Animation Editor", nullptr, &m_ShowAnimationEditorPanel);
             ImGui::MenuItem("Texture Inspector", nullptr, &m_ShowTextureInspector);
+            ImGui::MenuItem("Material Editor", nullptr, &m_ShowMaterialEditor);
             ImGui::MenuItem("TileMap Setup", nullptr, &m_ShowTileMapEditor);
             ImGui::MenuItem("Particle Emitter Editor", nullptr, &m_ShowParticleEmitterEditor);
             ImGui::MenuItem("Script Console", nullptr, &m_ShowScriptConsole);
@@ -1726,6 +1737,9 @@ namespace Himii
 
         if (m_TextureInspectorPanel.SaveActiveTextureMeta())
             HIMII_CORE_INFO("Build Project: texture import meta saved.");
+
+        if (m_MaterialEditorPanel.SaveActiveMaterialAsset())
+            HIMII_CORE_INFO("Build Project: material asset saved.");
 
         if (m_TileMapEditorPanel.SaveActiveTileMapAssets())
             HIMII_CORE_INFO("Build Project: TileMap assets saved.");
@@ -1987,6 +2001,26 @@ namespace Himii
 
         if (m_SkyboxTexture)
             m_ActiveScene->SetSkybox(m_SkyboxTexture);
+
+        const bool isTwoDimensional =
+                Project::GetActive() && Project::GetActive()->GetConfig().Is2D;
+        if (!isTwoDimensional)
+        {
+            Entity lightEntity = m_ActiveScene->CreateEntity("Directional Light");
+            auto &lightTransform = lightEntity.GetComponent<TransformComponent>();
+            lightTransform.Rotation = glm::radians(glm::vec3(50.0f, -30.0f, 0.0f));
+            auto &lightComponent = lightEntity.AddComponent<LightComponent>();
+            lightComponent.Type = LightType::Directional;
+            lightComponent.Color = glm::vec4(1.0f);
+            lightComponent.Intensity = 1.0f;
+            lightComponent.Enabled = true;
+
+            Entity environmentEntity = m_ActiveScene->CreateEntity("Environment");
+            auto &environmentComponent = environmentEntity.AddComponent<EnvironmentComponent>();
+            environmentComponent.AmbientColor = glm::vec4(1.0f);
+            environmentComponent.AmbientIntensity = 0.15f;
+            environmentComponent.Enabled = true;
+        }
 
         m_SceneHierarchyPanel.SetContext(m_ActiveScene);
 
@@ -2308,6 +2342,11 @@ namespace Himii
         if (m_TextureInspectorPanel.SaveActiveTextureMeta())
         {
             HIMII_CORE_INFO("Texture import meta saved.");
+        }
+
+        if (m_MaterialEditorPanel.SaveActiveMaterialAsset())
+        {
+            HIMII_CORE_INFO("Material asset saved.");
         }
 
         if (m_TileMapEditorPanel.SaveActiveTileMapAssets())

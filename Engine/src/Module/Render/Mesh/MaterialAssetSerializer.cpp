@@ -30,9 +30,12 @@ namespace Himii
         emitter << YAML::BeginMap;
         emitter << YAML::Key << "AssetType" << YAML::Value << "Material";
         emitter << YAML::Key << "Handle" << YAML::Value << static_cast<uint64_t>(asset->Handle);
+        emitter << YAML::Key << "ShadingMode" << YAML::Value << static_cast<int>(asset->ShadingMode);
         WriteVector4(emitter, "AlbedoColor", asset->AlbedoColor);
         emitter << YAML::Key << "AlbedoTextureHandle" << YAML::Value
                 << static_cast<uint64_t>(asset->AlbedoTextureHandle);
+        emitter << YAML::Key << "Specular" << YAML::Value << asset->Specular;
+        emitter << YAML::Key << "Shininess" << YAML::Value << asset->Shininess;
         emitter << YAML::EndMap;
 
         std::ofstream outputFile(filepath);
@@ -62,9 +65,17 @@ namespace Himii
             Ref<MaterialAsset> asset = CreateRef<MaterialAsset>();
             if (data["Handle"])
                 asset->Handle = data["Handle"].as<uint64_t>();
+            if (data["ShadingMode"])
+                asset->ShadingMode = static_cast<MaterialShadingMode>(data["ShadingMode"].as<int>());
+            else
+                asset->ShadingMode = MaterialShadingMode::Lit;
             asset->AlbedoColor = ReadVector4(data, "AlbedoColor", {1.0f, 1.0f, 1.0f, 1.0f});
             if (data["AlbedoTextureHandle"])
                 asset->AlbedoTextureHandle = data["AlbedoTextureHandle"].as<uint64_t>();
+            if (data["Specular"])
+                asset->Specular = data["Specular"].as<float>();
+            if (data["Shininess"])
+                asset->Shininess = data["Shininess"].as<float>();
             return asset;
         }
         catch (const YAML::Exception &exception)

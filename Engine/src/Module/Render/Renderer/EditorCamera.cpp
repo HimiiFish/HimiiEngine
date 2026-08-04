@@ -122,7 +122,7 @@ namespace Himii
         if (m_IsActive)
         {
             glm::vec2 delta = is2D ? (mouse - m_InitialMousePosition)
-                                   : (mouse - m_InitialMousePosition) * 0.01f;
+                                   : (mouse - m_InitialMousePosition) * 0.003f;
             m_InitialMousePosition = mouse;
             
             if (is2D)
@@ -228,9 +228,17 @@ namespace Himii
 
     void EditorCamera::MouseRotate(const glm::vec2 &delta)
     {
-        float yawSign = GetUpDirection().y < 0 ? -1.0f : 1.0f;
-        m_Yaw += yawSign * delta.x * RotationSpeed();
+        // Look: rotate about the current camera position (not orbit around a floating focal point).
+        const glm::vec3 cameraPosition = m_FocalPoint - GetForwardDirection() * m_Distance;
+
+        m_Yaw += delta.x * RotationSpeed();
+        // Screen Y grows downward; mouse up should pitch up (matches orientation convention).
         m_Pitch += delta.y * RotationSpeed();
+
+        constexpr float pitchLimitRadians = glm::radians(89.0f);
+        m_Pitch = glm::clamp(m_Pitch, -pitchLimitRadians, pitchLimitRadians);
+
+        m_FocalPoint = cameraPosition + GetForwardDirection() * m_Distance;
     }
 
     void EditorCamera::MouseZoom(float delta)

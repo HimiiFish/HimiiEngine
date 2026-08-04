@@ -20,6 +20,7 @@
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Resource/ResourceSystem.h"
 
+#include <array>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace Himii
@@ -31,13 +32,10 @@ namespace Himii
         glm::vec2 TexCoord;
     };
 
-    // [修改] 实例数据 (Per Instance)
-    // [修改] 实例数据 (Per Instance)
     // Packed to 16-byte alignment to match OpenGL layout and avoid padding issues.
     struct InstanceData {
         glm::vec4 Color;
-        glm::vec4 CustomData; // x = TexIndex, y = EntityID, z/w = unused
-        // Transform Matrix (4x vec4)
+        glm::vec4 CustomData; // x = TexIndex, y = EntityID, z = Specular, w = Shininess
         glm::vec4 TransformRow0;
         glm::vec4 TransformRow1;
         glm::vec4 TransformRow2;
@@ -84,8 +82,23 @@ namespace Himii
 
         // Shader (Shared)
         Ref<Shader> CubeShader;
+        Ref<Shader> MeshLitShader;
         Ref<Shader> MeshUnlitShader;
         Ref<Texture2D> WhiteTexture;
+
+        static constexpr uint32_t MaxTextureSlots = 32;
+        std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
+        uint32_t TextureSlotIndex = 1;
+
+        struct MeshLitData
+        {
+            glm::mat4 Transform{1.0f};
+            glm::vec4 AlbedoColor{1.0f};
+            float Specular = 0.5f;
+            float Shininess = 32.0f;
+            int UseAlbedoTexture = 0;
+            int EntityID = -1;
+        };
         struct MeshUnlitData
         {
             glm::mat4 Transform{1.0f};
@@ -95,7 +108,7 @@ namespace Himii
             int Padding0 = 0;
             int Padding1 = 0;
         };
-        Ref<UniformBuffer> MeshUnlitUniformBuffer; 
+        Ref<UniformBuffer> MeshMaterialUniformBuffer;
 
         // Resources
         Ref<VertexArray> SkyboxVAO;
@@ -111,31 +124,44 @@ namespace Himii
         Ref<VertexBuffer> GridVBO;
         Ref<Shader> GridShader;
         struct GridData {
-            glm::mat4 View;
-            glm::mat4 Proj;
-            float Near;
-            float Far;
-        }; 
+            glm::mat4 View{1.0f};
+            glm::mat4 Proj{1.0f};
+            float Near = 0.1f;
+            float Far = 1000.0f;
+            float CameraDistance = 10.0f;
+            float UseXyPlane = 0.0f;
+        };
         Ref<UniformBuffer> GridUniformBuffer;
 
         Renderer3D::Statistics Stats;
 
         struct CameraData {
-            glm::mat4 ViewProjection;
+            glm::mat4 ViewProjection{1.0f};
+            glm::vec4 CameraPosition{0.0f};
         };
         CameraData CameraBuffer;
         Ref<UniformBuffer> CameraUniformBuffer;
+
+        struct SceneLightingData {
+            glm::vec4 DirectionalLightDirectionHasLight{0.0f, -1.0f, 0.0f, 0.0f};
+            glm::vec4 DirectionalLightColorIntensity{1.0f, 1.0f, 1.0f, 1.0f};
+            glm::vec4 AmbientColorIntensity{0.0f, 0.0f, 0.0f, 0.0f};
+        };
+        SceneLightingData LightingBuffer{};
+        Ref<UniformBuffer> SceneLightingUniformBuffer;
+        SceneLightingParameters CurrentLighting{};
     };
 
     static Renderer3DData s_Data;
 
-    static void AddInstance(InstanceData*& ptr, const glm::vec4& color, float texIndex, int entityID, const glm::mat4& transform)
+    static void AddInstance(InstanceData *&ptr, const glm::vec4 &color, float textureIndex, int entityID,
+                            float specular, float shininess, const glm::mat4 &transform)
     {
         ptr->Color = color;
-        ptr->CustomData.x = texIndex;
-        ptr->CustomData.y = (float)entityID;
-        ptr->CustomData.z = 0.0f; 
-        ptr->CustomData.w = 0.0f;
+        ptr->CustomData.x = textureIndex;
+        ptr->CustomData.y = static_cast<float>(entityID);
+        ptr->CustomData.z = specular;
+        ptr->CustomData.w = shininess;
         ptr->TransformRow0 = transform[0];
         ptr->TransformRow1 = transform[1];
         ptr->TransformRow2 = transform[2];
@@ -214,10 +240,13 @@ namespace Himii
         s_Data.CubeVAO->SetIndexBuffer(cubeIB);
 
         s_Data.CubeShader = Shader::Create("assets/shaders/Renderer3D_Cube.glsl");
+        s_Data.MeshLitShader = Shader::Create("assets/shaders/Renderer3D_MeshLit.glsl");
         s_Data.MeshUnlitShader = Shader::Create("assets/shaders/Renderer3D_MeshUnlit.glsl");
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer3DData::CameraData), 0);
-        s_Data.MeshUnlitUniformBuffer =
-                UniformBuffer::Create(sizeof(Renderer3DData::MeshUnlitData), 3);
+        s_Data.MeshMaterialUniformBuffer =
+                UniformBuffer::Create(sizeof(Renderer3DData::MeshLitData), 3);
+        s_Data.SceneLightingUniformBuffer =
+                UniformBuffer::Create(sizeof(Renderer3DData::SceneLightingData), 4);
 
         {
             TextureSpecification whiteSpecification;
@@ -387,21 +416,80 @@ namespace Himii
          // s_Data.InstanceBufferBase is handled by Scope
     }
 
-    // BeginScene, EndScene, StartBatch, Flush, NextBatch (保持不变)
+    void Renderer3D::SetSceneLighting(const SceneLightingParameters &parameters)
+    {
+        s_Data.CurrentLighting = parameters;
+        s_Data.LightingBuffer.DirectionalLightDirectionHasLight = glm::vec4(
+                parameters.DirectionalLightDirection,
+                parameters.HasDirectionalLight ? 1.0f : 0.0f);
+        s_Data.LightingBuffer.DirectionalLightColorIntensity =
+                glm::vec4(parameters.DirectionalLightColor, parameters.DirectionalLightIntensity);
+        if (parameters.HasDirectionalLight)
+        {
+            s_Data.LightingBuffer.AmbientColorIntensity =
+                    glm::vec4(parameters.AmbientColor, parameters.AmbientIntensity);
+        }
+        else
+        {
+            s_Data.LightingBuffer.AmbientColorIntensity = glm::vec4(0.0f);
+        }
+
+        if (s_Data.SceneLightingUniformBuffer)
+        {
+            s_Data.SceneLightingUniformBuffer->SetData(&s_Data.LightingBuffer,
+                                                      sizeof(Renderer3DData::SceneLightingData));
+            s_Data.SceneLightingUniformBuffer->Bind();
+        }
+    }
+
+    void Renderer3D::UploadCameraAndLighting()
+    {
+        s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer3DData::CameraData));
+        s_Data.CameraUniformBuffer->Bind();
+        if (s_Data.SceneLightingUniformBuffer)
+        {
+            s_Data.SceneLightingUniformBuffer->SetData(&s_Data.LightingBuffer,
+                                                      sizeof(Renderer3DData::SceneLightingData));
+            s_Data.SceneLightingUniformBuffer->Bind();
+        }
+    }
+
+    float Renderer3D::ResolveTextureIndex(const Ref<Texture2D> &albedoTexture)
+    {
+        if (!albedoTexture || albedoTexture == s_Data.WhiteTexture)
+            return 0.0f;
+
+        for (uint32_t slot = 1; slot < s_Data.TextureSlotIndex; ++slot)
+        {
+            if (s_Data.TextureSlots[slot] == albedoTexture)
+                return static_cast<float>(slot);
+        }
+
+        if (s_Data.TextureSlotIndex >= Renderer3DData::MaxTextureSlots)
+            NextBatch();
+
+        const float textureIndex = static_cast<float>(s_Data.TextureSlotIndex);
+        s_Data.TextureSlots[s_Data.TextureSlotIndex] = albedoTexture;
+        s_Data.TextureSlotIndex++;
+        return textureIndex;
+    }
+
     void Renderer3D::BeginScene(const EditorCamera &camera) {
         ResetStats(); 
         RenderCommand::SetDepthTest(true);
         RenderCommand::SetCullMode(RHI::CullMode::Back);
-        Renderer3DData::CameraData cameraData; cameraData.ViewProjection = camera.GetViewProjection();
-        s_Data.CameraUniformBuffer->SetData(&cameraData, sizeof(Renderer3DData::CameraData)); s_Data.CameraUniformBuffer->Bind();
+        s_Data.CameraBuffer.ViewProjection = camera.GetViewProjection();
+        s_Data.CameraBuffer.CameraPosition = glm::vec4(camera.GetPosition(), 1.0f);
+        UploadCameraAndLighting();
         StartBatch();
     }
     void Renderer3D::BeginScene(const Camera &camera, const glm::mat4 &transform) {
         ResetStats(); 
         RenderCommand::SetDepthTest(true);
         RenderCommand::SetCullMode(RHI::CullMode::Back);
-        Renderer3DData::CameraData cameraData; cameraData.ViewProjection = camera.GetProjection() * glm::inverse(transform);
-        s_Data.CameraUniformBuffer->SetData(&cameraData, sizeof(Renderer3DData::CameraData)); s_Data.CameraUniformBuffer->Bind();
+        s_Data.CameraBuffer.ViewProjection = camera.GetProjection() * glm::inverse(transform);
+        s_Data.CameraBuffer.CameraPosition = glm::vec4(glm::vec3(transform[3]), 1.0f);
+        UploadCameraAndLighting();
         StartBatch();
     }
     void Renderer3D::EndScene() { Flush(); }
@@ -417,10 +505,22 @@ namespace Himii
 
         s_Data.CapsuleInstanceCount = 0;
         s_Data.CapsuleInstancePtr = s_Data.CapsuleInstanceBase.get();
+
+        s_Data.TextureSlotIndex = 1;
+        for (uint32_t slot = 0; slot < Renderer3DData::MaxTextureSlots; ++slot)
+            s_Data.TextureSlots[slot] = nullptr;
+        s_Data.TextureSlots[0] = s_Data.WhiteTexture;
     }
 
     void Renderer3D::Flush() {
         s_Data.CubeShader->Bind();
+        UploadCameraAndLighting();
+
+        for (uint32_t slot = 0; slot < s_Data.TextureSlotIndex; ++slot)
+        {
+            if (s_Data.TextureSlots[slot])
+                s_Data.TextureSlots[slot]->Bind(slot);
+        }
 
         // 1. Cubes
         if (s_Data.CubeInstanceCount > 0) {
@@ -444,7 +544,7 @@ namespace Himii
         if (s_Data.SphereInstanceCount > 0) {
             uint32_t dataSize = (uint32_t)((uint8_t*)s_Data.SphereInstancePtr - (uint8_t*)s_Data.SphereInstanceBase.get());
             s_Data.InstanceVertexBuffer->SetData(s_Data.SphereInstanceBase.get(), dataSize);
-            s_Data.SphereVAO->Bind(); // Assuming SphereVAO has SphereVBO + InstanceVertexBuffer mapped
+            s_Data.SphereVAO->Bind();
             RenderCommand::DrawIndexedInstanced(s_Data.SphereVAO, s_Data.SphereIndexCount, s_Data.SphereInstanceCount);
             s_Data.Stats.DrawCalls++;
         }
@@ -468,10 +568,12 @@ namespace Himii
         DrawCube(transform, color, entityID);
     }
 
-    void Renderer3D::DrawCube(const glm::mat4 &transform, const glm::vec4 &color, int entityID)
+    void Renderer3D::DrawCube(const glm::mat4 &transform, const glm::vec4 &color, int entityID,
+                              float specular, float shininess, const Ref<Texture2D> &albedoTexture)
     {
         if (s_Data.CubeInstanceCount >= Renderer3DData::MaxInstances) NextBatch();
-        AddInstance(s_Data.CubeInstancePtr, color, 0.0f, entityID, transform);
+        const float textureIndex = ResolveTextureIndex(albedoTexture);
+        AddInstance(s_Data.CubeInstancePtr, color, textureIndex, entityID, specular, shininess, transform);
         s_Data.CubeInstanceCount++;
         s_Data.Stats.CubeCount++; 
         s_Data.Stats.TotalVertexCount += 24; 
@@ -538,10 +640,12 @@ namespace Himii
         DrawSphere(transform, color, entityID);
     }
 
-    void Renderer3D::DrawSphere(const glm::mat4& transform, const glm::vec4& color, int entityID)
+    void Renderer3D::DrawSphere(const glm::mat4& transform, const glm::vec4& color, int entityID,
+                                float specular, float shininess, const Ref<Texture2D> &albedoTexture)
     {
         if (s_Data.SphereInstanceCount >= Renderer3DData::MaxInstances) NextBatch();
-        AddInstance(s_Data.SphereInstancePtr, color, 0.0f, entityID, transform);
+        const float textureIndex = ResolveTextureIndex(albedoTexture);
+        AddInstance(s_Data.SphereInstancePtr, color, textureIndex, entityID, specular, shininess, transform);
         s_Data.SphereInstanceCount++;
         s_Data.Stats.SphereCount++;
         s_Data.Stats.TotalVertexCount += s_Data.SphereVertexCount;
@@ -585,20 +689,24 @@ namespace Himii
          DrawCapsule(transform, color, entityID);
     }
     
-    void Renderer3D::DrawCapsule(const glm::mat4& transform, const glm::vec4& color, int entityID)
+    void Renderer3D::DrawCapsule(const glm::mat4& transform, const glm::vec4& color, int entityID,
+                                 float specular, float shininess, const Ref<Texture2D> &albedoTexture)
     {
         if (s_Data.CapsuleInstanceCount >= Renderer3DData::MaxInstances) NextBatch();
-        AddInstance(s_Data.CapsuleInstancePtr, color, 0.0f, entityID, transform);
+        const float textureIndex = ResolveTextureIndex(albedoTexture);
+        AddInstance(s_Data.CapsuleInstancePtr, color, textureIndex, entityID, specular, shininess, transform);
         s_Data.CapsuleInstanceCount++;
         s_Data.Stats.CapsuleCount++; 
         s_Data.Stats.TotalVertexCount += s_Data.CapsuleVertexCount; 
         s_Data.Stats.TotalIndexCount += s_Data.CapsuleIndexCount;
     }
 
-    void Renderer3D::DrawPlane(const glm::mat4& transform, const glm::vec4& color, int entityID)
+    void Renderer3D::DrawPlane(const glm::mat4& transform, const glm::vec4& color, int entityID,
+                               float specular, float shininess, const Ref<Texture2D> &albedoTexture)
     {
         if (s_Data.PlaneInstanceCount >= Renderer3DData::MaxInstances) NextBatch();
-        AddInstance(s_Data.PlaneInstancePtr, color, 0.0f, entityID, transform);
+        const float textureIndex = ResolveTextureIndex(albedoTexture);
+        AddInstance(s_Data.PlaneInstancePtr, color, textureIndex, entityID, specular, shininess, transform);
         s_Data.PlaneInstanceCount++;
         s_Data.Stats.QuadCount++;
         s_Data.Stats.TotalVertexCount += 4;
@@ -610,7 +718,7 @@ namespace Himii
                                    const glm::mat4 &transform, const glm::vec4 &colorTint,
                                    int entityID)
     {
-        if (!meshAsset || !s_Data.MeshUnlitShader)
+        if (!meshAsset || !s_Data.MeshLitShader || !s_Data.MeshUnlitShader)
             return;
 
         meshAsset->EnsureGpuResources();
@@ -619,9 +727,7 @@ namespace Himii
             return;
 
         Flush();
-
-        s_Data.MeshUnlitShader->Bind();
-        s_Data.CameraUniformBuffer->Bind();
+        UploadCameraAndLighting();
 
         auto assetManager = ResourceSystem::GetAssetManager();
 
@@ -630,6 +736,9 @@ namespace Himii
             glm::vec4 albedoColor = colorTint;
             Ref<Texture2D> albedoTexture = s_Data.WhiteTexture;
             int useAlbedoTexture = 0;
+            float specular = 0.5f;
+            float shininess = 32.0f;
+            bool useUnlit = false;
 
             AssetHandle materialHandle = 0;
             if (gpuSubmesh.MaterialSlotIndex < materialAssetHandles.size())
@@ -643,7 +752,11 @@ namespace Himii
                 if (materialBase && materialBase->GetType() == AssetType::Material)
                 {
                     Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
-                    albedoColor = materialAsset->AlbedoColor * colorTint;
+                    // Color tint is MeshComponent fallback only when no material is resolved.
+                    albedoColor = materialAsset->AlbedoColor;
+                    specular = materialAsset->Specular;
+                    shininess = materialAsset->Shininess;
+                    useUnlit = materialAsset->ShadingMode == MaterialShadingMode::Unlit;
                     if (materialAsset->AlbedoTextureHandle != 0)
                     {
                         Ref<Asset> textureBase = assetManager->GetAsset(materialAsset->AlbedoTextureHandle);
@@ -656,13 +769,32 @@ namespace Himii
                 }
             }
 
-            Renderer3DData::MeshUnlitData meshUnlitData;
-            meshUnlitData.Transform = transform;
-            meshUnlitData.AlbedoColor = albedoColor;
-            meshUnlitData.UseAlbedoTexture = useAlbedoTexture;
-            meshUnlitData.EntityID = entityID;
-            s_Data.MeshUnlitUniformBuffer->SetData(&meshUnlitData, sizeof(Renderer3DData::MeshUnlitData));
-            s_Data.MeshUnlitUniformBuffer->Bind();
+            if (useUnlit)
+            {
+                s_Data.MeshUnlitShader->Bind();
+                Renderer3DData::MeshUnlitData meshUnlitData;
+                meshUnlitData.Transform = transform;
+                meshUnlitData.AlbedoColor = albedoColor;
+                meshUnlitData.UseAlbedoTexture = useAlbedoTexture;
+                meshUnlitData.EntityID = entityID;
+                s_Data.MeshMaterialUniformBuffer->SetData(&meshUnlitData, sizeof(Renderer3DData::MeshUnlitData));
+            }
+            else
+            {
+                s_Data.MeshLitShader->Bind();
+                Renderer3DData::MeshLitData meshLitData;
+                meshLitData.Transform = transform;
+                meshLitData.AlbedoColor = albedoColor;
+                meshLitData.Specular = specular;
+                meshLitData.Shininess = shininess;
+                meshLitData.UseAlbedoTexture = useAlbedoTexture;
+                meshLitData.EntityID = entityID;
+                s_Data.MeshMaterialUniformBuffer->SetData(&meshLitData, sizeof(Renderer3DData::MeshLitData));
+            }
+            s_Data.MeshMaterialUniformBuffer->Bind();
+            s_Data.CameraUniformBuffer->Bind();
+            if (s_Data.SceneLightingUniformBuffer)
+                s_Data.SceneLightingUniformBuffer->Bind();
 
             if (albedoTexture)
                 albedoTexture->Bind(0);
@@ -676,54 +808,66 @@ namespace Himii
         StartBatch();
     }
 
-    void Renderer3D::DrawGrid(const EditorCamera &camera, bool xyPlane) { 
+    namespace
+    {
+        void SubmitGridDraw(const Renderer3DData::GridData &gridData)
+        {
+            s_Data.GridUniformBuffer->SetData(&gridData, sizeof(Renderer3DData::GridData));
+
+            RenderCommand::SetDepthTest(true);
+            // Do not write depth so later transparent passes are not occluded by the grid.
+            RenderCommand::SetDepthMask(false);
+
+            s_Data.GridVAO->Bind();
+            RenderCommand::DrawArrays(s_Data.GridVAO, 6);
+            s_Data.GridVAO->Unbind();
+            s_Data.GridShader->Unbind();
+
+            RenderCommand::SetDepthMask(true);
+        }
+
+        float ResolveGridCameraDistance(bool xyPlane, const glm::vec3 &cameraPosition, float fallbackDistance)
+        {
+            const float planeHeight =
+                    xyPlane ? std::abs(cameraPosition.z) : std::abs(cameraPosition.y);
+            return std::max(std::max(planeHeight, fallbackDistance), 0.5f);
+        }
+    }
+
+    void Renderer3D::DrawGrid(const EditorCamera &camera, bool xyPlane)
+    {
         s_Data.GridShader->Bind();
 
-        // Pass View/Proj separate
         Renderer3DData::GridData gridData;
         gridData.View = camera.GetViewMatrix();
-        
-        if (xyPlane) {
-             // Rotate View so that Y axis becomes Z axis
-             gridData.View = gridData.View * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), {1, 0, 0});
-        }
+        if (xyPlane)
+            gridData.View = gridData.View * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), {1.0f, 0.0f, 0.0f});
 
         gridData.Proj = camera.GetProjection();
         gridData.Near = camera.GetNearClip();
         gridData.Far = camera.GetFarClip();
-        s_Data.GridUniformBuffer->SetData(&gridData, sizeof(Renderer3DData::GridData));
-        
-        // Depth test should be enabled so grid hides behind objects?
-        // Yes.
-        RenderCommand::SetDepthTest(true);
-        RenderCommand::SetDepthMask(false); // Can't write to depth, otherwise it occludes things drawn after (transparents)
-        
-        s_Data.GridVAO->Bind();
-        RenderCommand::DrawArrays(s_Data.GridVAO, 6);
-        s_Data.GridVAO->Unbind();
-        s_Data.GridShader->Unbind();
-        
-        RenderCommand::SetDepthMask(true);
+        // Orbit distance drives decimal LOD for both perspective and orthographic editor cameras.
+        gridData.CameraDistance = std::max(camera.GetDistance(), 0.5f);
+        gridData.UseXyPlane = xyPlane ? 1.0f : 0.0f;
+
+        SubmitGridDraw(gridData);
     }
-    
-    void Renderer3D::DrawGrid(const Camera &camera, const glm::mat4 &transform, bool xyPlane) { 
+
+    void Renderer3D::DrawGrid(const Camera &camera, const glm::mat4 &transform, bool xyPlane)
+    {
         s_Data.GridShader->Bind();
 
         Renderer3DData::GridData gridData;
         gridData.View = glm::inverse(transform);
-        
-        if (xyPlane) {
-             // Rotate View so that Y axis becomes Z axis
-             gridData.View = gridData.View * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), {1, 0, 0});
-        }
+        if (xyPlane)
+            gridData.View = gridData.View * glm::rotate(glm::mat4(1.0f), glm::radians(-90.0f), {1.0f, 0.0f, 0.0f});
 
         gridData.Proj = camera.GetProjection();
 
-        // Try to cast to SceneCamera to get clip planes
-        const SceneCamera* sceneCamera = dynamic_cast<const SceneCamera*>(&camera);
-        if(sceneCamera)
+        const SceneCamera *sceneCamera = dynamic_cast<const SceneCamera *>(&camera);
+        if (sceneCamera)
         {
-            if(sceneCamera->GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+            if (sceneCamera->GetProjectionType() == SceneCamera::ProjectionType::Perspective)
             {
                 gridData.Near = sceneCamera->GetPerspectiveNearClip();
                 gridData.Far = sceneCamera->GetPerspectiveFarClip();
@@ -736,22 +880,15 @@ namespace Himii
         }
         else
         {
-             // Fallback default
-             gridData.Near = 0.01f;
-             gridData.Far = 1000.0f;
+            gridData.Near = 0.01f;
+            gridData.Far = 1000.0f;
         }
 
-        s_Data.GridUniformBuffer->SetData(&gridData, sizeof(Renderer3DData::GridData));
+        const glm::vec3 cameraPosition = glm::vec3(transform[3]);
+        gridData.CameraDistance = ResolveGridCameraDistance(xyPlane, cameraPosition, 10.0f);
+        gridData.UseXyPlane = xyPlane ? 1.0f : 0.0f;
 
-        RenderCommand::SetDepthTest(true);
-        RenderCommand::SetDepthMask(false);
-
-        s_Data.GridVAO->Bind();
-        RenderCommand::DrawArrays(s_Data.GridVAO, 6);
-        s_Data.GridVAO->Unbind();
-        s_Data.GridShader->Unbind();
-
-        RenderCommand::SetDepthMask(true);
+        SubmitGridDraw(gridData);
     }
 
     void Renderer3D::ResetStats() { memset(&s_Data.Stats, 0, sizeof(Statistics)); }

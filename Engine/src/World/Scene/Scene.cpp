@@ -431,6 +431,12 @@ namespace Himii
         if (entity.HasComponent<MeshComponent>())
             newEntity.AddComponent<MeshComponent>(entity.GetComponent<MeshComponent>());
 
+        if (entity.HasComponent<LightComponent>())
+            newEntity.AddComponent<LightComponent>(entity.GetComponent<LightComponent>());
+
+        if (entity.HasComponent<EnvironmentComponent>())
+            newEntity.AddComponent<EnvironmentComponent>(entity.GetComponent<EnvironmentComponent>());
+
         if (entity.HasComponent<TilemapComponent>())
             newEntity.AddComponent<TilemapComponent>(entity.GetComponent<TilemapComponent>());
         if (entity.HasComponent<TilemapCollider2DComponent>())

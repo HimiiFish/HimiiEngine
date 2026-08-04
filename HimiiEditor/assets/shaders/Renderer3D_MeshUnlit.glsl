@@ -8,6 +8,7 @@ layout(location = 2) in vec2 a_TextureCoordinate;
 layout(std140, binding = 0) uniform Camera
 {
 	mat4 u_ViewProjection;
+	vec4 u_CameraPosition;
 };
 
 layout(std140, binding = 3) uniform MeshUnlitUniforms
@@ -16,6 +17,8 @@ layout(std140, binding = 3) uniform MeshUnlitUniforms
 	vec4 u_AlbedoColor;
 	int u_UseAlbedoTexture;
 	int u_EntityID;
+	int u_Padding0;
+	int u_Padding1;
 };
 
 layout (location = 0) out vec2 v_TextureCoordinate;
@@ -40,6 +43,8 @@ layout(std140, binding = 3) uniform MeshUnlitUniforms
 	vec4 u_AlbedoColor;
 	int u_UseAlbedoTexture;
 	int u_EntityID;
+	int u_Padding0;
+	int u_Padding1;
 };
 
 layout(binding = 0) uniform sampler2D u_AlbedoTexture;

@@ -26,6 +26,7 @@ namespace Himii
         std::function<void(AssetHandle)> requestTextureInspector;
         std::function<void(AssetHandle)> requestParticleEmitterEditor;
         std::function<void(AssetHandle)> requestTileMapEditor;
+        std::function<void(AssetHandle)> requestMaterialEditor;
         std::function<void(const std::filesystem::path&)> requestAnimationEditor;
     };
 } // namespace Himii

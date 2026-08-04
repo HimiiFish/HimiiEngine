@@ -44,6 +44,30 @@ namespace Himii
         component.MaterialAssetHandles = meshAsset->DefaultMaterialHandles;
     }
 
+    static void DrawMaterialSlot(ComponentInspectorDrawContext &drawContext, MeshComponent &component,
+                                 size_t materialIndex)
+    {
+        if (materialIndex >= component.MaterialAssetHandles.size())
+            return;
+
+        AssetHandle &materialHandle = component.MaterialAssetHandles[materialIndex];
+        const std::string label = "Material " + std::to_string(materialIndex);
+        const std::string materialDisplayName =
+                ResolveAssetDisplayName(materialHandle, "None (drag .hmaterial)");
+        DrawObjectReferenceField(
+                label.c_str(), materialDisplayName.c_str(), materialHandle != 0, nullptr,
+                [&]() { materialHandle = 0; },
+                [&](const ImGuiPayload *payload)
+                {
+                    return AssignMaterialAssetFromContentBrowserPayload(payload, materialHandle);
+                },
+                [&]()
+                {
+                    if (materialHandle != 0 && drawContext.requestMaterialEditor)
+                        drawContext.requestMaterialEditor(materialHandle);
+                });
+    }
+
     static void DrawMeshComponentInspectorUI(ComponentInspectorDrawContext &drawContext)
     {
         if (!drawContext.entity.HasComponent<MeshComponent>())
@@ -76,6 +100,29 @@ namespace Himii
                                 {
                                     component.Type = static_cast<MeshComponent::MeshType>(newIndex);
                                 });
+
+                        if (component.MaterialAssetHandles.empty())
+                        {
+                            AssetHandle materialHandle = 0;
+                            const std::string materialDisplayName =
+                                    ResolveAssetDisplayName(materialHandle, "None (drag .hmaterial)");
+                            DrawObjectReferenceField(
+                                    "Material 0", materialDisplayName.c_str(), false, nullptr,
+                                    [&]() {},
+                                    [&](const ImGuiPayload *payload)
+                                    {
+                                        AssetHandle assignedHandle = 0;
+                                        if (!AssignMaterialAssetFromContentBrowserPayload(payload,
+                                                                                          assignedHandle))
+                                            return false;
+                                        component.MaterialAssetHandles.push_back(assignedHandle);
+                                        return true;
+                                    });
+                        }
+                        else
+                        {
+                            DrawMaterialSlot(drawContext, component, 0);
+                        }
                     }
                     else
                     {
@@ -100,22 +147,14 @@ namespace Himii
                         for (size_t materialIndex = 0; materialIndex < component.MaterialAssetHandles.size();
                              ++materialIndex)
                         {
-                            AssetHandle &materialHandle = component.MaterialAssetHandles[materialIndex];
-                            const std::string label = "Material " + std::to_string(materialIndex);
-                            const std::string materialDisplayName =
-                                    ResolveAssetDisplayName(materialHandle, "None (drag .hmaterial)");
-                            DrawObjectReferenceField(
-                                    label.c_str(), materialDisplayName.c_str(), materialHandle != 0, nullptr,
-                                    [&]() { materialHandle = 0; },
-                                    [&](const ImGuiPayload *payload)
-                                    {
-                                        return AssignMaterialAssetFromContentBrowserPayload(payload,
-                                                                                            materialHandle);
-                                    });
+                            DrawMaterialSlot(drawContext, component, materialIndex);
                         }
                     }
 
-                    DrawColorControl("Color", component.Color);
+                    DrawColorControl("Fallback Color", component.Color);
+                    DrawReadOnlyTextControl(
+                            "Color Usage", "Fallback when no material",
+                            "Albedo comes from Material when assigned. Fallback Color is used only when the material slot is empty.");
                 },
                 [&]() { drawContext.entity.RemoveComponent<MeshComponent>(); });
     }

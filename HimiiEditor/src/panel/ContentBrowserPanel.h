@@ -27,6 +27,13 @@ namespace Himii
             return handle;
         }
 
+        AssetHandle GetMaterialEditorRequest()
+        {
+            AssetHandle handle = m_MaterialEditorRequest;
+            m_MaterialEditorRequest = 0;
+            return handle;
+        }
+
         std::filesystem::path GetAnimationEditorRequest()
         {
             std::filesystem::path path = m_AnimationEditorRequest;
@@ -36,6 +43,7 @@ namespace Himii
 
     private:
         bool CreateCSharpScript(const std::filesystem::path& directory, const std::string& className);
+        bool CreateMaterialAsset(const std::filesystem::path &directory, const std::string &materialName);
         void ImportSingleFile(const std::filesystem::path& sourcePath,const std::filesystem::path& assetsDirectory);
         std::filesystem::path ResolveUniqueDestination(const std::filesystem::path& destinationDirectory,  const std::filesystem::path& fileName) const;
         std::filesystem::path m_BaseDirectory;
@@ -59,6 +67,7 @@ namespace Himii
         std::string m_SelectedItemDisplayName;
         std::filesystem::path m_LastBrowsedDirectory;
         AssetHandle m_TextureInspectorRequest = 0;
+        AssetHandle m_MaterialEditorRequest = 0;
         std::filesystem::path m_AnimationEditorRequest;
     };
 }

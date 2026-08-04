@@ -361,6 +361,27 @@ namespace Himii
             out << YAML::EndSeq;
             out << YAML::EndMap;
         }
+        if (entity.HasComponent<LightComponent>())
+        {
+            out << YAML::Key << "LightComponent";
+            out << YAML::BeginMap;
+            auto &light = entity.GetComponent<LightComponent>();
+            out << YAML::Key << "Type" << YAML::Value << static_cast<int>(light.Type);
+            out << YAML::Key << "Color" << YAML::Value << light.Color;
+            out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
+            out << YAML::Key << "Enabled" << YAML::Value << light.Enabled;
+            out << YAML::EndMap;
+        }
+        if (entity.HasComponent<EnvironmentComponent>())
+        {
+            out << YAML::Key << "EnvironmentComponent";
+            out << YAML::BeginMap;
+            auto &environment = entity.GetComponent<EnvironmentComponent>();
+            out << YAML::Key << "AmbientColor" << YAML::Value << environment.AmbientColor;
+            out << YAML::Key << "AmbientIntensity" << YAML::Value << environment.AmbientIntensity;
+            out << YAML::Key << "Enabled" << YAML::Value << environment.Enabled;
+            out << YAML::EndMap;
+        }
         if (entity.HasComponent<Rigidbody2DComponent>())
         {
             out << YAML::Key << "Rigidbody2DComponent";
@@ -766,6 +787,32 @@ namespace Himii
                 for (const auto &handleNode : meshComponent["MaterialAssetHandles"])
                     mc.MaterialAssetHandles.push_back(handleNode.as<uint64_t>());
             }
+        }
+
+        auto lightComponent = entity["LightComponent"];
+        if (lightComponent)
+        {
+            auto &light = deserializedEntity.AddComponent<LightComponent>();
+            if (lightComponent["Type"])
+                light.Type = static_cast<LightType>(lightComponent["Type"].as<int>());
+            if (lightComponent["Color"])
+                light.Color = lightComponent["Color"].as<glm::vec4>();
+            if (lightComponent["Intensity"])
+                light.Intensity = lightComponent["Intensity"].as<float>();
+            if (lightComponent["Enabled"])
+                light.Enabled = lightComponent["Enabled"].as<bool>();
+        }
+
+        auto environmentComponent = entity["EnvironmentComponent"];
+        if (environmentComponent)
+        {
+            auto &environment = deserializedEntity.AddComponent<EnvironmentComponent>();
+            if (environmentComponent["AmbientColor"])
+                environment.AmbientColor = environmentComponent["AmbientColor"].as<glm::vec4>();
+            if (environmentComponent["AmbientIntensity"])
+                environment.AmbientIntensity = environmentComponent["AmbientIntensity"].as<float>();
+            if (environmentComponent["Enabled"])
+                environment.Enabled = environmentComponent["Enabled"].as<bool>();
         }
 
         auto rigidbody2DComponent = entity["Rigidbody2DComponent"];

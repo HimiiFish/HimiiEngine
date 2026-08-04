@@ -138,6 +138,34 @@ namespace Himii
         MeshComponent(const MeshComponent&) = default;
     };
 
+    enum class LightType
+    {
+        Directional = 0
+    };
+
+    /// 第一阶段仅 Directional；方向由实体 Transform 的 forward（局部 -Z）推导。
+    struct LightComponent
+    {
+        LightType Type = LightType::Directional;
+        glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
+        float Intensity = 1.0f;
+        bool Enabled = true;
+
+        LightComponent() = default;
+        LightComponent(const LightComponent &) = default;
+    };
+
+    /// 场景环境：第一阶段仅 Ambient；无启用方向光时不参与着色。
+    struct EnvironmentComponent
+    {
+        glm::vec4 AmbientColor{1.0f, 1.0f, 1.0f, 1.0f};
+        float AmbientIntensity = 0.15f;
+        bool Enabled = true;
+
+        EnvironmentComponent() = default;
+        EnvironmentComponent(const EnvironmentComponent &) = default;
+    };
+
     struct ScriptComponent {
         std::string ClassName;
 
