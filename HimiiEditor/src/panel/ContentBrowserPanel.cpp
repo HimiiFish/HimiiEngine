@@ -297,25 +297,6 @@ namespace Himii
             if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) && !droppedPaths.empty())
                 ImportFilesFromPaths(droppedPaths);
 
-            if (ImGui::BeginPopupContextWindow("ContentBrowserContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
-            {
-                DrawCreateMenu(m_CurrentDirectory);
-                if (ImGui::MenuItem("Import Asset..."))
-                {
-                    std::string selectedPath = FileDialog::OpenFile(
-                        "Images (*.png;*.jpg;*.jpeg)\0*.png;*.jpg;*.jpeg\0"
-                        "Animations (*.anim)\0*.anim\0"
-                        "Tile Sets (*.tileset)\0*.tileset\0"
-                        "Tile Maps (*.tilemap)\0*.tilemap\0"
-                        "Particle Emitters (*.particle)\0*.particle\0"
-                        "C# Scripts (*.cs)\0*.cs\0"
-                        "All Files (*.*)\0*.*\0");
-                    if (!selectedPath.empty())
-                        ImportFilesFromPaths({selectedPath});
-                }
-                ImGui::EndPopup();
-            }
-
             if (NormalizePath(m_LastBrowsedDirectory) != NormalizePath(m_CurrentDirectory))
             {
                 m_SelectedItemDisplayName.clear();
@@ -486,6 +467,29 @@ namespace Himii
                     column++;
                     if (column >= columnCount)
                         column = 0;
+                }
+
+                // The grid lives in its own child window, so the blank-area context menu must be
+                // opened here; attaching it to the parent window would only cover the detail bar.
+                if (ImGui::BeginPopupContextWindow("ContentBrowserContext",
+                                                   ImGuiPopupFlags_MouseButtonRight
+                                                           | ImGuiPopupFlags_NoOpenOverItems))
+                {
+                    DrawCreateMenu(m_CurrentDirectory);
+                    if (ImGui::MenuItem("Import Asset..."))
+                    {
+                        std::string selectedPath = FileDialog::OpenFile(
+                            "Images (*.png;*.jpg;*.jpeg)\0*.png;*.jpg;*.jpeg\0"
+                            "Animations (*.anim)\0*.anim\0"
+                            "Tile Sets (*.tileset)\0*.tileset\0"
+                            "Tile Maps (*.tilemap)\0*.tilemap\0"
+                            "Particle Emitters (*.particle)\0*.particle\0"
+                            "C# Scripts (*.cs)\0*.cs\0"
+                            "All Files (*.*)\0*.*\0");
+                        if (!selectedPath.empty())
+                            ImportFilesFromPaths({selectedPath});
+                    }
+                    ImGui::EndPopup();
                 }
             }
             ImGui::EndChild();
