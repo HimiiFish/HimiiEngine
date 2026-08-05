@@ -14,6 +14,8 @@ namespace Himii
 
         void Bind() override;
         void Unbind() override;
+        void BindCapturingPrevious() override;
+        void UnbindRestoringPrevious() override;
 
         virtual void Resize(uint32_t width, uint32_t height) override;
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
@@ -24,6 +26,13 @@ namespace Himii
             HIMII_CORE_ASSERT(index < m_ColorAttachments.size());
             return m_ColorAttachments[index];
         }
+
+        virtual uint32_t GetDepthAttachmentRendererID() const override
+        {
+            return m_DepthAttachment;
+        }
+
+        virtual void BindDepthAttachment(uint32_t slot) const override;
 
         virtual const FramebufferSpecification &GetSpecification() const override
         {
@@ -39,5 +48,9 @@ namespace Himii
 
         std::vector<uint32_t> m_ColorAttachments;
         uint32_t m_DepthAttachment = 0;
-    };
+
+        GLint m_PreviousFramebuffer = 0;
+        GLint m_PreviousViewport[4] = {0, 0, 0, 0};
+        bool m_HasCapturedPrevious = false;
+     };
 } // namespace Himii

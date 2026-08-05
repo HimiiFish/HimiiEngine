@@ -19,6 +19,13 @@ namespace Himii {
         float DirectionalLightIntensity = 1.0f;
         glm::vec3 AmbientColor{0.0f, 0.0f, 0.0f};
         float AmbientIntensity = 0.0f;
+
+        bool HasShadowMap = false;
+        glm::mat4 LightViewProjection{1.0f};
+        /// 引擎默认常量 Bias；不进 Inspector。
+        float ShadowBias = 0.0015f;
+        /// 单个阴影贴图像素在世界空间中的边长，供 shader 做 normal-offset 偏移。
+        float ShadowTexelWorldSize = 0.0f;
     };
 
     class Renderer3D
@@ -28,6 +35,12 @@ namespace Himii {
         static void Shutdown();
 
         static void SetSceneLighting(const SceneLightingParameters &parameters);
+
+        /// 按分辨率创建或重建单张深度 Shadow Map。
+        static void EnsureShadowMap(uint32_t resolutionPixels);
+        /// 绑定 Shadow Map、写入光空间 VP，随后 Draw* 仅输出深度。
+        static void BeginShadowPass(const glm::mat4 &lightViewProjection);
+        static void EndShadowPass();
 
         static void BeginScene(const EditorCamera& camera);
         static void BeginScene(const Camera& camera, const glm::mat4& transform);
@@ -92,6 +105,7 @@ namespace Himii {
         static void StartBatch();
         static void NextBatch();
         static void UploadCameraAndLighting();
+        static void BindShadowMapIfAvailable();
         static float ResolveTextureIndex(const Ref<Texture2D> &albedoTexture);
     };
 

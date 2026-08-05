@@ -28,9 +28,31 @@ namespace Himii
                     DrawFloatControl("Intensity", component.Intensity, 0.05f, 0.0f, 0.0f, nullptr, nullptr, true,
                                      1.0f);
 
+                    DrawCheckboxControl("Cast Shadows", component.CastShadows, true);
+                    DrawFloatControl("Shadow Size", component.ShadowSize, 0.5f, 0.1f, 0.0f, nullptr, nullptr, true,
+                                     40.0f);
+                    DrawFloatControl("Shadow Distance", component.ShadowDistance, 0.5f, 0.1f, 0.0f, nullptr, nullptr,
+                                     true, 80.0f);
+
+                    const char *resolutionLabels[] = {"1024", "2048", "4096"};
+                    int resolutionIndex = static_cast<int>(component.ShadowMapResolution);
+                    if (resolutionIndex < 0 || resolutionIndex > 2)
+                    {
+                        resolutionIndex = static_cast<int>(Himii::ShadowMapResolution::Pixels2048);
+                        component.ShadowMapResolution = Himii::ShadowMapResolution::Pixels2048;
+                    }
+                    DrawEnumComboControl(
+                            "Shadow Map Resolution", resolutionIndex, resolutionLabels, 3,
+                            [&](int newIndex)
+                            {
+                                component.ShadowMapResolution =
+                                        static_cast<Himii::ShadowMapResolution>(newIndex);
+                            },
+                            true, static_cast<int>(Himii::ShadowMapResolution::Pixels2048));
+
                     DrawReadOnlyTextControl(
                             "Selection Rule", "First enabled Directional wins",
-                            "If multiple Directional lights are enabled, only the first one in the scene affects Lit shading.");
+                            "Lit uses the first enabled Directional light. Shadows run only when that light also has Cast Shadows enabled.");
                 },
                 [&]() { drawContext.entity.RemoveComponent<LightComponent>(); });
     }

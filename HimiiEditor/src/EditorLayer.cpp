@@ -17,6 +17,7 @@
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
+#include "glm/gtx/quaternion.hpp"
 
 #include "EngineCore/Utils/PlatformUtils.h"
 #include "ImGuizmo.h"
@@ -122,6 +123,8 @@ namespace Himii
                 m_IconPlay = Texture2D::Create("resources/icons/play.png");
                 m_IconStop = Texture2D::Create("resources/icons/stop.png");
                 m_IconSimulate = Texture2D::Create("resources/icons/simulate.png");
+                m_IconLightGizmo = Texture2D::Create("resources/icons/Component_Light.png");
+                m_IconCameraGizmo = Texture2D::Create("resources/icons/Component_Camera.png");
                 m_StartupProgress = 0.15f;
                 m_StartupLoadingStep = EditorStartupLoadingStep::Skybox;
                 break;
@@ -1399,6 +1402,8 @@ namespace Himii
 
                     Renderer2D::DrawRect(outlineTransform, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f));
                 }
+
+                DrawSelectionGizmos(selectedEntity);
             }
 
             DrawTilemapEditOverlay();
@@ -1430,6 +1435,183 @@ namespace Himii
                 Renderer2D::EndScene();
             }
         }
+    }
+
+    void EditorLayer::DrawSelectionGizmos(Entity selectedEntity)
+    {
+        if (!selectedEntity || !selectedEntity.HasComponent<TransformComponent>())
+            return;
+
+        if (selectedEntity.HasComponent<LightComponent>())
+            DrawLightGizmo(selectedEntity);
+
+        if (selectedEntity.HasComponent<CameraComponent>())
+            DrawCameraGizmo(selectedEntity);
+    }
+
+    void EditorLayer::DrawBillboardIcon(const Ref<Texture2D> &iconTexture, const glm::vec3 &worldPosition,
+                                        float worldSize, const glm::vec4 &tintColor)
+    {
+        if (!iconTexture)
+            return;
+
+        const glm::mat4 billboardTransform = glm::translate(glm::mat4(1.0f), worldPosition)
+                * glm::toMat4(m_EditorCamera.GetOrientation())
+                * glm::scale(glm::mat4(1.0f), glm::vec3(worldSize, worldSize, 1.0f));
+        Renderer2D::DrawQuad(billboardTransform, iconTexture, 1.0f, tintColor);
+    }
+
+    void EditorLayer::DrawLightGizmo(Entity lightEntity)
+    {
+        const glm::mat4 worldTransform = m_EditorScene->GetEntityWorldTransformMatrix(lightEntity);
+        const glm::vec3 lightPosition = glm::vec3(worldTransform[3]);
+
+        glm::vec3 lightTravelDirection = -glm::vec3(worldTransform[2]);
+        if (glm::dot(lightTravelDirection, lightTravelDirection) < 1e-8f)
+            lightTravelDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+        lightTravelDirection = glm::normalize(lightTravelDirection);
+
+        const LightComponent &light = lightEntity.GetComponent<LightComponent>();
+        const glm::vec4 gizmoColor = light.Enabled
+                ? glm::vec4(glm::vec3(light.Color), 1.0f)
+                : glm::vec4(0.55f, 0.55f, 0.55f, 1.0f);
+
+        // Keep the gizmo roughly screen-sized so it stays usable at any camera distance.
+        const float distanceToCamera = glm::length(m_EditorCamera.GetPosition() - lightPosition);
+        const float gizmoWorldSize = std::clamp(distanceToCamera * 0.06f, 0.2f, 3.0f);
+        DrawBillboardIcon(m_IconLightGizmo, lightPosition, gizmoWorldSize,
+                          light.Enabled ? glm::vec4(1.0f) : glm::vec4(0.6f, 0.6f, 0.6f, 0.6f));
+
+        glm::vec3 sideAxis = glm::cross(lightTravelDirection, glm::vec3(0.0f, 1.0f, 0.0f));
+        if (glm::dot(sideAxis, sideAxis) < 1e-6f)
+            sideAxis = glm::cross(lightTravelDirection, glm::vec3(1.0f, 0.0f, 0.0f));
+        sideAxis = glm::normalize(sideAxis);
+        const glm::vec3 upAxis = glm::normalize(glm::cross(sideAxis, lightTravelDirection));
+
+        constexpr float FullCircleRadians = 6.283185307179586f;
+        constexpr uint32_t RingSegmentCount = 32;
+        constexpr uint32_t ParallelRayCount = 6;
+
+        const float ringRadius = gizmoWorldSize * 0.62f;
+        const float rayLength = gizmoWorldSize * 3.2f;
+        const float arrowHeadLength = rayLength * 0.2f;
+        const float arrowHeadHalfWidth = arrowHeadLength * 0.42f;
+
+        const auto ringPointAt = [&](float angleRadians)
+        {
+            const glm::vec3 radialAxis =
+                    sideAxis * std::cos(angleRadians) + upAxis * std::sin(angleRadians);
+            return lightPosition + radialAxis * ringRadius;
+        };
+
+        // Ring perpendicular to the light axis, then a bundle of parallel rays leaving it:
+        // reads as "parallel light travelling this way" rather than a single stick arrow.
+        glm::vec3 previousRingPoint = ringPointAt(0.0f);
+        for (uint32_t segmentIndex = 1; segmentIndex <= RingSegmentCount; ++segmentIndex)
+        {
+            const float angleRadians =
+                    FullCircleRadians * static_cast<float>(segmentIndex) / static_cast<float>(RingSegmentCount);
+            const glm::vec3 currentRingPoint = ringPointAt(angleRadians);
+            Renderer2D::DrawLine(previousRingPoint, currentRingPoint, gizmoColor);
+            previousRingPoint = currentRingPoint;
+        }
+
+        for (uint32_t rayIndex = 0; rayIndex < ParallelRayCount; ++rayIndex)
+        {
+            const float angleRadians =
+                    FullCircleRadians * static_cast<float>(rayIndex) / static_cast<float>(ParallelRayCount);
+            const glm::vec3 radialAxis =
+                    sideAxis * std::cos(angleRadians) + upAxis * std::sin(angleRadians);
+
+            const glm::vec3 rayStart = lightPosition + radialAxis * ringRadius;
+            const glm::vec3 rayEnd = rayStart + lightTravelDirection * rayLength;
+            const glm::vec3 arrowHeadBase = rayEnd - lightTravelDirection * arrowHeadLength;
+
+            Renderer2D::DrawLine(rayStart, rayEnd, gizmoColor);
+            Renderer2D::DrawLine(rayEnd, arrowHeadBase + radialAxis * arrowHeadHalfWidth, gizmoColor);
+            Renderer2D::DrawLine(rayEnd, arrowHeadBase - radialAxis * arrowHeadHalfWidth, gizmoColor);
+        }
+    }
+
+    void EditorLayer::DrawCameraGizmo(Entity cameraEntity)
+    {
+        const glm::mat4 worldTransform = m_EditorScene->GetEntityWorldTransformMatrix(cameraEntity);
+        const glm::vec3 cameraPosition = glm::vec3(worldTransform[3]);
+
+        const float distanceToEditorCamera = glm::length(m_EditorCamera.GetPosition() - cameraPosition);
+        const float iconWorldSize = std::clamp(distanceToEditorCamera * 0.06f, 0.2f, 3.0f);
+        DrawBillboardIcon(m_IconCameraGizmo, cameraPosition, iconWorldSize, glm::vec4(1.0f));
+
+        const SceneCamera &sceneCamera = cameraEntity.GetComponent<CameraComponent>().Camera;
+
+        float aspectRatio = 16.0f / 9.0f;
+        if (m_GameTargetResolution.x > 0 && m_GameTargetResolution.y > 0)
+        {
+            aspectRatio = static_cast<float>(m_GameTargetResolution.x)
+                    / static_cast<float>(m_GameTargetResolution.y);
+        }
+
+        // Far clips default to hundreds of units; the wireframe is a preview, so cap its reach.
+        constexpr float MaximumFrustumPreviewDistance = 25.0f;
+
+        float nearDistance = 0.0f;
+        float farDistance = 0.0f;
+        float nearHalfHeight = 0.0f;
+        float farHalfHeight = 0.0f;
+
+        if (sceneCamera.GetProjectionType() == SceneCamera::ProjectionType::Perspective)
+        {
+            nearDistance = std::max(sceneCamera.GetPerspectiveNearClip(), 0.01f);
+            farDistance = std::min(sceneCamera.GetPerspectiveFarClip(),
+                                   nearDistance + MaximumFrustumPreviewDistance);
+            const float halfAngleTangent = std::tan(sceneCamera.GetPerspectiveVerticalFOV() * 0.5f);
+            nearHalfHeight = halfAngleTangent * nearDistance;
+            farHalfHeight = halfAngleTangent * farDistance;
+        }
+        else
+        {
+            nearDistance = std::max(sceneCamera.GetOrthographicNearClip(), 0.0f);
+            farDistance = std::min(sceneCamera.GetOrthographicFarClip(),
+                                   nearDistance + MaximumFrustumPreviewDistance);
+            nearHalfHeight = sceneCamera.GetOrthographicSize() * 0.5f;
+            farHalfHeight = nearHalfHeight;
+        }
+
+        if (farDistance <= nearDistance)
+            return;
+
+        const auto planeCorner = [&](float planeDistance, float halfHeight, float horizontalSign,
+                                     float verticalSign)
+        {
+            const glm::vec4 localCorner(horizontalSign * halfHeight * aspectRatio,
+                                        verticalSign * halfHeight, -planeDistance, 1.0f);
+            return glm::vec3(worldTransform * localCorner);
+        };
+
+        const glm::vec3 nearTopLeft = planeCorner(nearDistance, nearHalfHeight, -1.0f, 1.0f);
+        const glm::vec3 nearTopRight = planeCorner(nearDistance, nearHalfHeight, 1.0f, 1.0f);
+        const glm::vec3 nearBottomRight = planeCorner(nearDistance, nearHalfHeight, 1.0f, -1.0f);
+        const glm::vec3 nearBottomLeft = planeCorner(nearDistance, nearHalfHeight, -1.0f, -1.0f);
+        const glm::vec3 farTopLeft = planeCorner(farDistance, farHalfHeight, -1.0f, 1.0f);
+        const glm::vec3 farTopRight = planeCorner(farDistance, farHalfHeight, 1.0f, 1.0f);
+        const glm::vec3 farBottomRight = planeCorner(farDistance, farHalfHeight, 1.0f, -1.0f);
+        const glm::vec3 farBottomLeft = planeCorner(farDistance, farHalfHeight, -1.0f, -1.0f);
+
+        const glm::vec4 frustumColor(0.35f, 0.75f, 1.0f, 1.0f);
+        Renderer2D::DrawLine(nearTopLeft, nearTopRight, frustumColor);
+        Renderer2D::DrawLine(nearTopRight, nearBottomRight, frustumColor);
+        Renderer2D::DrawLine(nearBottomRight, nearBottomLeft, frustumColor);
+        Renderer2D::DrawLine(nearBottomLeft, nearTopLeft, frustumColor);
+
+        Renderer2D::DrawLine(farTopLeft, farTopRight, frustumColor);
+        Renderer2D::DrawLine(farTopRight, farBottomRight, frustumColor);
+        Renderer2D::DrawLine(farBottomRight, farBottomLeft, frustumColor);
+        Renderer2D::DrawLine(farBottomLeft, farTopLeft, frustumColor);
+
+        Renderer2D::DrawLine(nearTopLeft, farTopLeft, frustumColor);
+        Renderer2D::DrawLine(nearTopRight, farTopRight, frustumColor);
+        Renderer2D::DrawLine(nearBottomRight, farBottomRight, frustumColor);
+        Renderer2D::DrawLine(nearBottomLeft, farBottomLeft, frustumColor);
     }
 
     void EditorLayer::CreateProject(const std::filesystem::path& projectPath, bool is2D)
@@ -1502,6 +1684,7 @@ namespace Himii
         {
             auto projectDir = Project::GetProjectDirectory();
             Project::SyncScriptCoreToProjectDirectory(projectDir);
+            Project::EnsureGameAssemblyProjectIncludesAllAssetScripts();
             Project::EnsureSeededDefaultAssets();
             Project::InitializeGameplayDefaultFont();
             RefreshEditorSkyboxForActiveProject();
@@ -2477,8 +2660,8 @@ namespace Himii
 
     void EditorLayer::SetupScriptFileWatchers()
     {
-        auto scriptsDirectory = Project::GetAssetDirectory() / "scripts";
-        m_ScriptFileWatcher.Watch(scriptsDirectory, [this]() { MarkScriptsDirtyFromWatcher(); });
+        const std::filesystem::path assetsDirectory = Project::GetAssetDirectory();
+        m_ScriptFileWatcher.Watch(assetsDirectory, [this]() { MarkScriptsDirtyFromWatcher(); });
 
         if (!m_CSharpProjectPath.empty() && std::filesystem::exists(m_CSharpProjectPath))
         {
@@ -2524,11 +2707,11 @@ namespace Himii
         if (isNewerThanAssembly(m_CSharpProjectPath))
             return false;
 
-        const auto scriptsDirectory = Project::GetAssetDirectory() / "scripts";
-        if (!std::filesystem::exists(scriptsDirectory))
+        const std::filesystem::path assetsDirectory = Project::GetAssetDirectory();
+        if (!std::filesystem::exists(assetsDirectory))
             return true;
 
-        for (const auto& entry : std::filesystem::recursive_directory_iterator(scriptsDirectory))
+        for (const auto& entry : std::filesystem::recursive_directory_iterator(assetsDirectory))
         {
             if (!entry.is_regular_file())
                 continue;

@@ -17,6 +17,8 @@ namespace Himii
 
         inline static void Clear() { s_RHI->Clear(); }
 
+        inline static void ClearDepth() { s_RHI->ClearDepth(); }
+
         inline static void DrawIndexed(const Ref<VertexArray> &vertexArray, uint32_t indexCount = 0)
         {
             s_RHI->DrawIndexed(vertexArray, indexCount);

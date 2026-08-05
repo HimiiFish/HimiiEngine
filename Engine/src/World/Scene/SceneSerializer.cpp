@@ -370,6 +370,11 @@ namespace Himii
             out << YAML::Key << "Color" << YAML::Value << light.Color;
             out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
             out << YAML::Key << "Enabled" << YAML::Value << light.Enabled;
+            out << YAML::Key << "CastShadows" << YAML::Value << light.CastShadows;
+            out << YAML::Key << "ShadowSize" << YAML::Value << light.ShadowSize;
+            out << YAML::Key << "ShadowDistance" << YAML::Value << light.ShadowDistance;
+            out << YAML::Key << "ShadowMapResolution"
+                << YAML::Value << static_cast<int>(light.ShadowMapResolution);
             out << YAML::EndMap;
         }
         if (entity.HasComponent<EnvironmentComponent>())
@@ -801,6 +806,26 @@ namespace Himii
                 light.Intensity = lightComponent["Intensity"].as<float>();
             if (lightComponent["Enabled"])
                 light.Enabled = lightComponent["Enabled"].as<bool>();
+            if (lightComponent["CastShadows"])
+                light.CastShadows = lightComponent["CastShadows"].as<bool>();
+            if (lightComponent["ShadowSize"])
+                light.ShadowSize = lightComponent["ShadowSize"].as<float>();
+            if (lightComponent["ShadowDistance"])
+                light.ShadowDistance = lightComponent["ShadowDistance"].as<float>();
+            if (lightComponent["ShadowMapResolution"])
+            {
+                const int resolutionValue = lightComponent["ShadowMapResolution"].as<int>();
+                if (resolutionValue >= static_cast<int>(Himii::ShadowMapResolution::Pixels1024)
+                    && resolutionValue <= static_cast<int>(Himii::ShadowMapResolution::Pixels4096))
+                {
+                    light.ShadowMapResolution =
+                            static_cast<Himii::ShadowMapResolution>(resolutionValue);
+                }
+                else
+                {
+                    light.ShadowMapResolution = Himii::ShadowMapResolution::Pixels2048;
+                }
+            }
         }
 
         auto environmentComponent = entity["EnvironmentComponent"];

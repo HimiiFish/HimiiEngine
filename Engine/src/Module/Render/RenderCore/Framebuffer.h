@@ -12,6 +12,8 @@ namespace Himii
         RED_INTEGER,
         
         DEPTH24STENCIL8,
+        /// 仅深度（阴影贴图）：支持 sampler2DShadow 硬件比较。
+        DEPTH32,
 
         // Defaults
         Depth = DEPTH24STENCIL8
@@ -56,12 +58,18 @@ namespace Himii
         virtual void Bind() = 0;
         virtual void Unbind() = 0;
 
+        /// 绑定前捕获当前 FBO 与 viewport，供阴影 pass 结束后还原场景目标。
+        virtual void BindCapturingPrevious() = 0;
+        virtual void UnbindRestoringPrevious() = 0;
+
         virtual void Resize(uint32_t width, uint32_t height) = 0;
         virtual int ReadPixel(uint32_t attachmentIndex, int x ,int y) = 0;
 
         virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
 
-        virtual uint32_t GetColorAttachmentRendererID(uint32_t index=0) const = 0; 
+        virtual uint32_t GetColorAttachmentRendererID(uint32_t index=0) const = 0;
+        virtual uint32_t GetDepthAttachmentRendererID() const = 0;
+        virtual void BindDepthAttachment(uint32_t slot) const = 0;
 
         virtual const FramebufferSpecification &GetSpecification() const = 0;
 

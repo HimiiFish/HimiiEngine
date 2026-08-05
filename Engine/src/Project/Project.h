@@ -83,6 +83,10 @@ namespace Himii
 
         static void CreateProjectFiles(const std::string &name, const std::filesystem::path &projectDir);
 
+        /// 将引擎生成的旧脚本包含规则迁移为 assets 下任意目录的 C# 脚本。
+        /// 仅替换已知旧规则，不覆盖用户自定义的项目配置。
+        static bool EnsureGameAssemblyProjectIncludesAllAssetScripts();
+
         /// 将 ScriptCore.dll / .pdb / .xml 与 Himii 脚本 API 源文件同步到项目目录，供 IDE 智能提示解析
         static void SyncScriptCoreToProjectDirectory(const std::filesystem::path &projectDir);
 

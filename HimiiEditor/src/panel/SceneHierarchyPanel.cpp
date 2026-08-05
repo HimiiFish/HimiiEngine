@@ -15,6 +15,8 @@
 #include "InspectorControls.h"
 
 #include <imgui.h>
+#include <algorithm>
+#include <cctype>
 #include <filesystem>
 #include <cstdio>
 
@@ -23,12 +25,32 @@ namespace Himii
     namespace
     {
         constexpr const char* kEntityDragDropPayloadType = "HIMII_ENTITY_UUID";
+
+        bool ContainsCaseInsensitive(const std::string &text, const std::string &searchFilter)
+        {
+            if (searchFilter.empty())
+                return true;
+
+            auto toLowercaseCharacter = [](unsigned char character)
+            {
+                return static_cast<char>(std::tolower(character));
+            };
+
+            std::string lowercaseText(text.size(), '\0');
+            std::transform(text.begin(), text.end(), lowercaseText.begin(), toLowercaseCharacter);
+
+            std::string lowercaseFilter(searchFilter.size(), '\0');
+            std::transform(searchFilter.begin(), searchFilter.end(), lowercaseFilter.begin(),
+                           toLowercaseCharacter);
+            return lowercaseText.find(lowercaseFilter) != std::string::npos;
+        }
     }
 
     SceneHierarchyPanel::SceneHierarchyPanel()
     {
         m_ComponentIcons["Transform"] = Texture2D::Create("resources/icons/Component_Transform.png");
         m_ComponentIcons["Camera"] = Texture2D::Create("resources/icons/Component_Camera.png");
+        m_ComponentIcons["Light"] = Texture2D::Create("resources/icons/Component_Light.png");
         m_ComponentIcons["Script"] = Texture2D::Create("resources/icons/Component_Script.png");
         m_ComponentIcons["Sprite Renderer"] = Texture2D::Create("resources/icons/Component_SpriteRenderer.png");
         m_ComponentIcons["Circle Renderer"] = Texture2D::Create("resources/icons/Component_CircleRenderer.png");
@@ -110,147 +132,7 @@ namespace Himii
 
         if (ImGui::BeginPopupContextWindow(0, 1))
         {
-            if (ImGui::MenuItem("Create Empty Entity"))
-            {
-                if (m_CommandHistory)
-                {
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
-                        m_Context,
-                        [](const Ref<Scene>& scene) { return scene->CreateEntity("Empty Entity"); }));
-                }
-                else
-                    m_Context->CreateEntity("Empty Entity");
-            }
-            if (ImGui::MenuItem("Create UI Canvas"))
-            {
-                if (m_Context->FindCanvasEntity())
-                {
-                    HIMII_CORE_WARNING("Scene already has a Canvas.");
-                }
-                else if (m_CommandHistory)
-                {
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
-                        m_Context,
-                        [](const Ref<Scene>& scene) { return scene->CreateCanvasEntity("Canvas"); }));
-                }
-                else
-                    m_Context->CreateCanvasEntity("Canvas");
-            }
-            if (ImGui::MenuItem("Create UI Text"))
-            {
-                auto createTextEntity = [](const Ref<Scene>& scene) -> Entity
-                {
-                    Entity canvasEntity = scene->FindCanvasEntity();
-                    if (!canvasEntity)
-                        canvasEntity = scene->CreateCanvasEntity("Canvas");
-                    if (!canvasEntity)
-                        return {};
-
-                    Entity textEntity = scene->CreateUIEntity("Text");
-                    auto& text = textEntity.AddComponent<UITextComponent>();
-                    text.FontAsset = Font::GetDefault();
-                    text.FontSize = 48.0f;
-
-                    auto& userInterfaceTransform = textEntity.GetComponent<RectTransformComponent>();
-                    userInterfaceTransform.AnchoredPosition = glm::vec2(0.0f);
-                    userInterfaceTransform.SizeDelta = glm::vec2(300.0f, 100.0f);
-                    userInterfaceTransform.ResolvedSize = userInterfaceTransform.SizeDelta;
-
-                    scene->SetEntityParent(textEntity, canvasEntity, false);
-                    return textEntity;
-                };
-
-                if (m_CommandHistory)
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(m_Context, createTextEntity));
-                else
-                    createTextEntity(m_Context);
-            }
-            if (ImGui::MenuItem("Create UI Button"))
-            {
-                auto createButtonEntity = [](const Ref<Scene>& scene) -> Entity
-                {
-                    Entity canvasEntity = scene->FindCanvasEntity();
-                    if (!canvasEntity)
-                        canvasEntity = scene->CreateCanvasEntity("Canvas");
-
-                    Entity buttonEntity = scene->CreateUIButtonEntity("Button");
-                    scene->SetEntityParent(buttonEntity, canvasEntity, false);
-                    return buttonEntity;
-                };
-
-                if (m_CommandHistory)
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(m_Context, createButtonEntity));
-                else
-                    createButtonEntity(m_Context);
-            }
-            if (ImGui::MenuItem("Create UI Entity"))
-            {
-                if (m_CommandHistory)
-                {
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
-                        m_Context,
-                        [](const Ref<Scene>& scene) { return scene->CreateUIEntity("Empty UI Entity"); }));
-                }
-                else
-                    m_Context->CreateUIEntity("Empty UI Entity");
-            }
-            if (ImGui::MenuItem("Create Cube"))
-            {
-                if (m_CommandHistory)
-                {
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
-                        m_Context,
-                        [](const Ref<Scene>& scene)
-                        {
-                            Entity entity = scene->CreateEntity("Cube");
-                            entity.AddComponent<MeshComponent>().Type = MeshComponent::MeshType::Cube;
-                            return entity;
-                        }));
-                }
-                else
-                {
-                    auto entity = m_Context->CreateEntity("Cube");
-                    entity.AddComponent<MeshComponent>().Type = MeshComponent::MeshType::Cube;
-                }
-            }
-            if (ImGui::MenuItem("Create Sphere"))
-            {
-                if (m_CommandHistory)
-                {
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
-                        m_Context,
-                        [](const Ref<Scene>& scene)
-                        {
-                            Entity entity = scene->CreateEntity("Sphere");
-                            entity.AddComponent<MeshComponent>().Type = MeshComponent::MeshType::Sphere;
-                            return entity;
-                        }));
-                }
-                else
-                {
-                    auto entity = m_Context->CreateEntity("Sphere");
-                    entity.AddComponent<MeshComponent>().Type = MeshComponent::MeshType::Sphere;
-                }
-            }
-            if (ImGui::MenuItem("Create Capsule"))
-            {
-                if (m_CommandHistory)
-                {
-                    m_CommandHistory->Execute(CreateScope<CreateEntityCommand>(
-                        m_Context,
-                        [](const Ref<Scene>& scene)
-                        {
-                            Entity entity = scene->CreateEntity("Capsule");
-                            entity.AddComponent<MeshComponent>().Type = MeshComponent::MeshType::Capsule;
-                            return entity;
-                        }));
-                }
-                else
-                {
-                    auto entity = m_Context->CreateEntity("Capsule");
-                    entity.AddComponent<MeshComponent>().Type = MeshComponent::MeshType::Capsule;
-                }
-            }
+            DrawCreateEntityMenu();
             ImGui::EndPopup();
         }
         ImGui::End();
@@ -264,30 +146,332 @@ namespace Himii
 
             if (ImGui::BeginPopupContextWindow(0, 1))
             {
-                DisplayAddComponentEntry<CameraComponent>("Camera");
-                DisplayAddComponentEntry<ScriptComponent>("Script Component");
-                DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
-                DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
-                DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
-                DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider2D");
-                DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
-                DisplayAddComponentEntry<MeshComponent>("Mesh Renderer");
-                DisplayAddComponentEntry<LightComponent>("Light");
-                DisplayAddComponentEntry<EnvironmentComponent>("Environment");
-                DisplayAddComponentEntry<TilemapComponent>("Tilemap");
-                DisplayAddComponentEntry<TilemapCollider2DComponent>("Tilemap Collider 2D");
-                DisplayAddComponentEntry<ParticleEmitterComponent>("Particle Emitter");
-                DisplayAddComponentEntry<RectTransformComponent>("Rect Transform");
-                DisplayAddComponentEntry<UIImageComponent>("Image");
-                DisplayAddComponentEntry<UIButtonComponent>("Button");
-                DisplayAddComponentEntry<SoundPlayerComponent>("Sound Player");
-
+                DrawAddComponentMenu(true);
                 ImGui::EndPopup();
             }
         }
 
         EndInspectorPropertiesStyle();
         ImGui::End();
+    }
+
+    std::string SceneHierarchyPanel::BuildUniqueSiblingName(const std::string &baseName, Entity parentEntity,
+                                                            bool userInterfaceEntity) const
+    {
+        if (!m_Context)
+            return baseName;
+
+        auto siblingNameExists = [&](const std::string &candidateName)
+        {
+            if (parentEntity)
+            {
+                for (UUID childIdentifier : m_Context->GetEntityChildren(parentEntity))
+                {
+                    Entity childEntity = m_Context->GetEntityByUUID(childIdentifier);
+                    if (childEntity && childEntity.GetComponent<TagComponent>().Tag == candidateName)
+                        return true;
+                }
+                return false;
+            }
+
+            for (Entity rootEntity : m_Context->GetRootEntities(userInterfaceEntity))
+            {
+                if (rootEntity.GetComponent<TagComponent>().Tag == candidateName)
+                    return true;
+            }
+            return false;
+        };
+
+        if (!siblingNameExists(baseName))
+            return baseName;
+
+        for (uint32_t nameIndex = 1; ; ++nameIndex)
+        {
+            const std::string candidateName =
+                    baseName + " (" + std::to_string(nameIndex) + ")";
+            if (!siblingNameExists(candidateName))
+                return candidateName;
+        }
+    }
+
+    void SceneHierarchyPanel::CreateEntityFromMenu(
+            const std::string &baseName,
+            const std::function<Entity(const Ref<Scene>&, const std::string&)> &createEntityFunction,
+            Entity parentEntity)
+    {
+        if (!m_Context)
+            return;
+
+        const bool userInterfaceEntity = parentEntity
+                && parentEntity.HasComponent<RectTransformComponent>();
+        Entity siblingParent = parentEntity;
+        if (!siblingParent && userInterfaceEntity)
+            siblingParent = m_Context->FindCanvasEntity();
+
+        const std::string uniqueName =
+                BuildUniqueSiblingName(baseName, siblingParent, userInterfaceEntity);
+        const UUID parentIdentifier = parentEntity ? parentEntity.GetUUID() : UUID(0);
+
+        auto createAndSelectEntity =
+                [this, createEntityFunction, uniqueName, parentIdentifier](const Ref<Scene> &scene)
+                {
+                    Entity createdEntity = createEntityFunction(scene, uniqueName);
+                    if (!createdEntity)
+                        return Entity{};
+
+                    Entity resolvedParent;
+                    if (static_cast<uint64_t>(parentIdentifier) != 0)
+                    {
+                        resolvedParent = scene->GetEntityByUUID(parentIdentifier);
+                    }
+                    else if (createdEntity.HasComponent<RectTransformComponent>()
+                             && !createdEntity.HasComponent<CanvasComponent>())
+                    {
+                        resolvedParent = scene->FindCanvasEntity();
+                        if (!resolvedParent)
+                            resolvedParent = scene->CreateCanvasEntity("Canvas");
+                    }
+
+                    if (resolvedParent)
+                        scene->SetEntityParent(createdEntity, resolvedParent, false);
+
+                    m_SelectionContext = createdEntity;
+                    return createdEntity;
+                };
+
+        if (m_CommandHistory)
+        {
+            m_CommandHistory->Execute(
+                    CreateScope<CreateEntityCommand>(m_Context, createAndSelectEntity));
+        }
+        else
+        {
+            createAndSelectEntity(m_Context);
+        }
+    }
+
+    void SceneHierarchyPanel::DrawCreateEntityMenu(Entity parentEntity)
+    {
+        if (!m_Context)
+            return;
+
+        const bool hasParent = static_cast<bool>(parentEntity);
+        const bool parentIsUserInterface =
+                hasParent && parentEntity.HasComponent<RectTransformComponent>();
+        const bool showWorldEntities = !hasParent || !parentIsUserInterface;
+        const bool showUserInterfaceEntities = !hasParent || parentIsUserInterface;
+        const Entity userInterfaceParent = parentIsUserInterface
+                ? parentEntity
+                : (!hasParent ? m_Context->FindCanvasEntity() : Entity{});
+
+        if (ImGui::MenuItem("Create Empty"))
+        {
+            if (parentIsUserInterface)
+            {
+                CreateEntityFromMenu(
+                        "Empty UI Entity",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            return scene->CreateUIEntity(name);
+                        },
+                        userInterfaceParent);
+            }
+            else
+            {
+                CreateEntityFromMenu(
+                        "Empty Entity",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            return scene->CreateEntity(name);
+                        },
+                        parentEntity);
+            }
+        }
+
+        if (showWorldEntities && ImGui::BeginMenu("2D Object"))
+        {
+            if (ImGui::MenuItem("Sprite"))
+            {
+                CreateEntityFromMenu(
+                        "Sprite",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            entity.AddComponent<SpriteRendererComponent>();
+                            return entity;
+                        },
+                        parentEntity);
+            }
+            if (ImGui::MenuItem("Circle"))
+            {
+                CreateEntityFromMenu(
+                        "Circle",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            entity.AddComponent<CircleRendererComponent>();
+                            return entity;
+                        },
+                        parentEntity);
+            }
+            if (ImGui::MenuItem("Tilemap"))
+            {
+                CreateEntityFromMenu(
+                        "Tilemap",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            entity.AddComponent<TilemapComponent>();
+                            return entity;
+                        },
+                        parentEntity);
+            }
+            ImGui::EndMenu();
+        }
+
+        if (showWorldEntities && ImGui::BeginMenu("3D Object"))
+        {
+            const auto drawMeshCreationEntry =
+                    [this, parentEntity](const char *label, MeshComponent::MeshType meshType)
+                    {
+                        if (!ImGui::MenuItem(label))
+                            return;
+                        CreateEntityFromMenu(
+                                label,
+                                [meshType](const Ref<Scene> &scene, const std::string &name)
+                                {
+                                    Entity entity = scene->CreateEntity(name);
+                                    entity.AddComponent<MeshComponent>().Type = meshType;
+                                    return entity;
+                                },
+                                parentEntity);
+                    };
+
+            drawMeshCreationEntry("Cube", MeshComponent::MeshType::Cube);
+            drawMeshCreationEntry("Plane", MeshComponent::MeshType::Plane);
+            drawMeshCreationEntry("Sphere", MeshComponent::MeshType::Sphere);
+            drawMeshCreationEntry("Capsule", MeshComponent::MeshType::Capsule);
+            ImGui::EndMenu();
+        }
+
+        if (showWorldEntities && ImGui::BeginMenu("Lights"))
+        {
+            if (ImGui::MenuItem("Directional Light"))
+            {
+                CreateEntityFromMenu(
+                        "Directional Light",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            entity.GetComponent<TransformComponent>().Rotation =
+                                    glm::radians(glm::vec3(50.0f, -30.0f, 0.0f));
+                            entity.AddComponent<LightComponent>();
+                            return entity;
+                        },
+                        parentEntity);
+            }
+            if (ImGui::MenuItem("Environment"))
+            {
+                CreateEntityFromMenu(
+                        "Environment",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            entity.AddComponent<EnvironmentComponent>();
+                            return entity;
+                        },
+                        parentEntity);
+            }
+            ImGui::EndMenu();
+        }
+
+        if (showWorldEntities && ImGui::BeginMenu("Visual Effects"))
+        {
+            if (ImGui::MenuItem("Particle Emitter"))
+            {
+                CreateEntityFromMenu(
+                        "Particle Emitter",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            entity.AddComponent<ParticleEmitterComponent>();
+                            return entity;
+                        },
+                        parentEntity);
+            }
+            ImGui::EndMenu();
+        }
+
+        if (showWorldEntities && ImGui::MenuItem("Camera"))
+        {
+            CreateEntityFromMenu(
+                    "Camera",
+                    [](const Ref<Scene> &scene, const std::string &name)
+                    {
+                        Entity entity = scene->CreateEntity(name);
+                        entity.AddComponent<CameraComponent>();
+                        return entity;
+                    },
+                    parentEntity);
+        }
+
+        if (showUserInterfaceEntities && ImGui::BeginMenu("UI"))
+        {
+            const bool sceneHasCanvas = static_cast<bool>(m_Context->FindCanvasEntity());
+            if (!parentIsUserInterface)
+            {
+                ImGui::BeginDisabled(sceneHasCanvas);
+                if (ImGui::MenuItem("Canvas"))
+                {
+                    CreateEntityFromMenu(
+                            "Canvas",
+                            [](const Ref<Scene> &scene, const std::string &name)
+                            {
+                                return scene->CreateCanvasEntity(name);
+                            });
+                }
+                ImGui::EndDisabled();
+            }
+
+            if (ImGui::MenuItem("Text"))
+            {
+                CreateEntityFromMenu(
+                        "Text",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateUIEntity(name);
+                            auto &text = entity.AddComponent<UITextComponent>();
+                            text.FontAsset = Font::GetDefault();
+                            text.FontSize = 48.0f;
+                            auto &rectTransform = entity.GetComponent<RectTransformComponent>();
+                            rectTransform.SizeDelta = glm::vec2(300.0f, 100.0f);
+                            rectTransform.ResolvedSize = rectTransform.SizeDelta;
+                            return entity;
+                        },
+                        userInterfaceParent);
+            }
+            if (ImGui::MenuItem("Button"))
+            {
+                CreateEntityFromMenu(
+                        "Button",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            return scene->CreateUIButtonEntity(name);
+                        },
+                        userInterfaceParent);
+            }
+            if (ImGui::MenuItem("Empty UI"))
+            {
+                CreateEntityFromMenu(
+                        "Empty UI Entity",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            return scene->CreateUIEntity(name);
+                        },
+                        userInterfaceParent);
+            }
+            ImGui::EndMenu();
+        }
     }
 
     void SceneHierarchyPanel::DrawEntityNode(Entity entity)
@@ -345,6 +529,13 @@ namespace Himii
         bool entityDeleted = false;
         if (ImGui::BeginPopupContextItem())
         {
+            if (ImGui::BeginMenu("Create"))
+            {
+                DrawCreateEntityMenu(entity);
+                ImGui::EndMenu();
+            }
+
+            ImGui::Separator();
             if (ImGui::MenuItem("Save as Prefab..."))
             {
                 std::string filePath = FileDialog::SaveFile("Himii Prefab (*.hprefab)\0*.hprefab\0");
@@ -428,32 +619,21 @@ namespace Himii
         }
         ImGui::SameLine();
         if (ImGui::Button("Add Component"))
+        {
+            m_AddComponentSearchBuffer.fill('\0');
             ImGui::OpenPopup("AddComponent");
+        }
 
         if (ImGui::BeginPopup("AddComponent"))
         {
-            DisplayAddComponentEntry<CameraComponent>("Camera");
-            DisplayAddComponentEntry<ScriptComponent>("Script Component");
-            DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer");
-            DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer");
-            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2D");
-            DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D");
-            DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D");
-            DisplayAddComponentEntry<SpriteAnimationComponent>("Sprite Animation");
-            DisplayAddComponentEntry<MeshComponent>("Mesh Renderer");
-            DisplayAddComponentEntry<LightComponent>("Light");
-            DisplayAddComponentEntry<EnvironmentComponent>("Environment");
-            DisplayAddComponentEntry<TilemapComponent>("Tilemap");
-            DisplayAddComponentEntry<TilemapCollider2DComponent>("Tilemap Collider 2D");
-            DisplayAddComponentEntry<ParticleEmitterComponent>("Particle Emitter");
+            ImGui::SetNextItemWidth(280.0f);
+            ImGui::InputTextWithHint("##AddComponentSearch", "Search components...",
+                                     m_AddComponentSearchBuffer.data(),
+                                     m_AddComponentSearchBuffer.size());
+            ImGui::Separator();
 
-            DisplayAddComponentEntry<RectTransformComponent>("Rect Transform");
-            DisplayAddComponentEntry<UIImageComponent>("Image");
-            DisplayAddComponentEntry<UITextComponent>("Text");
-            DisplayAddComponentEntry<UIButtonComponent>("Button");
-            DisplayAddComponentEntry<SoundPlayerComponent>("Sound Player");
-            if (!m_Context->FindCanvasEntity())
-                DisplayAddComponentEntry<CanvasComponent>("Canvas");
+            const std::string searchFilter = m_AddComponentSearchBuffer.data();
+            DrawAddComponentMenu(searchFilter.empty(), searchFilter);
 
             ImGui::EndPopup();
         }
@@ -500,10 +680,135 @@ namespace Himii
         ComponentInspectorRegistry::Get().DrawAll(componentInspectorDrawContext);
     }
 
-    template<typename T>
-    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string &entryName)
+    void SceneHierarchyPanel::DrawAddComponentMenu(bool useGroupedMenus,
+                                                   const std::string &searchFilter)
     {
-        if (!m_SelectionContext.HasComponent<T>())
+        if (!m_SelectionContext)
+            return;
+
+        const bool userInterfaceEntity =
+                m_SelectionContext.HasComponent<RectTransformComponent>();
+
+        const auto drawRenderingEntries = [this, &searchFilter]()
+        {
+            DisplayAddComponentEntry<CameraComponent>("Camera", searchFilter);
+            DisplayAddComponentEntry<SpriteRendererComponent>("Sprite Renderer", searchFilter);
+            DisplayAddComponentEntry<CircleRendererComponent>("Circle Renderer", searchFilter);
+            DisplayAddComponentEntry<MeshComponent>("Mesh Renderer", searchFilter);
+            DisplayAddComponentEntry<LightComponent>("Light", searchFilter);
+            DisplayAddComponentEntry<EnvironmentComponent>("Environment", searchFilter);
+            DisplayAddComponentEntry<ParticleEmitterComponent>("Particle Emitter", searchFilter);
+        };
+        const auto drawPhysicsEntries = [this, &searchFilter]()
+        {
+            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody 2D", searchFilter);
+            DisplayAddComponentEntry<BoxCollider2DComponent>("Box Collider 2D", searchFilter);
+            DisplayAddComponentEntry<CircleCollider2DComponent>("Circle Collider 2D", searchFilter);
+        };
+        const auto drawAnimationEntries = [this, &searchFilter]()
+        {
+            DisplayAddComponentEntry<SpriteAnimationComponent>("Sprite Animation", searchFilter);
+        };
+        const auto drawTilemapEntries = [this, &searchFilter]()
+        {
+            DisplayAddComponentEntry<TilemapComponent>("Tilemap", searchFilter);
+            DisplayAddComponentEntry<TilemapCollider2DComponent>("Tilemap Collider 2D", searchFilter);
+        };
+        const auto drawScriptingEntries = [this, &searchFilter]()
+        {
+            DisplayAddComponentEntry<ScriptComponent>("Script", searchFilter);
+        };
+        const auto drawAudioEntries = [this, &searchFilter]()
+        {
+            DisplayAddComponentEntry<SoundPlayerComponent>("Sound Player", searchFilter);
+        };
+        const auto drawUserInterfaceEntries = [this, &searchFilter]()
+        {
+            if (!m_Context->FindCanvasEntity())
+                DisplayAddComponentEntry<CanvasComponent>("Canvas", searchFilter);
+            DisplayAddComponentEntry<UIImageComponent>("Image", searchFilter);
+            DisplayAddComponentEntry<UITextComponent>("Text", searchFilter);
+            DisplayAddComponentEntry<UIButtonComponent>("Button", searchFilter);
+        };
+
+        if (!useGroupedMenus)
+        {
+            if (userInterfaceEntity)
+            {
+                drawUserInterfaceEntries();
+                drawScriptingEntries();
+                drawAudioEntries();
+            }
+            else
+            {
+                drawRenderingEntries();
+                drawPhysicsEntries();
+                drawAnimationEntries();
+                drawTilemapEntries();
+                drawScriptingEntries();
+                drawAudioEntries();
+            }
+            return;
+        }
+
+        if (userInterfaceEntity)
+        {
+            if (ImGui::BeginMenu("User Interface"))
+            {
+                drawUserInterfaceEntries();
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Scripting"))
+            {
+                drawScriptingEntries();
+                ImGui::EndMenu();
+            }
+            if (ImGui::BeginMenu("Audio"))
+            {
+                drawAudioEntries();
+                ImGui::EndMenu();
+            }
+            return;
+        }
+
+        if (ImGui::BeginMenu("Rendering"))
+        {
+            drawRenderingEntries();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Physics 2D"))
+        {
+            drawPhysicsEntries();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Animation"))
+        {
+            drawAnimationEntries();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Tilemap"))
+        {
+            drawTilemapEntries();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Scripting"))
+        {
+            drawScriptingEntries();
+            ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("Audio"))
+        {
+            drawAudioEntries();
+            ImGui::EndMenu();
+        }
+    }
+
+    template<typename T>
+    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string &entryName,
+                                                       const std::string &searchFilter)
+    {
+        if (!m_SelectionContext.HasComponent<T>()
+            && ContainsCaseInsensitive(entryName, searchFilter))
         {
             if (ImGui::MenuItem(entryName.c_str()))
             {

@@ -2,6 +2,7 @@
 #include "Resource/Asset.h"
 #include "Module/Render/RenderCore/Texture.h"
 
+#include <array>
 #include <filesystem>
 #include <functional>
 #include <unordered_map>
@@ -42,8 +43,40 @@ namespace Himii
         }
 
     private:
+        enum class CreationType
+        {
+            None = 0,
+            Folder,
+            CSharpScript,
+            Scene,
+            Material,
+            ParticleEmitter,
+            SpriteAnimation,
+            TileMap,
+            TileSet
+        };
+
+        void DrawCreateMenu(const std::filesystem::path &targetDirectory);
+        void BeginCreation(CreationType creationType, const std::filesystem::path &targetDirectory,
+                           const char *defaultName);
+        void DrawCreationModal();
+        bool CreatePendingItem();
+        bool ValidateCreationName(const std::string &name, std::string &errorMessage) const;
+        bool IsPathInsideAssetsDirectory(const std::filesystem::path &path) const;
+        bool CreateFolder(const std::filesystem::path &directory, const std::string &folderName);
         bool CreateCSharpScript(const std::filesystem::path& directory, const std::string& className);
+        bool CreateSceneAsset(const std::filesystem::path &directory, const std::string &sceneName);
         bool CreateMaterialAsset(const std::filesystem::path &directory, const std::string &materialName);
+        bool CreateParticleEmitterAsset(const std::filesystem::path &directory,
+                                        const std::string &emitterName);
+        bool CreateSpriteAnimationAsset(const std::filesystem::path &directory,
+                                        const std::string &animationName);
+        bool CreateTileSetAsset(const std::filesystem::path &directory,
+                                const std::string &tileSetName);
+        bool CreateTileMapAssetPair(const std::filesystem::path &directory,
+                                    const std::string &tileMapName);
+        AssetHandle RegisterCreatedAsset(const std::filesystem::path &absolutePath,
+                                         bool persistRegistry = true);
         void ImportSingleFile(const std::filesystem::path& sourcePath,const std::filesystem::path& assetsDirectory);
         std::filesystem::path ResolveUniqueDestination(const std::filesystem::path& destinationDirectory,  const std::filesystem::path& fileName) const;
         std::filesystem::path m_BaseDirectory;
@@ -65,9 +98,15 @@ namespace Himii
 
         std::function<void()> m_OnScriptChanged;
         std::string m_SelectedItemDisplayName;
+        bool m_ScrollToSelectedItem = false;
         std::filesystem::path m_LastBrowsedDirectory;
         AssetHandle m_TextureInspectorRequest = 0;
         AssetHandle m_MaterialEditorRequest = 0;
         std::filesystem::path m_AnimationEditorRequest;
+        CreationType m_PendingCreationType = CreationType::None;
+        std::filesystem::path m_CreationTargetDirectory;
+        std::array<char, 128> m_CreationNameBuffer{};
+        std::string m_CreationErrorMessage;
+        bool m_OpenCreationModal = false;
     };
 }

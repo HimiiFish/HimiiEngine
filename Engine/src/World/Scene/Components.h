@@ -143,6 +143,28 @@ namespace Himii
         Directional = 0
     };
 
+    /// 阴影贴图边长像素数；序列化存枚举整型（0/1/2）。
+    enum class ShadowMapResolution
+    {
+        Pixels1024 = 0,
+        Pixels2048 = 1,
+        Pixels4096 = 2
+    };
+
+    inline uint32_t GetShadowMapResolutionPixelCount(ShadowMapResolution resolution)
+    {
+        switch (resolution)
+        {
+            case ShadowMapResolution::Pixels1024:
+                return 1024u;
+            case ShadowMapResolution::Pixels4096:
+                return 4096u;
+            case ShadowMapResolution::Pixels2048:
+            default:
+                return 2048u;
+        }
+    }
+
     /// 第一阶段仅 Directional；方向由实体 Transform 的 forward（局部 -Z）推导。
     struct LightComponent
     {
@@ -150,6 +172,14 @@ namespace Himii
         glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
         float Intensity = 1.0f;
         bool Enabled = true;
+        /// 是否投射方向光阴影；默认开启。Bias 为引擎内部常量，不进 Inspector。
+        bool CastShadows = true;
+        /// 正交阴影盒在世界空间中的边长（宽=高）；盒中心跟随相机观察点。
+        float ShadowSize = 25.0f;
+        /// 沿光传播方向的近远平面跨度（世界单位）。
+        float ShadowDistance = 80.0f;
+        /// 成员名与枚举类型同名时，默认值须用命名空间限定类型。
+        Himii::ShadowMapResolution ShadowMapResolution = Himii::ShadowMapResolution::Pixels2048;
 
         LightComponent() = default;
         LightComponent(const LightComponent &) = default;

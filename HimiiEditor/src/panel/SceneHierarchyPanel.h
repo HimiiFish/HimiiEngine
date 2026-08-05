@@ -3,7 +3,9 @@
 #include "Engine.h"
 #include "Module/Render/RenderCore/Texture.h"
 
+#include <array>
 #include <filesystem>
+#include <functional>
 #include <unordered_map>
 
 namespace Himii
@@ -66,12 +68,20 @@ namespace Himii
 
     private:
         template<typename T>
-        void DisplayAddComponentEntry(const std::string &entryName);
+        void DisplayAddComponentEntry(const std::string &entryName, const std::string &searchFilter = {});
 
         void DrawEntityNode(Entity entity);
         void DrawComponents(Entity entity);
         void DrawHierarchyRoots(bool userInterfaceEntities);
         void HandleEntityReparent(Entity draggedEntity, Entity newParentEntity);
+        void DrawCreateEntityMenu(Entity parentEntity = {});
+        void DrawAddComponentMenu(bool useGroupedMenus, const std::string &searchFilter = {});
+        void CreateEntityFromMenu(
+                const std::string &baseName,
+                const std::function<Entity(const Ref<Scene>&, const std::string&)> &createEntityFunction,
+                Entity parentEntity = {});
+        std::string BuildUniqueSiblingName(const std::string &baseName, Entity parentEntity,
+                                           bool userInterfaceEntity) const;
 
     private:
         Ref<Scene> m_Context;
@@ -86,5 +96,6 @@ namespace Himii
         EditorCommandHistory* m_CommandHistory = nullptr;
 
         std::string m_TagEditStartValue;
+        std::array<char, 128> m_AddComponentSearchBuffer{};
     };
 }

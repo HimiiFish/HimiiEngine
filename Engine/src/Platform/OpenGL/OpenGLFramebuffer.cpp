@@ -53,13 +53,38 @@ namespace Himii
             else
             {
                 glTexStorage2D(GL_TEXTURE_2D, 1, format, width, height);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE);
             }
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, TextureTarget(multisampled), id, 0);
+        }
+
+        static void AttachShadowMapDepthTexture(uint32_t id, int samples, uint32_t width, uint32_t height)
+        {
+            bool multisampled = samples > 1;
+            if (multisampled)
+            {
+                glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, samples, GL_DEPTH_COMPONENT32F, width, height,
+                                        GL_FALSE);
+            }
+            else
+            {
+                glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32F, width, height);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+                const float borderColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+                glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, borderColor);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+            }
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, TextureTarget(multisampled), id, 0);
         }
 
         static bool IsDepthFormat(FramebufferFormat format)
@@ -67,6 +92,7 @@ namespace Himii
             switch (format)
             {
                 case FramebufferFormat::DEPTH24STENCIL8:
+                case FramebufferFormat::DEPTH32:
                     return true;
             }
             return false;
@@ -82,6 +108,8 @@ namespace Himii
                     return GL_RED_INTEGER;
                 case FramebufferFormat::DEPTH24STENCIL8:
                     return GL_DEPTH24_STENCIL8;
+                case FramebufferFormat::DEPTH32:
+                    return GL_DEPTH_COMPONENT32F;
             }
             HIMII_CORE_ASSERT(false, "Unknown FramebufferFormat!");
             return 0;
@@ -163,6 +191,10 @@ namespace Himii
                     Utils::AttachDepthtexture(m_DepthAttachment, m_Specification.Samples, GL_DEPTH24_STENCIL8,
                                              m_Specification.Width, m_Specification.Height);
                     break;
+                case FramebufferFormat::DEPTH32:
+                    Utils::AttachShadowMapDepthTexture(m_DepthAttachment, m_Specification.Samples,
+                                                       m_Specification.Width, m_Specification.Height);
+                    break;
             }
         }
 
@@ -177,6 +209,7 @@ namespace Himii
         {
             // Only depth-pass
             glDrawBuffer(GL_NONE);
+            glReadBuffer(GL_NONE);
         }
 
         HIMII_CORE_ASSERT(glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE,
@@ -193,6 +226,27 @@ namespace Himii
     void OpenGLFramebuffer::Unbind()
     {
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    }
+
+    void OpenGLFramebuffer::BindCapturingPrevious()
+    {
+        glGetIntegerv(GL_FRAMEBUFFER_BINDING, &m_PreviousFramebuffer);
+        glGetIntegerv(GL_VIEWPORT, m_PreviousViewport);
+        m_HasCapturedPrevious = true;
+        Bind();
+    }
+
+    void OpenGLFramebuffer::UnbindRestoringPrevious()
+    {
+        if (m_HasCapturedPrevious)
+        {
+            glBindFramebuffer(GL_FRAMEBUFFER, static_cast<GLuint>(m_PreviousFramebuffer));
+            glViewport(m_PreviousViewport[0], m_PreviousViewport[1], m_PreviousViewport[2],
+                       m_PreviousViewport[3]);
+            m_HasCapturedPrevious = false;
+            return;
+        }
+        Unbind();
     }
     void OpenGLFramebuffer::Resize(uint32_t width, uint32_t height)
     {
@@ -223,5 +277,11 @@ namespace Himii
         auto &spec = m_ColorAttachmentSpecifications[attachmentIndex];
         glClearTexImage(m_ColorAttachments[attachmentIndex], 0, Utils::HimiiFBTextureFormatToGL(spec.TextureFormat),
                         GL_INT, &value);
+    }
+
+    void OpenGLFramebuffer::BindDepthAttachment(uint32_t slot) const
+    {
+        HIMII_CORE_ASSERT(m_DepthAttachment != 0);
+        glBindTextureUnit(slot, m_DepthAttachment);
     }
 } // namespace Himii

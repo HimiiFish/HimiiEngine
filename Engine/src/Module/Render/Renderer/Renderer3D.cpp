@@ -13,6 +13,7 @@
 #include "World/Scene/SceneCamera.h"
 
 #include "Module/Render/RHI/RenderCommand.h"
+#include "Module/Render/RenderCore/Framebuffer.h"
 #include "Module/Render/RenderCore/Shader.h"
 #include "Module/Render/RenderCore/UniformBuffer.h"
 #include "Module/Render/RenderCore/VertexArray.h"
@@ -84,9 +85,17 @@ namespace Himii
         Ref<Shader> CubeShader;
         Ref<Shader> MeshLitShader;
         Ref<Shader> MeshUnlitShader;
+        Ref<Shader> ShadowDepthShader;
+        Ref<Shader> MeshShadowDepthShader;
         Ref<Texture2D> WhiteTexture;
 
-        static constexpr uint32_t MaxTextureSlots = 32;
+        Ref<Framebuffer> ShadowFramebuffer;
+        uint32_t ShadowMapResolutionPixels = 0;
+        bool IsShadowPass = false;
+        static constexpr uint32_t ShadowMapTextureSlot = 31;
+
+        /// Albedo 纹理槽 0..30；31 留给 Shadow Map（与 Cube shader binding 一致）。
+        static constexpr uint32_t MaxTextureSlots = 31;
         std::array<Ref<Texture2D>, MaxTextureSlots> TextureSlots;
         uint32_t TextureSlotIndex = 1;
 
@@ -146,6 +155,9 @@ namespace Himii
             glm::vec4 DirectionalLightDirectionHasLight{0.0f, -1.0f, 0.0f, 0.0f};
             glm::vec4 DirectionalLightColorIntensity{1.0f, 1.0f, 1.0f, 1.0f};
             glm::vec4 AmbientColorIntensity{0.0f, 0.0f, 0.0f, 0.0f};
+            glm::mat4 LightViewProjection{1.0f};
+            /// x = HasShadowMap (1/0), y = ShadowBias, z = ShadowTexelWorldSize
+            glm::vec4 ShadowParameters{0.0f, 0.0015f, 0.0f, 0.0f};
         };
         SceneLightingData LightingBuffer{};
         Ref<UniformBuffer> SceneLightingUniformBuffer;
@@ -242,6 +254,8 @@ namespace Himii
         s_Data.CubeShader = Shader::Create("assets/shaders/Renderer3D_Cube.glsl");
         s_Data.MeshLitShader = Shader::Create("assets/shaders/Renderer3D_MeshLit.glsl");
         s_Data.MeshUnlitShader = Shader::Create("assets/shaders/Renderer3D_MeshUnlit.glsl");
+        s_Data.ShadowDepthShader = Shader::Create("assets/shaders/Renderer3D_ShadowDepth.glsl");
+        s_Data.MeshShadowDepthShader = Shader::Create("assets/shaders/Renderer3D_MeshShadowDepth.glsl");
         s_Data.CameraUniformBuffer = UniformBuffer::Create(sizeof(Renderer3DData::CameraData), 0);
         s_Data.MeshMaterialUniformBuffer =
                 UniformBuffer::Create(sizeof(Renderer3DData::MeshLitData), 3);
@@ -434,12 +448,74 @@ namespace Himii
             s_Data.LightingBuffer.AmbientColorIntensity = glm::vec4(0.0f);
         }
 
+        s_Data.LightingBuffer.LightViewProjection = parameters.LightViewProjection;
+        s_Data.LightingBuffer.ShadowParameters =
+                glm::vec4(parameters.HasShadowMap ? 1.0f : 0.0f, parameters.ShadowBias,
+                          parameters.ShadowTexelWorldSize, 0.0f);
+
         if (s_Data.SceneLightingUniformBuffer)
         {
             s_Data.SceneLightingUniformBuffer->SetData(&s_Data.LightingBuffer,
                                                       sizeof(Renderer3DData::SceneLightingData));
             s_Data.SceneLightingUniformBuffer->Bind();
         }
+    }
+
+    void Renderer3D::EnsureShadowMap(uint32_t resolutionPixels)
+    {
+        if (resolutionPixels == 0)
+            return;
+
+        if (s_Data.ShadowFramebuffer
+            && s_Data.ShadowMapResolutionPixels == resolutionPixels
+            && s_Data.ShadowFramebuffer->GetSpecification().Width == resolutionPixels
+            && s_Data.ShadowFramebuffer->GetSpecification().Height == resolutionPixels)
+        {
+            return;
+        }
+
+        FramebufferSpecification specification;
+        specification.Width = resolutionPixels;
+        specification.Height = resolutionPixels;
+        specification.Attachments = {FramebufferFormat::DEPTH32};
+        s_Data.ShadowFramebuffer = Framebuffer::Create(specification);
+        s_Data.ShadowMapResolutionPixels = resolutionPixels;
+    }
+
+    void Renderer3D::BeginShadowPass(const glm::mat4 &lightViewProjection)
+    {
+        HIMII_CORE_ASSERT(s_Data.ShadowFramebuffer, "EnsureShadowMap must be called before BeginShadowPass");
+
+        s_Data.IsShadowPass = true;
+        s_Data.ShadowFramebuffer->BindCapturingPrevious();
+        RenderCommand::SetDepthTest(true);
+        RenderCommand::SetDepthMask(true);
+        RenderCommand::SetDepthFunc(RHI::DepthComp::Less);
+        // Double-sided casters: normal-offset bias handles acne, and single-sided geometry
+        // (planes, imported meshes with flipped winding) would otherwise drop out of the map.
+        RenderCommand::SetCullMode(RHI::CullMode::None);
+        RenderCommand::ClearDepth();
+
+        s_Data.CameraBuffer.ViewProjection = lightViewProjection;
+        s_Data.CameraBuffer.CameraPosition = glm::vec4(0.0f);
+        UploadCameraAndLighting();
+        StartBatch();
+    }
+
+    void Renderer3D::EndShadowPass()
+    {
+        Flush();
+        s_Data.IsShadowPass = false;
+        RenderCommand::SetCullMode(RHI::CullMode::Back);
+        if (s_Data.ShadowFramebuffer)
+            s_Data.ShadowFramebuffer->UnbindRestoringPrevious();
+    }
+
+    void Renderer3D::BindShadowMapIfAvailable()
+    {
+        if (s_Data.IsShadowPass || !s_Data.CurrentLighting.HasShadowMap || !s_Data.ShadowFramebuffer)
+            return;
+        s_Data.ShadowFramebuffer->BindDepthAttachment(Renderer3DData::ShadowMapTextureSlot);
     }
 
     void Renderer3D::UploadCameraAndLighting()
@@ -513,13 +589,24 @@ namespace Himii
     }
 
     void Renderer3D::Flush() {
-        s_Data.CubeShader->Bind();
-        UploadCameraAndLighting();
-
-        for (uint32_t slot = 0; slot < s_Data.TextureSlotIndex; ++slot)
+        if (s_Data.IsShadowPass)
         {
-            if (s_Data.TextureSlots[slot])
-                s_Data.TextureSlots[slot]->Bind(slot);
+            if (!s_Data.ShadowDepthShader)
+                return;
+            s_Data.ShadowDepthShader->Bind();
+            UploadCameraAndLighting();
+        }
+        else
+        {
+            s_Data.CubeShader->Bind();
+            UploadCameraAndLighting();
+            BindShadowMapIfAvailable();
+
+            for (uint32_t slot = 0; slot < s_Data.TextureSlotIndex; ++slot)
+            {
+                if (s_Data.TextureSlots[slot])
+                    s_Data.TextureSlots[slot]->Bind(slot);
+            }
         }
 
         // 1. Cubes
@@ -718,8 +805,17 @@ namespace Himii
                                    const glm::mat4 &transform, const glm::vec4 &colorTint,
                                    int entityID)
     {
-        if (!meshAsset || !s_Data.MeshLitShader || !s_Data.MeshUnlitShader)
+        if (!meshAsset)
             return;
+        if (s_Data.IsShadowPass)
+        {
+            if (!s_Data.MeshShadowDepthShader)
+                return;
+        }
+        else if (!s_Data.MeshLitShader || !s_Data.MeshUnlitShader)
+        {
+            return;
+        }
 
         meshAsset->EnsureGpuResources();
         const auto &gpuSubmeshes = meshAsset->GetGpuSubmeshes();
@@ -769,6 +865,26 @@ namespace Himii
                 }
             }
 
+            // Unlit 不参与投射/接收阴影。
+            if (useUnlit && s_Data.IsShadowPass)
+                continue;
+
+            if (s_Data.IsShadowPass)
+            {
+                s_Data.MeshShadowDepthShader->Bind();
+                Renderer3DData::MeshLitData meshShadowData{};
+                meshShadowData.Transform = transform;
+                s_Data.MeshMaterialUniformBuffer->SetData(&meshShadowData, sizeof(Renderer3DData::MeshLitData));
+                s_Data.MeshMaterialUniformBuffer->Bind();
+                s_Data.CameraUniformBuffer->Bind();
+
+                gpuSubmesh.VertexArray->Bind();
+                RenderCommand::DrawIndexed(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount);
+                s_Data.Stats.DrawCalls++;
+                s_Data.Stats.TotalIndexCount += gpuSubmesh.IndexCount;
+                continue;
+            }
+
             if (useUnlit)
             {
                 s_Data.MeshUnlitShader->Bind();
@@ -798,6 +914,8 @@ namespace Himii
 
             if (albedoTexture)
                 albedoTexture->Bind(0);
+            if (!useUnlit)
+                BindShadowMapIfAvailable();
 
             gpuSubmesh.VertexArray->Bind();
             RenderCommand::DrawIndexed(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount);

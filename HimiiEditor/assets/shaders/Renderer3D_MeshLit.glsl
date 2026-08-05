@@ -66,9 +66,12 @@ layout(std140, binding = 4) uniform SceneLighting
 	vec4 u_DirectionalLightDirectionIntensity; // xyz = travel direction, w = hasLight
 	vec4 u_DirectionalLightColor;
 	vec4 u_AmbientColorIntensity;
+	mat4 u_LightViewProjection;
+	vec4 u_ShadowParameters; // x = hasShadowMap, y = depthBias, z = shadowTexelWorldSize
 };
 
 layout(binding = 0) uniform sampler2D u_AlbedoTexture;
+layout(binding = 31) uniform sampler2DShadow u_ShadowMap;
 
 vec3 ApproximateSrgbToLinear(vec3 color)
 {
@@ -78,6 +81,33 @@ vec3 ApproximateSrgbToLinear(vec3 color)
 vec3 ApproximateLinearToSrgb(vec3 color)
 {
 	return pow(color, vec3(1.0 / 2.2));
+}
+
+float SampleHardShadow(vec3 worldPosition, vec3 normal, vec3 lightDirectionTowardSurface)
+{
+	if (u_ShadowParameters.x < 0.5)
+		return 1.0;
+
+	vec3 surfaceNormal = normalize(normal);
+	float surfaceSlope = clamp(1.0 - max(dot(surfaceNormal, lightDirectionTowardSurface), 0.0), 0.0, 1.0);
+
+	// Normal-offset bias: move the lookup along the surface normal by ~one shadow texel instead of
+	// leaning on a large depth bias, which is what detaches contact shadows (peter-panning).
+	float normalOffsetWorld = u_ShadowParameters.z * 1.5 * (1.0 + surfaceSlope * 2.0);
+	vec4 lightSpacePosition =
+		u_LightViewProjection * vec4(worldPosition + surfaceNormal * normalOffsetWorld, 1.0);
+	vec3 projectedCoordinates = lightSpacePosition.xyz / lightSpacePosition.w;
+	projectedCoordinates = projectedCoordinates * 0.5 + 0.5;
+
+	if (projectedCoordinates.z > 1.0
+		|| projectedCoordinates.x < 0.0 || projectedCoordinates.x > 1.0
+		|| projectedCoordinates.y < 0.0 || projectedCoordinates.y > 1.0)
+	{
+		return 1.0;
+	}
+
+	float depthBias = u_ShadowParameters.y * (1.0 + surfaceSlope * 2.0);
+	return texture(u_ShadowMap, vec3(projectedCoordinates.xy, projectedCoordinates.z - depthBias));
 }
 
 void main()
@@ -115,7 +145,9 @@ void main()
 		specularFactor = pow(max(dot(normal, halfwayDirection), 0.0), shininess) * u_Specular;
 	}
 
-	vec3 litLinear = (ambient + lightColor * diffuseFactor + lightColor * specularFactor) * albedo.rgb;
+	float shadowFactor = SampleHardShadow(v_WorldPosition, normal, lightDirectionTowardSurface);
+	vec3 litLinear =
+		(ambient + shadowFactor * lightColor * (diffuseFactor + specularFactor)) * albedo.rgb;
 	o_Color = vec4(ApproximateLinearToSrgb(litLinear), albedo.a);
 	o_EntityID = u_EntityID;
 }

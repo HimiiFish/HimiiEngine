@@ -11,6 +11,11 @@ namespace Himii
 {
     namespace
     {
+        constexpr const char *LegacyScriptCompileRule =
+                R"(<Compile Include="assets\scripts\**\*.cs" />)";
+        constexpr const char *AllAssetScriptsCompileRule =
+                R"(<Compile Include="assets\**\*.cs" />)";
+
         std::filesystem::path ResolveScriptCoreAssemblyPath()
         {
             // Debug: GetEngineDir() == exe dir (ScriptCore next to editor).
@@ -117,6 +122,55 @@ namespace Himii
         return false;
     }
 
+    bool Project::EnsureGameAssemblyProjectIncludesAllAssetScripts()
+    {
+        if (!s_ActiveProject)
+            return false;
+
+        const std::filesystem::path projectFilePath =
+                GetProjectDirectory() / "GameAssembly.csproj";
+        std::ifstream projectFile(projectFilePath, std::ios::binary);
+        if (!projectFile.is_open())
+        {
+            HIMII_CORE_WARNING("GameAssembly.csproj was not found: {0}",
+                               projectFilePath.string());
+            return false;
+        }
+
+        std::string projectContents((std::istreambuf_iterator<char>(projectFile)),
+                                    std::istreambuf_iterator<char>());
+        projectFile.close();
+
+        if (projectContents.find(AllAssetScriptsCompileRule) != std::string::npos)
+            return true;
+
+        const size_t legacyRulePosition = projectContents.find(LegacyScriptCompileRule);
+        if (legacyRulePosition == std::string::npos)
+        {
+            HIMII_CORE_WARNING(
+                    "GameAssembly.csproj uses a custom Compile rule; automatic migration was skipped.");
+            return false;
+        }
+
+        projectContents.replace(legacyRulePosition, std::strlen(LegacyScriptCompileRule),
+                                AllAssetScriptsCompileRule);
+
+        std::ofstream outputFile(projectFilePath, std::ios::binary | std::ios::trunc);
+        if (!outputFile.is_open())
+        {
+            HIMII_CORE_ERROR("Failed to update GameAssembly.csproj: {0}",
+                             projectFilePath.string());
+            return false;
+        }
+        outputFile.write(projectContents.data(), static_cast<std::streamsize>(projectContents.size()));
+        const bool writeSucceeded = outputFile.good();
+        outputFile.close();
+
+        if (writeSucceeded)
+            HIMII_CORE_INFO("Updated GameAssembly.csproj to compile C# scripts anywhere under Assets.");
+        return writeSucceeded;
+    }
+
     void Project::CreateProjectFiles(const std::string &name, const std::filesystem::path &projectDir)
     {
         if (!std::filesystem::exists(projectDir))
@@ -148,7 +202,7 @@ namespace Himii
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="assets\scripts\**\*.cs" />
+    <Compile Include="assets\**\*.cs" />
   </ItemGroup>
 
   <ItemGroup>

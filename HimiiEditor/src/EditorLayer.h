@@ -38,6 +38,12 @@ namespace Himii
         bool OnMouseButtonPressed(MouseButtonPressedEvent &e);
 
         void OnOverlayRender();
+        /// 选中态视口 Gizmo：Light 图标 + 方向箭头、Camera 图标 + 视锥线框。
+        void DrawSelectionGizmos(Entity selectedEntity);
+        void DrawLightGizmo(Entity lightEntity);
+        void DrawCameraGizmo(Entity cameraEntity);
+        void DrawBillboardIcon(const Ref<Texture2D> &iconTexture, const glm::vec3 &worldPosition,
+                               float worldSize, const glm::vec4 &tintColor);
         void HandleTilemapScenePaint(bool allowPainting);
         void UpdateTilemapPaintSession();
         void DrawTilemapEditOverlay();
@@ -219,6 +225,7 @@ namespace Himii
         bool m_NotifyReloadAfterCompile = false;
 
         Ref<Texture2D> m_IconPlay, m_IconStop, m_IconSimulate;
+        Ref<Texture2D> m_IconLightGizmo, m_IconCameraGizmo;
         Ref<Texture2D> m_EngineSplashTexture;
         Ref<TextureCube> m_SkyboxTexture;
 

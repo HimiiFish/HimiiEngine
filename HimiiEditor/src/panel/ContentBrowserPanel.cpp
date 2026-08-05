@@ -7,6 +7,14 @@
 #include "Resource/SpriteSheetUtility.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Particle/ParticleEmitterAssetSerializer.h"
+#include "Module/Animation/SpriteAnimationSerializer.h"
+#include "Module/Tilemap/TileMapDataSerializer.h"
+#include "Module/Tilemap/TileSetSerializer.h"
+#include "World/Scene/Entity.h"
+#include "World/Scene/Scene.h"
+#include "World/Scene/SceneSerializer.h"
+#include "World/Scene/Components.h"
 #include "EngineCore/Utils/PlatformUtils.h"
 #include "EngineCore/Core/Log.h"
 
@@ -14,6 +22,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <unordered_set>
 #include <imgui.h>
 
 namespace Himii
@@ -275,11 +284,6 @@ namespace Himii
             ImGui::NewLine();
             ImGui::Separator();
 
-            static bool openCreateScriptPopup = false;
-            static bool openCreateMaterialPopup = false;
-            static char scriptName[128] = "NewScript";
-            static char materialName[128] = "NewMaterial";
-
             if (ImGui::BeginDragDropTarget())
             {
                 if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("CONTENT_BROWSER_ITEM"))
@@ -295,10 +299,7 @@ namespace Himii
 
             if (ImGui::BeginPopupContextWindow("ContentBrowserContext", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems))
             {
-                if (ImGui::MenuItem("Create C# Script"))
-                    openCreateScriptPopup = true;
-                if (ImGui::MenuItem("Create Material"))
-                    openCreateMaterialPopup = true;
+                DrawCreateMenu(m_CurrentDirectory);
                 if (ImGui::MenuItem("Import Asset..."))
                 {
                     std::string selectedPath = FileDialog::OpenFile(
@@ -315,55 +316,10 @@ namespace Himii
                 ImGui::EndPopup();
             }
 
-            if (openCreateScriptPopup)
-                ImGui::OpenPopup("CreateScriptPopup");
-            if (openCreateMaterialPopup)
-                ImGui::OpenPopup("CreateMaterialPopup");
-
-            if (ImGui::BeginPopupModal("CreateScriptPopup", &openCreateScriptPopup, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::InputText("Class Name", scriptName, sizeof(scriptName));
-                if (ImGui::Button("Create"))
-                {
-                    if (CreateCSharpScript(m_CurrentDirectory, scriptName))
-                    {
-                        if (m_OnScriptChanged)
-                            m_OnScriptChanged();
-                    }
-                    openCreateScriptPopup = false;
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel"))
-                {
-                    openCreateScriptPopup = false;
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-
-            if (ImGui::BeginPopupModal("CreateMaterialPopup", &openCreateMaterialPopup, ImGuiWindowFlags_AlwaysAutoResize))
-            {
-                ImGui::InputText("Material Name", materialName, sizeof(materialName));
-                if (ImGui::Button("Create"))
-                {
-                    if (CreateMaterialAsset(m_CurrentDirectory, materialName))
-                        Refresh();
-                    openCreateMaterialPopup = false;
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::SameLine();
-                if (ImGui::Button("Cancel"))
-                {
-                    openCreateMaterialPopup = false;
-                    ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndPopup();
-            }
-
             if (NormalizePath(m_LastBrowsedDirectory) != NormalizePath(m_CurrentDirectory))
             {
                 m_SelectedItemDisplayName.clear();
+                m_ScrollToSelectedItem = false;
                 m_LastBrowsedDirectory = m_CurrentDirectory;
             }
 
@@ -512,6 +468,19 @@ namespace Himii
 
                     ImGui::EndGroup();
 
+                    if (isItemSelected && m_ScrollToSelectedItem)
+                    {
+                        ImGui::SetScrollHereY(0.5f);
+                        m_ScrollToSelectedItem = false;
+                    }
+
+                    if (directoryEntry.is_directory()
+                        && ImGui::BeginPopupContextItem("DirectoryContext"))
+                    {
+                        DrawCreateMenu(path);
+                        ImGui::EndPopup();
+                    }
+
                     ImGui::PopID();
 
                     column++;
@@ -526,7 +495,331 @@ namespace Himii
             ImGui::EndTable();
         }
 
+        DrawCreationModal();
         ImGui::End();
+    }
+
+    void ContentBrowserPanel::DrawCreateMenu(const std::filesystem::path &targetDirectory)
+    {
+        if (!ImGui::BeginMenu("Create"))
+            return;
+
+        if (ImGui::MenuItem("Folder"))
+            BeginCreation(CreationType::Folder, targetDirectory, "New Folder");
+        if (ImGui::MenuItem("C# Script"))
+            BeginCreation(CreationType::CSharpScript, targetDirectory, "NewScript");
+        if (ImGui::MenuItem("Scene"))
+            BeginCreation(CreationType::Scene, targetDirectory, "New Scene");
+
+        if (ImGui::BeginMenu("Rendering"))
+        {
+            if (ImGui::MenuItem("Material"))
+                BeginCreation(CreationType::Material, targetDirectory, "New Material");
+            if (ImGui::MenuItem("Particle Emitter"))
+                BeginCreation(CreationType::ParticleEmitter, targetDirectory, "New Particle Emitter");
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Animation"))
+        {
+            if (ImGui::MenuItem("Sprite Animation"))
+                BeginCreation(CreationType::SpriteAnimation, targetDirectory, "New Animation");
+            ImGui::EndMenu();
+        }
+
+        if (ImGui::BeginMenu("Tilemap"))
+        {
+            if (ImGui::MenuItem("Tile Map"))
+                BeginCreation(CreationType::TileMap, targetDirectory, "New Tile Map");
+            if (ImGui::MenuItem("Tile Set"))
+                BeginCreation(CreationType::TileSet, targetDirectory, "New Tile Set");
+            ImGui::EndMenu();
+        }
+
+        ImGui::EndMenu();
+    }
+
+    void ContentBrowserPanel::BeginCreation(CreationType creationType,
+                                            const std::filesystem::path &targetDirectory,
+                                            const char *defaultName)
+    {
+        m_PendingCreationType = creationType;
+        m_CreationTargetDirectory = targetDirectory;
+        m_CreationNameBuffer.fill('\0');
+        if (defaultName)
+        {
+            const size_t characterCount =
+                    std::min(std::strlen(defaultName), m_CreationNameBuffer.size() - 1);
+            std::copy_n(defaultName, characterCount, m_CreationNameBuffer.begin());
+        }
+        m_CreationErrorMessage.clear();
+        m_OpenCreationModal = true;
+    }
+
+    void ContentBrowserPanel::DrawCreationModal()
+    {
+        if (m_OpenCreationModal)
+        {
+            ImGui::OpenPopup("Create Asset");
+            m_OpenCreationModal = false;
+        }
+
+        if (!ImGui::BeginPopupModal("Create Asset", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            return;
+
+        ImGui::TextUnformatted("Name");
+        ImGui::SetNextItemWidth(320.0f);
+        const bool submittedByKeyboard = ImGui::InputText(
+                "##CreationName", m_CreationNameBuffer.data(), m_CreationNameBuffer.size(),
+                ImGuiInputTextFlags_EnterReturnsTrue);
+
+        if (!m_CreationErrorMessage.empty())
+        {
+            ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.95f, 0.35f, 0.3f, 1.0f));
+            ImGui::TextWrapped("%s", m_CreationErrorMessage.c_str());
+            ImGui::PopStyleColor();
+        }
+
+        const bool createRequested = submittedByKeyboard || ImGui::Button("Create");
+        if (createRequested)
+        {
+            if (CreatePendingItem())
+            {
+                m_PendingCreationType = CreationType::None;
+                ImGui::CloseCurrentPopup();
+            }
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel"))
+        {
+            m_PendingCreationType = CreationType::None;
+            m_CreationErrorMessage.clear();
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
+    }
+
+    bool ContentBrowserPanel::ValidateCreationName(const std::string &name,
+                                                   std::string &errorMessage) const
+    {
+        if (name.empty())
+        {
+            errorMessage = "Name cannot be empty.";
+            return false;
+        }
+        if (name == "." || name == "..")
+        {
+            errorMessage = "This name is reserved.";
+            return false;
+        }
+        if (std::isspace(static_cast<unsigned char>(name.front()))
+            || std::isspace(static_cast<unsigned char>(name.back()))
+            || name.back() == '.')
+        {
+            errorMessage = "Name cannot start or end with whitespace or a period.";
+            return false;
+        }
+
+        constexpr const char *invalidCharacters = "<>:\"/\\|?*";
+        if (name.find_first_of(invalidCharacters) != std::string::npos
+            || std::any_of(name.begin(), name.end(), [](unsigned char character)
+                           {
+                               return character < 32;
+                           }))
+        {
+            errorMessage = "Name contains characters that are invalid on Windows.";
+            return false;
+        }
+
+        std::string uppercaseName(name);
+        std::transform(uppercaseName.begin(), uppercaseName.end(), uppercaseName.begin(),
+                       [](unsigned char character)
+                       {
+                           return static_cast<char>(std::toupper(character));
+                       });
+        static const std::unordered_set<std::string> reservedWindowsNames = {
+                "CON", "PRN", "AUX", "NUL",
+                "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9",
+                "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9"};
+        if (reservedWindowsNames.find(uppercaseName) != reservedWindowsNames.end())
+        {
+            errorMessage = "This name is reserved by Windows.";
+            return false;
+        }
+
+        if (m_PendingCreationType == CreationType::CSharpScript)
+        {
+            const auto validIdentifierStart = [](unsigned char character)
+            {
+                return std::isalpha(character) || character == '_';
+            };
+            const auto validIdentifierCharacter = [](unsigned char character)
+            {
+                return std::isalnum(character) || character == '_';
+            };
+            if (!validIdentifierStart(static_cast<unsigned char>(name.front()))
+                || !std::all_of(name.begin() + 1, name.end(), validIdentifierCharacter))
+            {
+                errorMessage = "C# class names may contain only letters, digits, and underscores, "
+                               "and cannot start with a digit.";
+                return false;
+            }
+
+            static const std::unordered_set<std::string> cSharpKeywords = {
+                    "abstract", "as", "base", "bool", "break", "byte", "case", "catch",
+                    "char", "checked", "class", "const", "continue", "decimal", "default",
+                    "delegate", "do", "double", "else", "enum", "event", "explicit", "extern",
+                    "false", "finally", "fixed", "float", "for", "foreach", "goto", "if",
+                    "implicit", "in", "int", "interface", "internal", "is", "lock", "long",
+                    "namespace", "new", "null", "object", "operator", "out", "override",
+                    "params", "private", "protected", "public", "readonly", "ref", "return",
+                    "sbyte", "sealed", "short", "sizeof", "stackalloc", "static", "string",
+                    "struct", "switch", "this", "throw", "true", "try", "typeof", "uint",
+                    "ulong", "unchecked", "unsafe", "ushort", "using", "virtual", "void",
+                    "volatile", "while"};
+            if (cSharpKeywords.find(name) != cSharpKeywords.end())
+            {
+                errorMessage = "This name is a reserved C# keyword.";
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    bool ContentBrowserPanel::IsPathInsideAssetsDirectory(const std::filesystem::path &path) const
+    {
+        if (!Project::GetActive())
+            return false;
+
+        const std::filesystem::path normalizedAssetsDirectory =
+                NormalizePath(Project::GetAssetDirectory());
+        const std::filesystem::path normalizedPath = NormalizePath(path);
+        std::error_code errorCode;
+        const std::filesystem::path relativePath =
+                std::filesystem::relative(normalizedPath, normalizedAssetsDirectory, errorCode);
+        if (errorCode || relativePath.empty())
+            return normalizedPath == normalizedAssetsDirectory;
+
+        const std::string relativeString = relativePath.generic_string();
+        return relativeString != ".." && relativeString.rfind("../", 0) != 0;
+    }
+
+    bool ContentBrowserPanel::CreatePendingItem()
+    {
+        m_CreationErrorMessage.clear();
+        const std::string itemName = m_CreationNameBuffer.data();
+        if (!ValidateCreationName(itemName, m_CreationErrorMessage))
+            return false;
+        if (!std::filesystem::is_directory(m_CreationTargetDirectory)
+            || !IsPathInsideAssetsDirectory(m_CreationTargetDirectory))
+        {
+            m_CreationErrorMessage = "The target directory is outside the active project's Assets directory.";
+            return false;
+        }
+
+        std::filesystem::path expectedItemPath;
+        switch (m_PendingCreationType)
+        {
+            case CreationType::Folder:
+                expectedItemPath = m_CreationTargetDirectory / itemName;
+                break;
+            case CreationType::CSharpScript:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".cs");
+                break;
+            case CreationType::Scene:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".himii");
+                break;
+            case CreationType::Material:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".hmaterial");
+                break;
+            case CreationType::ParticleEmitter:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".particle");
+                break;
+            case CreationType::SpriteAnimation:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".anim");
+                break;
+            case CreationType::TileMap:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".tilemap");
+                break;
+            case CreationType::TileSet:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".tileset");
+                break;
+            default:
+                break;
+        }
+        if (!expectedItemPath.empty() && std::filesystem::exists(expectedItemPath))
+        {
+            m_CreationErrorMessage = "An item with this name already exists.";
+            return false;
+        }
+        if (m_PendingCreationType == CreationType::TileMap)
+        {
+            const std::filesystem::path expectedTileSetPath =
+                    m_CreationTargetDirectory / (itemName + ".tileset");
+            if (std::filesystem::exists(expectedTileSetPath))
+            {
+                m_CreationErrorMessage = "An item with this name already exists.";
+                return false;
+            }
+        }
+
+        bool created = false;
+        std::string createdFileName;
+        switch (m_PendingCreationType)
+        {
+            case CreationType::Folder:
+                created = CreateFolder(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName;
+                break;
+            case CreationType::CSharpScript:
+                created = CreateCSharpScript(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".cs";
+                break;
+            case CreationType::Scene:
+                created = CreateSceneAsset(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".himii";
+                break;
+            case CreationType::Material:
+                created = CreateMaterialAsset(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".hmaterial";
+                break;
+            case CreationType::ParticleEmitter:
+                created = CreateParticleEmitterAsset(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".particle";
+                break;
+            case CreationType::SpriteAnimation:
+                created = CreateSpriteAnimationAsset(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".anim";
+                break;
+            case CreationType::TileMap:
+                created = CreateTileMapAssetPair(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".tilemap";
+                break;
+            case CreationType::TileSet:
+                created = CreateTileSetAsset(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".tileset";
+                break;
+            case CreationType::None:
+            default:
+                m_CreationErrorMessage = "No creation type was selected.";
+                return false;
+        }
+
+        if (!created)
+        {
+            if (m_CreationErrorMessage.empty())
+                m_CreationErrorMessage = "An item with this name already exists or could not be created.";
+            return false;
+        }
+
+        m_SelectedItemDisplayName = createdFileName;
+        m_ScrollToSelectedItem = true;
+        if (m_PendingCreationType == CreationType::CSharpScript && m_OnScriptChanged)
+            m_OnScriptChanged();
+        return true;
     }
 
     void ContentBrowserPanel::DrawTree(const std::filesystem::path& path,
@@ -662,6 +955,37 @@ namespace Himii
             assetManager->SerializeAssetRegistry();
     }
 
+    AssetHandle ContentBrowserPanel::RegisterCreatedAsset(const std::filesystem::path &absolutePath,
+                                                        bool persistRegistry)
+    {
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager || !Project::GetActive())
+            return 0;
+
+        std::error_code errorCode;
+        const std::filesystem::path relativePath =
+                std::filesystem::relative(absolutePath, Project::GetAssetDirectory(), errorCode);
+        if (errorCode)
+            return 0;
+
+        const AssetHandle assetHandle = assetManager->ImportAsset(relativePath);
+        if (assetHandle != 0 && persistRegistry)
+            assetManager->SerializeAssetRegistry();
+        return assetHandle;
+    }
+
+    bool ContentBrowserPanel::CreateFolder(const std::filesystem::path &directory,
+                                           const std::string &folderName)
+    {
+        const std::filesystem::path folderPath = directory / folderName;
+        if (std::filesystem::exists(folderPath))
+            return false;
+
+        std::error_code errorCode;
+        const bool created = std::filesystem::create_directory(folderPath, errorCode);
+        return created && !errorCode;
+    }
+
     bool ContentBrowserPanel::CreateCSharpScript(const std::filesystem::path& directory, const std::string& className)
     {
         if (className.empty())
@@ -683,13 +1007,51 @@ namespace Himii
         file << "\tpublic override void OnCreate()\n";
         file << "\t{\n";
         file << "\t}\n\n";
-        file << "\tpublic override void OnUpdate(float ts)\n";
+        file << "\tpublic override void OnUpdate(float timestep)\n";
         file << "\t{\n";
         file << "\t}\n";
         file << "}\n";
         file.close();
 
         return true;
+    }
+
+    bool ContentBrowserPanel::CreateSceneAsset(const std::filesystem::path &directory,
+                                               const std::string &sceneName)
+    {
+        if (!Project::GetActive())
+            return false;
+
+        const std::filesystem::path scenePath = directory / (sceneName + ".himii");
+        if (std::filesystem::exists(scenePath))
+            return false;
+
+        Ref<Scene> scene = CreateRef<Scene>();
+        Entity cameraEntity = scene->CreateEntity("Main Camera");
+        auto &cameraComponent = cameraEntity.AddComponent<CameraComponent>();
+        cameraEntity.GetComponent<TransformComponent>().Position = glm::vec3(0.0f, 0.0f, 10.0f);
+
+        if (Project::GetActive()->GetConfig().Is2D)
+        {
+            cameraComponent.Camera.SetProjectionType(SceneCamera::ProjectionType::Orthographic);
+        }
+        else
+        {
+            cameraComponent.Camera.SetProjectionType(SceneCamera::ProjectionType::Perspective);
+
+            Entity lightEntity = scene->CreateEntity("Directional Light");
+            lightEntity.GetComponent<TransformComponent>().Rotation =
+                    glm::radians(glm::vec3(50.0f, -30.0f, 0.0f));
+            lightEntity.AddComponent<LightComponent>();
+
+            Entity environmentEntity = scene->CreateEntity("Environment");
+            environmentEntity.AddComponent<EnvironmentComponent>();
+        }
+
+        SceneSerializer sceneSerializer(scene);
+        sceneSerializer.Serialize(scenePath.string());
+        RegisterCreatedAsset(scenePath);
+        return std::filesystem::exists(scenePath);
     }
 
     bool ContentBrowserPanel::CreateMaterialAsset(const std::filesystem::path &directory,
@@ -708,17 +1070,121 @@ namespace Himii
 
         auto assetManager = ResourceSystem::GetAssetManager();
         if (!assetManager)
-            return true;
+            return false;
 
         const std::filesystem::path relativeMaterialPath =
                 std::filesystem::relative(absoluteMaterialPath, Project::GetAssetDirectory());
         const AssetHandle materialHandle = assetManager->ImportAsset(relativeMaterialPath.generic_string());
-        if (materialHandle != 0)
+        if (materialHandle == 0)
+            return false;
+
+        materialAsset->Handle = materialHandle;
+        MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
+        assetManager->SerializeAssetRegistry();
+        return true;
+    }
+
+    bool ContentBrowserPanel::CreateParticleEmitterAsset(const std::filesystem::path &directory,
+                                                         const std::string &emitterName)
+    {
+        const std::filesystem::path emitterPath = directory / (emitterName + ".particle");
+        if (std::filesystem::exists(emitterPath))
+            return false;
+
+        Ref<ParticleEmitterAsset> emitterAsset = CreateRef<ParticleEmitterAsset>();
+        ParticleEmitterAssetSerializer::Serialize(emitterPath, emitterAsset);
+        const AssetHandle emitterHandle = RegisterCreatedAsset(emitterPath);
+        if (emitterHandle != 0)
         {
-            materialAsset->Handle = materialHandle;
-            MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
-            assetManager->SerializeAssetRegistry();
+            emitterAsset->Handle = emitterHandle;
+            ParticleEmitterAssetSerializer::Serialize(emitterPath, emitterAsset);
         }
+        return std::filesystem::exists(emitterPath);
+    }
+
+    bool ContentBrowserPanel::CreateSpriteAnimationAsset(const std::filesystem::path &directory,
+                                                         const std::string &animationName)
+    {
+        const std::filesystem::path animationPath = directory / (animationName + ".anim");
+        if (std::filesystem::exists(animationPath))
+            return false;
+
+        Ref<SpriteAnimation> animationAsset = CreateRef<SpriteAnimation>();
+        animationAsset->EnsureClip(SpriteAnimationDefaultClipName);
+        SpriteAnimationSerializer::Serialize(animationPath, animationAsset);
+        const AssetHandle animationHandle = RegisterCreatedAsset(animationPath);
+        if (animationHandle != 0)
+        {
+            animationAsset->Handle = animationHandle;
+            SpriteAnimationSerializer::Serialize(animationPath, animationAsset);
+        }
+        return std::filesystem::exists(animationPath);
+    }
+
+    bool ContentBrowserPanel::CreateTileSetAsset(const std::filesystem::path &directory,
+                                                 const std::string &tileSetName)
+    {
+        const std::filesystem::path tileSetPath = directory / (tileSetName + ".tileset");
+        if (std::filesystem::exists(tileSetPath))
+            return false;
+
+        Ref<TileSet> tileSetAsset = CreateRef<TileSet>();
+        TileAtlasSource atlasSource;
+        atlasSource.TileSize = 16;
+        tileSetAsset->AddAtlasSource(atlasSource);
+        TileSetSerializer::Serialize(tileSetPath, tileSetAsset);
+        const AssetHandle tileSetHandle = RegisterCreatedAsset(tileSetPath);
+        if (tileSetHandle != 0)
+        {
+            tileSetAsset->Handle = tileSetHandle;
+            TileSetSerializer::Serialize(tileSetPath, tileSetAsset);
+        }
+        return std::filesystem::exists(tileSetPath);
+    }
+
+    bool ContentBrowserPanel::CreateTileMapAssetPair(const std::filesystem::path &directory,
+                                                     const std::string &tileMapName)
+    {
+        const std::filesystem::path tileSetPath = directory / (tileMapName + ".tileset");
+        const std::filesystem::path tileMapPath = directory / (tileMapName + ".tilemap");
+        if (std::filesystem::exists(tileSetPath) || std::filesystem::exists(tileMapPath))
+            return false;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return false;
+
+        Ref<TileSet> tileSetAsset = CreateRef<TileSet>();
+        TileAtlasSource atlasSource;
+        atlasSource.TileSize = 16;
+        tileSetAsset->AddAtlasSource(atlasSource);
+        TileSetSerializer::Serialize(tileSetPath, tileSetAsset);
+        const AssetHandle tileSetHandle = RegisterCreatedAsset(tileSetPath, false);
+        if (tileSetHandle == 0)
+        {
+            std::error_code errorCode;
+            std::filesystem::remove(tileSetPath, errorCode);
+            return false;
+        }
+        tileSetAsset->Handle = tileSetHandle;
+        TileSetSerializer::Serialize(tileSetPath, tileSetAsset);
+
+        Ref<TileMapData> tileMapAsset = CreateRef<TileMapData>();
+        tileMapAsset->SetTileSetHandle(tileSetHandle);
+        tileMapAsset->SetCellSize(1.0f);
+        TileMapDataSerializer::Serialize(tileMapPath, tileMapAsset);
+        const AssetHandle tileMapHandle = RegisterCreatedAsset(tileMapPath, false);
+        if (tileMapHandle == 0)
+        {
+            std::error_code errorCode;
+            std::filesystem::remove(tileMapPath, errorCode);
+            std::filesystem::remove(tileSetPath, errorCode);
+            assetManager->DeserializeAssetRegistry();
+            return false;
+        }
+        tileMapAsset->Handle = tileMapHandle;
+        TileMapDataSerializer::Serialize(tileMapPath, tileMapAsset);
+        assetManager->SerializeAssetRegistry();
         return true;
     }
 } // namespace Himii
