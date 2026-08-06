@@ -353,7 +353,6 @@ namespace Himii
             auto& mesh = entity.GetComponent<MeshComponent>();
             out << YAML::Key << "Source" << YAML::Value << (int)mesh.Source;
             out << YAML::Key << "Type" << YAML::Value << (int)mesh.Type;
-            out << YAML::Key << "Color" << YAML::Value << mesh.Color;
             out << YAML::Key << "MeshAssetHandle" << YAML::Value << (uint64_t)mesh.MeshAssetHandle;
             out << YAML::Key << "MaterialAssetHandles" << YAML::Value << YAML::BeginSeq;
             for (AssetHandle materialHandle : mesh.MaterialAssetHandles)
@@ -780,7 +779,6 @@ namespace Himii
         if (meshComponent)
         {
             auto& mc = deserializedEntity.AddComponent<MeshComponent>();
-            mc.Color = meshComponent["Color"].as<glm::vec4>();
             if (meshComponent["Type"])
                 mc.Type = (MeshComponent::MeshType)meshComponent["Type"].as<int>();
             if (meshComponent["Source"])
@@ -793,6 +791,7 @@ namespace Himii
                 for (const auto &handleNode : meshComponent["MaterialAssetHandles"])
                     mc.MaterialAssetHandles.push_back(handleNode.as<uint64_t>());
             }
+            NormalizeMeshComponentMaterialSlots(mc);
         }
 
         auto lightComponent = entity["LightComponent"];

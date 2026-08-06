@@ -9,6 +9,7 @@
 
 namespace Himii
 {
+    class MaterialAsset;
 
     using AssetRegistry = std::map<AssetHandle, AssetMetadata>;
 
@@ -59,9 +60,15 @@ namespace Himii
 
         AssetHandle GetTextureHandleForSprite(AssetHandle spriteAssetHandle) const;
 
+        void UnloadAsset(AssetHandle handle);
+
     private:
+        /// 旧 Registry 若仍指向网格源文件，则确保存在 `.hmesh` 并将条目迁移到产品路径。
+        bool EnsureStaticMeshProductForRegistryEntry(AssetHandle handle, AssetMetadata &metadata);
+
         void RegisterSpritesFromImportData(const TextureImportData& importData);
         void UnregisterSpritesForTexture(AssetHandle textureHandle);
+        void ResolveMaterialAlbedoTextureReference(MaterialAsset &materialAsset);
 
         AssetRegistry m_AssetRegistry;
         std::unordered_map<AssetHandle, Ref<Asset>> m_LoadedAssets;

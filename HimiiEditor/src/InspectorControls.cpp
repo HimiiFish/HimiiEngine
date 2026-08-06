@@ -594,6 +594,7 @@ namespace Himii
         textureHandle = importedHandle;
         Ref<Asset> asset = assetManager->GetAsset(importedHandle);
         texture = asset ? std::static_pointer_cast<Texture2D>(asset) : nullptr;
+        assetManager->SerializeAssetRegistry();
         return texture != nullptr;
     }
 
@@ -729,7 +730,7 @@ namespace Himii
         std::string extension = meshFilePath.extension().string();
         std::transform(extension.begin(), extension.end(), extension.begin(),
                        [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
-        if (extension != ".glb" && extension != ".gltf")
+        if (extension != ".hmesh")
             return false;
 
         auto assetManager = ResourceSystem::GetAssetManager();

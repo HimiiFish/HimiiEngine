@@ -58,8 +58,15 @@ namespace Himii
 
         const std::filesystem::path absolutePath =
                 Project::GetAssetFileSystemPath(iterator->second.FilePath);
+        if (m_MaterialAsset->AlbedoTextureHandle != 0)
+        {
+            const auto textureIterator = registry.find(m_MaterialAsset->AlbedoTextureHandle);
+            if (textureIterator != registry.end())
+                m_MaterialAsset->AlbedoTextureRelativePath = textureIterator->second.FilePath.generic_string();
+        }
         MaterialAssetSerializer::Serialize(absolutePath, m_MaterialAsset);
         m_IsDirty = false;
+        assetManager->SerializeAssetRegistry();
         return true;
     }
 
@@ -112,6 +119,7 @@ namespace Himii
                 [&]()
                 {
                     m_MaterialAsset->AlbedoTextureHandle = 0;
+                    m_MaterialAsset->AlbedoTextureRelativePath.clear();
                     m_AlbedoPreviewTexture = nullptr;
                     m_IsDirty = true;
                 },
@@ -122,6 +130,9 @@ namespace Himii
                     if (!AssignTextureFromContentBrowserPayload(payload, assignedTexture, assignedHandle))
                         return false;
                     m_MaterialAsset->AlbedoTextureHandle = assignedHandle;
+                    const wchar_t *relativePathWide = static_cast<const wchar_t *>(payload->Data);
+                    m_MaterialAsset->AlbedoTextureRelativePath =
+                            std::filesystem::path(relativePathWide).generic_string();
                     m_AlbedoPreviewTexture = assignedTexture;
                     m_IsDirty = true;
                     return true;

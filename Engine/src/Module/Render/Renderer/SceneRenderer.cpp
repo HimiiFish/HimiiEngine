@@ -15,6 +15,7 @@
 #include "Module/Particle/ParticleSystem.h"
 #include "Module/Render/Mesh/MeshAsset.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
+#include "Module/Render/Mesh/MaterialSurfaceUtility.h"
 
 #include <algorithm>
 #include <cmath>
@@ -223,34 +224,17 @@ namespace Himii
 
         BuiltinSurfaceParameters ResolveBuiltinSurface(const MeshComponent &mesh)
         {
-            BuiltinSurfaceParameters surface;
-            surface.AlbedoColor = mesh.Color;
-
-            if (mesh.MaterialAssetHandles.empty())
-                return surface;
-
             auto assetManager = ResourceSystem::GetAssetManager();
-            if (!assetManager)
-                return surface;
+            const AssetHandle materialHandle =
+                    mesh.MaterialAssetHandles.empty() ? 0 : mesh.MaterialAssetHandles.front();
+            const ResolvedMaterialSurface resolvedSurface =
+                    ResolveMaterialSurface(assetManager.get(), materialHandle);
 
-            const AssetHandle materialHandle = mesh.MaterialAssetHandles.front();
-            if (materialHandle == 0)
-                return surface;
-
-            Ref<Asset> materialBase = assetManager->GetAsset(materialHandle);
-            if (!materialBase || materialBase->GetType() != AssetType::Material)
-                return surface;
-
-            Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
-            surface.AlbedoColor = materialAsset->AlbedoColor;
-            surface.Specular = materialAsset->Specular;
-            surface.Shininess = materialAsset->Shininess;
-            if (materialAsset->AlbedoTextureHandle != 0)
-            {
-                Ref<Asset> textureBase = assetManager->GetAsset(materialAsset->AlbedoTextureHandle);
-                if (textureBase && textureBase->GetType() == AssetType::Texture2D)
-                    surface.AlbedoTexture = std::static_pointer_cast<Texture2D>(textureBase);
-            }
+            BuiltinSurfaceParameters surface;
+            surface.AlbedoColor = resolvedSurface.AlbedoColor;
+            surface.Specular = resolvedSurface.Specular;
+            surface.Shininess = resolvedSurface.Shininess;
+            surface.AlbedoTexture = resolvedSurface.AlbedoTexture;
             return surface;
         }
 
@@ -310,6 +294,7 @@ namespace Himii
             meshView.each(
                     [&](entt::entity entityHandle, TransformComponent &, MeshComponent &mesh)
                     {
+                        NormalizeMeshComponentMaterialSlots(mesh);
                         const glm::mat4 worldTransform =
                                 scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
                         if (mesh.Source == MeshComponent::MeshSource::Asset && mesh.MeshAssetHandle != 0)
@@ -322,7 +307,7 @@ namespace Himii
                                 return;
                             Ref<MeshAsset> meshAsset = std::static_pointer_cast<MeshAsset>(meshBase);
                             Renderer3D::DrawMeshAsset(meshAsset, mesh.MaterialAssetHandles, worldTransform,
-                                                      mesh.Color, (int)entityHandle);
+                                                      (int)entityHandle);
                             return;
                         }
 

@@ -19,6 +19,7 @@
 #include "Module/Render/RenderCore/VertexArray.h"
 #include "Module/Render/Mesh/MeshAsset.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
+#include "Module/Render/Mesh/MaterialSurfaceUtility.h"
 #include "Resource/ResourceSystem.h"
 
 #include <array>
@@ -827,7 +828,7 @@ namespace Himii
 
     void Renderer3D::DrawMeshAsset(const Ref<MeshAsset> &meshAsset,
                                    const std::vector<AssetHandle> &materialAssetHandles,
-                                   const glm::mat4 &transform, const glm::vec4 &colorTint,
+                                   const glm::mat4 &transform,
                                    int entityID)
     {
         if (!meshAsset)
@@ -854,41 +855,23 @@ namespace Himii
 
         for (const MeshSubmeshGpu &gpuSubmesh : gpuSubmeshes)
         {
-            glm::vec4 albedoColor = colorTint;
-            Ref<Texture2D> albedoTexture = s_Data.WhiteTexture;
-            int useAlbedoTexture = 0;
-            float specular = 0.5f;
-            float shininess = 32.0f;
-            bool useUnlit = false;
-
             AssetHandle materialHandle = 0;
             if (gpuSubmesh.MaterialSlotIndex < materialAssetHandles.size())
                 materialHandle = materialAssetHandles[gpuSubmesh.MaterialSlotIndex];
             else if (gpuSubmesh.MaterialSlotIndex < meshAsset->DefaultMaterialHandles.size())
                 materialHandle = meshAsset->DefaultMaterialHandles[gpuSubmesh.MaterialSlotIndex];
 
-            if (materialHandle != 0 && assetManager)
-            {
-                Ref<Asset> materialBase = assetManager->GetAsset(materialHandle);
-                if (materialBase && materialBase->GetType() == AssetType::Material)
-                {
-                    Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
-                    // Color tint is MeshComponent fallback only when no material is resolved.
-                    albedoColor = materialAsset->AlbedoColor;
-                    specular = materialAsset->Specular;
-                    shininess = materialAsset->Shininess;
-                    useUnlit = materialAsset->ShadingMode == MaterialShadingMode::Unlit;
-                    if (materialAsset->AlbedoTextureHandle != 0)
-                    {
-                        Ref<Asset> textureBase = assetManager->GetAsset(materialAsset->AlbedoTextureHandle);
-                        if (textureBase && textureBase->GetType() == AssetType::Texture2D)
-                        {
-                            albedoTexture = std::static_pointer_cast<Texture2D>(textureBase);
-                            useAlbedoTexture = 1;
-                        }
-                    }
-                }
-            }
+            const ResolvedMaterialSurface resolvedSurface =
+                    ResolveMaterialSurface(assetManager.get(), materialHandle);
+
+            glm::vec4 albedoColor = resolvedSurface.AlbedoColor;
+            Ref<Texture2D> albedoTexture = resolvedSurface.AlbedoTexture
+                                                     ? resolvedSurface.AlbedoTexture
+                                                     : s_Data.WhiteTexture;
+            int useAlbedoTexture = resolvedSurface.AlbedoTexture ? 1 : 0;
+            float specular = resolvedSurface.Specular;
+            float shininess = resolvedSurface.Shininess;
+            const bool useUnlit = resolvedSurface.ShadingMode == MaterialShadingMode::Unlit;
 
             // Unlit 不参与投射/接收阴影。
             if (useUnlit && s_Data.IsShadowPass)

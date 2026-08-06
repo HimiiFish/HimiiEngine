@@ -84,7 +84,7 @@ namespace Himii {
         /// 按 submesh 提交网格；默认 Lit，材质标记 Unlit 时走 Unlit 回退。
         static void DrawMeshAsset(const Ref<MeshAsset> &meshAsset,
                                   const std::vector<AssetHandle> &materialAssetHandles,
-                                  const glm::mat4 &transform, const glm::vec4 &colorTint,
+                                  const glm::mat4 &transform,
                                   int entityID = -1);
 
         // Skybox

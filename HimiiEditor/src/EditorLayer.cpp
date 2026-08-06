@@ -14,6 +14,8 @@
 #include "ProjectBuildPipeline.h"
 
 #include "Module/Render/Renderer/Renderer3D.h"
+#include "Module/Render/Mesh/MeshAsset.h"
+#include "World/Scene/Components.h"
 
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -216,6 +218,12 @@ namespace Himii
     void EditorLayer::OnDetach()
     {
         HIMII_PROFILE_FUNCTION();
+
+        if (Project::GetActive())
+        {
+            if (Ref<AssetManager> assetManager = ResourceSystem::GetAssetManager())
+                assetManager->SerializeAssetRegistry();
+        }
     }
 
     void EditorLayer::OnUpdate(Timestep ts)
@@ -683,6 +691,53 @@ namespace Himii
                                 PrefabSerializer::Instantiate(m_EditorScene, fullAssetPath);
                         if (instantiatedEntity)
                             m_SceneHierarchyPanel.SetSelectedEntity(instantiatedEntity);
+                    }
+                    else if (assetPath.extension() == ".hmesh" && m_EditorScene)
+                    {
+                        if (auto assetManager = ResourceSystem::GetAssetManager())
+                        {
+                            const AssetHandle meshHandle = assetManager->ImportAsset(assetPath);
+                            if (meshHandle != 0)
+                            {
+                                Entity spawnedEntity =
+                                        m_EditorScene->CreateEntity(assetPath.stem().string());
+                                auto &meshComponent = spawnedEntity.AddComponent<MeshComponent>();
+                                meshComponent.Source = MeshComponent::MeshSource::Asset;
+                                meshComponent.MeshAssetHandle = meshHandle;
+
+                                Ref<Asset> meshBase = assetManager->GetAsset(meshHandle);
+                                if (meshBase && meshBase->GetType() == AssetType::Mesh)
+                                {
+                                    Ref<MeshAsset> meshAsset =
+                                            std::static_pointer_cast<MeshAsset>(meshBase);
+                                    meshComponent.MaterialAssetHandles =
+                                            meshAsset->DefaultMaterialHandles;
+                                    NormalizeMeshComponentMaterialSlots(meshComponent);
+                                }
+                                else
+                                {
+                                    NormalizeMeshComponentMaterialSlots(meshComponent);
+                                }
+
+                                if (spawnedEntity.HasComponent<TransformComponent>())
+                                {
+                                    const glm::vec2 viewportSize =
+                                            m_ViewportBounds[1] - m_ViewportBounds[0];
+                                    glm::vec2 viewportMouse = {
+                                            Input::GetMouseX() - m_ViewportBounds[0].x,
+                                            Input::GetMouseY() - m_ViewportBounds[0].y};
+                                    viewportMouse.y = viewportSize.y - viewportMouse.y;
+                                    const glm::vec3 worldPosition =
+                                            TilemapEditorUtility::ViewportMouseToWorldOnPlane(
+                                                    viewportMouse, viewportSize,
+                                                    m_EditorCamera.GetViewProjection(), 0.0f);
+                                    spawnedEntity.GetComponent<TransformComponent>().Position =
+                                            worldPosition;
+                                }
+
+                                m_SceneHierarchyPanel.SetSelectedEntity(spawnedEntity);
+                            }
+                        }
                     }
                 }
 

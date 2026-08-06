@@ -604,6 +604,8 @@ namespace Himii
     template<>
     void Scene::OnComponentAdded<MeshComponent>(Entity entity, MeshComponent &component)
     {
+        (void)entity;
+        NormalizeMeshComponentMaterialSlots(component);
     }
 
     template<>

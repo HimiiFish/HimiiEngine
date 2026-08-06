@@ -97,8 +97,7 @@ namespace Himii
         AssetSerializerRegistry::RegisterExtension(".wav", AssetType::SoundAsset);
         AssetSerializerRegistry::RegisterExtension(".ogg", AssetType::SoundAsset);
         AssetSerializerRegistry::RegisterExtension(".mp3", AssetType::SoundAsset);
-        AssetSerializerRegistry::RegisterExtension(".glb", AssetType::Mesh);
-        AssetSerializerRegistry::RegisterExtension(".gltf", AssetType::Mesh);
+        AssetSerializerRegistry::RegisterExtension(".hmesh", AssetType::Mesh);
         AssetSerializerRegistry::RegisterExtension(".hmaterial", AssetType::Material);
 
         AssetSerializerRegistry::Register(CreateScope<Texture2DAssetSerializer>());

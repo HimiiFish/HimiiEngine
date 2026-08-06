@@ -6,7 +6,7 @@
 
 namespace Himii
 {
-    class GltfMeshImporter
+    class FbxMeshImporter
     {
     public:
         static bool ImportCompanionAssets(AssetManager &assetManager,

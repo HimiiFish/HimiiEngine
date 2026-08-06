@@ -34,6 +34,11 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 # 头文件为src目录下的所有.h文件
 file(GLOB_RECURSE HEADERS "src/*.h")
 
+# ufbx is distributed as a C translation unit (alongside cgltf-style Mesh headers).
+enable_language(C)
+list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Module/Render/Mesh/ufbx.c")
+list(APPEND HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/Module/Render/Mesh/ufbx.h")
+
 # GLOB_RECURSE 会同时扫到各平台实现；按目标 OS 剔除对方源文件，避免交叉编译。
 if (WIN32)
     list(REMOVE_ITEM SOURCES

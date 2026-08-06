@@ -7,6 +7,9 @@
 #include "Resource/SpriteSheetUtility.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Render/Mesh/MeshAssetSerializer.h"
+#include "Module/Render/Mesh/StaticMeshImporter.h"
+#include "Module/Render/Mesh/StaticMeshImportSettings.h"
 #include "Module/Particle/ParticleEmitterAssetSerializer.h"
 #include "Module/Animation/SpriteAnimationSerializer.h"
 #include "Module/Tilemap/TileMapDataSerializer.h"
@@ -42,7 +45,9 @@ namespace Himii
         std::string extension = path.extension().string();
         std::transform(extension.begin(), extension.end(), extension.begin(),
                        [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
-        return extension == ".meta";
+        if (extension == ".meta")
+            return true;
+        return IsStaticMeshSourceExtension(extension);
     }
 
     Ref<Texture2D> ContentBrowserPanel::GetOrLoadImageThumbnail(
@@ -293,9 +298,13 @@ namespace Himii
                 ImGui::EndDragDropTarget();
             }
 
-            std::vector<std::filesystem::path> droppedPaths = EditorExternalFileDrop::ConsumePendingPaths();
-            if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows) && !droppedPaths.empty())
-                ImportFilesFromPaths(droppedPaths);
+            std::vector<std::filesystem::path> droppedPaths;
+            if (ImGui::IsWindowHovered(ImGuiHoveredFlags_RootAndChildWindows))
+            {
+                droppedPaths = EditorExternalFileDrop::ConsumePendingPaths();
+                if (!droppedPaths.empty())
+                    ImportFilesFromPaths(droppedPaths);
+            }
 
             if (NormalizePath(m_LastBrowsedDirectory) != NormalizePath(m_CurrentDirectory))
             {
@@ -461,6 +470,20 @@ namespace Himii
                         DrawCreateMenu(path);
                         ImGui::EndPopup();
                     }
+                    else if (!directoryEntry.is_directory())
+                    {
+                        std::string fileExtension = path.extension().string();
+                        std::transform(fileExtension.begin(), fileExtension.end(), fileExtension.begin(),
+                                       [](unsigned char character)
+                                       { return static_cast<char>(std::tolower(character)); });
+                        if (fileExtension == ".hmesh"
+                            && ImGui::BeginPopupContextItem("StaticMeshProductContext"))
+                        {
+                            if (ImGui::MenuItem("Reimport"))
+                                BeginStaticMeshReimport(relativePath);
+                            ImGui::EndPopup();
+                        }
+                    }
 
                     ImGui::PopID();
 
@@ -479,6 +502,7 @@ namespace Himii
                     if (ImGui::MenuItem("Import Asset..."))
                     {
                         std::string selectedPath = FileDialog::OpenFile(
+                            "Static Mesh Sources (*.glb;*.gltf;*.fbx;*.obj)\0*.glb;*.gltf;*.fbx;*.obj\0"
                             "Images (*.png;*.jpg;*.jpeg)\0*.png;*.jpg;*.jpeg\0"
                             "Animations (*.anim)\0*.anim\0"
                             "Tile Sets (*.tileset)\0*.tileset\0"
@@ -500,6 +524,7 @@ namespace Himii
         }
 
         DrawCreationModal();
+        DrawStaticMeshImportDialogIfNeeded();
         ImGui::End();
     }
 
@@ -894,34 +919,67 @@ namespace Himii
         if (!std::filesystem::exists(sourcePath) || !std::filesystem::is_regular_file(sourcePath))
             return;
 
-        const std::filesystem::path fileName = sourcePath.filename();
-        const std::filesystem::path destinationPath =
-            ResolveUniqueDestination(m_CurrentDirectory, fileName);
-
-        try
-        {
-            std::filesystem::copy_file(sourcePath, destinationPath,
-                                       std::filesystem::copy_options::overwrite_existing);
-        }
-        catch (const std::filesystem::filesystem_error& error)
-        {
-            HIMII_CORE_ERROR("Failed to copy asset file: {0}", error.what());
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
             return;
+
+        std::error_code errorCode;
+        const bool sourceInsideAssets = IsPathInsideAssetsDirectory(sourcePath);
+
+        std::filesystem::path destinationPath;
+        std::filesystem::path relativePath;
+        if (sourceInsideAssets)
+        {
+            // Already under Assets: import in place without copying a duplicate.
+            destinationPath = sourcePath;
+            relativePath = std::filesystem::relative(destinationPath, assetsDirectory, errorCode);
+            if (errorCode)
+            {
+                HIMII_CORE_ERROR("Failed to resolve asset-relative path for: {0}", sourcePath.string());
+                return;
+            }
+        }
+        else
+        {
+            const std::filesystem::path fileName = sourcePath.filename();
+            destinationPath = ResolveUniqueDestination(m_CurrentDirectory, fileName);
+
+            try
+            {
+                std::filesystem::copy_file(sourcePath, destinationPath,
+                                           std::filesystem::copy_options::overwrite_existing);
+            }
+            catch (const std::filesystem::filesystem_error& error)
+            {
+                HIMII_CORE_ERROR("Failed to copy asset file: {0}", error.what());
+                return;
+            }
+
+            relativePath = std::filesystem::relative(destinationPath, assetsDirectory, errorCode);
+            if (errorCode)
+            {
+                HIMII_CORE_ERROR("Failed to resolve asset-relative path for: {0}", destinationPath.string());
+                return;
+            }
         }
 
-        const std::filesystem::path relativePath =
-            std::filesystem::relative(destinationPath, assetsDirectory);
+        relativePath = std::filesystem::path(relativePath.generic_string());
 
-        if (fileName.extension() == ".cs")
+        if (destinationPath.extension() == ".cs")
         {
             if (m_OnScriptChanged)
                 m_OnScriptChanged();
             return;
         }
 
-        auto assetManager = ResourceSystem::GetAssetManager();
-        if (!assetManager)
+        std::string fileExtension = destinationPath.extension().string();
+        std::transform(fileExtension.begin(), fileExtension.end(), fileExtension.begin(),
+                       [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
+        if (IsStaticMeshSourceExtension(fileExtension))
+        {
+            BeginStaticMeshSourceImport(relativePath);
             return;
+        }
 
         AssetHandle handle = assetManager->ImportAsset(relativePath);
         if (handle == 0)
@@ -1190,5 +1248,65 @@ namespace Himii
         TileMapDataSerializer::Serialize(tileMapPath, tileMapAsset);
         assetManager->SerializeAssetRegistry();
         return true;
+    }
+
+    void ContentBrowserPanel::BeginStaticMeshSourceImport(const std::filesystem::path &relativeSourcePath)
+    {
+        m_StaticMeshImportDialogState = {};
+        m_StaticMeshImportDialogState.Open = true;
+        m_StaticMeshImportDialogState.IsReimport = false;
+        m_StaticMeshImportDialogState.RelativeSourcePath = relativeSourcePath;
+        ImGui::OpenPopup("Import Static Mesh");
+    }
+
+    void ContentBrowserPanel::BeginStaticMeshReimport(const std::filesystem::path &relativeHmeshPath)
+    {
+        m_StaticMeshImportDialogState = {};
+        m_StaticMeshImportDialogState.Open = true;
+        m_StaticMeshImportDialogState.IsReimport = true;
+        m_StaticMeshImportDialogState.RelativeHmeshPath = relativeHmeshPath;
+
+        const std::filesystem::path absoluteHmeshPath =
+                Project::GetAssetFileSystemPath(relativeHmeshPath);
+        StaticMeshImportSettings savedSettings;
+        std::filesystem::path relativeSourcePath;
+        std::vector<AssetHandle> materialHandles;
+        std::vector<std::string> materialSlotNames;
+        if (MeshAssetSerializer::ReadStaticMeshMeta(absoluteHmeshPath, savedSettings, relativeSourcePath,
+                                                    materialHandles, materialSlotNames))
+        {
+            m_StaticMeshImportDialogState.Settings = savedSettings;
+            m_StaticMeshImportDialogState.RelativeSourcePath = relativeSourcePath;
+        }
+
+        ImGui::OpenPopup("Import Static Mesh");
+    }
+
+    void ContentBrowserPanel::DrawStaticMeshImportDialogIfNeeded()
+    {
+        if (m_StaticMeshImportDialogState.Open && !ImGui::IsPopupOpen("Import Static Mesh"))
+            ImGui::OpenPopup("Import Static Mesh");
+
+        if (!DrawStaticMeshImportDialog(m_StaticMeshImportDialogState))
+            return;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return;
+
+        if (m_StaticMeshImportDialogState.IsReimport)
+        {
+            StaticMeshImporter::ReimportProduct(
+                    *assetManager, m_StaticMeshImportDialogState.RelativeHmeshPath,
+                    &m_StaticMeshImportDialogState.Settings);
+        }
+        else
+        {
+            StaticMeshImporter::ImportFromSource(
+                    *assetManager, m_StaticMeshImportDialogState.RelativeSourcePath,
+                    m_StaticMeshImportDialogState.Settings);
+        }
+
+        m_ImageThumbnailCache.clear();
     }
 } // namespace Himii

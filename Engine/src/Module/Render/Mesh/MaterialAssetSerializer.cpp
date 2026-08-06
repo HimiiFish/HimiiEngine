@@ -34,6 +34,9 @@ namespace Himii
         WriteVector4(emitter, "AlbedoColor", asset->AlbedoColor);
         emitter << YAML::Key << "AlbedoTextureHandle" << YAML::Value
                 << static_cast<uint64_t>(asset->AlbedoTextureHandle);
+        if (!asset->AlbedoTextureRelativePath.empty())
+            emitter << YAML::Key << "AlbedoTextureRelativePath" << YAML::Value
+                    << asset->AlbedoTextureRelativePath;
         emitter << YAML::Key << "Specular" << YAML::Value << asset->Specular;
         emitter << YAML::Key << "Shininess" << YAML::Value << asset->Shininess;
         emitter << YAML::EndMap;
@@ -72,6 +75,8 @@ namespace Himii
             asset->AlbedoColor = ReadVector4(data, "AlbedoColor", {1.0f, 1.0f, 1.0f, 1.0f});
             if (data["AlbedoTextureHandle"])
                 asset->AlbedoTextureHandle = data["AlbedoTextureHandle"].as<uint64_t>();
+            if (data["AlbedoTextureRelativePath"])
+                asset->AlbedoTextureRelativePath = data["AlbedoTextureRelativePath"].as<std::string>();
             if (data["Specular"])
                 asset->Specular = data["Specular"].as<float>();
             if (data["Shininess"])

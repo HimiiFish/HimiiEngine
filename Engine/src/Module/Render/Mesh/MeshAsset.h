@@ -39,6 +39,7 @@ namespace Himii
         std::vector<uint32_t> Indices;
         std::vector<MeshSubmesh> Submeshes;
         std::vector<AssetHandle> DefaultMaterialHandles;
+        std::vector<std::string> MaterialSlotNames;
 
         void EnsureGpuResources();
         const std::vector<MeshSubmeshGpu> &GetGpuSubmeshes() const { return m_GpuSubmeshes; }

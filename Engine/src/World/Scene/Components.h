@@ -130,13 +130,28 @@ namespace Himii
 
         MeshSource Source = MeshSource::Builtin;
         MeshType Type = MeshType::Cube;
-        glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
         AssetHandle MeshAssetHandle = 0;
         std::vector<AssetHandle> MaterialAssetHandles;
 
         MeshComponent() = default;
         MeshComponent(const MeshComponent&) = default;
     };
+
+    /// Builtin 固定 1 槽；Asset 源至少保留 1 个可见槽位（Handle 0 = 引擎默认 Lit）。
+    inline void NormalizeMeshComponentMaterialSlots(MeshComponent &component)
+    {
+        if (component.Source == MeshComponent::MeshSource::Builtin)
+        {
+            if (component.MaterialAssetHandles.empty())
+                component.MaterialAssetHandles.push_back(0);
+            else if (component.MaterialAssetHandles.size() > 1)
+                component.MaterialAssetHandles.resize(1);
+            return;
+        }
+
+        if (component.MaterialAssetHandles.empty())
+            component.MaterialAssetHandles.push_back(0);
+    }
 
     enum class LightType
     {

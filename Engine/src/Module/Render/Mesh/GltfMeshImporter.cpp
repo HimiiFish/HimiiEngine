@@ -2,7 +2,7 @@
 #include "Module/Render/Mesh/GltfMeshImporter.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
-#include "Module/Render/Mesh/MeshAssetSerializer.h"
+#include "Module/Render/Mesh/StaticMeshImportSettings.h"
 #include "Project/Project.h"
 #include "EngineCore/Core/Log.h"
 
@@ -67,9 +67,13 @@ namespace Himii
 
     bool GltfMeshImporter::ImportCompanionAssets(AssetManager &assetManager,
                                                  const std::filesystem::path &relativeMeshPath,
-                                                 AssetHandle meshHandle)
+                                                 MeshCompanionImportResult *outResult)
     {
-        (void)meshHandle;
+        if (outResult)
+        {
+            outResult->MaterialHandles.clear();
+            outResult->MaterialSlotNames.clear();
+        }
 
         const std::filesystem::path absoluteMeshPath = Project::GetAssetFileSystemPath(relativeMeshPath);
         if (!std::filesystem::exists(absoluteMeshPath))
@@ -104,6 +108,7 @@ namespace Himii
         std::filesystem::create_directories(companionAbsoluteDirectory);
 
         std::vector<AssetHandle> imageHandles(data->images_count, 0);
+        std::vector<std::string> imageRelativePaths(data->images_count);
         for (cgltf_size imageIndex = 0; imageIndex < data->images_count; ++imageIndex)
         {
             const cgltf_image *image = &data->images[imageIndex];
@@ -118,6 +123,7 @@ namespace Himii
                 {
                     relativeTexturePath = std::filesystem::relative(absoluteTexturePath, assetDirectory);
                     imageHandles[imageIndex] = ImportOrGetTexture(assetManager, relativeTexturePath);
+                    imageRelativePaths[imageIndex] = relativeTexturePath.generic_string();
                 }
                 continue;
             }
@@ -132,6 +138,7 @@ namespace Himii
 
             relativeTexturePath = std::filesystem::relative(absoluteTexturePath, assetDirectory);
             imageHandles[imageIndex] = ImportOrGetTexture(assetManager, relativeTexturePath);
+            imageRelativePaths[imageIndex] = relativeTexturePath.generic_string();
         }
 
         auto ResolveTextureHandle = [&](const cgltf_texture *texture) -> AssetHandle
@@ -144,9 +151,21 @@ namespace Himii
             return imageHandles[imageIndex];
         };
 
+        auto ResolveTextureRelativePath = [&](const cgltf_texture *texture) -> std::string
+        {
+            if (!texture || !texture->image)
+                return {};
+            const cgltf_size imageIndex = static_cast<cgltf_size>(texture->image - data->images);
+            if (imageIndex >= imageRelativePaths.size())
+                return {};
+            return imageRelativePaths[imageIndex];
+        };
+
         std::vector<AssetHandle> materialHandles;
+        std::vector<std::string> materialSlotNames;
         const cgltf_size materialCount = data->materials_count > 0 ? data->materials_count : 1;
         materialHandles.reserve(materialCount);
+        materialSlotNames.reserve(materialCount);
 
         for (cgltf_size materialIndex = 0; materialIndex < materialCount; ++materialIndex)
         {
@@ -156,16 +175,21 @@ namespace Himii
             materialAsset->Specular = 0.5f;
             materialAsset->Shininess = 32.0f;
 
+            std::string slotName = "Slot " + std::to_string(materialIndex);
             if (data->materials_count > 0)
             {
                 const cgltf_material &material = data->materials[materialIndex];
+                if (material.name && material.name[0] != '\0')
+                    slotName = material.name;
                 if (material.has_pbr_metallic_roughness)
                 {
                     // Phase 1：仅 baseColor → Albedo；metallic/roughness 不参与着色。
                     const cgltf_float *factor = material.pbr_metallic_roughness.base_color_factor;
                     materialAsset->AlbedoColor = {factor[0], factor[1], factor[2], factor[3]};
-                    materialAsset->AlbedoTextureHandle =
-                            ResolveTextureHandle(material.pbr_metallic_roughness.base_color_texture.texture);
+                    const cgltf_texture *baseColorTexture =
+                            material.pbr_metallic_roughness.base_color_texture.texture;
+                    materialAsset->AlbedoTextureHandle = ResolveTextureHandle(baseColorTexture);
+                    materialAsset->AlbedoTextureRelativePath = ResolveTextureRelativePath(baseColorTexture);
                 }
             }
 
@@ -182,15 +206,20 @@ namespace Himii
                 MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
             }
             materialHandles.push_back(materialHandle);
+            materialSlotNames.push_back(slotName);
         }
 
-        MeshAssetSerializer::WriteMeshMeta(absoluteMeshPath, materialHandles);
         cgltf_free(data);
 
-        assetManager.SerializeAssetRegistry();
+        const size_t importedMaterialCount = materialHandles.size();
+        if (outResult)
+        {
+            outResult->MaterialHandles = std::move(materialHandles);
+            outResult->MaterialSlotNames = std::move(materialSlotNames);
+        }
 
         HIMII_CORE_INFO("glTF companion import done for {0}: {1} materials", relativeMeshPath.generic_string(),
-                        materialHandles.size());
+                        importedMaterialCount);
         return true;
     }
 }

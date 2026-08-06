@@ -1,6 +1,7 @@
 #pragma once
 #include "Resource/Asset.h"
 #include "Module/Render/RenderCore/Texture.h"
+#include "panel/StaticMeshImportDialog.h"
 
 #include <array>
 #include <filesystem>
@@ -93,8 +94,12 @@ namespace Himii
         static std::string TruncateTextToWidth(const char* text, float maxWidth);
         static bool ShouldHideFromContentBrowser(const std::filesystem::path& path);
         Ref<Texture2D> GetOrLoadImageThumbnail(const std::filesystem::path& relativePath);
+        void BeginStaticMeshSourceImport(const std::filesystem::path &relativeSourcePath);
+        void BeginStaticMeshReimport(const std::filesystem::path &relativeHmeshPath);
+        void DrawStaticMeshImportDialogIfNeeded();
 
         std::unordered_map<std::string, Ref<Texture2D>> m_ImageThumbnailCache;
+        StaticMeshImportDialogState m_StaticMeshImportDialogState{};
 
         std::function<void()> m_OnScriptChanged;
         std::string m_SelectedItemDisplayName;
