@@ -1465,22 +1465,49 @@ namespace Himii
     {
         const glm::mat4 worldTransform = m_EditorScene->GetEntityWorldTransformMatrix(lightEntity);
         const glm::vec3 lightPosition = glm::vec3(worldTransform[3]);
-
-        glm::vec3 lightTravelDirection = -glm::vec3(worldTransform[2]);
-        if (glm::dot(lightTravelDirection, lightTravelDirection) < 1e-8f)
-            lightTravelDirection = glm::vec3(0.0f, -1.0f, 0.0f);
-        lightTravelDirection = glm::normalize(lightTravelDirection);
-
         const LightComponent &light = lightEntity.GetComponent<LightComponent>();
         const glm::vec4 gizmoColor = light.Enabled
                 ? glm::vec4(glm::vec3(light.Color), 1.0f)
                 : glm::vec4(0.55f, 0.55f, 0.55f, 1.0f);
 
-        // Keep the gizmo roughly screen-sized so it stays usable at any camera distance.
+        // Keep the icon roughly screen-sized so it stays usable at any camera distance.
         const float distanceToCamera = glm::length(m_EditorCamera.GetPosition() - lightPosition);
         const float gizmoWorldSize = std::clamp(distanceToCamera * 0.06f, 0.2f, 3.0f);
         DrawBillboardIcon(m_IconLightGizmo, lightPosition, gizmoWorldSize,
                           light.Enabled ? glm::vec4(1.0f) : glm::vec4(0.6f, 0.6f, 0.6f, 0.6f));
+
+        if (light.Type == LightType::Point)
+        {
+            constexpr float FullCircleRadians = 6.283185307179586f;
+            constexpr uint32_t RingSegmentCount = 48;
+            const float ringRadius = std::max(light.Range, 0.01f);
+
+            const auto drawAxisAlignedRing = [&](const glm::vec3 &axisA, const glm::vec3 &axisB)
+            {
+                glm::vec3 previousPoint =
+                        lightPosition + axisA * ringRadius;
+                for (uint32_t segmentIndex = 1; segmentIndex <= RingSegmentCount; ++segmentIndex)
+                {
+                    const float angleRadians = FullCircleRadians
+                            * static_cast<float>(segmentIndex) / static_cast<float>(RingSegmentCount);
+                    const glm::vec3 currentPoint = lightPosition
+                            + axisA * (std::cos(angleRadians) * ringRadius)
+                            + axisB * (std::sin(angleRadians) * ringRadius);
+                    Renderer2D::DrawLine(previousPoint, currentPoint, gizmoColor);
+                    previousPoint = currentPoint;
+                }
+            };
+
+            drawAxisAlignedRing(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+            drawAxisAlignedRing(glm::vec3(1.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            drawAxisAlignedRing(glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+            return;
+        }
+
+        glm::vec3 lightTravelDirection = -glm::vec3(worldTransform[2]);
+        if (glm::dot(lightTravelDirection, lightTravelDirection) < 1e-8f)
+            lightTravelDirection = glm::vec3(0.0f, -1.0f, 0.0f);
+        lightTravelDirection = glm::normalize(lightTravelDirection);
 
         glm::vec3 sideAxis = glm::cross(lightTravelDirection, glm::vec3(0.0f, 1.0f, 0.0f));
         if (glm::dot(sideAxis, sideAxis) < 1e-6f)

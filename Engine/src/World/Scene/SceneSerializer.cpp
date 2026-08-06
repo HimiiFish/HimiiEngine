@@ -370,6 +370,7 @@ namespace Himii
             out << YAML::Key << "Color" << YAML::Value << light.Color;
             out << YAML::Key << "Intensity" << YAML::Value << light.Intensity;
             out << YAML::Key << "Enabled" << YAML::Value << light.Enabled;
+            out << YAML::Key << "Range" << YAML::Value << light.Range;
             out << YAML::Key << "CastShadows" << YAML::Value << light.CastShadows;
             out << YAML::Key << "ShadowSize" << YAML::Value << light.ShadowSize;
             out << YAML::Key << "ShadowDistance" << YAML::Value << light.ShadowDistance;
@@ -799,13 +800,21 @@ namespace Himii
         {
             auto &light = deserializedEntity.AddComponent<LightComponent>();
             if (lightComponent["Type"])
-                light.Type = static_cast<LightType>(lightComponent["Type"].as<int>());
+            {
+                const int lightTypeValue = lightComponent["Type"].as<int>();
+                if (lightTypeValue == static_cast<int>(LightType::Point))
+                    light.Type = LightType::Point;
+                else
+                    light.Type = LightType::Directional;
+            }
             if (lightComponent["Color"])
                 light.Color = lightComponent["Color"].as<glm::vec4>();
             if (lightComponent["Intensity"])
                 light.Intensity = lightComponent["Intensity"].as<float>();
             if (lightComponent["Enabled"])
                 light.Enabled = lightComponent["Enabled"].as<bool>();
+            if (lightComponent["Range"])
+                light.Range = lightComponent["Range"].as<float>();
             if (lightComponent["CastShadows"])
                 light.CastShadows = lightComponent["CastShadows"].as<bool>();
             if (lightComponent["ShadowSize"])

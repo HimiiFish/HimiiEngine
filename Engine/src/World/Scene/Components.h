@@ -140,8 +140,12 @@ namespace Himii
 
     enum class LightType
     {
-        Directional = 0
+        Directional = 0,
+        Point = 1
     };
+
+    /// 前向 Lit 同时参与着色的启用点光上限（UBO 定长数组）。
+    inline constexpr uint32_t MaximumPointLightCount = 8u;
 
     /// 阴影贴图边长像素数；序列化存枚举整型（0/1/2）。
     enum class ShadowMapResolution
@@ -165,14 +169,17 @@ namespace Himii
         }
     }
 
-    /// 第一阶段仅 Directional；方向由实体 Transform 的 forward（局部 -Z）推导。
+    /// Directional：方向由 Transform forward（局部 -Z）推导。
+    /// Point：位置由 Transform 世界平移推导；Range 为世界单位半径，不受 Scale 影响。
     struct LightComponent
     {
         LightType Type = LightType::Directional;
         glm::vec4 Color{1.0f, 1.0f, 1.0f, 1.0f};
         float Intensity = 1.0f;
         bool Enabled = true;
-        /// 是否投射方向光阴影；默认开启。Bias 为引擎内部常量，不进 Inspector。
+        /// 点光照射半径（世界单位）；缺省序列化字段时保持 10。
+        float Range = 10.0f;
+        /// 是否投射方向光阴影；对 Point 无效。Bias 为引擎内部常量，不进 Inspector。
         bool CastShadows = true;
         /// 正交阴影盒在世界空间中的边长（宽=高）；盒中心跟随相机观察点。
         float ShadowSize = 25.0f;
@@ -185,7 +192,7 @@ namespace Himii
         LightComponent(const LightComponent &) = default;
     };
 
-    /// 场景环境：第一阶段仅 Ambient；无启用方向光时不参与着色。
+    /// 场景环境：仅 Ambient；无启用方向光时不参与着色（点光独立照亮时 Ambient 仍关闭）。
     struct EnvironmentComponent
     {
         glm::vec4 AmbientColor{1.0f, 1.0f, 1.0f, 1.0f};

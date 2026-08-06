@@ -122,23 +122,45 @@ namespace Himii
 
         SceneLightingParameters GatherSceneLighting(Scene &scene)
         {
+            static_assert(ScenePointLightCapacity == MaximumPointLightCount,
+                          "Scene lighting UBO capacity must match LightComponent point-light limit.");
+
             SceneLightingParameters parameters{};
 
             auto lightView = scene.Registry().view<TransformComponent, LightComponent>();
             for (auto entityHandle : lightView)
             {
                 const LightComponent &light = lightView.get<LightComponent>(entityHandle);
-                if (!light.Enabled || light.Type != LightType::Directional)
+                if (!light.Enabled)
+                    continue;
+
+                if (light.Type == LightType::Directional)
+                {
+                    if (parameters.HasDirectionalLight)
+                        continue;
+
+                    const glm::mat4 worldTransform =
+                            scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
+                    parameters.HasDirectionalLight = true;
+                    parameters.DirectionalLightDirection = GetTransformForwardDirection(worldTransform);
+                    parameters.DirectionalLightColor = glm::vec3(light.Color);
+                    parameters.DirectionalLightIntensity = light.Intensity;
+                    continue;
+                }
+
+                if (light.Type != LightType::Point)
+                    continue;
+                if (parameters.PointLightCount >= ScenePointLightCapacity)
                     continue;
 
                 const glm::mat4 worldTransform =
                         scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
-                parameters.HasDirectionalLight = true;
-                parameters.DirectionalLightDirection = GetTransformForwardDirection(worldTransform);
-                parameters.DirectionalLightColor = glm::vec3(light.Color);
-                parameters.DirectionalLightIntensity = light.Intensity;
-                // 阴影矩阵由 RenderDirectionalShadowPass 依据观察点填充。
-                break;
+                PointLightParameters &pointLight =
+                        parameters.PointLights[parameters.PointLightCount++];
+                pointLight.Position = glm::vec3(worldTransform[3]);
+                pointLight.Range = std::max(light.Range, 0.01f);
+                pointLight.Color = glm::vec3(light.Color);
+                pointLight.Intensity = light.Intensity;
             }
 
             auto environmentView = scene.Registry().view<EnvironmentComponent>();

@@ -370,6 +370,21 @@ namespace Himii
                         },
                         parentEntity);
             }
+            if (ImGui::MenuItem("Point Light"))
+            {
+                CreateEntityFromMenu(
+                        "Point Light",
+                        [](const Ref<Scene> &scene, const std::string &name)
+                        {
+                            Entity entity = scene->CreateEntity(name);
+                            auto &lightComponent = entity.AddComponent<LightComponent>();
+                            lightComponent.Type = LightType::Point;
+                            lightComponent.Range = 10.0f;
+                            lightComponent.CastShadows = false;
+                            return entity;
+                        },
+                        parentEntity);
+            }
             if (ImGui::MenuItem("Environment"))
             {
                 CreateEntityFromMenu(

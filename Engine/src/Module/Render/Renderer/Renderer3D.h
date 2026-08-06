@@ -10,6 +10,16 @@ namespace Himii {
 
     class MeshAsset;
 
+    inline constexpr uint32_t ScenePointLightCapacity = 8u;
+
+    struct PointLightParameters
+    {
+        glm::vec3 Position{0.0f};
+        float Range = 10.0f;
+        glm::vec3 Color{1.0f, 1.0f, 1.0f};
+        float Intensity = 1.0f;
+    };
+
     struct SceneLightingParameters
     {
         bool HasDirectionalLight = false;
@@ -19,6 +29,9 @@ namespace Himii {
         float DirectionalLightIntensity = 1.0f;
         glm::vec3 AmbientColor{0.0f, 0.0f, 0.0f};
         float AmbientIntensity = 0.0f;
+
+        uint32_t PointLightCount = 0;
+        PointLightParameters PointLights[ScenePointLightCapacity]{};
 
         bool HasShadowMap = false;
         glm::mat4 LightViewProjection{1.0f};

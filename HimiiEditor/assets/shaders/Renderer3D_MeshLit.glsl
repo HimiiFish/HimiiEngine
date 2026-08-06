@@ -68,6 +68,9 @@ layout(std140, binding = 4) uniform SceneLighting
 	vec4 u_AmbientColorIntensity;
 	mat4 u_LightViewProjection;
 	vec4 u_ShadowParameters; // x = hasShadowMap, y = depthBias, z = shadowTexelWorldSize
+	vec4 u_PointLightCount; // x = count
+	vec4 u_PointLightPositionRange[8]; // xyz = position, w = range
+	vec4 u_PointLightColorIntensity[8]; // rgb = color, a = intensity
 };
 
 layout(binding = 0) uniform sampler2D u_AlbedoTexture;
@@ -110,6 +113,26 @@ float SampleHardShadow(vec3 worldPosition, vec3 normal, vec3 lightDirectionTowar
 	return texture(u_ShadowMap, vec3(projectedCoordinates.xy, projectedCoordinates.z - depthBias));
 }
 
+float EvaluatePointLightAttenuation(float distanceToLight, float range)
+{
+	float safeRange = max(range, 0.0001);
+	float distanceOverRange = distanceToLight / safeRange;
+	if (distanceOverRange >= 1.0)
+		return 0.0;
+
+	float inverseSquare = 1.0 / (1.0 + distanceToLight * distanceToLight);
+	float smoothCutoff = 1.0 - distanceOverRange * distanceOverRange;
+	smoothCutoff *= smoothCutoff;
+	return inverseSquare * smoothCutoff;
+}
+
+vec3 EvaluateSpecular(vec3 normal, vec3 lightDirectionTowardSurface, vec3 viewDirection,
+	float specularStrength, float shininess)
+{
+	vec3 halfwayDirection = normalize(lightDirectionTowardSurface + viewDirection);
+	return vec3(pow(max(dot(normal, halfwayDirection), 0.0), max(shininess, 1.0)) * specularStrength);
+}
+
 void main()
 {
 	vec4 albedo = u_AlbedoColor;
@@ -121,7 +144,8 @@ void main()
 	}
 
 	float hasDirectionalLight = u_DirectionalLightDirectionIntensity.w;
-	if (hasDirectionalLight < 0.5)
+	int pointLightCount = int(u_PointLightCount.x + 0.5);
+	if (hasDirectionalLight < 0.5 && pointLightCount <= 0)
 	{
 		o_Color = vec4(0.0, 0.0, 0.0, albedo.a);
 		o_EntityID = u_EntityID;
@@ -129,25 +153,53 @@ void main()
 	}
 
 	vec3 normal = normalize(v_Normal);
-	vec3 lightTravelDirection = normalize(u_DirectionalLightDirectionIntensity.xyz);
-	vec3 lightDirectionTowardSurface = -lightTravelDirection;
-	float diffuseFactor = max(dot(normal, lightDirectionTowardSurface), 0.0);
+	vec3 viewDirection = normalize(u_CameraPosition.xyz - v_WorldPosition);
+	vec3 accumulatedLight = vec3(0.0);
 
-	vec3 lightColor = u_DirectionalLightColor.rgb * u_DirectionalLightColor.a;
-	vec3 ambient = u_AmbientColorIntensity.rgb * u_AmbientColorIntensity.a;
-
-	float specularFactor = 0.0;
-	if (diffuseFactor > 0.0)
+	if (hasDirectionalLight >= 0.5)
 	{
-		vec3 viewDirection = normalize(u_CameraPosition.xyz - v_WorldPosition);
-		vec3 halfwayDirection = normalize(lightDirectionTowardSurface + viewDirection);
-		float shininess = max(u_Shininess, 1.0);
-		specularFactor = pow(max(dot(normal, halfwayDirection), 0.0), shininess) * u_Specular;
+		vec3 lightTravelDirection = normalize(u_DirectionalLightDirectionIntensity.xyz);
+		vec3 lightDirectionTowardSurface = -lightTravelDirection;
+		float diffuseFactor = max(dot(normal, lightDirectionTowardSurface), 0.0);
+		vec3 lightColor = u_DirectionalLightColor.rgb * u_DirectionalLightColor.a;
+		vec3 ambient = u_AmbientColorIntensity.rgb * u_AmbientColorIntensity.a;
+
+		vec3 specular = vec3(0.0);
+		if (diffuseFactor > 0.0)
+			specular = EvaluateSpecular(normal, lightDirectionTowardSurface, viewDirection,
+				u_Specular, u_Shininess);
+
+		float shadowFactor = SampleHardShadow(v_WorldPosition, normal, lightDirectionTowardSurface);
+		accumulatedLight += ambient + shadowFactor * lightColor * (diffuseFactor + specular);
 	}
 
-	float shadowFactor = SampleHardShadow(v_WorldPosition, normal, lightDirectionTowardSurface);
-	vec3 litLinear =
-		(ambient + shadowFactor * lightColor * (diffuseFactor + specularFactor)) * albedo.rgb;
+	for (int pointLightIndex = 0; pointLightIndex < 8; ++pointLightIndex)
+	{
+		if (pointLightIndex >= pointLightCount)
+			break;
+
+		vec3 lightPosition = u_PointLightPositionRange[pointLightIndex].xyz;
+		float range = u_PointLightPositionRange[pointLightIndex].w;
+		vec3 toLight = lightPosition - v_WorldPosition;
+		float distanceToLight = length(toLight);
+		float attenuation = EvaluatePointLightAttenuation(distanceToLight, range);
+		if (attenuation <= 0.0)
+			continue;
+
+		vec3 lightDirectionTowardSurface = toLight / max(distanceToLight, 0.0001);
+		float diffuseFactor = max(dot(normal, lightDirectionTowardSurface), 0.0);
+		vec3 lightColor =
+			u_PointLightColorIntensity[pointLightIndex].rgb * u_PointLightColorIntensity[pointLightIndex].a;
+
+		vec3 specular = vec3(0.0);
+		if (diffuseFactor > 0.0)
+			specular = EvaluateSpecular(normal, lightDirectionTowardSurface, viewDirection,
+				u_Specular, u_Shininess);
+
+		accumulatedLight += lightColor * attenuation * (diffuseFactor + specular);
+	}
+
+	vec3 litLinear = accumulatedLight * albedo.rgb;
 	o_Color = vec4(ApproximateLinearToSrgb(litLinear), albedo.a);
 	o_EntityID = u_EntityID;
 }

@@ -158,6 +158,10 @@ namespace Himii
             glm::mat4 LightViewProjection{1.0f};
             /// x = HasShadowMap (1/0), y = ShadowBias, z = ShadowTexelWorldSize
             glm::vec4 ShadowParameters{0.0f, 0.0015f, 0.0f, 0.0f};
+            /// x = PointLightCount
+            glm::vec4 PointLightCount{0.0f, 0.0f, 0.0f, 0.0f};
+            glm::vec4 PointLightPositionRange[ScenePointLightCapacity]{};
+            glm::vec4 PointLightColorIntensity[ScenePointLightCapacity]{};
         };
         SceneLightingData LightingBuffer{};
         Ref<UniformBuffer> SceneLightingUniformBuffer;
@@ -452,6 +456,27 @@ namespace Himii
         s_Data.LightingBuffer.ShadowParameters =
                 glm::vec4(parameters.HasShadowMap ? 1.0f : 0.0f, parameters.ShadowBias,
                           parameters.ShadowTexelWorldSize, 0.0f);
+
+        const uint32_t pointLightCount =
+                std::min(parameters.PointLightCount, ScenePointLightCapacity);
+        s_Data.LightingBuffer.PointLightCount =
+                glm::vec4(static_cast<float>(pointLightCount), 0.0f, 0.0f, 0.0f);
+        for (uint32_t pointLightIndex = 0; pointLightIndex < ScenePointLightCapacity; ++pointLightIndex)
+        {
+            if (pointLightIndex < pointLightCount)
+            {
+                const PointLightParameters &pointLight = parameters.PointLights[pointLightIndex];
+                s_Data.LightingBuffer.PointLightPositionRange[pointLightIndex] =
+                        glm::vec4(pointLight.Position, pointLight.Range);
+                s_Data.LightingBuffer.PointLightColorIntensity[pointLightIndex] =
+                        glm::vec4(pointLight.Color, pointLight.Intensity);
+            }
+            else
+            {
+                s_Data.LightingBuffer.PointLightPositionRange[pointLightIndex] = glm::vec4(0.0f);
+                s_Data.LightingBuffer.PointLightColorIntensity[pointLightIndex] = glm::vec4(0.0f);
+            }
+        }
 
         if (s_Data.SceneLightingUniformBuffer)
         {
