@@ -59,6 +59,7 @@
 
 - 需要新增或扩展**公共 API**（含 `InspectorControls`、Scene、Asset、ScriptGlue 对外面）时：**先提问，通过后再改**。
 - 需求、归属层级（Engine / HimiiEditor / ScriptCore / HimiiRuntime）或序列化兼容性不清晰时：先问，不猜测实现。
+- **旧版本引擎 / 资产格式兼容**：凡涉及「是否兼容旧引擎、旧旁路文件、旧序列化字段、旧扩展名或旧工程布局」时，**必须先与开发者讨论**；确认需要兼容后才能写回退、迁移或双路径读取逻辑。**禁止**擅自加入 legacy 回退或「以防万一」的兼容分支。
 
 ---
 
@@ -68,6 +69,16 @@
 - 若确需约定路径 / 默认资源名 / 布局常量：先与开发者商量并确认放置位置（集中常量、配置、项目种子约定等），**通过后再写**；禁止 Agent 自行散落字面量。
 - 已有集中 API / 常量时必须复用（如 `Project::GetDefaultGameplayFontRelativePath()`、`FileSystem`、项目配置字段），不要再复制一份字面量。
 - 用户可见文案、日志说明不在本条禁止范围内；本条针对**机器解析用的路径与资源标识**。
+
+---
+
+## 资产 Handle 与旁路 `.meta`
+
+需要在磁盘上**持久化 `AssetHandle` 或导入设置**的资产，只允许在源文件旁生成统一的 `.meta` 旁路文件，**禁止**再发明类型专用扩展名（例如历史上的 `.hmeshmeta`）。
+
+- **路径约定**：`源文件完整路径 + ".meta"`（保留原扩展名），例如 `texture.png.meta`、`model.glb.meta`。参考 `TextureImportSerializer::GetMetaPath`、`MeshAssetSerializer::GetMeshMetaPath`。
+- **登记与加载入口**：以 `Engine/src/Resource/AssetManager.cpp` 为准（如 `ImportAsset`、纹理 `EnsureDefaultTextureMeta` / `SaveTextureImportData`、Mesh 经 `GltfMeshImporter` 写出旁路 meta）。旁路 YAML 的读写可落在对应 Serializer，但扩展名与命名必须服从本条。
+- **Content Browser**：`.meta` 为引擎内部旁路，应对用户隐藏（见 `ContentBrowserPanel::ShouldHideFromContentBrowser`）。
 
 ---
 

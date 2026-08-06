@@ -5,7 +5,7 @@
 
 namespace Himii
 {
-    /// 将 glTF/GLB 旁路生成 Texture / Material / .hmeshmeta，并登记到 AssetManager。
+    /// 将 glTF/GLB 旁路生成 Texture / Material / 源文件.meta，并登记到 AssetManager。
     class GltfMeshImporter
     {
     public:

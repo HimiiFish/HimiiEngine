@@ -9,9 +9,7 @@ namespace Himii
 {
     std::filesystem::path MeshAssetSerializer::GetMeshMetaPath(const std::filesystem::path &meshSourcePath)
     {
-        std::filesystem::path metaPath = meshSourcePath;
-        metaPath.replace_extension(".hmeshmeta");
-        return metaPath;
+        return std::filesystem::path(meshSourcePath.string() + ".meta");
     }
 
     bool MeshAssetSerializer::WriteMeshMeta(const std::filesystem::path &meshSourcePath,
