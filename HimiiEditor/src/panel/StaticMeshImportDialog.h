@@ -13,6 +13,10 @@ namespace Himii
         StaticMeshImportSettings Settings{};
         std::filesystem::path RelativeSourcePath;
         std::filesystem::path RelativeHmeshPath;
+
+        bool HasExistingCompanionMaterials = false;
+        bool AwaitingMaterialReimportChoice = false;
+        bool PreserveCompanionMaterialsOnReimport = false;
     };
 
     /// 返回 true 表示用户确认并应执行导入。

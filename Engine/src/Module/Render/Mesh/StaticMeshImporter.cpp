@@ -106,7 +106,8 @@ namespace Himii
 
     AssetHandle StaticMeshImporter::ReimportProduct(AssetManager &assetManager,
                                                     const std::filesystem::path &relativeHmeshPath,
-                                                    const StaticMeshImportSettings *overrideSettings)
+                                                    const StaticMeshImportSettings *overrideSettings,
+                                                    bool preserveExistingCompanionMaterials)
     {
         const std::filesystem::path absoluteHmeshPath =
                 Project::GetAssetFileSystemPath(relativeHmeshPath);
@@ -155,10 +156,18 @@ namespace Himii
         std::vector<std::string> materialSlotNames;
         if (importSettings.ImportMaterialsAndTextures)
         {
-            MeshCompanionImportResult companionResult;
-            ImportMeshCompanionAssets(assetManager, relativeSourcePath, &companionResult);
-            materialHandles = std::move(companionResult.MaterialHandles);
-            materialSlotNames = std::move(companionResult.MaterialSlotNames);
+            if (preserveExistingCompanionMaterials)
+            {
+                materialHandles = existingMaterialHandles;
+                materialSlotNames = existingSlotNames;
+            }
+            else
+            {
+                MeshCompanionImportResult companionResult;
+                ImportMeshCompanionAssets(assetManager, relativeSourcePath, &companionResult);
+                materialHandles = std::move(companionResult.MaterialHandles);
+                materialSlotNames = std::move(companionResult.MaterialSlotNames);
+            }
         }
 
         MeshAssetSerializer::WriteStaticMeshMeta(absoluteHmeshPath, importSettings, relativeSourcePath,

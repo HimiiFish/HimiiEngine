@@ -130,7 +130,7 @@ target_compile_definitions(Engine PUBLIC
 
 if (WIN32)
     target_compile_definitions(Engine PUBLIC
-        HIMII_PLATFORM_WINDOWS     # 平台宏
+        HIMII_PLATFORM_WINDOWS
     )
 elseif(UNIX AND NOT APPLE)
     target_compile_definitions(Engine PUBLIC

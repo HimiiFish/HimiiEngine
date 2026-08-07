@@ -81,8 +81,21 @@ namespace Himii
     {
         HIMII_PROFILE_FUNCTION();
 
+        if (e.GetEventType() == EventType::WindowClose)
+        {
+            for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend(); ++it)
+            {
+                if (e.Handled)
+                    break;
+                (*it)->OnEvent(e);
+            }
+
+            if (!e.Handled)
+                m_Running = false;
+            return;
+        }
+
         EventDispatcher dispatcher(e);
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
         dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 
         for (auto it = m_LayerStack.rbegin(); it != m_LayerStack.rend();++it)

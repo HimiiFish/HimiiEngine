@@ -11,6 +11,52 @@ namespace Himii
         if (!dialogState.Open)
             return false;
 
+        if (dialogState.AwaitingMaterialReimportChoice)
+        {
+            if (!ImGui::IsPopupOpen("Reimport Companion Materials"))
+                ImGui::OpenPopup("Reimport Companion Materials");
+
+            bool confirmed = false;
+            if (ImGui::BeginPopupModal("Reimport Companion Materials", &dialogState.Open,
+                                       ImGuiWindowFlags_AlwaysAutoResize))
+            {
+                ImGui::TextUnformatted(
+                        "Existing companion materials were found for this mesh.");
+                ImGui::TextUnformatted("Overwrite imported materials or keep your edits?");
+
+                if (ImGui::Button("Overwrite Materials", ImVec2(180.0f, 0.0f)))
+                {
+                    dialogState.PreserveCompanionMaterialsOnReimport = false;
+                    dialogState.AwaitingMaterialReimportChoice = false;
+                    dialogState.Open = false;
+                    confirmed = true;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("Keep Materials", ImVec2(180.0f, 0.0f)))
+                {
+                    dialogState.PreserveCompanionMaterialsOnReimport = true;
+                    dialogState.AwaitingMaterialReimportChoice = false;
+                    dialogState.Open = false;
+                    confirmed = true;
+                    ImGui::CloseCurrentPopup();
+                }
+
+                ImGui::SameLine();
+                if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f)))
+                {
+                    dialogState.AwaitingMaterialReimportChoice = false;
+                    ImGui::CloseCurrentPopup();
+                    ImGui::OpenPopup("Import Static Mesh");
+                }
+
+                ImGui::EndPopup();
+            }
+
+            return confirmed;
+        }
+
         bool confirmed = false;
         if (ImGui::BeginPopupModal("Import Static Mesh", &dialogState.Open,
                                    ImGuiWindowFlags_AlwaysAutoResize))
@@ -31,9 +77,23 @@ namespace Himii
 
             if (ImGui::Button("Import", ImVec2(120.0f, 0.0f)))
             {
-                confirmed = true;
-                dialogState.Open = false;
-                ImGui::CloseCurrentPopup();
+                const bool needsMaterialChoice =
+                        dialogState.IsReimport
+                        && dialogState.Settings.ImportMaterialsAndTextures
+                        && dialogState.HasExistingCompanionMaterials;
+
+                if (needsMaterialChoice)
+                {
+                    dialogState.AwaitingMaterialReimportChoice = true;
+                    ImGui::CloseCurrentPopup();
+                }
+                else
+                {
+                    dialogState.PreserveCompanionMaterialsOnReimport = false;
+                    confirmed = true;
+                    dialogState.Open = false;
+                    ImGui::CloseCurrentPopup();
+                }
             }
 
             ImGui::SameLine();

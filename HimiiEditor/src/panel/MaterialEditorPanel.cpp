@@ -1,7 +1,11 @@
 #include "MaterialEditorPanel.h"
 #include "InspectorControls.h"
+#include "panel/MaterialThumbnailUtility.h"
 
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Render/Mesh/MaterialSurfaceUtility.h"
+#include "Module/Render/Shader/BuiltinShaderRegistry.h"
+#include "Module/Render/Shader/ShaderAsset.h"
 #include "Project/Project.h"
 #include "Resource/AssetManager.h"
 #include "Resource/ResourceSystem.h"
@@ -10,17 +14,34 @@
 
 namespace Himii
 {
+    bool MaterialEditorPanel::IsActiveMaterialDirty() const
+    {
+        return m_MaterialHandle != 0
+               && m_DirtyMaterialHandles.find(m_MaterialHandle) != m_DirtyMaterialHandles.end();
+    }
+
+    void MaterialEditorPanel::MarkActiveMaterialDirty()
+    {
+        if (m_MaterialHandle != 0)
+            m_DirtyMaterialHandles.insert(m_MaterialHandle);
+    }
+
     void MaterialEditorPanel::SetMaterialHandle(AssetHandle materialHandle)
     {
+        if (materialHandle == m_MaterialHandle)
+            return;
+
+        if (m_MaterialHandle != 0 && IsActiveMaterialDirty())
+            SaveMaterialAsset(m_MaterialHandle);
+
         m_MaterialHandle = materialHandle;
-        m_IsDirty = false;
         ReloadMaterial();
     }
 
     void MaterialEditorPanel::ReloadMaterial()
     {
         m_MaterialAsset = nullptr;
-        m_AlbedoPreviewTexture = nullptr;
+        m_ShaderAsset = nullptr;
         if (m_MaterialHandle == 0)
             return;
 
@@ -33,18 +54,12 @@ namespace Himii
             return;
 
         m_MaterialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
-
-        if (m_MaterialAsset->AlbedoTextureHandle != 0)
-        {
-            Ref<Asset> textureBase = assetManager->GetAsset(m_MaterialAsset->AlbedoTextureHandle);
-            if (textureBase && textureBase->GetType() == AssetType::Texture2D)
-                m_AlbedoPreviewTexture = std::static_pointer_cast<Texture2D>(textureBase);
-        }
+        m_ShaderAsset = ResolveShaderAsset(assetManager.get(), m_MaterialAsset->ShaderHandle);
     }
 
-    bool MaterialEditorPanel::SaveActiveMaterialAsset()
+    bool MaterialEditorPanel::SaveMaterialAsset(AssetHandle materialHandle)
     {
-        if (!m_MaterialAsset || m_MaterialHandle == 0 || !Project::GetActive())
+        if (materialHandle == 0 || !Project::GetActive())
             return false;
 
         auto assetManager = ResourceSystem::GetAssetManager();
@@ -52,22 +67,81 @@ namespace Himii
             return false;
 
         const auto &registry = assetManager->GetAssetRegistry();
-        auto iterator = registry.find(m_MaterialHandle);
+        auto iterator = registry.find(materialHandle);
         if (iterator == registry.end())
             return false;
 
+        Ref<Asset> materialBase = assetManager->GetAsset(materialHandle);
+        if (!materialBase || materialBase->GetType() != AssetType::Material)
+            return false;
+
+        Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(materialBase);
+        assetManager->ResolveMaterialAlbedoTextureReference(*materialAsset);
+
         const std::filesystem::path absolutePath =
                 Project::GetAssetFileSystemPath(iterator->second.FilePath);
-        if (m_MaterialAsset->AlbedoTextureHandle != 0)
-        {
-            const auto textureIterator = registry.find(m_MaterialAsset->AlbedoTextureHandle);
-            if (textureIterator != registry.end())
-                m_MaterialAsset->AlbedoTextureRelativePath = textureIterator->second.FilePath.generic_string();
-        }
-        MaterialAssetSerializer::Serialize(absolutePath, m_MaterialAsset);
-        m_IsDirty = false;
-        assetManager->SerializeAssetRegistry();
+        MaterialAssetSerializer::Serialize(absolutePath, materialAsset);
+        m_DirtyMaterialHandles.erase(materialHandle);
+        InvalidateMaterialThumbnail(materialHandle);
         return true;
+    }
+
+    int MaterialEditorPanel::SaveAllDirtyMaterialAssets()
+    {
+        if (!Project::GetActive() || m_DirtyMaterialHandles.empty())
+            return 0;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return 0;
+
+        const std::vector<AssetHandle> dirtyHandles(m_DirtyMaterialHandles.begin(),
+                                                    m_DirtyMaterialHandles.end());
+        int savedCount = 0;
+        for (AssetHandle materialHandle : dirtyHandles)
+        {
+            if (SaveMaterialAsset(materialHandle))
+                savedCount++;
+        }
+
+        if (savedCount > 0)
+            assetManager->SerializeAssetRegistry();
+
+        return savedCount;
+    }
+
+    void MaterialEditorPanel::DiscardAllDirtyMaterialChanges()
+    {
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (assetManager)
+        {
+            for (AssetHandle materialHandle : m_DirtyMaterialHandles)
+                assetManager->UnloadAsset(materialHandle);
+        }
+
+        m_DirtyMaterialHandles.clear();
+        ReloadMaterial();
+    }
+
+    static std::string ResolveShaderDisplayName(AssetHandle shaderHandle)
+    {
+        if (BuiltinShaderHandles::IsBuiltinShaderHandle(shaderHandle))
+        {
+            if (shaderHandle == BuiltinShaderHandles::MeshLit)
+                return "MeshLit (Built-in)";
+            if (shaderHandle == BuiltinShaderHandles::MeshUnlit)
+                return "MeshUnlit (Built-in)";
+        }
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager || !assetManager->IsAssetHandleValid(shaderHandle))
+            return "Missing Shader";
+
+        const auto &registry = assetManager->GetAssetRegistry();
+        auto iterator = registry.find(shaderHandle);
+        if (iterator == registry.end())
+            return "Missing Shader";
+        return iterator->second.FilePath.filename().string();
     }
 
     void MaterialEditorPanel::DrawMaterialProperties()
@@ -80,92 +154,159 @@ namespace Himii
 
         BeginInspectorPropertiesStyle();
 
-        const char *shadingModeLabels[] = {"Lit", "Unlit"};
-        int shadingModeIndex = static_cast<int>(m_MaterialAsset->ShadingMode);
-        DrawEnumComboControl(
-                "Shading Mode", shadingModeIndex, shadingModeLabels, 2,
-                [&](int newIndex)
-                {
-                    m_MaterialAsset->ShadingMode = static_cast<MaterialShadingMode>(newIndex);
-                    m_IsDirty = true;
-                });
+        DrawReadOnlyTextControl("Shader", ResolveShaderDisplayName(m_MaterialAsset->ShaderHandle).c_str(),
+                                "Material instances inherit parameter layout from the referenced shader.");
 
-        glm::vec4 albedoColor = m_MaterialAsset->AlbedoColor;
-        DrawColorControl("Albedo Color", albedoColor, glm::vec4(1.0f));
-        if (albedoColor != m_MaterialAsset->AlbedoColor)
+        if (!m_ShaderAsset)
         {
-            m_MaterialAsset->AlbedoColor = albedoColor;
-            m_IsDirty = true;
+            ImGui::TextUnformatted("Shader definition unavailable.");
+            EndInspectorPropertiesStyle();
+            return;
         }
 
-        const std::string textureDisplayName =
-                m_MaterialAsset->AlbedoTextureHandle != 0
-                        ? [&]() -> std::string
-                        {
-                            auto assetManager = ResourceSystem::GetAssetManager();
-                            if (!assetManager)
-                                return "Texture";
-                            const auto &registry = assetManager->GetAssetRegistry();
-                            auto iterator = registry.find(m_MaterialAsset->AlbedoTextureHandle);
-                            if (iterator == registry.end())
-                                return "Missing Texture";
-                            return iterator->second.FilePath.filename().string();
-                        }()
-                        : "None (drag texture)";
-
-        DrawObjectReferenceField(
-                "Albedo Texture", textureDisplayName.c_str(), m_MaterialAsset->AlbedoTextureHandle != 0,
-                m_AlbedoPreviewTexture,
-                [&]()
-                {
-                    m_MaterialAsset->AlbedoTextureHandle = 0;
-                    m_MaterialAsset->AlbedoTextureRelativePath.clear();
-                    m_AlbedoPreviewTexture = nullptr;
-                    m_IsDirty = true;
-                },
-                [&](const ImGuiPayload *payload)
-                {
-                    Ref<Texture2D> assignedTexture;
-                    AssetHandle assignedHandle = m_MaterialAsset->AlbedoTextureHandle;
-                    if (!AssignTextureFromContentBrowserPayload(payload, assignedTexture, assignedHandle))
-                        return false;
-                    m_MaterialAsset->AlbedoTextureHandle = assignedHandle;
-                    const wchar_t *relativePathWide = static_cast<const wchar_t *>(payload->Data);
-                    m_MaterialAsset->AlbedoTextureRelativePath =
-                            std::filesystem::path(relativePathWide).generic_string();
-                    m_AlbedoPreviewTexture = assignedTexture;
-                    m_IsDirty = true;
-                    return true;
-                });
-
-        float specular = m_MaterialAsset->Specular;
-        DrawFloatControl("Specular", specular, 0.01f, 0.0f, 1.0f, nullptr, nullptr, true, 0.5f);
-        if (specular != m_MaterialAsset->Specular)
+        for (const ShaderPropertyDefinition &definition : m_ShaderAsset->PropertyDefinitions)
         {
-            m_MaterialAsset->Specular = specular;
-            m_IsDirty = true;
-        }
+            MaterialParameterValue parameterValue =
+                    ResolveMaterialParameterValue(*m_MaterialAsset, definition);
+            const char *label = definition.DisplayName.empty() ? definition.Name.c_str()
+                                                                : definition.DisplayName.c_str();
 
-        float shininess = m_MaterialAsset->Shininess;
-        DrawFloatControl("Shininess", shininess, 0.5f, 1.0f, 256.0f, nullptr, nullptr, true, 32.0f);
-        if (shininess != m_MaterialAsset->Shininess)
-        {
-            m_MaterialAsset->Shininess = shininess;
-            m_IsDirty = true;
-        }
+            switch (definition.Type)
+            {
+                case ShaderPropertyType::Float:
+                {
+                    float floatValue = parameterValue.FloatValue;
+                    DrawFloatControl(label, floatValue, 0.01f, 0.0f, 0.0f, nullptr, nullptr, true,
+                                     definition.DefaultFloat);
+                    if (floatValue != parameterValue.FloatValue)
+                    {
+                        m_MaterialAsset->SetFloatParameter(definition.Name, floatValue);
+                        MarkActiveMaterialDirty();
+                    }
+                    break;
+                }
+                case ShaderPropertyType::Int:
+                {
+                    float intAsFloat = static_cast<float>(parameterValue.IntValue);
+                    DrawFloatControl(label, intAsFloat, 1.0f, 0.0f, 0.0f, nullptr, nullptr, true,
+                                     static_cast<float>(definition.DefaultInt));
+                    const int intValue = static_cast<int>(intAsFloat);
+                    if (intValue != parameterValue.IntValue)
+                    {
+                        m_MaterialAsset->SetIntParameter(definition.Name, intValue);
+                        MarkActiveMaterialDirty();
+                    }
+                    break;
+                }
+                case ShaderPropertyType::Color:
+                {
+                    glm::vec4 colorValue = parameterValue.ColorValue;
+                    DrawColorControl(label, colorValue, definition.DefaultColor);
+                    if (colorValue != parameterValue.ColorValue)
+                    {
+                        m_MaterialAsset->SetColorParameter(definition.Name, colorValue);
+                        MarkActiveMaterialDirty();
+                    }
+                    break;
+                }
+                case ShaderPropertyType::Vector2:
+                {
+                    glm::vec2 vectorValue = parameterValue.Vector2Value;
+                    DrawVec2Control(label, vectorValue, 0.01f, 0.0f, 0.0f, nullptr, true,
+                                    definition.DefaultVector2);
+                    if (vectorValue != parameterValue.Vector2Value)
+                    {
+                        m_MaterialAsset->SetVector2Parameter(definition.Name, vectorValue);
+                        MarkActiveMaterialDirty();
+                    }
+                    break;
+                }
+                case ShaderPropertyType::Vector3:
+                {
+                    glm::vec3 vectorValue = parameterValue.Vector3Value;
+                    DrawVec3Control(label, vectorValue);
+                    if (vectorValue != parameterValue.Vector3Value)
+                    {
+                        m_MaterialAsset->SetVector3Parameter(definition.Name, vectorValue);
+                        MarkActiveMaterialDirty();
+                    }
+                    break;
+                }
+                case ShaderPropertyType::Vector4:
+                {
+                    glm::vec4 vectorValue = parameterValue.Vector4Value;
+                    DrawColorControl(label, vectorValue, definition.DefaultVector4);
+                    if (vectorValue != parameterValue.Vector4Value)
+                    {
+                        m_MaterialAsset->SetVector4Parameter(definition.Name, vectorValue);
+                        MarkActiveMaterialDirty();
+                    }
+                    break;
+                }
+                case ShaderPropertyType::Texture2D:
+                {
+                    auto assetManager = ResourceSystem::GetAssetManager();
+                    Ref<Texture2D> previewTexture;
+                    if (parameterValue.TextureHandle != 0 && assetManager)
+                    {
+                        Ref<Asset> textureBase = assetManager->GetAsset(parameterValue.TextureHandle);
+                        if (textureBase && textureBase->GetType() == AssetType::Texture2D)
+                            previewTexture = std::static_pointer_cast<Texture2D>(textureBase);
+                    }
 
-        DrawActionButtonRow("Save", [&]()
+                    std::string textureDisplayName = "None (drag texture)";
+                    if (parameterValue.TextureHandle != 0 && assetManager)
+                    {
+                        const auto &registry = assetManager->GetAssetRegistry();
+                        auto iterator = registry.find(parameterValue.TextureHandle);
+                        if (iterator != registry.end())
+                            textureDisplayName = iterator->second.FilePath.filename().string();
+                    }
+
+                    DrawObjectReferenceField(
+                            label, textureDisplayName.c_str(), parameterValue.TextureHandle != 0,
+                            previewTexture,
+                            [&]()
                             {
-                                if (ImGui::Button("Save Material", ImVec2(160.0f, 0.0f)))
-                                    SaveActiveMaterialAsset();
-                                if (m_IsDirty)
-                                {
-                                    ImGui::SameLine();
-                                    ImGui::TextUnformatted("(unsaved)");
-                                }
+                                m_MaterialAsset->SetTextureParameter(definition.Name, 0, {});
+                                MarkActiveMaterialDirty();
+                                InvalidateMaterialThumbnail(m_MaterialHandle);
+                            },
+                            [&](const ImGuiPayload *payload)
+                            {
+                                Ref<Texture2D> assignedTexture;
+                                AssetHandle assignedHandle = 0;
+                                if (!AssignTextureFromContentBrowserPayload(payload, assignedTexture,
+                                                                            assignedHandle))
+                                    return false;
+
+                                std::string relativePath;
+                                const wchar_t *relativePathWide =
+                                        static_cast<const wchar_t *>(payload->Data);
+                                relativePath = std::filesystem::path(relativePathWide).generic_string();
+                                m_MaterialAsset->SetTextureParameter(definition.Name, assignedHandle,
+                                                                     relativePath);
+                                MarkActiveMaterialDirty();
+                                InvalidateMaterialThumbnail(m_MaterialHandle);
+                                return true;
                             });
+                    break;
+                }
+            }
+        }
+
+        if (IsActiveMaterialDirty())
+            ImGui::TextUnformatted("(unsaved)");
 
         EndInspectorPropertiesStyle();
+    }
+
+    void MaterialEditorPanel::ResetForProjectChange()
+    {
+        m_MaterialHandle = 0;
+        m_MaterialAsset = nullptr;
+        m_ShaderAsset = nullptr;
+        m_DirtyMaterialHandles.clear();
     }
 
     void MaterialEditorPanel::OnImGuiRender(bool &isOpen)
@@ -173,13 +314,13 @@ namespace Himii
         if (!isOpen)
             return;
 
-        if (ImGui::Begin("Material Editor", &isOpen))
-        {
-            DrawMaterialProperties();
-        }
-        ImGui::End();
+        std::string panelTitle = "Material Editor";
+        if (IsActiveMaterialDirty())
+            panelTitle += "*";
 
-        if (!isOpen && m_IsDirty)
-            SaveActiveMaterialAsset();
+        if (ImGui::Begin(panelTitle.c_str(), &isOpen))
+            DrawMaterialProperties();
+
+        ImGui::End();
     }
 }

@@ -28,6 +28,9 @@ namespace Himii
 
         AssetHandle ImportAsset(const std::filesystem::path &filepath);
 
+        /// 仅查找 Registry，不创建新条目。
+        AssetHandle FindAssetHandleByFilePath(const std::filesystem::path &filepath) const;
+
         bool IsAssetHandleValid(AssetHandle handle) const;
         bool IsAssetLoaded(AssetHandle handle) const;
         bool IsSpriteHandle(AssetHandle handle) const;
@@ -62,13 +65,15 @@ namespace Himii
 
         void UnloadAsset(AssetHandle handle);
 
+        /// 按材质参数中的贴图相对路径恢复 / 同步 Handle（保存与加载时复用）。
+        void ResolveMaterialAlbedoTextureReference(MaterialAsset &materialAsset);
+
     private:
         /// 旧 Registry 若仍指向网格源文件，则确保存在 `.hmesh` 并将条目迁移到产品路径。
         bool EnsureStaticMeshProductForRegistryEntry(AssetHandle handle, AssetMetadata &metadata);
 
         void RegisterSpritesFromImportData(const TextureImportData& importData);
         void UnregisterSpritesForTexture(AssetHandle textureHandle);
-        void ResolveMaterialAlbedoTextureReference(MaterialAsset &materialAsset);
 
         AssetRegistry m_AssetRegistry;
         std::unordered_map<AssetHandle, Ref<Asset>> m_LoadedAssets;

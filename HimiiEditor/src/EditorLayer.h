@@ -89,11 +89,17 @@ namespace Himii
         bool IsScriptAssemblyUpToDate() const;
         void MarkScriptsDirtyFromWatcher();
         void SetupScriptFileWatchers();
+        void SetupShaderFileWatchers();
+        void ReloadShaderAssetsFromWatcher();
 
         //UI panel
         void UI_Toolbar();
         void DrawMainMenuBar();
         void UpdateMainWindowTitle();
+        void RequestQuitApplication();
+        void OpenProjectInternal(const std::filesystem::path &path);
+        void DrawUnsavedMaterialsModal();
+        bool OnWindowCloseRequested(class WindowCloseEvent &event);
         void UpdateEditorCameraForActiveProject();
         void RefreshEditorSkyboxForActiveProject();
         /// 将 Game/ViewPort 同组 Dock 标签前台设为 ViewPort（覆盖 layout ini 的 Selected）。
@@ -101,6 +107,7 @@ namespace Himii
         void DrawStartupSplash();
         void AdvanceEditorStartupLoading();
         void ApplySplashWindowSize();
+        void TransitionToProjectHubWindow();
         void TransitionToEditorWindow();
 
         enum class EditorStartupState {
@@ -127,6 +134,8 @@ namespace Himii
 
         static constexpr float MinimumSplashDisplaySeconds = 1.2f;
         static constexpr uint32_t SplashStatusOverlayHeightPixels = 56;
+        static constexpr uint32_t ProjectHubClientWidth = 1100;
+        static constexpr uint32_t ProjectHubClientHeight = 700;
 
     private:
         Ref<World> m_World;
@@ -217,6 +226,7 @@ namespace Himii
 
         FileWatcher m_ScriptFileWatcher;
         FileWatcher m_ScriptProjectFileWatcher;
+        FileWatcher m_ShaderFileWatcher;
         bool m_ScriptsDirty = false;
         bool m_NeedsScriptRebuild = false;
         bool m_PendingPlayAfterCompile = false;
@@ -260,6 +270,17 @@ namespace Himii
         bool m_TilemapViewportCapture = false;
         UUID m_TilemapPaintSessionEntityUUID = 0;
         bool m_TileMapEditorWasVisible = false;
+
+        enum class PendingEditorSessionAction
+        {
+            None = 0,
+            QuitApplication,
+            OpenProject
+        };
+
+        PendingEditorSessionAction m_PendingEditorSessionAction = PendingEditorSessionAction::None;
+        std::filesystem::path m_PendingOpenProjectPath;
+        bool m_ShowUnsavedMaterialsModal = false;
 
     private:
         struct RecentProject

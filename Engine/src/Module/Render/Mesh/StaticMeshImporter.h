@@ -17,7 +17,8 @@ namespace Himii
         /// 对已有 `.hmesh` 重导；overrideSettings 为空则沿用 meta。
         static AssetHandle ReimportProduct(AssetManager &assetManager,
                                            const std::filesystem::path &relativeHmeshPath,
-                                           const StaticMeshImportSettings *overrideSettings = nullptr);
+                                           const StaticMeshImportSettings *overrideSettings = nullptr,
+                                           bool preserveExistingCompanionMaterials = false);
 
         static std::filesystem::path GetProductPathForSource(
                 const std::filesystem::path &relativeSourcePath);

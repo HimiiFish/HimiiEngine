@@ -487,6 +487,11 @@ namespace Himii
         }
     }
 
+    SceneLightingParameters Renderer3D::GetSceneLighting()
+    {
+        return s_Data.CurrentLighting;
+    }
+
     void Renderer3D::EnsureShadowMap(uint32_t resolutionPixels)
     {
         if (resolutionPixels == 0)
@@ -871,7 +876,7 @@ namespace Himii
             int useAlbedoTexture = resolvedSurface.AlbedoTexture ? 1 : 0;
             float specular = resolvedSurface.Specular;
             float shininess = resolvedSurface.Shininess;
-            const bool useUnlit = resolvedSurface.ShadingMode == MaterialShadingMode::Unlit;
+            const bool useUnlit = !resolvedSurface.UsesLitPipeline;
 
             // Unlit 不参与投射/接收阴影。
             if (useUnlit && s_Data.IsShadowPass)
@@ -895,7 +900,9 @@ namespace Himii
 
             if (useUnlit)
             {
-                s_Data.MeshUnlitShader->Bind();
+                Ref<Shader> activeShader = resolvedSurface.ShaderProgram ? resolvedSurface.ShaderProgram
+                                                                         : s_Data.MeshUnlitShader;
+                activeShader->Bind();
                 Renderer3DData::MeshUnlitData meshUnlitData;
                 meshUnlitData.Transform = transform;
                 meshUnlitData.AlbedoColor = albedoColor;
@@ -905,7 +912,9 @@ namespace Himii
             }
             else
             {
-                s_Data.MeshLitShader->Bind();
+                Ref<Shader> activeShader =
+                        resolvedSurface.ShaderProgram ? resolvedSurface.ShaderProgram : s_Data.MeshLitShader;
+                activeShader->Bind();
                 Renderer3DData::MeshLitData meshLitData;
                 meshLitData.Transform = transform;
                 meshLitData.AlbedoColor = albedoColor;

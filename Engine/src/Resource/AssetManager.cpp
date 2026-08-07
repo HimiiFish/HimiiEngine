@@ -5,6 +5,8 @@
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/StaticMeshImporter.h"
 #include "Module/Render/Mesh/StaticMeshImportSettings.h"
+#include "Module/Render/Shader/ShaderAsset.h"
+#include "Module/Render/Shader/ShaderCompilationService.h"
 #include "Resource/AssetSerializerRegistry.h"
 #include "Resource/TextureImportSerializer.h"
 #include "Resource/SpriteSheetUtility.h"
@@ -109,6 +111,11 @@ namespace Himii
                 Ref<MaterialAsset> materialAsset = std::static_pointer_cast<MaterialAsset>(asset);
                 ResolveMaterialAlbedoTextureReference(*materialAsset);
             }
+            else if (metadataForLoad.Type == AssetType::Shader)
+            {
+                Ref<ShaderAsset> shaderAsset = std::static_pointer_cast<ShaderAsset>(asset);
+                ShaderCompilationService::GetOrCompileShader(shaderAsset);
+            }
             m_LoadedAssets[handle] = asset;
             m_AssetRegistry[handle].IsLoaded = true;
         }
@@ -118,26 +125,43 @@ namespace Himii
 
     void AssetManager::ResolveMaterialAlbedoTextureReference(MaterialAsset &materialAsset)
     {
-        if (!materialAsset.AlbedoTextureRelativePath.empty())
+        AssetHandle textureHandle = 0;
+        std::string textureRelativePath;
+        if (!materialAsset.TryGetTextureParameter("u_AlbedoTexture", textureHandle, textureRelativePath))
+            return;
+
+        if (!textureRelativePath.empty())
         {
-            const std::filesystem::path relativePath(materialAsset.AlbedoTextureRelativePath);
+            const std::filesystem::path relativePath(textureRelativePath);
             const std::filesystem::path absolutePath = Project::GetAssetFileSystemPath(relativePath);
             if (!std::filesystem::exists(absolutePath))
             {
-                materialAsset.AlbedoTextureHandle = 0;
-                materialAsset.AlbedoTextureRelativePath.clear();
+                materialAsset.SetTextureParameter("u_AlbedoTexture", 0, {});
                 return;
             }
 
-            if (!IsAssetHandleValid(materialAsset.AlbedoTextureHandle))
-                materialAsset.AlbedoTextureHandle = ImportAsset(relativePath);
+            if (!IsAssetHandleValid(textureHandle))
+                textureHandle = ImportAsset(relativePath);
         }
 
-        if (materialAsset.AlbedoTextureHandle != 0 && IsAssetHandleValid(materialAsset.AlbedoTextureHandle))
+        if (textureHandle != 0 && IsAssetHandleValid(textureHandle))
         {
-            const AssetMetadata &metadata = m_AssetRegistry.at(materialAsset.AlbedoTextureHandle);
-            materialAsset.AlbedoTextureRelativePath = metadata.FilePath.generic_string();
+            const AssetMetadata &metadata = m_AssetRegistry.at(textureHandle);
+            materialAsset.SetTextureParameter("u_AlbedoTexture", textureHandle,
+                                             metadata.FilePath.generic_string());
         }
+    }
+
+    AssetHandle AssetManager::FindAssetHandleByFilePath(const std::filesystem::path &filepath) const
+    {
+        const std::string relativePathKey =
+                std::filesystem::path(filepath.generic_string()).generic_string();
+        for (const auto &[handle, metadata] : m_AssetRegistry)
+        {
+            if (metadata.FilePath.generic_string() == relativePathKey)
+                return handle;
+        }
+        return 0;
     }
 
     AssetHandle AssetManager::ImportAsset(const std::filesystem::path &filepath)

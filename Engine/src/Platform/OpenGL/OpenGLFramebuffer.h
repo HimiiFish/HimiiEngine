@@ -21,6 +21,7 @@ namespace Himii
         virtual int ReadPixel(uint32_t attachmentIndex, int x, int y) override;
 
         virtual void ClearAttachment(uint32_t attachmentIndex, int value) override;
+        virtual void ReadColorPixels(uint32_t attachmentIndex, std::vector<uint8_t> &outRgbaBytes) override;
         virtual uint32_t GetColorAttachmentRendererID(uint32_t index = 0) const override
         {
             HIMII_CORE_ASSERT(index < m_ColorAttachments.size());

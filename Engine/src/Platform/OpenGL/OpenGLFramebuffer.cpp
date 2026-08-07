@@ -279,6 +279,18 @@ namespace Himii
                         GL_INT, &value);
     }
 
+    void OpenGLFramebuffer::ReadColorPixels(uint32_t attachmentIndex, std::vector<uint8_t> &outRgbaBytes)
+    {
+        HIMII_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size());
+        Bind();
+        glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+        const uint32_t pixelCount = m_Specification.Width * m_Specification.Height;
+        outRgbaBytes.resize(static_cast<size_t>(pixelCount) * 4u);
+        glReadPixels(0, 0, static_cast<GLsizei>(m_Specification.Width),
+                     static_cast<GLsizei>(m_Specification.Height), GL_RGBA, GL_UNSIGNED_BYTE,
+                     outRgbaBytes.data());
+    }
+
     void OpenGLFramebuffer::BindDepthAttachment(uint32_t slot) const
     {
         HIMII_CORE_ASSERT(m_DepthAttachment != 0);

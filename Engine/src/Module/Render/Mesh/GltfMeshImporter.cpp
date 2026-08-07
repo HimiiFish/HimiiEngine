@@ -2,6 +2,7 @@
 #include "Module/Render/Mesh/GltfMeshImporter.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Render/Shader/BuiltinShaderRegistry.h"
 #include "Module/Render/Mesh/StaticMeshImportSettings.h"
 #include "Project/Project.h"
 #include "EngineCore/Core/Log.h"
@@ -169,11 +170,9 @@ namespace Himii
 
         for (cgltf_size materialIndex = 0; materialIndex < materialCount; ++materialIndex)
         {
-            Ref<MaterialAsset> materialAsset = CreateRef<MaterialAsset>();
+            Ref<MaterialAsset> materialAsset = MaterialAssetSerializer::CreateDefaultMaterialInstance(
+                    BuiltinShaderRegistry::GetDefaultLitShaderHandle());
             materialAsset->Handle = AssetHandle();
-            materialAsset->ShadingMode = MaterialShadingMode::Lit;
-            materialAsset->Specular = 0.5f;
-            materialAsset->Shininess = 32.0f;
 
             std::string slotName = "Slot " + std::to_string(materialIndex);
             if (data->materials_count > 0)
@@ -183,13 +182,13 @@ namespace Himii
                     slotName = material.name;
                 if (material.has_pbr_metallic_roughness)
                 {
-                    // Phase 1：仅 baseColor → Albedo；metallic/roughness 不参与着色。
                     const cgltf_float *factor = material.pbr_metallic_roughness.base_color_factor;
-                    materialAsset->AlbedoColor = {factor[0], factor[1], factor[2], factor[3]};
+                    materialAsset->SetColorParameter("u_AlbedoColor",
+                                                     {factor[0], factor[1], factor[2], factor[3]});
                     const cgltf_texture *baseColorTexture =
                             material.pbr_metallic_roughness.base_color_texture.texture;
-                    materialAsset->AlbedoTextureHandle = ResolveTextureHandle(baseColorTexture);
-                    materialAsset->AlbedoTextureRelativePath = ResolveTextureRelativePath(baseColorTexture);
+                    materialAsset->SetTextureParameter("u_AlbedoTexture", ResolveTextureHandle(baseColorTexture),
+                                                     ResolveTextureRelativePath(baseColorTexture));
                 }
             }
 

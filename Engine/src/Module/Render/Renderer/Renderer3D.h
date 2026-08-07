@@ -48,6 +48,7 @@ namespace Himii {
         static void Shutdown();
 
         static void SetSceneLighting(const SceneLightingParameters &parameters);
+        static SceneLightingParameters GetSceneLighting();
 
         /// 按分辨率创建或重建单张深度 Shadow Map。
         static void EnsureShadowMap(uint32_t resolutionPixels);

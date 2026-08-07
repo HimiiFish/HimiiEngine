@@ -20,6 +20,17 @@ namespace Himii
                            [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
             return extension;
         }
+
+        std::string SanitizeFileStem(const std::string &stem)
+        {
+            std::string result = stem;
+            for (char &character : result)
+            {
+                if (character == ' ' || character == ':' || character == '\\' || character == '/')
+                    character = '_';
+            }
+            return result;
+        }
     }
 
     bool MeshCompanionMetaExists(const std::filesystem::path &absoluteMeshOrSourcePath)
@@ -37,6 +48,26 @@ namespace Himii
         }
 
         return std::filesystem::exists(MeshAssetSerializer::GetMeshMetaPath(absoluteMeshOrSourcePath));
+    }
+
+    bool MeshCompanionMaterialsExistOnDisk(const std::filesystem::path &relativeMeshSourcePath)
+    {
+        const std::string meshStem = SanitizeFileStem(relativeMeshSourcePath.stem().string());
+        const std::filesystem::path companionRelativeDirectory =
+                relativeMeshSourcePath.parent_path() / (meshStem + "_imported");
+        const std::filesystem::path companionAbsoluteDirectory =
+                Project::GetAssetFileSystemPath(companionRelativeDirectory);
+
+        if (!std::filesystem::exists(companionAbsoluteDirectory))
+            return false;
+
+        for (const auto &directoryEntry : std::filesystem::directory_iterator(companionAbsoluteDirectory))
+        {
+            if (directoryEntry.path().extension() == ".hmaterial")
+                return true;
+        }
+
+        return false;
     }
 
     bool ImportMeshCompanionAssets(AssetManager &assetManager,

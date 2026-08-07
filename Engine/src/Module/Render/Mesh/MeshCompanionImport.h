@@ -13,4 +13,7 @@ namespace Himii
 
     /// 磁盘上是否已有网格 meta（`.hmesh.meta` 或旧版源 `.ext.meta`）。
     bool MeshCompanionMetaExists(const std::filesystem::path &absoluteMeshOrSourcePath);
+
+    /// 磁盘上是否已有 companion 目录内的 `.hmaterial`（Reimport 保留材质判定）。
+    bool MeshCompanionMaterialsExistOnDisk(const std::filesystem::path &relativeMeshSourcePath);
 }

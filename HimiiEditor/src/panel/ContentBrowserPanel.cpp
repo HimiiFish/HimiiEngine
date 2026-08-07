@@ -7,8 +7,14 @@
 #include "Resource/SpriteSheetUtility.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Render/Shader/BuiltinShaderRegistry.h"
+#include "Module/Render/Shader/ShaderAsset.h"
+#include "Module/Render/Shader/ShaderAssetSerializer.h"
+#include "Module/Script/ScriptIDELauncher.h"
+#include "panel/MaterialThumbnailUtility.h"
 #include "Module/Render/Mesh/MeshAssetSerializer.h"
 #include "Module/Render/Mesh/StaticMeshImporter.h"
+#include "Module/Render/Mesh/MeshCompanionImport.h"
 #include "Module/Render/Mesh/StaticMeshImportSettings.h"
 #include "Module/Particle/ParticleEmitterAssetSerializer.h"
 #include "Module/Animation/SpriteAnimationSerializer.h"
@@ -217,6 +223,9 @@ namespace Himii
             return;
         }
 
+        if (auto assetManager = ResourceSystem::GetAssetManager())
+            ProcessPendingMaterialThumbnails(assetManager.get(), 2);
+
         const std::filesystem::path& assetsPath = Project::GetAssetDirectory();
 
         // Ensure m_CurrentDirectory is valid
@@ -350,6 +359,19 @@ namespace Himii
                     Ref<Texture2D> imageThumbnail;
                     if (!directoryEntry.is_directory() && IsImageFileExtension(path))
                         imageThumbnail = GetOrLoadImageThumbnail(relativePath);
+                    else if (path.extension() == ".hmaterial")
+                    {
+                        if (auto assetManager = ResourceSystem::GetAssetManager())
+                        {
+                            AssetHandle materialHandle =
+                                    assetManager->FindAssetHandleByFilePath(relativePath);
+                            if (materialHandle == 0)
+                                materialHandle = assetManager->ImportAsset(relativePath);
+                            if (materialHandle != 0)
+                                imageThumbnail =
+                                        GetOrCreateMaterialThumbnail(assetManager.get(), materialHandle);
+                        }
+                    }
 
                     ImGui::PushID(fileNameString.c_str());
 
@@ -427,6 +449,10 @@ namespace Himii
                                     m_MaterialEditorRequest = materialHandle;
                             }
                         }
+                        else if (path.extension() == ".hshader")
+                        {
+                            OpenShaderAssetInIde(Project::GetAssetFileSystemPath(relativePath));
+                        }
                     }
                     else if (thumbnailClicked)
                     {
@@ -481,6 +507,15 @@ namespace Himii
                         {
                             if (ImGui::MenuItem("Reimport"))
                                 BeginStaticMeshReimport(relativePath);
+                            ImGui::EndPopup();
+                        }
+                        else if (fileExtension == ".hshader"
+                                 && ImGui::BeginPopupContextItem("ShaderAssetContext"))
+                        {
+                            if (ImGui::MenuItem("Open in IDE"))
+                                OpenShaderAssetInIde(Project::GetAssetFileSystemPath(relativePath));
+                            if (ImGui::MenuItem("Create Material From Shader"))
+                                BeginMaterialCreationFromShader(relativePath);
                             ImGui::EndPopup();
                         }
                     }
@@ -542,8 +577,10 @@ namespace Himii
 
         if (ImGui::BeginMenu("Rendering"))
         {
+            if (ImGui::MenuItem("Shader"))
+                BeginCreation(CreationType::Shader, targetDirectory, "NewShader");
             if (ImGui::MenuItem("Material"))
-                BeginCreation(CreationType::Material, targetDirectory, "New Material");
+                BeginMaterialCreationWithDefaultShader(targetDirectory);
             if (ImGui::MenuItem("Particle Emitter"))
                 BeginCreation(CreationType::ParticleEmitter, targetDirectory, "New Particle Emitter");
             ImGui::EndMenu();
@@ -764,6 +801,9 @@ namespace Himii
             case CreationType::Material:
                 expectedItemPath = m_CreationTargetDirectory / (itemName + ".hmaterial");
                 break;
+            case CreationType::Shader:
+                expectedItemPath = m_CreationTargetDirectory / (itemName + ".hshader");
+                break;
             case CreationType::ParticleEmitter:
                 expectedItemPath = m_CreationTargetDirectory / (itemName + ".particle");
                 break;
@@ -812,8 +852,12 @@ namespace Himii
                 createdFileName = itemName + ".himii";
                 break;
             case CreationType::Material:
-                created = CreateMaterialAsset(m_CreationTargetDirectory, itemName);
+                created = CreateMaterialAsset(m_CreationTargetDirectory, itemName, m_PendingCreationShaderHandle);
                 createdFileName = itemName + ".hmaterial";
+                break;
+            case CreationType::Shader:
+                created = CreateShaderAsset(m_CreationTargetDirectory, itemName);
+                createdFileName = itemName + ".hshader";
                 break;
             case CreationType::ParticleEmitter:
                 created = CreateParticleEmitterAsset(m_CreationTargetDirectory, itemName);
@@ -846,6 +890,7 @@ namespace Himii
 
         m_SelectedItemDisplayName = createdFileName;
         m_ScrollToSelectedItem = true;
+        m_PendingCreationShaderHandle = 0;
         if (m_PendingCreationType == CreationType::CSharpScript && m_OnScriptChanged)
             m_OnScriptChanged();
         return true;
@@ -887,6 +932,7 @@ namespace Himii
     void ContentBrowserPanel::Refresh()
     {
         m_ImageThumbnailCache.clear();
+        ClearMaterialThumbnailCache();
         if (Project::GetActive())
             m_CurrentDirectory = Project::GetAssetDirectory();
     }
@@ -1117,7 +1163,8 @@ namespace Himii
     }
 
     bool ContentBrowserPanel::CreateMaterialAsset(const std::filesystem::path &directory,
-                                                  const std::string &materialName)
+                                                  const std::string &materialName,
+                                                  AssetHandle shaderHandle)
     {
         if (materialName.empty() || !Project::GetActive())
             return false;
@@ -1126,8 +1173,11 @@ namespace Himii
         if (std::filesystem::exists(absoluteMaterialPath))
             return false;
 
-        Ref<MaterialAsset> materialAsset = CreateRef<MaterialAsset>();
-        materialAsset->ShadingMode = MaterialShadingMode::Lit;
+        if (shaderHandle == 0)
+            shaderHandle = BuiltinShaderRegistry::GetDefaultLitShaderHandle();
+
+        Ref<MaterialAsset> materialAsset =
+                MaterialAssetSerializer::CreateDefaultMaterialInstance(shaderHandle);
         MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
 
         auto assetManager = ResourceSystem::GetAssetManager();
@@ -1144,6 +1194,59 @@ namespace Himii
         MaterialAssetSerializer::Serialize(absoluteMaterialPath, materialAsset);
         assetManager->SerializeAssetRegistry();
         return true;
+    }
+
+    bool ContentBrowserPanel::CreateShaderAsset(const std::filesystem::path &directory,
+                                                const std::string &shaderName)
+    {
+        if (shaderName.empty() || !Project::GetActive())
+            return false;
+
+        const std::filesystem::path absoluteShaderPath = directory / (shaderName + ".hshader");
+        if (std::filesystem::exists(absoluteShaderPath))
+            return false;
+
+        Ref<ShaderAsset> shaderAsset = CreateRef<ShaderAsset>();
+        shaderAsset->PipelineType = ShaderPipelineType::SpatialLit;
+        shaderAsset->PropertyDefinitions = BuiltinShaderRegistry::GetMeshLitPropertyDefinitions();
+        shaderAsset->SourceCode = ShaderAssetSerializer::BuildDefaultSpatialLitTemplate();
+        ShaderAssetSerializer::Serialize(absoluteShaderPath, shaderAsset);
+
+        RegisterCreatedAsset(absoluteShaderPath);
+        return std::filesystem::exists(absoluteShaderPath);
+    }
+
+    void ContentBrowserPanel::OpenShaderAssetInIde(const std::filesystem::path &absoluteShaderPath)
+    {
+        if (!Project::GetActive() || absoluteShaderPath.empty())
+            return;
+
+        ScriptIDELauncher::OpenScript(Project::GetProjectDirectory(), Project::GetConfig().Name,
+                                      absoluteShaderPath);
+    }
+
+    void ContentBrowserPanel::BeginMaterialCreationWithDefaultShader(
+            const std::filesystem::path &targetDirectory)
+    {
+        m_PendingCreationShaderHandle = BuiltinShaderRegistry::GetDefaultLitShaderHandle();
+        BeginCreation(CreationType::Material, targetDirectory, "NewMaterial");
+    }
+
+    void ContentBrowserPanel::BeginMaterialCreationFromShader(
+            const std::filesystem::path &relativeShaderPath)
+    {
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return;
+
+        const AssetHandle shaderHandle = assetManager->ImportAsset(relativeShaderPath);
+        if (shaderHandle == 0)
+            return;
+
+        m_PendingCreationShaderHandle = shaderHandle;
+        const std::string defaultMaterialName = relativeShaderPath.stem().string() + "_Material";
+        BeginCreation(CreationType::Material, relativeShaderPath.parent_path(),
+                      defaultMaterialName.c_str());
     }
 
     bool ContentBrowserPanel::CreateParticleEmitterAsset(const std::filesystem::path &directory,
@@ -1277,6 +1380,9 @@ namespace Himii
         {
             m_StaticMeshImportDialogState.Settings = savedSettings;
             m_StaticMeshImportDialogState.RelativeSourcePath = relativeSourcePath;
+            m_StaticMeshImportDialogState.HasExistingCompanionMaterials =
+                    !relativeSourcePath.empty()
+                    && MeshCompanionMaterialsExistOnDisk(relativeSourcePath);
         }
 
         ImGui::OpenPopup("Import Static Mesh");
@@ -1298,7 +1404,8 @@ namespace Himii
         {
             StaticMeshImporter::ReimportProduct(
                     *assetManager, m_StaticMeshImportDialogState.RelativeHmeshPath,
-                    &m_StaticMeshImportDialogState.Settings);
+                    &m_StaticMeshImportDialogState.Settings,
+                    m_StaticMeshImportDialogState.PreserveCompanionMaterialsOnReimport);
         }
         else
         {

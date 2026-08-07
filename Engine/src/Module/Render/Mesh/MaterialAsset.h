@@ -1,28 +1,37 @@
 #pragma once
 
+#include "Module/Render/Shader/ShaderPropertyTypes.h"
 #include "Resource/Asset.h"
-#include <glm/glm.hpp>
+#include <unordered_map>
 
 namespace Himii
 {
-    enum class MaterialShadingMode
-    {
-        Lit = 0,
-        Unlit = 1
-    };
-
-    /// Lit 表面材质（可选显式 Unlit）；默认新建/导入为 Lit。
+    /// Material 实例：引用 Shader 模板并覆盖其声明参数。
     class MaterialAsset : public Asset
     {
     public:
         AssetType GetType() const override { return AssetType::Material; }
 
-        MaterialShadingMode ShadingMode = MaterialShadingMode::Lit;
-        glm::vec4 AlbedoColor{1.0f, 1.0f, 1.0f, 1.0f};
-        AssetHandle AlbedoTextureHandle = 0;
-        /// 相对 Assets 目录的贴图路径；用于重开工程时 Handle 与 Registry 不同步的回退解析。
-        std::string AlbedoTextureRelativePath;
-        float Specular = 0.5f;
-        float Shininess = 32.0f;
+        AssetHandle ShaderHandle = 0;
+        std::unordered_map<std::string, MaterialParameterValue> ParameterOverrides;
+
+        void ClearParameterOverrides();
+        void SetFloatParameter(const std::string &name, float value);
+        void SetIntParameter(const std::string &name, int value);
+        void SetColorParameter(const std::string &name, const glm::vec4 &value);
+        void SetVector2Parameter(const std::string &name, const glm::vec2 &value);
+        void SetVector3Parameter(const std::string &name, const glm::vec3 &value);
+        void SetVector4Parameter(const std::string &name, const glm::vec4 &value);
+        void SetTextureParameter(const std::string &name, AssetHandle textureHandle,
+                                 const std::string &textureRelativePath = {});
+
+        bool TryGetFloatParameter(const std::string &name, float &outValue) const;
+        bool TryGetIntParameter(const std::string &name, int &outValue) const;
+        bool TryGetColorParameter(const std::string &name, glm::vec4 &outValue) const;
+        bool TryGetVector2Parameter(const std::string &name, glm::vec2 &outValue) const;
+        bool TryGetVector3Parameter(const std::string &name, glm::vec3 &outValue) const;
+        bool TryGetVector4Parameter(const std::string &name, glm::vec4 &outValue) const;
+        bool TryGetTextureParameter(const std::string &name, AssetHandle &outTextureHandle,
+                                    std::string &outTextureRelativePath) const;
     };
 }

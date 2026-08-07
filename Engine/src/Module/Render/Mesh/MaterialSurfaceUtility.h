@@ -1,13 +1,15 @@
 #pragma once
 
 #include "Module/Render/Mesh/MaterialAsset.h"
+#include "Module/Render/Shader/ShaderPropertyTypes.h"
+#include "Module/Render/RenderCore/Shader.h"
 #include "EngineCore/Core/Core.h"
-#include "Resource/Asset.h"
 #include <glm/glm.hpp>
 
 namespace Himii
 {
     class AssetManager;
+    class ShaderAsset;
     class Texture2D;
 
     struct ResolvedMaterialSurface
@@ -15,13 +17,18 @@ namespace Himii
         glm::vec4 AlbedoColor{0.5f, 0.5f, 0.5f, 1.0f};
         float Specular = 0.5f;
         float Shininess = 32.0f;
-        MaterialShadingMode ShadingMode = MaterialShadingMode::Lit;
+        bool UsesLitPipeline = true;
         Ref<Texture2D> AlbedoTexture;
+        Ref<Shader> ShaderProgram;
+        Ref<ShaderAsset> ShaderAssetReference;
     };
 
-    /// UE 风格空槽默认：引擎内置 Lit 灰表面（非磁盘资产）。
     ResolvedMaterialSurface GetEngineDefaultLitSurface();
-
-    /// Handle 为 0 或无效时回退到 GetEngineDefaultLitSurface()。
+    Ref<ShaderAsset> ResolveShaderAsset(AssetManager *assetManager, AssetHandle shaderHandle);
     ResolvedMaterialSurface ResolveMaterialSurface(AssetManager *assetManager, AssetHandle materialHandle);
+    MaterialParameterValue ResolveMaterialParameterValue(const MaterialAsset &materialAsset,
+                                                         const ShaderPropertyDefinition &definition);
+    void ApplyMaterialParameterOverridesToShader(const MaterialAsset &materialAsset,
+                                                   const Ref<ShaderAsset> &shaderAsset,
+                                                   AssetManager *assetManager);
 }

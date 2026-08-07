@@ -21,7 +21,8 @@ namespace Himii {
         Font,
         SoundAsset,
         Mesh,
-        Material
+        Material,
+        Shader
     };
 
     class Asset {
@@ -48,6 +49,7 @@ namespace Himii {
                 case AssetType::SoundAsset:      return "SoundAsset";
                 case AssetType::Mesh:            return "Mesh";
                 case AssetType::Material:        return "Material";
+                case AssetType::Shader:          return "Shader";
             }
             return "None";
         }
@@ -66,6 +68,7 @@ namespace Himii {
             if (assetType == "SoundAsset")      return AssetType::SoundAsset;
             if (assetType == "Mesh")            return AssetType::Mesh;
             if (assetType == "Material")        return AssetType::Material;
+            if (assetType == "Shader")          return AssetType::Shader;
 
             return AssetType::None;
         }

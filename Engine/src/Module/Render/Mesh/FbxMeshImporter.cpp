@@ -1,7 +1,7 @@
 #include "Hepch.h"
 #include "Module/Render/Mesh/FbxMeshImporter.h"
-#include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
+#include "Module/Render/Shader/BuiltinShaderRegistry.h"
 #include "Module/Render/Mesh/StaticMeshImportSettings.h"
 #include "Project/Project.h"
 #include "EngineCore/Core/Log.h"
@@ -292,9 +292,10 @@ namespace Himii
         {
             if (!(materialMap.has_value || materialMap.value_components >= 3))
                 return;
-            materialAsset.AlbedoColor = {materialMap.value_vec4.x, materialMap.value_vec4.y,
-                                         materialMap.value_vec4.z,
-                                         materialMap.value_components >= 4 ? materialMap.value_vec4.w : 1.0f};
+            materialAsset.SetColorParameter(
+                    "u_AlbedoColor",
+                    {materialMap.value_vec4.x, materialMap.value_vec4.y, materialMap.value_vec4.z,
+                     materialMap.value_components >= 4 ? materialMap.value_vec4.w : 1.0f});
         }
 
         bool MaterialMapHasTexture(const ufbx_material_map &materialMap)
@@ -310,7 +311,13 @@ namespace Himii
         {
             ApplyAlbedoColor(materialMap, materialAsset);
             if (!MaterialMapHasTexture(materialMap))
-                return materialAsset.AlbedoTextureHandle != 0;
+            {
+                AssetHandle textureHandle = 0;
+                std::string textureRelativePath;
+                return materialAsset.TryGetTextureParameter("u_AlbedoTexture", textureHandle,
+                                                              textureRelativePath)
+                       && textureHandle != 0;
+            }
 
             const ImportedTextureReference textureReference = ImportTextureFromFbx(
                     assetManager, materialMap.texture, absoluteMeshPath, assetDirectory,
@@ -318,8 +325,8 @@ namespace Himii
             if (textureReference.Handle == 0)
                 return false;
 
-            materialAsset.AlbedoTextureHandle = textureReference.Handle;
-            materialAsset.AlbedoTextureRelativePath = textureReference.RelativePath;
+            materialAsset.SetTextureParameter("u_AlbedoTexture", textureReference.Handle,
+                                              textureReference.RelativePath);
             return true;
         }
 
@@ -357,8 +364,8 @@ namespace Himii
                 if (textureReference.Handle == 0)
                     continue;
 
-                materialAsset.AlbedoTextureHandle = textureReference.Handle;
-                materialAsset.AlbedoTextureRelativePath = textureReference.RelativePath;
+                materialAsset.SetTextureParameter("u_AlbedoTexture", textureReference.Handle,
+                                                  textureReference.RelativePath);
                 return true;
             }
             return false;
@@ -413,12 +420,9 @@ namespace Himii
 
         for (size_t materialIndex = 0; materialIndex < materialCount; ++materialIndex)
         {
-            Ref<MaterialAsset> materialAsset = CreateRef<MaterialAsset>();
+            Ref<MaterialAsset> materialAsset = MaterialAssetSerializer::CreateDefaultMaterialInstance(
+                    BuiltinShaderRegistry::GetDefaultLitShaderHandle());
             materialAsset->Handle = AssetHandle();
-            materialAsset->ShadingMode = MaterialShadingMode::Lit;
-            materialAsset->Specular = 0.5f;
-            materialAsset->Shininess = 32.0f;
-            materialAsset->AlbedoColor = {1.0f, 1.0f, 1.0f, 1.0f};
 
             std::string slotName = "Slot " + std::to_string(materialIndex);
             if (scene->materials.count > 0)

@@ -1,5 +1,7 @@
 #pragma once
 #include "EngineCore/Core/Core.h"
+#include <cstdint>
+#include <vector>
 
 namespace Himii
 {
@@ -66,6 +68,9 @@ namespace Himii
         virtual int ReadPixel(uint32_t attachmentIndex, int x ,int y) = 0;
 
         virtual void ClearAttachment(uint32_t attachmentIndex, int value) = 0;
+
+        /// 读取颜色附件 RGBA8 像素（行自下而上，与 OpenGL 默认一致）。
+        virtual void ReadColorPixels(uint32_t attachmentIndex, std::vector<uint8_t> &outRgbaBytes) = 0;
 
         virtual uint32_t GetColorAttachmentRendererID(uint32_t index=0) const = 0;
         virtual uint32_t GetDepthAttachmentRendererID() const = 0;

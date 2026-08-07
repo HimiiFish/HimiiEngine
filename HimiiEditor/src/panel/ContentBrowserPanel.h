@@ -51,6 +51,7 @@ namespace Himii
             CSharpScript,
             Scene,
             Material,
+            Shader,
             ParticleEmitter,
             SpriteAnimation,
             TileMap,
@@ -67,7 +68,12 @@ namespace Himii
         bool CreateFolder(const std::filesystem::path &directory, const std::string &folderName);
         bool CreateCSharpScript(const std::filesystem::path& directory, const std::string& className);
         bool CreateSceneAsset(const std::filesystem::path &directory, const std::string &sceneName);
-        bool CreateMaterialAsset(const std::filesystem::path &directory, const std::string &materialName);
+        bool CreateMaterialAsset(const std::filesystem::path &directory, const std::string &materialName,
+                                 AssetHandle shaderHandle = 0);
+        bool CreateShaderAsset(const std::filesystem::path &directory, const std::string &shaderName);
+        void OpenShaderAssetInIde(const std::filesystem::path &absoluteShaderPath);
+        void BeginMaterialCreationWithDefaultShader(const std::filesystem::path &targetDirectory);
+        void BeginMaterialCreationFromShader(const std::filesystem::path &relativeShaderPath);
         bool CreateParticleEmitterAsset(const std::filesystem::path &directory,
                                         const std::string &emitterName);
         bool CreateSpriteAnimationAsset(const std::filesystem::path &directory,
@@ -109,6 +115,7 @@ namespace Himii
         AssetHandle m_MaterialEditorRequest = 0;
         std::filesystem::path m_AnimationEditorRequest;
         CreationType m_PendingCreationType = CreationType::None;
+        AssetHandle m_PendingCreationShaderHandle = 0;
         std::filesystem::path m_CreationTargetDirectory;
         std::array<char, 128> m_CreationNameBuffer{};
         std::string m_CreationErrorMessage;

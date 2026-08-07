@@ -9,6 +9,8 @@
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
 #include "Module/Render/Mesh/MeshAsset.h"
 #include "Module/Render/Mesh/MeshAssetSerializer.h"
+#include "Module/Render/Shader/ShaderAsset.h"
+#include "Module/Render/Shader/ShaderAssetSerializer.h"
 #include "Module/Render/Renderer/Font.h"
 #include "Module/Render/RenderCore/Texture.h"
 #include "Module/Tilemap/TileMapDataSerializer.h"
@@ -99,6 +101,7 @@ namespace Himii
         AssetSerializerRegistry::RegisterExtension(".mp3", AssetType::SoundAsset);
         AssetSerializerRegistry::RegisterExtension(".hmesh", AssetType::Mesh);
         AssetSerializerRegistry::RegisterExtension(".hmaterial", AssetType::Material);
+        AssetSerializerRegistry::RegisterExtension(".hshader", AssetType::Shader);
 
         AssetSerializerRegistry::Register(CreateScope<Texture2DAssetSerializer>());
         AssetSerializerRegistry::Register(CreateScope<FontAssetSerializer>());
@@ -121,5 +124,8 @@ namespace Himii
         AssetSerializerRegistry::Register(
                 CreateScope<FunctionAssetSerializer<MaterialAsset, AssetType::Material>>(
                         &MaterialAssetSerializer::Deserialize));
+        AssetSerializerRegistry::Register(
+                CreateScope<FunctionAssetSerializer<ShaderAsset, AssetType::Shader>>(
+                        &ShaderAssetSerializer::Deserialize));
     }
 }

@@ -11,5 +11,6 @@ namespace Himii
     public:
         static void Serialize(const std::filesystem::path &filepath, const Ref<MaterialAsset> &asset);
         static Ref<MaterialAsset> Deserialize(const std::filesystem::path &filepath);
+        static Ref<MaterialAsset> CreateDefaultMaterialInstance(AssetHandle shaderHandle);
     };
 }

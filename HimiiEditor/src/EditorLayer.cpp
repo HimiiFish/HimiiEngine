@@ -15,6 +15,9 @@
 
 #include "Module/Render/Renderer/Renderer3D.h"
 #include "Module/Render/Mesh/MeshAsset.h"
+#include "Module/Render/Shader/ShaderAsset.h"
+#include "Module/Render/Shader/ShaderCompilationService.h"
+#include "panel/MaterialThumbnailUtility.h"
 #include "World/Scene/Components.h"
 
 #include "glm/gtc/matrix_transform.hpp"
@@ -28,6 +31,7 @@
 #include "EditorExternalFileDrop.h"
 #include "TilemapEditorUtility.h"
 #include "Resource/SpriteSheetUtility.h"
+#include "EngineCore/Events/ApplicationEvent.h"
 #include "Module/Render/Renderer/SpriteRendererUtility.h"
 #include "Module/Tilemap/TileSet.h"
 #include "Module/Tilemap/TileMapCoordinateUtility.h"
@@ -104,6 +108,15 @@ namespace Himii
         Window &window = Application::Get().GetWindow();
         window.SetClientSize(client_width, client_height);
         window.CenterOnScreen();
+    }
+
+    void EditorLayer::TransitionToProjectHubWindow()
+    {
+        Window &window = Application::Get().GetWindow();
+        window.SetDecorated(true);
+        window.SetClientSize(ProjectHubClientWidth, ProjectHubClientHeight);
+        window.CenterOnScreen();
+        Renderer::OnWindowResize(window.GetFramebufferWidth(), window.GetFramebufferHeight());
     }
 
     void EditorLayer::TransitionToEditorWindow()
@@ -239,7 +252,10 @@ namespace Himii
             else if (m_StartupSplashElapsedSeconds >= MinimumSplashDisplaySeconds)
             {
                 m_EditorStartupState = EditorStartupState::Ready;
-                TransitionToEditorWindow();
+                if (Project::GetActive())
+                    TransitionToEditorWindow();
+                else
+                    TransitionToProjectHubWindow();
             }
 
             return;
@@ -258,6 +274,7 @@ namespace Himii
         {
             m_ScriptFileWatcher.Update(ts.GetSeconds());
             m_ScriptProjectFileWatcher.Update(ts.GetSeconds());
+            m_ShaderFileWatcher.Update(ts.GetSeconds());
         }
 
         if (wasCompiling && !ScriptCompiler::IsCompiling())
@@ -561,6 +578,7 @@ namespace Himii
             }
 
             DrawBuildProgressModal();
+            DrawUnsavedMaterialsModal();
 
             m_SceneHierarchyPanel.OnImGuiRender();
             m_ContentBrowserPanel.OnImGuiRender();
@@ -1107,6 +1125,9 @@ namespace Himii
                   || (m_SceneState == SceneState::Play && m_GameViewportHovered)));
         if (IsBuildPipelineBusy())
             Application::Get().GetImGuiLayer()->BlockEvents(true);
+
+        if (Project::GetActive())
+            UpdateMainWindowTitle();
     }
 
     void EditorLayer::OnEvent(Himii::Event &event)
@@ -1119,6 +1140,7 @@ namespace Himii
             m_EditorCamera.OnEvent(event);
 
         EventDispatcher dispatcher(event);
+        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(EditorLayer::OnWindowCloseRequested));
         dispatcher.Dispatch<KeyPressedEvent>(BIND_EVENT_FN(EditorLayer::OnKeyPressed));
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseButtonPressed));
     }
@@ -1762,6 +1784,22 @@ namespace Himii
 
     void EditorLayer::OpenProject(const std::filesystem::path &path)
     {
+        if (Project::GetActive() && m_MaterialEditorPanel.HasDirtyMaterials())
+        {
+            m_PendingOpenProjectPath = path;
+            m_PendingEditorSessionAction = PendingEditorSessionAction::OpenProject;
+            m_ShowUnsavedMaterialsModal = true;
+            return;
+        }
+
+        OpenProjectInternal(path);
+    }
+
+    void EditorLayer::OpenProjectInternal(const std::filesystem::path &path)
+    {
+        m_MaterialEditorPanel.ResetForProjectChange();
+        m_ShowMaterialEditor = false;
+
         if (Project::Load(path))
         {
             auto projectDir = Project::GetProjectDirectory();
@@ -1796,6 +1834,7 @@ namespace Himii
             m_CSharpProjectPath = projectDir / "GameAssembly.csproj";
 
             SetupScriptFileWatchers();
+            SetupShaderFileWatchers();
             m_ScriptsDirty = false;
             m_NeedsScriptRebuild = false;
 
@@ -1837,6 +1876,10 @@ namespace Himii
             // 从 Hub / 对话框进入工程时进入编辑态，应显示 Scene ViewPort 而非 Game。
             m_RequestSceneViewportFocus = true;
             m_RequestGameViewportFocus = false;
+
+            // Splash 阶段打开工程时延迟到 Splash 结束再最大化，避免启动闪一下。
+            if (m_EditorStartupState == EditorStartupState::Ready)
+                TransitionToEditorWindow();
         }
     }
 
@@ -1916,7 +1959,90 @@ namespace Himii
         if (Project::GetActive())
             windowTitle = Project::GetConfig().Name + " - Himii Editor";
 
+        if (m_MaterialEditorPanel.HasDirtyMaterials())
+            windowTitle += "*";
+
         Application::Get().GetWindow().SetTitle(windowTitle);
+    }
+
+    void EditorLayer::RequestQuitApplication()
+    {
+        if (Project::GetActive() && m_MaterialEditorPanel.HasDirtyMaterials())
+        {
+            m_PendingEditorSessionAction = PendingEditorSessionAction::QuitApplication;
+            m_ShowUnsavedMaterialsModal = true;
+            return;
+        }
+
+        Application::Get().Close();
+    }
+
+    bool EditorLayer::OnWindowCloseRequested(WindowCloseEvent &event)
+    {
+        if (!Project::GetActive() || !m_MaterialEditorPanel.HasDirtyMaterials())
+            return false;
+
+        m_PendingEditorSessionAction = PendingEditorSessionAction::QuitApplication;
+        m_ShowUnsavedMaterialsModal = true;
+        event.Handled = true;
+        return true;
+    }
+
+    void EditorLayer::DrawUnsavedMaterialsModal()
+    {
+        if (m_ShowUnsavedMaterialsModal && !ImGui::IsPopupOpen("Unsaved Material Changes"))
+            ImGui::OpenPopup("Unsaved Material Changes");
+
+        if (!ImGui::BeginPopupModal("Unsaved Material Changes", nullptr, ImGuiWindowFlags_AlwaysAutoResize))
+            return;
+
+        const size_t dirtyMaterialCount = m_MaterialEditorPanel.GetDirtyMaterialCount();
+        ImGui::Text("You have %zu unsaved material change(s).", dirtyMaterialCount);
+        ImGui::TextUnformatted("Save before continuing?");
+
+        if (ImGui::Button("Save and Continue", ImVec2(160.0f, 0.0f)))
+        {
+            if (m_MaterialEditorPanel.SaveAllDirtyMaterialAssets() > 0)
+                HIMII_CORE_INFO("Unsaved materials saved before continuing session action.");
+
+            m_ShowUnsavedMaterialsModal = false;
+            ImGui::CloseCurrentPopup();
+
+            if (m_PendingEditorSessionAction == PendingEditorSessionAction::QuitApplication)
+                Application::Get().Close();
+            else if (m_PendingEditorSessionAction == PendingEditorSessionAction::OpenProject)
+                OpenProjectInternal(m_PendingOpenProjectPath);
+
+            m_PendingEditorSessionAction = PendingEditorSessionAction::None;
+            m_PendingOpenProjectPath.clear();
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Discard and Continue", ImVec2(160.0f, 0.0f)))
+        {
+            m_MaterialEditorPanel.DiscardAllDirtyMaterialChanges();
+            m_ShowUnsavedMaterialsModal = false;
+            ImGui::CloseCurrentPopup();
+
+            if (m_PendingEditorSessionAction == PendingEditorSessionAction::QuitApplication)
+                Application::Get().Close();
+            else if (m_PendingEditorSessionAction == PendingEditorSessionAction::OpenProject)
+                OpenProjectInternal(m_PendingOpenProjectPath);
+
+            m_PendingEditorSessionAction = PendingEditorSessionAction::None;
+            m_PendingOpenProjectPath.clear();
+        }
+
+        ImGui::SameLine();
+        if (ImGui::Button("Cancel", ImVec2(120.0f, 0.0f)))
+        {
+            m_ShowUnsavedMaterialsModal = false;
+            m_PendingEditorSessionAction = PendingEditorSessionAction::None;
+            m_PendingOpenProjectPath.clear();
+            ImGui::CloseCurrentPopup();
+        }
+
+        ImGui::EndPopup();
     }
 
     void EditorLayer::DrawMainMenuBar()
@@ -1952,7 +2078,7 @@ namespace Himii
                 SaveSceneAs();
 
             if (ImGui::MenuItem("Quit"))
-                Application::Get().Close();
+                RequestQuitApplication();
             ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("Script"))
@@ -1976,6 +2102,15 @@ namespace Himii
             ImGui::MenuItem("Font Diagnostics", nullptr, &m_ShowFontDiagnostics);
             ImGui::MenuItem("Show Grid", nullptr, &m_ShowGrid);
             ImGui::EndMenu();
+        }
+
+        const size_t dirtyMaterialCount = m_MaterialEditorPanel.GetDirtyMaterialCount();
+        if (dirtyMaterialCount > 0)
+        {
+            const float statusWidth = ImGui::CalcTextSize("999 material(s) unsaved").x + 16.0f;
+            ImGui::SameLine(ImGui::GetWindowWidth() - statusWidth);
+            ImGui::TextColored(ImVec4(1.0f, 0.75f, 0.3f, 1.0f), "%zu material(s) unsaved",
+                               dirtyMaterialCount);
         }
 
         ImGui::EndMenuBar();
@@ -2003,8 +2138,8 @@ namespace Himii
         if (m_TextureInspectorPanel.SaveActiveTextureMeta())
             HIMII_CORE_INFO("Build Project: texture import meta saved.");
 
-        if (m_MaterialEditorPanel.SaveActiveMaterialAsset())
-            HIMII_CORE_INFO("Build Project: material asset saved.");
+        if (m_MaterialEditorPanel.SaveAllDirtyMaterialAssets() > 0)
+            HIMII_CORE_INFO("Build Project: material assets saved.");
 
         if (m_TileMapEditorPanel.SaveActiveTileMapAssets())
             HIMII_CORE_INFO("Build Project: TileMap assets saved.");
@@ -2609,10 +2744,10 @@ namespace Himii
             HIMII_CORE_INFO("Texture import meta saved.");
         }
 
-        if (m_MaterialEditorPanel.SaveActiveMaterialAsset())
-        {
-            HIMII_CORE_INFO("Material asset saved.");
-        }
+        if (m_MaterialEditorPanel.SaveAllDirtyMaterialAssets() > 0)
+            HIMII_CORE_INFO("Material assets saved.");
+
+        UpdateMainWindowTitle();
 
         if (m_TileMapEditorPanel.SaveActiveTileMapAssets())
         {
@@ -2752,6 +2887,43 @@ namespace Himii
         else
         {
             m_ScriptProjectFileWatcher.Clear();
+        }
+    }
+
+    void EditorLayer::SetupShaderFileWatchers()
+    {
+        const std::filesystem::path assetsDirectory = Project::GetAssetDirectory();
+        m_ShaderFileWatcher.Watch(assetsDirectory, [this]() { ReloadShaderAssetsFromWatcher(); });
+    }
+
+    void EditorLayer::ReloadShaderAssetsFromWatcher()
+    {
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return;
+
+        bool reloadedAnyShader = false;
+        const auto &registry = assetManager->GetAssetRegistry();
+        for (const auto &[handle, metadata] : registry)
+        {
+            if (metadata.Type != AssetType::Shader)
+                continue;
+
+            if (assetManager->IsAssetLoaded(handle))
+            {
+                assetManager->UnloadAsset(handle);
+                reloadedAnyShader = true;
+            }
+
+            Ref<Asset> reloadedShaderBase = assetManager->GetAsset(handle);
+            if (reloadedShaderBase && reloadedShaderBase->GetType() == AssetType::Shader)
+                reloadedAnyShader = true;
+        }
+
+        if (reloadedAnyShader)
+        {
+            ClearMaterialThumbnailCache();
+            m_ContentBrowserPanel.Refresh();
         }
     }
 
