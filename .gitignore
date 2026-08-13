@@ -52,6 +52,9 @@ cmake-build-release/
 build/
 bin/
 
+# Per-project derived bake / editor cache (UE-style Saved)
+Saved/
+
 # VS Code
 .vscode/
 

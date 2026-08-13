@@ -35,6 +35,9 @@ namespace Himii
         const std::filesystem::path metaPath = GetMeshMetaPath(hmeshAssetPath);
         YAML::Emitter emitter;
         emitter << YAML::BeginMap;
+        emitter << YAML::Key << "AssetType" << YAML::Value << "StaticMeshImport";
+        emitter << YAML::Key << "HmeshFormatVersion" << YAML::Value
+                << HmeshAssetSerializer::GetCurrentFormatVersion();
         emitter << YAML::Key << "SourceFile" << YAML::Value << relativeSourcePath.generic_string();
         emitter << YAML::Key << "UniformScale" << YAML::Value << importSettings.UniformScale;
         emitter << YAML::Key << "ImportMaterialsAndTextures" << YAML::Value
@@ -78,8 +81,38 @@ namespace Himii
         try
         {
             YAML::Node data = YAML::LoadFile(metaPath.string());
-            if (data["SourceFile"])
-                outRelativeSourcePath = data["SourceFile"].as<std::string>();
+
+            if (data["AssetType"])
+            {
+                const std::string assetType = data["AssetType"].as<std::string>();
+                if (assetType != "StaticMeshImport")
+                {
+                    HIMII_CORE_ERROR("Static mesh meta has unexpected AssetType '{0}' in {1}", assetType,
+                                     metaPath.string());
+                    return false;
+                }
+            }
+
+            if (!data["SourceFile"])
+            {
+                HIMII_CORE_ERROR("Static mesh meta missing SourceFile: {0}", metaPath.string());
+                return false;
+            }
+
+            outRelativeSourcePath = data["SourceFile"].as<std::string>();
+
+            if (data["HmeshFormatVersion"])
+            {
+                const uint32_t metaFormatVersion = data["HmeshFormatVersion"].as<uint32_t>();
+                if (metaFormatVersion != HmeshAssetSerializer::GetCurrentFormatVersion())
+                {
+                    HIMII_CORE_WARNING(
+                            "Static mesh meta HmeshFormatVersion {0} differs from engine {1} in {2}. "
+                            "Reimport to regenerate the .hmesh product.",
+                            metaFormatVersion, HmeshAssetSerializer::GetCurrentFormatVersion(),
+                            metaPath.string());
+                }
+            }
             if (data["UniformScale"])
                 outImportSettings.UniformScale = data["UniformScale"].as<float>();
             if (data["ImportMaterialsAndTextures"])

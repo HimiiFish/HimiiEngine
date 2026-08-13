@@ -2,6 +2,7 @@
 #include "Hepch.h"
 #include "EngineCore/Core/Application.h"
 #include "EngineCore/Core/FileSystem.h"
+#include "Module/Render/Environment/EnvironmentMapAsset.h"
 #include "Module/Render/Renderer/Font.h"
 #include "Resource/ResourceSystem.h"
 
@@ -288,6 +289,33 @@ namespace Himii
         return std::filesystem::path("fonts") / "msyh.ttc";
     }
 
+    std::filesystem::path Project::GetDefaultEnvironmentMapRelativePath()
+    {
+        return std::filesystem::path("environment") / "default.hdr";
+    }
+
+    std::filesystem::path Project::GetEnvironmentBakeCacheDirectory()
+    {
+        HIMII_CORE_ASSERT(s_ActiveProject);
+        return GetProjectDirectory() / "Saved" / "EnvironmentBake";
+    }
+
+    AssetHandle Project::FindDefaultEnvironmentMapHandle()
+    {
+        if (!s_ActiveProject || !ResourceSystem::IsBound())
+            return 0;
+
+        Ref<AssetManager> assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager)
+            return 0;
+
+        const std::filesystem::path relativePath = GetDefaultEnvironmentMapRelativePath();
+        AssetHandle handle = assetManager->FindAssetHandleByFilePath(relativePath);
+        if (handle == 0)
+            handle = ResourceSystem::ImportAsset(relativePath);
+        return handle;
+    }
+
     void Project::EnsureSeededDefaultAssets()
     {
         if (!ResourceSystem::IsBound())
@@ -362,6 +390,13 @@ namespace Himii
                         std::filesystem::path("skybox") / (std::string(faceName) + ".bmp");
                 copyEngineContentIntoProjectIfMissing(engineRelativePath, projectRelativePath);
             }
+
+            copyEngineContentIntoProjectIfMissing("resources/environment/default.hdr",
+                                                  GetDefaultEnvironmentMapRelativePath());
+            const std::filesystem::path defaultEnvironmentPath =
+                    GetAssetFileSystemPath(GetDefaultEnvironmentMapRelativePath());
+            if (std::filesystem::exists(defaultEnvironmentPath))
+                EnvironmentMapImportSerializer::EnsureDefaultMeta(defaultEnvironmentPath);
         }
 
         if (registryChanged)

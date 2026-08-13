@@ -7,16 +7,17 @@
 
 namespace Himii
 {
+    constexpr uint32_t HmeshFormatVersion = 2u;
+
     namespace
     {
         constexpr char HmeshMagic[4] = {'H', 'M', 'S', 'H'};
-        constexpr uint32_t HmeshVersion = 1u;
 
 #pragma pack(push, 1)
         struct HmeshFileHeader
         {
             char Magic[4];
-            uint32_t Version = HmeshVersion;
+            uint32_t Version = HmeshFormatVersion;
             uint32_t VertexCount = 0;
             uint32_t IndexCount = 0;
             uint32_t SubmeshCount = 0;
@@ -36,11 +37,16 @@ namespace Himii
         }
     }
 
+    uint32_t HmeshAssetSerializer::GetCurrentFormatVersion()
+    {
+        return HmeshFormatVersion;
+    }
+
     bool HmeshAssetSerializer::Serialize(const std::filesystem::path &filepath, const MeshAsset &meshAsset)
     {
         HmeshFileHeader header = {};
         std::memcpy(header.Magic, HmeshMagic, sizeof(HmeshMagic));
-        header.Version = HmeshVersion;
+        header.Version = HmeshFormatVersion;
         header.VertexCount = static_cast<uint32_t>(meshAsset.Vertices.size());
         header.IndexCount = static_cast<uint32_t>(meshAsset.Indices.size());
         header.SubmeshCount = static_cast<uint32_t>(meshAsset.Submeshes.size());
@@ -95,9 +101,11 @@ namespace Himii
             return nullptr;
         }
 
-        if (header.Version != HmeshVersion)
+        if (header.Version != HmeshFormatVersion)
         {
-            HIMII_CORE_ERROR("Unsupported .hmesh version {0} in {1}", header.Version, filepath.string());
+            HIMII_CORE_ERROR(
+                    "Unsupported .hmesh version {0} in {1}. Reimport the source mesh to upgrade to version {2}.",
+                    header.Version, filepath.string(), HmeshFormatVersion);
             return nullptr;
         }
 

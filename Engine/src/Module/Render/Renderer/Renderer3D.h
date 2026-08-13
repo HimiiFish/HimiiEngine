@@ -39,6 +39,10 @@ namespace Himii {
         float ShadowBias = 0.0015f;
         /// 单个阴影贴图像素在世界空间中的边长，供 shader 做 normal-offset 偏移。
         float ShadowTexelWorldSize = 0.0f;
+
+        bool HasImageBasedLighting = false;
+        float EnvironmentIntensity = 1.0f;
+        float PrefilterMipCount = 1.0f;
     };
 
     class Renderer3D
@@ -49,6 +53,13 @@ namespace Himii {
 
         static void SetSceneLighting(const SceneLightingParameters &parameters);
         static SceneLightingParameters GetSceneLighting();
+
+        /// 绑定 Split-Sum IBL 贴图；intensity 写入 SceneLighting UBO。
+        static void SetImageBasedLighting(const Ref<TextureCube> &irradianceCubemap,
+                                          const Ref<TextureCube> &prefilteredCubemap,
+                                          const Ref<Texture2D> &brdfLookupTexture, float intensity,
+                                          float prefilterMipCount);
+        static void ClearImageBasedLighting();
 
         /// 按分辨率创建或重建单张深度 Shadow Map。
         static void EnsureShadowMap(uint32_t resolutionPixels);

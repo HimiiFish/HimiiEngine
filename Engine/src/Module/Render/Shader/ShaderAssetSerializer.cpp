@@ -67,6 +67,9 @@ namespace Himii
                 case ShaderPropertyType::Int:
                     definition.DefaultInt = propertyNode["Default"] ? propertyNode["Default"].as<int>() : 0;
                     break;
+                case ShaderPropertyType::Bool:
+                    definition.DefaultBool = propertyNode["Default"] ? propertyNode["Default"].as<bool>() : false;
+                    break;
                 case ShaderPropertyType::Color:
                     definition.DefaultColor = ReadDefaultColor(propertyNode);
                     break;
@@ -127,6 +130,9 @@ namespace Himii
                     break;
                 case ShaderPropertyType::Int:
                     emitter << YAML::Key << "Default" << YAML::Value << definition.DefaultInt;
+                    break;
+                case ShaderPropertyType::Bool:
+                    emitter << YAML::Key << "Default" << YAML::Value << definition.DefaultBool;
                     break;
                 case ShaderPropertyType::Color:
                     emitter << YAML::Key << "Default" << YAML::Value << YAML::Flow << YAML::BeginSeq
@@ -232,9 +238,12 @@ layout(std140, binding = 3) uniform MeshLitUniforms
 {
     mat4 u_Transform;
     vec4 u_AlbedoColor;
-    float u_Specular;
-    float u_Shininess;
+    float u_Metallic;
+    float u_Roughness;
     int u_UseAlbedoTexture;
+    int u_UseMetallicTexture;
+    int u_UseRoughnessTexture;
+    int u_SharedMetallicRoughnessTexture;
     int u_EntityID;
 };
 
@@ -272,9 +281,12 @@ layout(std140, binding = 3) uniform MeshLitUniforms
 {
     mat4 u_Transform;
     vec4 u_AlbedoColor;
-    float u_Specular;
-    float u_Shininess;
+    float u_Metallic;
+    float u_Roughness;
     int u_UseAlbedoTexture;
+    int u_UseMetallicTexture;
+    int u_UseRoughnessTexture;
+    int u_SharedMetallicRoughnessTexture;
     int u_EntityID;
 };
 

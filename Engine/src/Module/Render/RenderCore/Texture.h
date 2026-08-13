@@ -13,7 +13,9 @@ namespace Himii
         R8,
         RGB8,
         RGBA8,
-        RGBA32F
+        RGBA32F,
+        RGB16F,
+        RG16F
     };
 
     struct TextureSpecification {
@@ -64,5 +66,10 @@ namespace Himii
     class TextureCube : public Texture {
     public:
         static Ref<TextureCube> Create(const std::vector<std::string> &path);
+        static Ref<TextureCube> Create(const TextureSpecification &specification);
+
+        /// faceIndex: 0=+X … 5=-Z；data 为按 Format 紧密打包的一面像素。
+        virtual void SetFaceData(uint32_t faceIndex, uint32_t mipLevel, const void *data, uint32_t size) = 0;
+        virtual uint32_t GetMipLevelCount() const = 0;
     };
 }; // namespace Himii

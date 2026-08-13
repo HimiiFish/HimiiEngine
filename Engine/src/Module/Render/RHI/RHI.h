@@ -76,6 +76,7 @@ namespace Himii
         static Ref<Texture2D> CreateTexture2D(const TextureSpecification &specification);
         static Ref<Texture2D> CreateTexture2D(const std::string &path);
         static Ref<TextureCube> CreateTextureCube(const std::vector<std::string> &paths);
+        static Ref<TextureCube> CreateTextureCube(const TextureSpecification &specification);
         static Ref<Shader> CreateShader(const std::string &filepath);
         static Ref<Shader> CreateShader(
                 const std::string &name, const std::string &vertexSource, const std::string &fragmentSource);

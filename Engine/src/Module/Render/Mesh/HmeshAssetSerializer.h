@@ -9,6 +9,7 @@ namespace Himii
     class HmeshAssetSerializer
     {
     public:
+        static uint32_t GetCurrentFormatVersion();
         static bool Serialize(const std::filesystem::path &filepath, const MeshAsset &meshAsset);
         static Ref<MeshAsset> Deserialize(const std::filesystem::path &filepath);
     };

@@ -96,6 +96,15 @@ namespace Himii
         /// 玩法默认字体路径（相对 assets）：fonts/msyh.ttc
         static std::filesystem::path GetDefaultGameplayFontRelativePath();
 
+        /// 默认环境 HDR 路径（相对 assets）：environment/default.hdr
+        static std::filesystem::path GetDefaultEnvironmentMapRelativePath();
+
+        /// 环境卷积缓存根目录：\<ProjectRoot\>/Saved/EnvironmentBake
+        static std::filesystem::path GetEnvironmentBakeCacheDirectory();
+
+        /// 解析工程默认环境贴图 AssetHandle（缺省则 0）。
+        static AssetHandle FindDefaultEnvironmentMapHandle();
+
         /// 从项目 assets 初始化玩法默认字体；缺文件则告警且不回退引擎包。
         static void InitializeGameplayDefaultFont();
 

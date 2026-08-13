@@ -18,6 +18,7 @@ namespace Himii
         void ClearParameterOverrides();
         void SetFloatParameter(const std::string &name, float value);
         void SetIntParameter(const std::string &name, int value);
+        void SetBoolParameter(const std::string &name, bool value);
         void SetColorParameter(const std::string &name, const glm::vec4 &value);
         void SetVector2Parameter(const std::string &name, const glm::vec2 &value);
         void SetVector3Parameter(const std::string &name, const glm::vec3 &value);
@@ -27,6 +28,7 @@ namespace Himii
 
         bool TryGetFloatParameter(const std::string &name, float &outValue) const;
         bool TryGetIntParameter(const std::string &name, int &outValue) const;
+        bool TryGetBoolParameter(const std::string &name, bool &outValue) const;
         bool TryGetColorParameter(const std::string &name, glm::vec4 &outValue) const;
         bool TryGetVector2Parameter(const std::string &name, glm::vec2 &outValue) const;
         bool TryGetVector3Parameter(const std::string &name, glm::vec3 &outValue) const;

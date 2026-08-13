@@ -54,27 +54,61 @@ namespace Himii
             definitions.push_back(albedoColorDefinition);
         }
         {
-            ShaderPropertyDefinition specularDefinition;
-            specularDefinition.Name = "u_Specular";
-            specularDefinition.DisplayName = "Specular";
-            specularDefinition.Type = ShaderPropertyType::Float;
-            specularDefinition.DefaultFloat = 0.5f;
-            definitions.push_back(specularDefinition);
+            ShaderPropertyDefinition metallicDefinition;
+            metallicDefinition.Name = "u_Metallic";
+            metallicDefinition.DisplayName = "Metallic";
+            metallicDefinition.Type = ShaderPropertyType::Float;
+            metallicDefinition.DefaultFloat = 0.0f;
+            definitions.push_back(metallicDefinition);
         }
         {
-            ShaderPropertyDefinition shininessDefinition;
-            shininessDefinition.Name = "u_Shininess";
-            shininessDefinition.DisplayName = "Shininess";
-            shininessDefinition.Type = ShaderPropertyType::Float;
-            shininessDefinition.DefaultFloat = 32.0f;
-            definitions.push_back(shininessDefinition);
+            ShaderPropertyDefinition roughnessDefinition;
+            roughnessDefinition.Name = "u_Roughness";
+            roughnessDefinition.DisplayName = "Roughness";
+            roughnessDefinition.Type = ShaderPropertyType::Float;
+            roughnessDefinition.DefaultFloat = 0.5f;
+            definitions.push_back(roughnessDefinition);
         }
-        ShaderPropertyDefinition albedoTextureDefinition;
-        albedoTextureDefinition.Name = "u_AlbedoTexture";
-        albedoTextureDefinition.DisplayName = "Albedo Texture";
-        albedoTextureDefinition.Type = ShaderPropertyType::Texture2D;
-        albedoTextureDefinition.TextureBinding = 0;
-        definitions.push_back(albedoTextureDefinition);
+        {
+            ShaderPropertyDefinition albedoTextureDefinition;
+            albedoTextureDefinition.Name = "u_AlbedoTexture";
+            albedoTextureDefinition.DisplayName = "Albedo Texture";
+            albedoTextureDefinition.Type = ShaderPropertyType::Texture2D;
+            albedoTextureDefinition.TextureBinding = 0;
+            definitions.push_back(albedoTextureDefinition);
+        }
+        {
+            ShaderPropertyDefinition metallicTextureDefinition;
+            metallicTextureDefinition.Name = "u_MetallicTexture";
+            metallicTextureDefinition.DisplayName = "Metallic Texture";
+            metallicTextureDefinition.Type = ShaderPropertyType::Texture2D;
+            metallicTextureDefinition.TextureBinding = 1;
+            definitions.push_back(metallicTextureDefinition);
+        }
+        {
+            ShaderPropertyDefinition roughnessTextureDefinition;
+            roughnessTextureDefinition.Name = "u_RoughnessTexture";
+            roughnessTextureDefinition.DisplayName = "Roughness Texture";
+            roughnessTextureDefinition.Type = ShaderPropertyType::Texture2D;
+            roughnessTextureDefinition.TextureBinding = 2;
+            definitions.push_back(roughnessTextureDefinition);
+        }
+        {
+            ShaderPropertyDefinition normalTextureDefinition;
+            normalTextureDefinition.Name = "u_NormalTexture";
+            normalTextureDefinition.DisplayName = "Normal Texture";
+            normalTextureDefinition.Type = ShaderPropertyType::Texture2D;
+            normalTextureDefinition.TextureBinding = 3;
+            definitions.push_back(normalTextureDefinition);
+        }
+        {
+            ShaderPropertyDefinition normalFlipGreenDefinition;
+            normalFlipGreenDefinition.Name = "u_NormalFlipGreen";
+            normalFlipGreenDefinition.DisplayName = "Flip Green (DirectX)";
+            normalFlipGreenDefinition.Type = ShaderPropertyType::Bool;
+            normalFlipGreenDefinition.DefaultBool = false;
+            definitions.push_back(normalFlipGreenDefinition);
+        }
         return definitions;
     }
 
@@ -143,8 +177,9 @@ namespace Himii
         materialAsset.ShaderHandle = BuiltinShaderHandles::MeshLit;
         materialAsset.ClearParameterOverrides();
         materialAsset.SetColorParameter("u_AlbedoColor", glm::vec4(1.0f));
-        materialAsset.SetFloatParameter("u_Specular", 0.5f);
-        materialAsset.SetFloatParameter("u_Shininess", 32.0f);
+        materialAsset.SetFloatParameter("u_Metallic", 0.0f);
+        materialAsset.SetFloatParameter("u_Roughness", 0.5f);
+        materialAsset.SetBoolParameter("u_NormalFlipGreen", false);
     }
 
     void BuiltinShaderRegistry::ApplyMeshUnlitDefaults(MaterialAsset &materialAsset)

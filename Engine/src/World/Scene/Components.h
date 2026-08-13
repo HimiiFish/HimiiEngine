@@ -207,9 +207,11 @@ namespace Himii
         LightComponent(const LightComponent &) = default;
     };
 
-    /// 场景环境：仅 Ambient；无启用方向光时不参与着色（点光独立照亮时 Ambient 仍关闭）。
+    /// 场景环境：IBL 环境贴图 + Intensity；Ambient 仅在无可用 IBL 时作为廉价填充。
     struct EnvironmentComponent
     {
+        AssetHandle EnvironmentMap = 0;
+        float Intensity = 1.0f;
         glm::vec4 AmbientColor{1.0f, 1.0f, 1.0f, 1.0f};
         float AmbientIntensity = 0.15f;
         bool Enabled = true;

@@ -3,7 +3,6 @@
 #include "Project/Project.h"
 #include "Module/Render/RenderCore/Texture.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
-#include "Module/Render/Mesh/StaticMeshImporter.h"
 #include "Module/Render/Mesh/StaticMeshImportSettings.h"
 #include "Module/Render/Shader/ShaderAsset.h"
 #include "Module/Render/Shader/ShaderCompilationService.h"
@@ -33,49 +32,14 @@ namespace Himii
     {
     }
 
-    bool AssetManager::EnsureStaticMeshProductForRegistryEntry(AssetHandle handle,
-                                                                AssetMetadata &metadata)
+    bool AssetManager::HasCachedAssetLoadFailure(AssetHandle handle) const
     {
-        if (metadata.Type != AssetType::Mesh)
-            return false;
+        return m_FailedAssetLoadHandles.find(handle) != m_FailedAssetLoadHandles.end();
+    }
 
-        const std::string extension = NormalizePathExtensionString(metadata.FilePath);
-        std::filesystem::path productRelativePath = metadata.FilePath;
-        if (IsStaticMeshSourceExtension(extension))
-            productRelativePath = StaticMeshImporter::GetProductPathForSource(metadata.FilePath);
-        else if (extension != ".hmesh")
-            return false;
-
-        const std::filesystem::path productAbsolutePath =
-                Project::GetAssetFileSystemPath(productRelativePath);
-        if (!std::filesystem::exists(productAbsolutePath))
-        {
-            if (!IsStaticMeshSourceExtension(extension))
-                return false;
-
-            const std::filesystem::path sourceAbsolutePath =
-                    Project::GetAssetFileSystemPath(metadata.FilePath);
-            if (!std::filesystem::exists(sourceAbsolutePath))
-            {
-                HIMII_CORE_ERROR("Legacy mesh source missing on disk: {0}",
-                                 metadata.FilePath.generic_string());
-                return false;
-            }
-
-            HIMII_CORE_INFO(
-                    "Legacy mesh registry entry '{0}' has no .hmesh product; importing with default settings.",
-                    metadata.FilePath.generic_string());
-            StaticMeshImporter::ImportFromSource(*this, metadata.FilePath, StaticMeshImportSettings{});
-            UnloadAsset(handle);
-        }
-
-        if (metadata.FilePath.generic_string() == productRelativePath.generic_string())
-            return false;
-
-        metadata.FilePath = productRelativePath;
-        metadata.Type = AssetType::Mesh;
-        (void)handle;
-        return true;
+    void AssetManager::ClearCachedAssetLoadFailure(AssetHandle handle)
+    {
+        m_FailedAssetLoadHandles.erase(handle);
     }
 
     Ref<Asset> AssetManager::GetAsset(AssetHandle handle)
@@ -83,15 +47,28 @@ namespace Himii
         if (IsAssetLoaded(handle))
             return m_LoadedAssets.at(handle);
 
+        if (HasCachedAssetLoadFailure(handle))
+            return nullptr;
+
         const auto metadataIterator = m_AssetRegistry.find(handle);
         if (metadataIterator == m_AssetRegistry.end() || !metadataIterator->second)
             return nullptr;
 
-        AssetMetadata &metadata = metadataIterator->second;
-        if (EnsureStaticMeshProductForRegistryEntry(handle, metadata))
-            SerializeAssetRegistry();
-
         const AssetMetadata &metadataForLoad = metadataIterator->second;
+        const std::string extension = NormalizePathExtensionString(metadataForLoad.FilePath);
+
+        if (metadataForLoad.Type == AssetType::Mesh)
+        {
+            if (!IsStaticMeshProductExtension(extension))
+            {
+                HIMII_CORE_ERROR(
+                        "Mesh registry entry must point to a baked .hmesh file, not a source model: {0}. "
+                        "Remove the registry entry or reimport from Content Browser.",
+                        metadataForLoad.FilePath.generic_string());
+                m_FailedAssetLoadHandles.insert(handle);
+                return nullptr;
+            }
+        }
 
         Ref<Asset> asset = nullptr;
         std::filesystem::path filesystemPath = Project::GetAssetFileSystemPath(metadataForLoad.FilePath);
@@ -105,6 +82,7 @@ namespace Himii
 
         if (asset)
         {
+            m_FailedAssetLoadHandles.erase(handle);
             asset->Handle = handle;
             if (metadataForLoad.Type == AssetType::Material)
             {
@@ -119,37 +97,49 @@ namespace Himii
             m_LoadedAssets[handle] = asset;
             m_AssetRegistry[handle].IsLoaded = true;
         }
+        else if (metadataForLoad.Type == AssetType::Mesh)
+        {
+            m_FailedAssetLoadHandles.insert(handle);
+        }
 
         return asset;
     }
 
     void AssetManager::ResolveMaterialAlbedoTextureReference(MaterialAsset &materialAsset)
     {
-        AssetHandle textureHandle = 0;
-        std::string textureRelativePath;
-        if (!materialAsset.TryGetTextureParameter("u_AlbedoTexture", textureHandle, textureRelativePath))
-            return;
-
-        if (!textureRelativePath.empty())
+        auto resolveTextureParameter = [this](MaterialAsset &targetMaterial, const char *parameterName)
         {
-            const std::filesystem::path relativePath(textureRelativePath);
-            const std::filesystem::path absolutePath = Project::GetAssetFileSystemPath(relativePath);
-            if (!std::filesystem::exists(absolutePath))
-            {
-                materialAsset.SetTextureParameter("u_AlbedoTexture", 0, {});
+            AssetHandle textureHandle = 0;
+            std::string textureRelativePath;
+            if (!targetMaterial.TryGetTextureParameter(parameterName, textureHandle, textureRelativePath))
                 return;
+
+            if (!textureRelativePath.empty())
+            {
+                const std::filesystem::path relativePath(textureRelativePath);
+                const std::filesystem::path absolutePath = Project::GetAssetFileSystemPath(relativePath);
+                if (!std::filesystem::exists(absolutePath))
+                {
+                    targetMaterial.SetTextureParameter(parameterName, 0, {});
+                    return;
+                }
+
+                if (!IsAssetHandleValid(textureHandle))
+                    textureHandle = ImportAsset(relativePath);
             }
 
-            if (!IsAssetHandleValid(textureHandle))
-                textureHandle = ImportAsset(relativePath);
-        }
+            if (textureHandle != 0 && IsAssetHandleValid(textureHandle))
+            {
+                const AssetMetadata &metadata = m_AssetRegistry.at(textureHandle);
+                targetMaterial.SetTextureParameter(parameterName, textureHandle,
+                                                   metadata.FilePath.generic_string());
+            }
+        };
 
-        if (textureHandle != 0 && IsAssetHandleValid(textureHandle))
-        {
-            const AssetMetadata &metadata = m_AssetRegistry.at(textureHandle);
-            materialAsset.SetTextureParameter("u_AlbedoTexture", textureHandle,
-                                             metadata.FilePath.generic_string());
-        }
+        resolveTextureParameter(materialAsset, "u_AlbedoTexture");
+        resolveTextureParameter(materialAsset, "u_MetallicTexture");
+        resolveTextureParameter(materialAsset, "u_RoughnessTexture");
+        resolveTextureParameter(materialAsset, "u_NormalTexture");
     }
 
     AssetHandle AssetManager::FindAssetHandleByFilePath(const std::filesystem::path &filepath) const
@@ -171,19 +161,17 @@ namespace Himii
         const std::string extension = NormalizePathExtensionString(relativePath);
 
         if (IsStaticMeshSourceExtension(extension))
-            return StaticMeshImporter::ImportFromSource(*this, relativePath, StaticMeshImportSettings{});
+        {
+            HIMII_CORE_WARNING(
+                    "Static mesh sources must be imported through the Editor import dialog: {0}",
+                    relativePathKey);
+            return 0;
+        }
 
         for (auto &[handle, metadata] : m_AssetRegistry)
         {
             if (metadata.FilePath.generic_string() != relativePathKey)
                 continue;
-
-            if (metadata.Type == AssetType::Mesh && IsStaticMeshSourceExtension(extension))
-            {
-                if (EnsureStaticMeshProductForRegistryEntry(handle, metadata))
-                    SerializeAssetRegistry();
-                return handle;
-            }
 
             if (metadata.Type == AssetType::Texture2D)
                 EnsureDefaultTextureMeta(handle);
@@ -229,6 +217,7 @@ namespace Himii
     void AssetManager::UnloadAsset(AssetHandle handle)
     {
         m_LoadedAssets.erase(handle);
+        m_FailedAssetLoadHandles.erase(handle);
         auto iterator = m_AssetRegistry.find(handle);
         if (iterator != m_AssetRegistry.end())
             iterator->second.IsLoaded = false;
@@ -299,6 +288,7 @@ namespace Himii
         m_LoadedAssets.clear();
         m_TextureImportData.clear();
         m_SpriteRegistry.clear();
+        m_FailedAssetLoadHandles.clear();
 
         for (auto node: registryNode)
         {
@@ -314,15 +304,6 @@ namespace Himii
             if (metadata.Type == AssetType::Texture2D)
                 LoadTextureImportData(handle);
         }
-
-        bool registryMigrated = false;
-        for (auto &[handle, metadata] : m_AssetRegistry)
-        {
-            if (EnsureStaticMeshProductForRegistryEntry(handle, metadata))
-                registryMigrated = true;
-        }
-        if (registryMigrated)
-            SerializeAssetRegistry();
 
         HIMII_CORE_INFO("Loaded AssetRegistry. Total assets: {0}", m_AssetRegistry.size());
         return true;

@@ -15,10 +15,16 @@ namespace Himii
     struct ResolvedMaterialSurface
     {
         glm::vec4 AlbedoColor{0.5f, 0.5f, 0.5f, 1.0f};
-        float Specular = 0.5f;
-        float Shininess = 32.0f;
+        float Metallic = 0.0f;
+        float Roughness = 0.5f;
         bool UsesLitPipeline = true;
+        /// glTF 合并贴图：Metallic/Roughness 指向同一 Handle 时为 true（B=Metallic，G=Roughness）。
+        bool SharedMetallicRoughnessTexture = false;
+        bool NormalFlipGreen = false;
         Ref<Texture2D> AlbedoTexture;
+        Ref<Texture2D> MetallicTexture;
+        Ref<Texture2D> RoughnessTexture;
+        Ref<Texture2D> NormalTexture;
         Ref<Shader> ShaderProgram;
         Ref<ShaderAsset> ShaderAssetReference;
     };

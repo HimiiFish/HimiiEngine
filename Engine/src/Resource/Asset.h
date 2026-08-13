@@ -22,7 +22,8 @@ namespace Himii {
         SoundAsset,
         Mesh,
         Material,
-        Shader
+        Shader,
+        EnvironmentMap
     };
 
     class Asset {
@@ -50,6 +51,7 @@ namespace Himii {
                 case AssetType::Mesh:            return "Mesh";
                 case AssetType::Material:        return "Material";
                 case AssetType::Shader:          return "Shader";
+                case AssetType::EnvironmentMap:  return "EnvironmentMap";
             }
             return "None";
         }
@@ -69,6 +71,7 @@ namespace Himii {
             if (assetType == "Mesh")            return AssetType::Mesh;
             if (assetType == "Material")        return AssetType::Material;
             if (assetType == "Shader")          return AssetType::Shader;
+            if (assetType == "EnvironmentMap")  return AssetType::EnvironmentMap;
 
             return AssetType::None;
         }

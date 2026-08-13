@@ -20,6 +20,7 @@
 #include "Module/Render/Mesh/MeshAsset.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialSurfaceUtility.h"
+#include "Module/Render/Environment/EnvironmentLightingSystem.h"
 #include "Resource/ResourceSystem.h"
 
 #include <array>
@@ -104,10 +105,16 @@ namespace Himii
         {
             glm::mat4 Transform{1.0f};
             glm::vec4 AlbedoColor{1.0f};
-            float Specular = 0.5f;
-            float Shininess = 32.0f;
+            float Metallic = 0.0f;
+            float Roughness = 0.5f;
             int UseAlbedoTexture = 0;
+            int UseMetallicTexture = 0;
+            int UseRoughnessTexture = 0;
+            int SharedMetallicRoughnessTexture = 0;
+            int UseNormalTexture = 0;
+            int NormalFlipGreen = 0;
             int EntityID = -1;
+            int Padding0 = 0;
         };
         struct MeshUnlitData
         {
@@ -163,10 +170,17 @@ namespace Himii
             glm::vec4 PointLightCount{0.0f, 0.0f, 0.0f, 0.0f};
             glm::vec4 PointLightPositionRange[ScenePointLightCapacity]{};
             glm::vec4 PointLightColorIntensity[ScenePointLightCapacity]{};
+            /// x = HasIBL, y = Intensity, z = PrefilterMipCount
+            glm::vec4 ImageBasedLightingParameters{0.0f, 1.0f, 1.0f, 0.0f};
         };
         SceneLightingData LightingBuffer{};
         Ref<UniformBuffer> SceneLightingUniformBuffer;
         SceneLightingParameters CurrentLighting{};
+
+        Ref<TextureCube> IrradianceCubemap;
+        Ref<TextureCube> PrefilteredCubemap;
+        Ref<Texture2D> BrdfLookupTexture;
+        bool HasImageBasedLightingTextures = false;
     };
 
     static Renderer3DData s_Data;
@@ -428,10 +442,13 @@ namespace Himii
         s_Data.GridVAO->AddVertexBuffer(s_Data.GridVBO);
         s_Data.GridShader = Shader::Create("assets/shaders/Grid.glsl");
         s_Data.GridUniformBuffer = UniformBuffer::Create(sizeof(Renderer3DData::GridData), 2);
+
+        EnvironmentLightingSystem::Init();
     }
 
     void Renderer3D::Shutdown()
     {
+         EnvironmentLightingSystem::Shutdown();
          // s_Data.InstanceBufferBase is handled by Scope
     }
 
@@ -443,7 +460,11 @@ namespace Himii
                 parameters.HasDirectionalLight ? 1.0f : 0.0f);
         s_Data.LightingBuffer.DirectionalLightColorIntensity =
                 glm::vec4(parameters.DirectionalLightColor, parameters.DirectionalLightIntensity);
-        if (parameters.HasDirectionalLight)
+        if (parameters.HasImageBasedLighting)
+        {
+            s_Data.LightingBuffer.AmbientColorIntensity = glm::vec4(0.0f);
+        }
+        else if (parameters.HasDirectionalLight)
         {
             s_Data.LightingBuffer.AmbientColorIntensity =
                     glm::vec4(parameters.AmbientColor, parameters.AmbientIntensity);
@@ -457,6 +478,9 @@ namespace Himii
         s_Data.LightingBuffer.ShadowParameters =
                 glm::vec4(parameters.HasShadowMap ? 1.0f : 0.0f, parameters.ShadowBias,
                           parameters.ShadowTexelWorldSize, 0.0f);
+        s_Data.LightingBuffer.ImageBasedLightingParameters =
+                glm::vec4(parameters.HasImageBasedLighting ? 1.0f : 0.0f, parameters.EnvironmentIntensity,
+                          parameters.PrefilterMipCount, 0.0f);
 
         const uint32_t pointLightCount =
                 std::min(parameters.PointLightCount, ScenePointLightCapacity);
@@ -490,6 +514,60 @@ namespace Himii
     SceneLightingParameters Renderer3D::GetSceneLighting()
     {
         return s_Data.CurrentLighting;
+    }
+
+    void Renderer3D::SetImageBasedLighting(const Ref<TextureCube> &irradianceCubemap,
+                                           const Ref<TextureCube> &prefilteredCubemap,
+                                           const Ref<Texture2D> &brdfLookupTexture, float intensity,
+                                           float prefilterMipCount)
+    {
+        s_Data.IrradianceCubemap = irradianceCubemap;
+        s_Data.PrefilteredCubemap = prefilteredCubemap;
+        s_Data.BrdfLookupTexture = brdfLookupTexture;
+        s_Data.HasImageBasedLightingTextures =
+                irradianceCubemap && prefilteredCubemap && brdfLookupTexture;
+        s_Data.CurrentLighting.HasImageBasedLighting = s_Data.HasImageBasedLightingTextures;
+        s_Data.CurrentLighting.EnvironmentIntensity = intensity;
+        s_Data.CurrentLighting.PrefilterMipCount = prefilterMipCount;
+        s_Data.LightingBuffer.ImageBasedLightingParameters =
+                glm::vec4(s_Data.HasImageBasedLightingTextures ? 1.0f : 0.0f, intensity, prefilterMipCount,
+                          0.0f);
+        if (s_Data.HasImageBasedLightingTextures)
+            s_Data.LightingBuffer.AmbientColorIntensity = glm::vec4(0.0f);
+        if (s_Data.SceneLightingUniformBuffer)
+        {
+            s_Data.SceneLightingUniformBuffer->SetData(&s_Data.LightingBuffer,
+                                                      sizeof(Renderer3DData::SceneLightingData));
+            s_Data.SceneLightingUniformBuffer->Bind();
+        }
+    }
+
+    void Renderer3D::ClearImageBasedLighting()
+    {
+        s_Data.IrradianceCubemap.reset();
+        s_Data.PrefilteredCubemap.reset();
+        s_Data.BrdfLookupTexture.reset();
+        s_Data.HasImageBasedLightingTextures = false;
+        s_Data.CurrentLighting.HasImageBasedLighting = false;
+        s_Data.LightingBuffer.ImageBasedLightingParameters = glm::vec4(0.0f, 1.0f, 1.0f, 0.0f);
+        if (s_Data.SceneLightingUniformBuffer)
+        {
+            s_Data.SceneLightingUniformBuffer->SetData(&s_Data.LightingBuffer,
+                                                      sizeof(Renderer3DData::SceneLightingData));
+            s_Data.SceneLightingUniformBuffer->Bind();
+        }
+    }
+
+    static void BindImageBasedLightingTexturesIfAvailable()
+    {
+        if (!s_Data.HasImageBasedLightingTextures)
+            return;
+        if (s_Data.IrradianceCubemap)
+            s_Data.IrradianceCubemap->Bind(4);
+        if (s_Data.PrefilteredCubemap)
+            s_Data.PrefilteredCubemap->Bind(5);
+        if (s_Data.BrdfLookupTexture)
+            s_Data.BrdfLookupTexture->Bind(6);
     }
 
     void Renderer3D::EnsureShadowMap(uint32_t resolutionPixels)
@@ -874,8 +952,16 @@ namespace Himii
                                                      ? resolvedSurface.AlbedoTexture
                                                      : s_Data.WhiteTexture;
             int useAlbedoTexture = resolvedSurface.AlbedoTexture ? 1 : 0;
-            float specular = resolvedSurface.Specular;
-            float shininess = resolvedSurface.Shininess;
+            float metallic = resolvedSurface.Metallic;
+            float roughness = resolvedSurface.Roughness;
+            Ref<Texture2D> metallicTexture = resolvedSurface.MetallicTexture;
+            Ref<Texture2D> roughnessTexture = resolvedSurface.RoughnessTexture;
+            int useMetallicTexture = resolvedSurface.MetallicTexture ? 1 : 0;
+            int useRoughnessTexture = resolvedSurface.RoughnessTexture ? 1 : 0;
+            int sharedMetallicRoughnessTexture = resolvedSurface.SharedMetallicRoughnessTexture ? 1 : 0;
+            Ref<Texture2D> normalTexture = resolvedSurface.NormalTexture;
+            int useNormalTexture = resolvedSurface.NormalTexture ? 1 : 0;
+            int normalFlipGreen = resolvedSurface.NormalFlipGreen ? 1 : 0;
             const bool useUnlit = !resolvedSurface.UsesLitPipeline;
 
             // Unlit 不参与投射/接收阴影。
@@ -918,9 +1004,14 @@ namespace Himii
                 Renderer3DData::MeshLitData meshLitData;
                 meshLitData.Transform = transform;
                 meshLitData.AlbedoColor = albedoColor;
-                meshLitData.Specular = specular;
-                meshLitData.Shininess = shininess;
+                meshLitData.Metallic = metallic;
+                meshLitData.Roughness = roughness;
                 meshLitData.UseAlbedoTexture = useAlbedoTexture;
+                meshLitData.UseMetallicTexture = useMetallicTexture;
+                meshLitData.UseRoughnessTexture = useRoughnessTexture;
+                meshLitData.SharedMetallicRoughnessTexture = sharedMetallicRoughnessTexture;
+                meshLitData.UseNormalTexture = useNormalTexture;
+                meshLitData.NormalFlipGreen = normalFlipGreen;
                 meshLitData.EntityID = entityID;
                 s_Data.MeshMaterialUniformBuffer->SetData(&meshLitData, sizeof(Renderer3DData::MeshLitData));
             }
@@ -931,8 +1022,23 @@ namespace Himii
 
             if (albedoTexture)
                 albedoTexture->Bind(0);
+            if (metallicTexture)
+                metallicTexture->Bind(1);
+            else
+                s_Data.WhiteTexture->Bind(1);
+            if (roughnessTexture)
+                roughnessTexture->Bind(2);
+            else
+                s_Data.WhiteTexture->Bind(2);
+            if (normalTexture)
+                normalTexture->Bind(3);
+            else
+                s_Data.WhiteTexture->Bind(3);
             if (!useUnlit)
+            {
                 BindShadowMapIfAvailable();
+                BindImageBasedLightingTexturesIfAvailable();
+            }
 
             gpuSubmesh.VertexArray->Bind();
             RenderCommand::DrawIndexed(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount);

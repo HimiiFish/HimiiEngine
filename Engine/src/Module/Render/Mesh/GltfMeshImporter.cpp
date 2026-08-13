@@ -10,7 +10,7 @@
 #include <fstream>
 #include <cstring>
 
-#include "Module/Render/Mesh/cgltf.h"
+#include "cgltf.h"
 
 namespace Himii
 {
@@ -189,6 +189,26 @@ namespace Himii
                             material.pbr_metallic_roughness.base_color_texture.texture;
                     materialAsset->SetTextureParameter("u_AlbedoTexture", ResolveTextureHandle(baseColorTexture),
                                                      ResolveTextureRelativePath(baseColorTexture));
+
+                    materialAsset->SetFloatParameter("u_Metallic",
+                                                     material.pbr_metallic_roughness.metallic_factor);
+                    materialAsset->SetFloatParameter("u_Roughness",
+                                                     material.pbr_metallic_roughness.roughness_factor);
+
+                    const cgltf_texture *metallicRoughnessTexture =
+                            material.pbr_metallic_roughness.metallic_roughness_texture.texture;
+                    const AssetHandle metallicRoughnessHandle =
+                            ResolveTextureHandle(metallicRoughnessTexture);
+                    const std::string metallicRoughnessRelativePath =
+                            ResolveTextureRelativePath(metallicRoughnessTexture);
+                    if (metallicRoughnessHandle != 0)
+                    {
+                        // 同 Handle 填两槽；MeshLit 按 glTF 约定采样 B=Metallic、G=Roughness。
+                        materialAsset->SetTextureParameter("u_MetallicTexture", metallicRoughnessHandle,
+                                                           metallicRoughnessRelativePath);
+                        materialAsset->SetTextureParameter("u_RoughnessTexture", metallicRoughnessHandle,
+                                                           metallicRoughnessRelativePath);
+                    }
                 }
             }
 

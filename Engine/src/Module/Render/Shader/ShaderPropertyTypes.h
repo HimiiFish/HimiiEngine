@@ -15,7 +15,8 @@ namespace Himii
         Vector2 = 3,
         Vector3 = 4,
         Vector4 = 5,
-        Texture2D = 6
+        Texture2D = 6,
+        Bool = 7
     };
 
     enum class ShaderPipelineType
@@ -31,6 +32,7 @@ namespace Himii
         ShaderPropertyType Type = ShaderPropertyType::Float;
         float DefaultFloat = 0.0f;
         int DefaultInt = 0;
+        bool DefaultBool = false;
         glm::vec4 DefaultColor{1.0f, 1.0f, 1.0f, 1.0f};
         glm::vec2 DefaultVector2{0.0f, 0.0f};
         glm::vec3 DefaultVector3{0.0f, 0.0f, 0.0f};
@@ -43,6 +45,7 @@ namespace Himii
         ShaderPropertyType Type = ShaderPropertyType::Float;
         float FloatValue = 0.0f;
         int IntValue = 0;
+        bool BoolValue = false;
         glm::vec4 ColorValue{1.0f, 1.0f, 1.0f, 1.0f};
         glm::vec2 Vector2Value{0.0f, 0.0f};
         glm::vec3 Vector3Value{0.0f, 0.0f, 0.0f};

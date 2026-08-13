@@ -120,6 +120,18 @@ namespace Himii
         }
     }
 
+    Ref<TextureCube> RHI::CreateTextureCube(const TextureSpecification &specification)
+    {
+        switch (s_API)
+        {
+            case API::OpenGL:
+                return CreateRef<OpenGLTextureCube>(specification);
+            default:
+                HIMII_CORE_ASSERT(false, "Selected RHI backend is currently not supported!");
+                return nullptr;
+        }
+    }
+
     Ref<Shader> RHI::CreateShader(const std::string &filepath)
     {
         switch (s_API)

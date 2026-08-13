@@ -1,5 +1,6 @@
 #include "Hepch.h"
 #include "Module/Render/Mesh/GltfMeshGeometryLoader.h"
+#include "Module/Render/Mesh/MeshTangentUtility.h"
 #include "EngineCore/Core/Log.h"
 
 #include <glm/gtc/type_ptr.hpp>
@@ -7,7 +8,7 @@
 #include <unordered_map>
 
 #define CGLTF_IMPLEMENTATION
-#include "Module/Render/Mesh/cgltf.h"
+#include "cgltf.h"
 
 namespace Himii
 {
@@ -81,6 +82,11 @@ namespace Himii
             if (textureCoordinateAttribute && textureCoordinateAttribute->data)
                 ReadAccessorFloats(textureCoordinateAttribute->data, textureCoordinates, 2);
 
+            std::vector<float> tangents;
+            const cgltf_attribute *tangentAttribute = FindAttribute(primitive, cgltf_attribute_type_tangent);
+            if (tangentAttribute && tangentAttribute->data)
+                ReadAccessorFloats(tangentAttribute->data, tangents, 4);
+
             std::vector<uint32_t> localIndices;
             if (primitive->indices)
             {
@@ -122,6 +128,18 @@ namespace Himii
                 {
                     vertex.TextureCoordinate = {textureCoordinates[vertexIndex * 2 + 0],
                                                 textureCoordinates[vertexIndex * 2 + 1]};
+                }
+
+                if (tangents.size() >= static_cast<size_t>(vertexCount) * 4)
+                {
+                    const glm::vec3 localTangent(tangents[vertexIndex * 4 + 0], tangents[vertexIndex * 4 + 1],
+                                                 tangents[vertexIndex * 4 + 2]);
+                    const glm::vec3 worldTangent = glm::normalize(normalMatrix * localTangent);
+                    vertex.Tangent = glm::vec4(worldTangent, tangents[vertexIndex * 4 + 3]);
+                }
+                else
+                {
+                    vertex.Tangent = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
                 }
 
                 outMeshAsset.Vertices.push_back(vertex);
@@ -238,6 +256,9 @@ namespace Himii
             submesh.MaterialSlotIndex = 0;
             outMeshAsset.Submeshes.push_back(submesh);
         }
+
+        if (MeshNeedsGeneratedTangents(outMeshAsset))
+            GenerateMeshTangents(outMeshAsset);
 
         return true;
     }

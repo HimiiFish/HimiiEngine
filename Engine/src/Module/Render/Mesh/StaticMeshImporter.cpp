@@ -96,6 +96,7 @@ namespace Himii
             return 0;
 
         const AssetHandle hmeshHandle = assetManager.ImportAsset(relativeHmeshPath);
+        assetManager.ClearCachedAssetLoadFailure(hmeshHandle);
         assetManager.UnloadAsset(hmeshHandle);
         assetManager.SerializeAssetRegistry();
 
@@ -187,6 +188,8 @@ namespace Himii
             hmeshHandle = assetManager.ImportAsset(relativeHmeshPath);
         else
             assetManager.UnloadAsset(hmeshHandle);
+
+        assetManager.ClearCachedAssetLoadFailure(hmeshHandle);
 
         assetManager.SerializeAssetRegistry();
         HIMII_CORE_INFO("Static mesh reimport done: {0}", relativeHmeshPath.generic_string());

@@ -198,6 +198,19 @@ namespace Himii
                     }
                     break;
                 }
+                case ShaderPropertyType::Bool:
+                {
+                    bool boolValue = parameterValue.BoolValue;
+                    DrawCheckboxControl(label, boolValue, definition.DefaultBool);
+                    if (boolValue != parameterValue.BoolValue)
+                    {
+                        m_MaterialAsset->SetBoolParameter(definition.Name, boolValue);
+                        MarkActiveMaterialDirty();
+                        if (definition.Name == "u_NormalFlipGreen")
+                            InvalidateMaterialThumbnail(m_MaterialHandle);
+                    }
+                    break;
+                }
                 case ShaderPropertyType::Color:
                 {
                     glm::vec4 colorValue = parameterValue.ColorValue;

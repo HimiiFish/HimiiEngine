@@ -1,6 +1,7 @@
 #include "panel/MaterialThumbnailUtility.h"
 
 #include "Module/Render/Mesh/MeshAsset.h"
+#include "Module/Render/Mesh/MeshTangentUtility.h"
 #include "Module/Render/RenderCore/Framebuffer.h"
 #include "Module/Render/RHI/RenderCommand.h"
 #include "Module/Render/Renderer/Renderer3D.h"
@@ -89,6 +90,7 @@ namespace Himii
             submesh.MaterialSlotIndex = 0;
             meshAsset->Submeshes.push_back(submesh);
             meshAsset->MaterialSlotNames.push_back("Material");
+            GenerateMeshTangents(*meshAsset);
             return meshAsset;
         }
 

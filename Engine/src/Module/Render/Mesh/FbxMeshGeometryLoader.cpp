@@ -1,11 +1,12 @@
 #include "Hepch.h"
 #include "Module/Render/Mesh/FbxMeshGeometryLoader.h"
+#include "Module/Render/Mesh/MeshTangentUtility.h"
 #include "EngineCore/Core/Log.h"
 
 #include <unordered_map>
 #include <vector>
 
-#include "Module/Render/Mesh/ufbx.h"
+#include "ufbx.h"
 
 namespace Himii
 {
@@ -106,6 +107,31 @@ namespace Himii
                             vertex.TextureCoordinate = ToVec2(localUv);
                         }
 
+                        if (mesh->vertex_tangent.exists)
+                        {
+                            const ufbx_vec3 localTangent =
+                                    ufbx_get_vertex_vec3(&mesh->vertex_tangent, vertexIndex);
+                            const glm::vec3 worldTangent = glm::normalize(
+                                    ToVec3(ufbx_transform_direction(&normalMatrix, localTangent)));
+                            float handedness = 1.0f;
+                            if (mesh->vertex_bitangent.exists)
+                            {
+                                const ufbx_vec3 localBitangent =
+                                        ufbx_get_vertex_vec3(&mesh->vertex_bitangent, vertexIndex);
+                                const glm::vec3 worldBitangent = glm::normalize(
+                                        ToVec3(ufbx_transform_direction(&normalMatrix, localBitangent)));
+                                handedness = glm::dot(glm::cross(vertex.Normal, worldTangent), worldBitangent)
+                                                             < 0.0f
+                                                     ? -1.0f
+                                                     : 1.0f;
+                            }
+                            vertex.Tangent = glm::vec4(worldTangent, handedness);
+                        }
+                        else
+                        {
+                            vertex.Tangent = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+                        }
+
                         const uint32_t outputIndex = static_cast<uint32_t>(outMeshAsset.Vertices.size());
                         outMeshAsset.Vertices.push_back(vertex);
                         outMeshAsset.Indices.push_back(outputIndex);
@@ -170,6 +196,9 @@ namespace Himii
             submesh.MaterialSlotIndex = 0;
             outMeshAsset.Submeshes.push_back(submesh);
         }
+
+        if (MeshNeedsGeneratedTangents(outMeshAsset))
+            GenerateMeshTangents(outMeshAsset);
 
         return true;
     }

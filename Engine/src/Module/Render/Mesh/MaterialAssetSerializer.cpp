@@ -20,6 +20,9 @@ namespace Himii
                 case ShaderPropertyType::Int:
                     emitter << parameterValue.IntValue;
                     break;
+                case ShaderPropertyType::Bool:
+                    emitter << parameterValue.BoolValue;
+                    break;
                 case ShaderPropertyType::Color:
                 case ShaderPropertyType::Vector4:
                     emitter << YAML::Flow << YAML::BeginSeq << parameterValue.ColorValue.x
@@ -57,6 +60,9 @@ namespace Himii
                     break;
                 case ShaderPropertyType::Int:
                     parameterValue.IntValue = parameterNode.as<int>();
+                    break;
+                case ShaderPropertyType::Bool:
+                    parameterValue.BoolValue = parameterNode.as<bool>();
                     break;
                 case ShaderPropertyType::Color:
                 case ShaderPropertyType::Vector4:
@@ -117,10 +123,7 @@ namespace Himii
                                                    ? data["AlbedoTextureRelativePath"].as<std::string>()
                                                    : std::string{});
             }
-            if (data["Specular"])
-                asset->SetFloatParameter("u_Specular", data["Specular"].as<float>());
-            if (data["Shininess"])
-                asset->SetFloatParameter("u_Shininess", data["Shininess"].as<float>());
+            // 硬切：忽略旧 Specular / Shininess，使用 ApplyMeshLitDefaults 写入的 Metallic/Roughness。
         }
     }
 
@@ -183,6 +186,9 @@ namespace Himii
                 for (const auto &parameterEntry : data["Parameters"])
                 {
                     const std::string parameterName = parameterEntry.first.as<std::string>();
+                    if (parameterName == "u_Specular" || parameterName == "u_Shininess")
+                        continue;
+
                     ShaderPropertyType parameterType = ShaderPropertyType::Float;
                     if (parameterEntry.second.IsMap() && parameterEntry.second["Handle"])
                         parameterType = ShaderPropertyType::Texture2D;
@@ -197,7 +203,11 @@ namespace Himii
                     }
                     else if (parameterEntry.second.IsScalar())
                     {
-                        if (parameterEntry.second.Tag() == "!")
+                        const std::string scalarText = parameterEntry.second.Scalar();
+                        if (scalarText == "true" || scalarText == "false" || scalarText == "True"
+                            || scalarText == "False")
+                            parameterType = ShaderPropertyType::Bool;
+                        else if (parameterEntry.second.Tag() == "!")
                             parameterType = ShaderPropertyType::Int;
                         else
                             parameterType = ShaderPropertyType::Float;

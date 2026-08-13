@@ -22,6 +22,9 @@ namespace Himii
         if (!assetManager || !assetManager->IsAssetHandleValid(handle))
             return "Missing Asset";
 
+        if (assetManager->HasCachedAssetLoadFailure(handle))
+            return "Needs Reimport";
+
         const auto &registry = assetManager->GetAssetRegistry();
         auto iterator = registry.find(handle);
         if (iterator == registry.end())
@@ -137,10 +140,20 @@ namespace Himii
                     }
                     else
                     {
+                        auto assetManager = ResourceSystem::GetAssetManager();
+                        if (component.Source == MeshComponent::MeshSource::Asset
+                            && assetManager && component.MeshAssetHandle != 0)
+                            assetManager->GetAsset(component.MeshAssetHandle);
+
+                        const bool hasMeshReference = component.MeshAssetHandle != 0;
+                        const bool meshNeedsReimport =
+                                assetManager && hasMeshReference
+                                && assetManager->HasCachedAssetLoadFailure(component.MeshAssetHandle);
                         const std::string meshDisplayName =
                                 ResolveAssetDisplayName(component.MeshAssetHandle, "None (drag .hmesh)");
                         DrawObjectReferenceField(
-                                "Mesh", meshDisplayName.c_str(), component.MeshAssetHandle != 0, nullptr,
+                                "Mesh", meshDisplayName.c_str(), hasMeshReference && !meshNeedsReimport,
+                                nullptr,
                                 [&]()
                                 {
                                     component.MeshAssetHandle = 0;
@@ -154,6 +167,13 @@ namespace Himii
                                     ApplyDefaultMaterialsFromMesh(component);
                                     return true;
                                 });
+
+                        if (meshNeedsReimport)
+                        {
+                            DrawReadOnlyTextControl(
+                                    "Mesh Status", "Needs Reimport",
+                                    "The baked .hmesh failed to load. Right-click it in Content Browser and choose Reimport.");
+                        }
                     }
 
                     DrawMeshMaterialSlots(drawContext, component);

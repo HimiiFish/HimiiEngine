@@ -11,7 +11,7 @@
 #include <cctype>
 #include <cstring>
 
-#include "Module/Render/Mesh/ufbx.h"
+#include "ufbx.h"
 
 namespace Himii
 {

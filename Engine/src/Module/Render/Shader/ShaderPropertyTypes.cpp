@@ -19,6 +19,8 @@ namespace Himii
             return ShaderPropertyType::Vector4;
         if (typeName == "Texture2D")
             return ShaderPropertyType::Texture2D;
+        if (typeName == "Bool")
+            return ShaderPropertyType::Bool;
         return ShaderPropertyType::Float;
     }
 
@@ -40,6 +42,8 @@ namespace Himii
                 return "Vector4";
             case ShaderPropertyType::Texture2D:
                 return "Texture2D";
+            case ShaderPropertyType::Bool:
+                return "Bool";
         }
         return "Float";
     }

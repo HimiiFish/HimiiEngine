@@ -34,10 +34,11 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 # 头文件为src目录下的所有.h文件
 file(GLOB_RECURSE HEADERS "src/*.h")
 
-# ufbx is distributed as a C translation unit (alongside cgltf-style Mesh headers).
-enable_language(C)
-list(APPEND SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/src/Module/Render/Mesh/ufbx.c")
-list(APPEND HEADERS "${CMAKE_CURRENT_SOURCE_DIR}/src/Module/Render/Mesh/ufbx.h")
+# Vendored single-file mesh importers (excluded from GitHub language stats via Engine/vender/**).
+set(UFBX_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/ufbx")
+set(CGLTF_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vender/cgltf")
+list(APPEND SOURCES "${UFBX_DIR}/ufbx.c")
+list(APPEND HEADERS "${UFBX_DIR}/ufbx.h")
 
 # GLOB_RECURSE 会同时扫到各平台实现；按目标 OS 剔除对方源文件，避免交叉编译。
 if (WIN32)
@@ -116,7 +117,7 @@ if(WIN32 AND BUILD_SHARED_LIBS)
     set_property(TARGET Engine PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS ON)
 endif()
 
-target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR} ${MSDF_DIR} ${MSDF_DIR}/msdfgen ${MSDF_DIR}/msdf-atlas-gen ${CMAKE_CURRENT_BINARY_DIR}/msdf_build/msdfgen/include ${MINIAUDIO_DIR})
+target_include_directories(Engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src ${IMGUI_DIR} ${IMGUI_DIR}/backends ${IMGUIZMO_DIR} ${MSDF_DIR} ${MSDF_DIR}/msdfgen ${MSDF_DIR}/msdf-atlas-gen ${CMAKE_CURRENT_BINARY_DIR}/msdf_build/msdfgen/include ${MINIAUDIO_DIR} ${UFBX_DIR} ${CGLTF_DIR})
 
 target_link_libraries(Engine PUBLIC OpenGL::GL glad::glad spdlog::spdlog glfw yaml-cpp::yaml-cpp Vulkan::Vulkan unofficial::shaderc::shaderc spirv-cross-core spirv-cross-glsl SPIRV-Tools-static box2d::box2d unofficial::nethost::nethost nfd Freetype::Freetype msdf-atlas-gen msdfgen-ext msdfgen-core)
 

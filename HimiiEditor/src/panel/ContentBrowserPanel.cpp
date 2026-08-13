@@ -51,8 +51,15 @@ namespace Himii
         std::string extension = path.extension().string();
         std::transform(extension.begin(), extension.end(), extension.begin(),
                        [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
-        if (extension == ".meta")
+        if (extension == ".meta" || extension == ".ienv")
             return true;
+
+        for (const auto &pathPart : path)
+        {
+            if (pathPart == "Saved" || pathPart == "EnvironmentBake")
+                return true;
+        }
+
         return IsStaticMeshSourceExtension(extension);
     }
 
@@ -370,6 +377,21 @@ namespace Himii
                             if (materialHandle != 0)
                                 imageThumbnail =
                                         GetOrCreateMaterialThumbnail(assetManager.get(), materialHandle);
+                        }
+                    }
+                    else if (path.extension() == ".hmesh")
+                    {
+                        if (auto assetManager = ResourceSystem::GetAssetManager())
+                        {
+                            AssetHandle meshHandle = assetManager->FindAssetHandleByFilePath(relativePath);
+                            if (meshHandle == 0)
+                                meshHandle = assetManager->ImportAsset(relativePath);
+                            if (meshHandle != 0)
+                            {
+                                assetManager->GetAsset(meshHandle);
+                                if (assetManager->HasCachedAssetLoadFailure(meshHandle))
+                                    icon = m_FileIcon;
+                            }
                         }
                     }
 
@@ -1153,7 +1175,12 @@ namespace Himii
             lightEntity.AddComponent<LightComponent>();
 
             Entity environmentEntity = scene->CreateEntity("Environment");
-            environmentEntity.AddComponent<EnvironmentComponent>();
+            auto &environmentComponent = environmentEntity.AddComponent<EnvironmentComponent>();
+            environmentComponent.EnvironmentMap = Project::FindDefaultEnvironmentMapHandle();
+            environmentComponent.Intensity = 1.0f;
+            environmentComponent.AmbientColor = glm::vec4(1.0f);
+            environmentComponent.AmbientIntensity = 0.15f;
+            environmentComponent.Enabled = true;
         }
 
         SceneSerializer sceneSerializer(scene);
@@ -1414,6 +1441,7 @@ namespace Himii
                     m_StaticMeshImportDialogState.Settings);
         }
 
+        assetManager->SerializeAssetRegistry();
         m_ImageThumbnailCache.clear();
     }
 } // namespace Himii

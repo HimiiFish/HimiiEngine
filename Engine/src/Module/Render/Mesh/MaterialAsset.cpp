@@ -24,6 +24,14 @@ namespace Himii
         ParameterOverrides[name] = parameterValue;
     }
 
+    void MaterialAsset::SetBoolParameter(const std::string &name, bool value)
+    {
+        MaterialParameterValue parameterValue;
+        parameterValue.Type = ShaderPropertyType::Bool;
+        parameterValue.BoolValue = value;
+        ParameterOverrides[name] = parameterValue;
+    }
+
     void MaterialAsset::SetColorParameter(const std::string &name, const glm::vec4 &value)
     {
         MaterialParameterValue parameterValue;
@@ -81,6 +89,15 @@ namespace Himii
         if (iterator == ParameterOverrides.end() || iterator->second.Type != ShaderPropertyType::Int)
             return false;
         outValue = iterator->second.IntValue;
+        return true;
+    }
+
+    bool MaterialAsset::TryGetBoolParameter(const std::string &name, bool &outValue) const
+    {
+        auto iterator = ParameterOverrides.find(name);
+        if (iterator == ParameterOverrides.end() || iterator->second.Type != ShaderPropertyType::Bool)
+            return false;
+        outValue = iterator->second.BoolValue;
         return true;
     }
 

@@ -16,6 +16,7 @@
 #include "Module/Render/Mesh/MeshAsset.h"
 #include "Module/Render/Mesh/MaterialAsset.h"
 #include "Module/Render/Mesh/MaterialSurfaceUtility.h"
+#include "Module/Render/Environment/EnvironmentLightingSystem.h"
 
 #include <algorithm>
 #include <cmath>
@@ -187,6 +188,57 @@ namespace Himii
             return parameters;
         }
 
+        void ApplyEnvironmentImageBasedLighting(Scene &scene, SceneLightingParameters &lightingParameters)
+        {
+            EnvironmentLightingSystem::PollSourceChanges();
+
+            AssetHandle environmentMapHandle = 0;
+            float environmentIntensity = 1.0f;
+            auto environmentView = scene.Registry().view<EnvironmentComponent>();
+            for (auto entityHandle : environmentView)
+            {
+                const EnvironmentComponent &environment =
+                        environmentView.get<EnvironmentComponent>(entityHandle);
+                if (!environment.Enabled)
+                    continue;
+                environmentMapHandle = environment.EnvironmentMap;
+                environmentIntensity = environment.Intensity;
+                break;
+            }
+
+            if (environmentMapHandle == 0)
+            {
+                Renderer3D::ClearImageBasedLighting();
+                lightingParameters.HasImageBasedLighting = false;
+                return;
+            }
+
+            const BakedEnvironmentLighting baked =
+                    EnvironmentLightingSystem::EnsureBaked(environmentMapHandle);
+            if (!baked.Valid)
+            {
+                Renderer3D::ClearImageBasedLighting();
+                lightingParameters.HasImageBasedLighting = false;
+                return;
+            }
+
+            lightingParameters.HasImageBasedLighting = true;
+            lightingParameters.EnvironmentIntensity = environmentIntensity;
+            lightingParameters.PrefilterMipCount =
+                    static_cast<float>(std::max(1u, baked.PrefilteredCubemap->GetMipLevelCount()));
+            lightingParameters.AmbientColor = glm::vec3(0.0f);
+            lightingParameters.AmbientIntensity = 0.0f;
+
+            Renderer3D::SetImageBasedLighting(baked.IrradianceCubemap, baked.PrefilteredCubemap,
+                                              baked.BrdfLookupTexture, environmentIntensity,
+                                              lightingParameters.PrefilterMipCount);
+
+            const bool isTwoDimensional =
+                    Project::GetActive() && Project::GetActive()->GetConfig().Is2D;
+            if (!isTwoDimensional && baked.EnvironmentCubemap)
+                scene.SetSkybox(baked.EnvironmentCubemap);
+        }
+
         DirectionalShadowParameters GatherDirectionalShadowParameters(Scene &scene,
                                                                      const ShadowViewerAnchor &viewerAnchor)
         {
@@ -232,8 +284,11 @@ namespace Himii
 
             BuiltinSurfaceParameters surface;
             surface.AlbedoColor = resolvedSurface.AlbedoColor;
-            surface.Specular = resolvedSurface.Specular;
-            surface.Shininess = resolvedSurface.Shininess;
+            // 内置原语仍走 Cube.glsl（Phong）；用 Metallic/Roughness 做廉价近似映射。
+            const float clampedRoughness = glm::clamp(resolvedSurface.Roughness, 0.04f, 1.0f);
+            surface.Specular = glm::clamp(0.04f + resolvedSurface.Metallic * 0.96f, 0.0f, 1.0f)
+                               * (1.0f - clampedRoughness * 0.5f);
+            surface.Shininess = glm::mix(8.0f, 128.0f, 1.0f - clampedRoughness);
             surface.AlbedoTexture = resolvedSurface.AlbedoTexture;
             return surface;
         }
@@ -352,6 +407,7 @@ namespace Himii
         const glm::mat4 cameraTransform = scene.GetEntityWorldTransformMatrix(cameraEntity);
 
         SceneLightingParameters lightingParameters = GatherSceneLighting(scene);
+        ApplyEnvironmentImageBasedLighting(scene, lightingParameters);
         ShadowViewerAnchor viewerAnchor;
         viewerAnchor.Position = glm::vec3(cameraTransform[3]);
         viewerAnchor.ForwardDirection = GetTransformForwardDirection(cameraTransform);
@@ -500,6 +556,7 @@ namespace Himii
 
         {
             SceneLightingParameters lightingParameters = GatherSceneLighting(scene);
+            ApplyEnvironmentImageBasedLighting(scene, lightingParameters);
             ShadowViewerAnchor viewerAnchor;
             viewerAnchor.Position = camera.GetPosition();
             viewerAnchor.ForwardDirection = camera.GetForwardDirection();

@@ -21,6 +21,10 @@ namespace Himii
                     return GL_RGBA;
                 case ImageFormat::RGBA32F:
                     return GL_RGBA;
+                case ImageFormat::RGB16F:
+                    return GL_RGB;
+                case ImageFormat::RG16F:
+                    return GL_RG;
                 default:
                     break;
             }
@@ -41,12 +45,29 @@ namespace Himii
                     return GL_RGBA8;
                 case ImageFormat::RGBA32F:
                     return GL_RGBA32F;
+                case ImageFormat::RGB16F:
+                    return GL_RGB16F;
+                case ImageFormat::RG16F:
+                    return GL_RG16F;
                 default:
                     break;
             }
 
             HIMII_CORE_ASSERT(false);
             return 0;
+        }
+
+        static GLenum ImageFormatToGLDataType(ImageFormat format)
+        {
+            switch (format)
+            {
+                case ImageFormat::RGBA32F:
+                case ImageFormat::RGB16F:
+                case ImageFormat::RG16F:
+                    return GL_FLOAT;
+                default:
+                    return GL_UNSIGNED_BYTE;
+            }
         }
 
         static uint32_t ImageFormatBytesPerPixel(ImageFormat format)
@@ -61,6 +82,10 @@ namespace Himii
                     return 4;
                 case ImageFormat::RGBA32F:
                     return 16;
+                case ImageFormat::RGB16F:
+                    return 12;
+                case ImageFormat::RG16F:
+                    return 8;
                 default:
                     break;
             }
@@ -173,7 +198,7 @@ namespace Himii
         glTextureSubImage2D(
                 m_RendererID, 0, static_cast<GLint>(offsetX), static_cast<GLint>(offsetY),
                 static_cast<GLsizei>(width), static_cast<GLsizei>(height), m_DataFormat,
-                GL_UNSIGNED_BYTE, data);
+                Utils::ImageFormatToGLDataType(m_Specification.Format), data);
         glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
     }
 

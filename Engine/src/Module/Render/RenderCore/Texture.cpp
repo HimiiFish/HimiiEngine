@@ -27,4 +27,9 @@ namespace Himii
     {
         return RHI::CreateTextureCube(paths);
     }
+
+    Ref<TextureCube> TextureCube::Create(const TextureSpecification &specification)
+    {
+        return RHI::CreateTextureCube(specification);
+    }
 }

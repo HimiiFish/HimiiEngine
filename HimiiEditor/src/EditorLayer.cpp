@@ -2417,6 +2417,8 @@ namespace Himii
 
             Entity environmentEntity = m_ActiveScene->CreateEntity("Environment");
             auto &environmentComponent = environmentEntity.AddComponent<EnvironmentComponent>();
+            environmentComponent.EnvironmentMap = Project::FindDefaultEnvironmentMapHandle();
+            environmentComponent.Intensity = 1.0f;
             environmentComponent.AmbientColor = glm::vec4(1.0f);
             environmentComponent.AmbientIntensity = 0.15f;
             environmentComponent.Enabled = true;

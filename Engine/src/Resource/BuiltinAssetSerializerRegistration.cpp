@@ -9,6 +9,7 @@
 #include "Module/Render/Mesh/MaterialAssetSerializer.h"
 #include "Module/Render/Mesh/MeshAsset.h"
 #include "Module/Render/Mesh/MeshAssetSerializer.h"
+#include "Module/Render/Environment/EnvironmentMapAsset.h"
 #include "Module/Render/Shader/ShaderAsset.h"
 #include "Module/Render/Shader/ShaderAssetSerializer.h"
 #include "Module/Render/Renderer/Font.h"
@@ -67,6 +68,21 @@ namespace Himii
             }
         };
 
+        class EnvironmentMapAssetSerializer final : public IAssetSerializer
+        {
+        public:
+            AssetType GetAssetType() const override { return AssetType::EnvironmentMap; }
+
+            Ref<Asset> Deserialize(const std::filesystem::path &filepath) override
+            {
+                Ref<EnvironmentMapAsset> asset = CreateRef<EnvironmentMapAsset>();
+                asset->SourceFilePath = filepath;
+                EnvironmentMapImportSerializer::EnsureDefaultMeta(filepath);
+                EnvironmentMapImportSerializer::Deserialize(filepath, asset->ImportSettings);
+                return asset;
+            }
+        };
+
         class SoundAssetSerializer final : public IAssetSerializer
         {
         public:
@@ -87,6 +103,7 @@ namespace Himii
         AssetSerializerRegistry::RegisterExtension(".jpg", AssetType::Texture2D);
         AssetSerializerRegistry::RegisterExtension(".jpeg", AssetType::Texture2D);
         AssetSerializerRegistry::RegisterExtension(".bmp", AssetType::Texture2D);
+        AssetSerializerRegistry::RegisterExtension(".hdr", AssetType::EnvironmentMap);
         AssetSerializerRegistry::RegisterExtension(".anim", AssetType::SpriteAnimation);
         AssetSerializerRegistry::RegisterExtension(".himii", AssetType::Scene);
         AssetSerializerRegistry::RegisterExtension(".tileset", AssetType::TileSet);
@@ -104,6 +121,7 @@ namespace Himii
         AssetSerializerRegistry::RegisterExtension(".hshader", AssetType::Shader);
 
         AssetSerializerRegistry::Register(CreateScope<Texture2DAssetSerializer>());
+        AssetSerializerRegistry::Register(CreateScope<EnvironmentMapAssetSerializer>());
         AssetSerializerRegistry::Register(CreateScope<FontAssetSerializer>());
         AssetSerializerRegistry::Register(CreateScope<SoundAssetSerializer>());
         AssetSerializerRegistry::Register(

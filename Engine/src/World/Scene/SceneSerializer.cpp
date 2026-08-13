@@ -382,6 +382,8 @@ namespace Himii
             out << YAML::Key << "EnvironmentComponent";
             out << YAML::BeginMap;
             auto &environment = entity.GetComponent<EnvironmentComponent>();
+            out << YAML::Key << "EnvironmentMap" << YAML::Value << (uint64_t)environment.EnvironmentMap;
+            out << YAML::Key << "Intensity" << YAML::Value << environment.Intensity;
             out << YAML::Key << "AmbientColor" << YAML::Value << environment.AmbientColor;
             out << YAML::Key << "AmbientIntensity" << YAML::Value << environment.AmbientIntensity;
             out << YAML::Key << "Enabled" << YAML::Value << environment.Enabled;
@@ -840,6 +842,10 @@ namespace Himii
         if (environmentComponent)
         {
             auto &environment = deserializedEntity.AddComponent<EnvironmentComponent>();
+            if (environmentComponent["EnvironmentMap"])
+                environment.EnvironmentMap = environmentComponent["EnvironmentMap"].as<uint64_t>();
+            if (environmentComponent["Intensity"])
+                environment.Intensity = environmentComponent["Intensity"].as<float>();
             if (environmentComponent["AmbientColor"])
                 environment.AmbientColor = environmentComponent["AmbientColor"].as<glm::vec4>();
             if (environmentComponent["AmbientIntensity"])

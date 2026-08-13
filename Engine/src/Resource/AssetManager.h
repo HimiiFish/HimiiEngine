@@ -6,6 +6,7 @@
 
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 
 namespace Himii
 {
@@ -65,13 +66,16 @@ namespace Himii
 
         void UnloadAsset(AssetHandle handle);
 
-        /// 按材质参数中的贴图相对路径恢复 / 同步 Handle（保存与加载时复用）。
+        /// 本会话内该 Handle 已加载失败；跳过后续反序列化以避免重复日志。
+        bool HasCachedAssetLoadFailure(AssetHandle handle) const;
+
+        /// Reimport / 成功导入后清除失败缓存，允许再次加载。
+        void ClearCachedAssetLoadFailure(AssetHandle handle);
+
+        /// 按材质参数中的贴图相对路径恢复 / 同步 Handle（Albedo / Metallic / Roughness）。
         void ResolveMaterialAlbedoTextureReference(MaterialAsset &materialAsset);
 
     private:
-        /// 旧 Registry 若仍指向网格源文件，则确保存在 `.hmesh` 并将条目迁移到产品路径。
-        bool EnsureStaticMeshProductForRegistryEntry(AssetHandle handle, AssetMetadata &metadata);
-
         void RegisterSpritesFromImportData(const TextureImportData& importData);
         void UnregisterSpritesForTexture(AssetHandle textureHandle);
 
@@ -80,5 +84,6 @@ namespace Himii
 
         std::unordered_map<AssetHandle, TextureImportData> m_TextureImportData;
         std::unordered_map<AssetHandle, SpriteRegistryEntry> m_SpriteRegistry;
+        std::unordered_set<AssetHandle> m_FailedAssetLoadHandles;
     };
 } // namespace Himii

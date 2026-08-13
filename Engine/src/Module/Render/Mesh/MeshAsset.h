@@ -13,6 +13,8 @@ namespace Himii
         glm::vec3 Position{0.0f};
         glm::vec3 Normal{0.0f, 1.0f, 0.0f};
         glm::vec2 TextureCoordinate{0.0f};
+        /// xyz = tangent，w = bitangent 符号（+1 / -1）。
+        glm::vec4 Tangent{1.0f, 0.0f, 0.0f, 1.0f};
     };
 
     struct MeshSubmesh

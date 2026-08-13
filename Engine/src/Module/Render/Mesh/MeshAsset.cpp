@@ -23,7 +23,8 @@ namespace Himii
         sharedVertexBuffer->SetData(Vertices.data(), static_cast<uint32_t>(Vertices.size() * sizeof(MeshVertex)));
         sharedVertexBuffer->SetLayout({{ShaderDataType::Float3, "a_Position"},
                                        {ShaderDataType::Float3, "a_Normal"},
-                                       {ShaderDataType::Float2, "a_TextureCoordinate"}});
+                                       {ShaderDataType::Float2, "a_TextureCoordinate"},
+                                       {ShaderDataType::Float4, "a_Tangent"}});
 
         for (const MeshSubmesh &submesh : Submeshes)
         {

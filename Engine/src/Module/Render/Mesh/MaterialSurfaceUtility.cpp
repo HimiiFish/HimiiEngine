@@ -9,12 +9,46 @@
 
 namespace Himii
 {
+    namespace
+    {
+        Ref<Texture2D> ResolveTextureParameter(AssetManager *assetManager, const MaterialAsset &materialAsset,
+                                               const ShaderAsset &shaderAsset, const char *parameterName)
+        {
+            const ShaderPropertyDefinition *textureDefinition =
+                    shaderAsset.FindPropertyDefinition(parameterName);
+            if (!textureDefinition || !assetManager)
+                return nullptr;
+
+            const MaterialParameterValue textureValue =
+                    ResolveMaterialParameterValue(materialAsset, *textureDefinition);
+            if (textureValue.TextureHandle == 0)
+                return nullptr;
+
+            Ref<Asset> textureBase = assetManager->GetAsset(textureValue.TextureHandle);
+            if (!textureBase || textureBase->GetType() != AssetType::Texture2D)
+                return nullptr;
+
+            return std::static_pointer_cast<Texture2D>(textureBase);
+        }
+
+        AssetHandle ResolveTextureHandleParameter(const MaterialAsset &materialAsset,
+                                                  const ShaderAsset &shaderAsset, const char *parameterName)
+        {
+            const ShaderPropertyDefinition *textureDefinition =
+                    shaderAsset.FindPropertyDefinition(parameterName);
+            if (!textureDefinition)
+                return 0;
+
+            return ResolveMaterialParameterValue(materialAsset, *textureDefinition).TextureHandle;
+        }
+    }
+
     ResolvedMaterialSurface GetEngineDefaultLitSurface()
     {
         ResolvedMaterialSurface surface;
         surface.AlbedoColor = glm::vec4(0.5f, 0.5f, 0.5f, 1.0f);
-        surface.Specular = 0.5f;
-        surface.Shininess = 32.0f;
+        surface.Metallic = 0.0f;
+        surface.Roughness = 0.5f;
         surface.UsesLitPipeline = true;
         Ref<ShaderAsset> defaultShaderAsset =
                 BuiltinShaderRegistry::GetBuiltinShaderAsset(BuiltinShaderRegistry::GetDefaultLitShaderHandle());
@@ -64,6 +98,9 @@ namespace Himii
             case ShaderPropertyType::Int:
                 resolvedValue.IntValue = definition.DefaultInt;
                 break;
+            case ShaderPropertyType::Bool:
+                resolvedValue.BoolValue = definition.DefaultBool;
+                break;
             case ShaderPropertyType::Color:
                 resolvedValue.ColorValue = definition.DefaultColor;
                 break;
@@ -104,6 +141,9 @@ namespace Himii
                     break;
                 case ShaderPropertyType::Int:
                     shaderProgram->SetInt(definition.Name, parameterValue.IntValue);
+                    break;
+                case ShaderPropertyType::Bool:
+                    shaderProgram->SetInt(definition.Name, parameterValue.BoolValue ? 1 : 0);
                     break;
                 case ShaderPropertyType::Color:
                 case ShaderPropertyType::Vector4:
@@ -158,34 +198,44 @@ namespace Himii
                     ResolveMaterialParameterValue(*materialAsset, *albedoColorDefinition).ColorValue;
         }
 
-        float specularValue = 0.5f;
-        if (const ShaderPropertyDefinition *specularDefinition =
-                    shaderAsset->FindPropertyDefinition("u_Specular"))
+        float metallicValue = 0.0f;
+        if (const ShaderPropertyDefinition *metallicDefinition =
+                    shaderAsset->FindPropertyDefinition("u_Metallic"))
         {
-            specularValue = ResolveMaterialParameterValue(*materialAsset, *specularDefinition).FloatValue;
+            metallicValue = ResolveMaterialParameterValue(*materialAsset, *metallicDefinition).FloatValue;
         }
-        surface.Specular = specularValue;
+        surface.Metallic = metallicValue;
 
-        float shininessValue = 32.0f;
-        if (const ShaderPropertyDefinition *shininessDefinition =
-                    shaderAsset->FindPropertyDefinition("u_Shininess"))
+        float roughnessValue = 0.5f;
+        if (const ShaderPropertyDefinition *roughnessDefinition =
+                    shaderAsset->FindPropertyDefinition("u_Roughness"))
         {
-            shininessValue = ResolveMaterialParameterValue(*materialAsset, *shininessDefinition).FloatValue;
+            roughnessValue = ResolveMaterialParameterValue(*materialAsset, *roughnessDefinition).FloatValue;
         }
-        surface.Shininess = shininessValue;
+        surface.Roughness = roughnessValue;
 
-        if (const ShaderPropertyDefinition *albedoTextureDefinition =
-                    shaderAsset->FindPropertyDefinition("u_AlbedoTexture"))
+        surface.AlbedoTexture =
+                ResolveTextureParameter(assetManager, *materialAsset, *shaderAsset, "u_AlbedoTexture");
+        surface.MetallicTexture =
+                ResolveTextureParameter(assetManager, *materialAsset, *shaderAsset, "u_MetallicTexture");
+        surface.RoughnessTexture =
+                ResolveTextureParameter(assetManager, *materialAsset, *shaderAsset, "u_RoughnessTexture");
+        surface.NormalTexture =
+                ResolveTextureParameter(assetManager, *materialAsset, *shaderAsset, "u_NormalTexture");
+
+        if (const ShaderPropertyDefinition *normalFlipDefinition =
+                    shaderAsset->FindPropertyDefinition("u_NormalFlipGreen"))
         {
-            const MaterialParameterValue textureValue =
-                    ResolveMaterialParameterValue(*materialAsset, *albedoTextureDefinition);
-            if (textureValue.TextureHandle != 0)
-            {
-                Ref<Asset> textureBase = assetManager->GetAsset(textureValue.TextureHandle);
-                if (textureBase && textureBase->GetType() == AssetType::Texture2D)
-                    surface.AlbedoTexture = std::static_pointer_cast<Texture2D>(textureBase);
-            }
+            surface.NormalFlipGreen =
+                    ResolveMaterialParameterValue(*materialAsset, *normalFlipDefinition).BoolValue;
         }
+
+        const AssetHandle metallicHandle =
+                ResolveTextureHandleParameter(*materialAsset, *shaderAsset, "u_MetallicTexture");
+        const AssetHandle roughnessHandle =
+                ResolveTextureHandleParameter(*materialAsset, *shaderAsset, "u_RoughnessTexture");
+        surface.SharedMetallicRoughnessTexture =
+                metallicHandle != 0 && metallicHandle == roughnessHandle;
 
         return surface;
     }
