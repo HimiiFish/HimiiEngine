@@ -8,6 +8,7 @@
 #include "Resource/ResourceSystem.h"
 
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <mutex>
 #include <unordered_map>
@@ -19,7 +20,7 @@ namespace Himii
     namespace
     {
         constexpr float Pi = 3.14159265358979323846f;
-        constexpr const char *BakeCacheMagic = "HIMIIENV1";
+        constexpr char BakeCacheMagic[8] = {'H', 'I', 'M', 'I', 'I', 'E', 'N', 'V'};
         constexpr uint32_t BakeCacheVersion = 1;
 
         struct EquirectangularImage
@@ -483,7 +484,7 @@ namespace Himii
             if (!file.is_open())
                 return false;
 
-            file.write(BakeCacheMagic, 8);
+            file.write(BakeCacheMagic, sizeof(BakeCacheMagic));
             file.write(reinterpret_cast<const char *>(&BakeCacheVersion), sizeof(BakeCacheVersion));
             file.write(reinterpret_cast<const char *>(&cubemapResolution), sizeof(cubemapResolution));
             file.write(reinterpret_cast<const char *>(environmentFaces.data()),
@@ -511,9 +512,9 @@ namespace Himii
             if (!file.is_open())
                 return false;
 
-            char magic[9] = {};
-            file.read(magic, 8);
-            if (std::string(magic) != BakeCacheMagic)
+            char magic[sizeof(BakeCacheMagic)] = {};
+            file.read(magic, sizeof(BakeCacheMagic));
+            if (!file || std::memcmp(magic, BakeCacheMagic, sizeof(BakeCacheMagic)) != 0)
                 return false;
 
             uint32_t version = 0;
@@ -640,8 +641,6 @@ namespace Himii
 
         EnvironmentImportSettings settings = environmentAsset->ImportSettings;
         EnvironmentMapImportSerializer::Deserialize(sourcePath, settings);
-        settings.SourceContentHash = EnvironmentMapImportSerializer::ComputeSourceContentHash(sourcePath);
-        EnvironmentMapImportSerializer::Serialize(sourcePath, settings);
         environmentAsset->ImportSettings = settings;
 
         const uint64_t handleValue = static_cast<uint64_t>(environmentMapHandle);

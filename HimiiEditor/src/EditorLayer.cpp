@@ -582,8 +582,6 @@ namespace Himii
 
             m_SceneHierarchyPanel.OnImGuiRender();
             m_ContentBrowserPanel.OnImGuiRender();
-            if (m_ShowScriptConsole)
-                m_ScriptConsolePanel.OnImGuiRender(&m_ShowScriptConsole);
             if (m_ShowConsole)
                 m_ConsolePanel.OnImGuiRender(&m_ShowConsole);
             if (m_ShowFontDiagnostics)
@@ -2097,7 +2095,6 @@ namespace Himii
             ImGui::MenuItem("Material Editor", nullptr, &m_ShowMaterialEditor);
             ImGui::MenuItem("TileMap Setup", nullptr, &m_ShowTileMapEditor);
             ImGui::MenuItem("Particle Emitter Editor", nullptr, &m_ShowParticleEmitterEditor);
-            ImGui::MenuItem("Script Console", nullptr, &m_ShowScriptConsole);
             ImGui::MenuItem("Console", nullptr, &m_ShowConsole);
             ImGui::MenuItem("Font Diagnostics", nullptr, &m_ShowFontDiagnostics);
             ImGui::MenuItem("Show Grid", nullptr, &m_ShowGrid);

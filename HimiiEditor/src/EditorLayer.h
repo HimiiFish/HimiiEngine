@@ -5,7 +5,6 @@
 #include "panel/AnimationEditorPanel.h"
 #include "panel/TileMapEditorPanel.h"
 #include "panel/ParticleEmitterEditorPanel.h"
-#include "panel/ScriptConsolePanel.h"
 #include "panel/ConsolePanel.h"
 #include "panel/EditorPreferencesPanel.h"
 #include "panel/ProjectSettingsPanel.h"
@@ -211,9 +210,6 @@ namespace Himii
 
         ParticleEmitterEditorPanel m_ParticleEmitterEditorPanel;
         bool m_ShowParticleEmitterEditor = false;
-
-        ScriptConsolePanel m_ScriptConsolePanel;
-        bool m_ShowScriptConsole = true;
 
         ConsolePanel m_ConsolePanel;
         bool m_ShowConsole = true;

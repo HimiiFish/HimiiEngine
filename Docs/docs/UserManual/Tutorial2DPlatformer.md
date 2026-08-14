@@ -177,7 +177,7 @@ public class PlayerController : Entity
 }
 ```
 
-3. 保存脚本，在 **Script Console** 确认编译成功（无红色 error）。
+3. 保存脚本，在 **Console** 确认编译成功（无红色 error）。
 
 脚本 API 说明见 [脚本 API](ScriptingAPI.md)。
   
@@ -217,7 +217,7 @@ public class PlayerController : Entity
 | 动画不切换 | `Play("名称")` 与 `.anim` 内 **Name** 大小写一致 |
 | 翻转后消失 | 使用 **Flip Horizontal**，勿将 **Scale.x** 设为负数 |
 | Inspector 无脚本字段 | `using HimiiEngine;`；类名与 Script 组件一致；重启编辑器 |
-| Script Console 编译失败 | 点击 error 行跳转 IDE 修复语法错误 |
+| Console 编译失败 | 点击 error 行跳转 IDE 修复语法错误 |
 
 ---
 

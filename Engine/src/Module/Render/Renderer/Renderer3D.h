@@ -9,6 +9,7 @@
 namespace Himii {
 
     class MeshAsset;
+    class VertexArray;
 
     inline constexpr uint32_t ScenePointLightCapacity = 8u;
 
@@ -73,7 +74,19 @@ namespace Himii {
 
         static void Flush();
 
-        // Primitives（Color 为 Albedo；无材质时由调用方传入默认 Specular/Shininess）
+        /// 场景内置原语（Cube / Sphere / Plane / Capsule）走 MeshLit / Unlit，与静态网格同一套材质。
+        enum class BuiltinLitPrimitive
+        {
+            Cube = 0,
+            Plane = 1,
+            Sphere = 2,
+            Capsule = 3
+        };
+
+        static void DrawBuiltinLitMesh(BuiltinLitPrimitive primitive, const glm::mat4 &transform,
+                                       AssetHandle materialHandle, int entityID = -1);
+
+        /// 调试用实例化原语（Phong）。场景网格请用 DrawBuiltinLitMesh。
         static void DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color, int entityID = -1);
         static void DrawCube(const glm::mat4& transform, const glm::vec4& color, int entityID = -1,
                              float specular = 0.5f, float shininess = 32.0f,
@@ -132,6 +145,8 @@ namespace Himii {
         static void UploadCameraAndLighting();
         static void BindShadowMapIfAvailable();
         static float ResolveTextureIndex(const Ref<Texture2D> &albedoTexture);
+        static void SubmitMaterialGeometry(const Ref<VertexArray> &vertexArray, uint32_t indexCount,
+                                           const glm::mat4 &transform, AssetHandle materialHandle, int entityID);
     };
 
 }

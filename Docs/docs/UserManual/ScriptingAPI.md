@@ -41,7 +41,7 @@ using HimiiEngine;
 1. **Content Browser** → `assets/scripts` → 右键 **Create → C# Script**。
 2. 类继承 **`Entity`**，例如 `public class PlayerController : Entity`。
 3. 在场景中选中实体 → **Add Component → Script** → **Class Name** 填写类名（与 `.cs` 中一致，区分大小写）。
-4. **File → Open C# Project** 在外部 IDE 编辑；保存后 **Script Console** 显示编译结果。
+4. **File → Open C# Project** 在外部 IDE 编辑；保存后 **Window → Console** 显示编译结果。
 
 ---
 
@@ -91,8 +91,8 @@ Log.Warning("Low health!");
 Log.Error("Something went wrong.");
 ```
 
-- 显示在 **Window → Console**（进入 Play 时会清空缓冲）。
-- **Script Console** 仅显示编译输出，与 `Log` 无关。
+- 显示在 **Window → Console**（进入 Play 时会清空运行时缓冲，编译输出保留）。
+- 编译输出与 `Log` 在同一面板，用 **Compile** / **Script** 通道区分。
 - 请勿依赖 `Console.WriteLine` 作为游戏日志（不会进入编辑器 Console）。
 
 ---

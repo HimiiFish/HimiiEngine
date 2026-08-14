@@ -14,8 +14,6 @@
 #include "Module/Tilemap/TileMapData.h"
 #include "Module/Particle/ParticleSystem.h"
 #include "Module/Render/Mesh/MeshAsset.h"
-#include "Module/Render/Mesh/MaterialAsset.h"
-#include "Module/Render/Mesh/MaterialSurfaceUtility.h"
 #include "Module/Render/Environment/EnvironmentLightingSystem.h"
 
 #include <algorithm>
@@ -32,14 +30,6 @@ namespace Himii
             entt::entity EntityHandle{};
             TransformComponent *Transform = nullptr;
             SpriteRendererComponent *Sprite = nullptr;
-        };
-
-        struct BuiltinSurfaceParameters
-        {
-            glm::vec4 AlbedoColor{1.0f};
-            float Specular = 0.5f;
-            float Shininess = 32.0f;
-            Ref<Texture2D> AlbedoTexture;
         };
 
         struct DirectionalShadowParameters
@@ -274,40 +264,19 @@ namespace Himii
             return parameters;
         }
 
-        BuiltinSurfaceParameters ResolveBuiltinSurface(const MeshComponent &mesh)
-        {
-            auto assetManager = ResourceSystem::GetAssetManager();
-            const AssetHandle materialHandle =
-                    mesh.MaterialAssetHandles.empty() ? 0 : mesh.MaterialAssetHandles.front();
-            const ResolvedMaterialSurface resolvedSurface =
-                    ResolveMaterialSurface(assetManager.get(), materialHandle);
-
-            BuiltinSurfaceParameters surface;
-            surface.AlbedoColor = resolvedSurface.AlbedoColor;
-            // 内置原语仍走 Cube.glsl（Phong）；用 Metallic/Roughness 做廉价近似映射。
-            const float clampedRoughness = glm::clamp(resolvedSurface.Roughness, 0.04f, 1.0f);
-            surface.Specular = glm::clamp(0.04f + resolvedSurface.Metallic * 0.96f, 0.0f, 1.0f)
-                               * (1.0f - clampedRoughness * 0.5f);
-            surface.Shininess = glm::mix(8.0f, 128.0f, 1.0f - clampedRoughness);
-            surface.AlbedoTexture = resolvedSurface.AlbedoTexture;
-            return surface;
-        }
-
         void DrawBuiltinMesh(const MeshComponent &mesh, const glm::mat4 &worldTransform, int entityIdentifier)
         {
-            const BuiltinSurfaceParameters surface = ResolveBuiltinSurface(mesh);
-            if (mesh.Type == MeshComponent::MeshType::Cube)
-                Renderer3D::DrawCube(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
-                                     surface.Shininess, surface.AlbedoTexture);
-            else if (mesh.Type == MeshComponent::MeshType::Plane)
-                Renderer3D::DrawPlane(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
-                                      surface.Shininess, surface.AlbedoTexture);
+            const AssetHandle materialHandle =
+                    mesh.MaterialAssetHandles.empty() ? 0 : mesh.MaterialAssetHandles.front();
+            Renderer3D::BuiltinLitPrimitive primitive = Renderer3D::BuiltinLitPrimitive::Cube;
+            if (mesh.Type == MeshComponent::MeshType::Plane)
+                primitive = Renderer3D::BuiltinLitPrimitive::Plane;
             else if (mesh.Type == MeshComponent::MeshType::Sphere)
-                Renderer3D::DrawSphere(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
-                                       surface.Shininess, surface.AlbedoTexture);
+                primitive = Renderer3D::BuiltinLitPrimitive::Sphere;
             else if (mesh.Type == MeshComponent::MeshType::Capsule)
-                Renderer3D::DrawCapsule(worldTransform, surface.AlbedoColor, entityIdentifier, surface.Specular,
-                                        surface.Shininess, surface.AlbedoTexture);
+                primitive = Renderer3D::BuiltinLitPrimitive::Capsule;
+
+            Renderer3D::DrawBuiltinLitMesh(primitive, worldTransform, materialHandle, entityIdentifier);
         }
 
         void DrawSpriteRenderersSorted(Scene *scene, entt::registry &registry, AssetManager *assetManager)

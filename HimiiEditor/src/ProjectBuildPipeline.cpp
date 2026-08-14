@@ -607,7 +607,7 @@ namespace Himii
 
                 if (ScriptCompiler::GetLastExitCode() != 0)
                 {
-                    errorMessage = "Release GameAssembly compile failed. See Script Console for details.";
+                    errorMessage = "Release GameAssembly compile failed. See Console for details.";
                     const std::string compileLog = ScriptCompiler::GetLastLog();
                     if (!compileLog.empty())
                         HIMII_CORE_ERROR("Release compile log:\n{0}", compileLog);

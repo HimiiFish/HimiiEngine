@@ -1,6 +1,6 @@
 # 日志数据流
 
-本文档描述引擎与脚本日志如何汇入编辑器 Console。面向贡献者。
+本文档描述引擎、脚本运行时日志与 C# 编译输出如何汇入编辑器 **Console**。面向贡献者。
 
 ---
 
@@ -11,23 +11,34 @@ flowchart LR
     LogCS["C# Log.Info 等"]
     NativeLog["ScriptGlue::NativeLog"]
     PrintMsg["Log::PrintMessage"]
-    Spdlog["spdlog stdout"]
+    PrintCore["Log::Print HIMII_*"]
+    Spdlog["spdlog stdout / 文件"]
     Buffer["ConsoleLog"]
-    Panel["ConsolePanel ImGui"]
+    Dotnet["ScriptCompiler GetLastLog"]
+    Panel["Console 面板"]
     LogCS --> NativeLog --> PrintMsg
     PrintMsg --> Spdlog
-    PrintMsg --> Buffer --> Panel
+    PrintMsg --> Buffer
+    PrintCore --> Spdlog
+    PrintCore --> Buffer
+    Buffer --> Panel
+    Dotnet --> Panel
 ```
 
-- 引擎内部 `HIMII_*` 宏走 `Log::Print`（带源码位置），也会写入 `ConsoleLog`（source 多为 `Engine`）。
-- 脚本侧经 `NativeLog` → `Log::PrintMessage`，source 多为 `Script`。
+- 引擎内部 `HIMII_*` 宏走 `Log::Print`：终端 / 日志文件带源码位置；**Console 只显示短句**（`Source` 为 `Engine`）。
+- 脚本侧经 `NativeLog` → `Log::PrintMessage`，`Source` 为 `Script`。
+- C# 编译输出仍由 `ScriptCompiler` 持有，不写入 `ConsoleLog`。Play 时 `ConsoleLog::Clear` **不会**清掉最近一次编译结果。
 
 ---
 
 ## 2) Console 面板
 
-- 默认过滤偏向脚本消息；可勾选 **Show Engine Logs** 查看引擎日志。
-- Play 开始时 `EditorLayer::StartScenePlay` 会 `ConsoleLog::Clear`。
+单一窗口 **Window → Console**，通道过滤：
+
+- **Script**：脚本 `Log`（默认开）
+- **Compile**：`dotnet build` 输出；error 行可点进 IDE（默认开）
+- **Engine**：引擎日志（默认开，但只显示 Warning / Error）
+- **Engine Info / Trace**：引擎 Info / Trace（默认关）
 
 ---
 
@@ -36,4 +47,5 @@ flowchart LR
 - `Engine/src/EngineCore/Core/Log.*`
 - `Engine/src/EngineCore/Core/ConsoleLog.*`
 - `Engine/src/Module/Script/ScriptGlue`（`NativeLog`）
-- HimiiEditor Console 面板
+- `Engine/src/Module/Script/ScriptCompiler`
+- `HimiiEditor/src/panel/ConsolePanel.*`

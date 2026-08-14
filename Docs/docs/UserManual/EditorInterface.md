@@ -47,21 +47,16 @@ HimiiEditor 采用 DockSpace 停靠布局，提供场景编辑、资源管理与
 
 ### Console（Window → Console）
 
-**运行时日志**面板，显示游戏脚本通过 `Log.Info` / `Warning` / `Error` 输出的内容。
+脚本运行时日志、C# 编译输出与引擎警告/错误共用这一面板。
 
-- **Clear**：清空缓冲。
-- **Show Engine Logs**：勾选后同时显示引擎内部日志（默认仅显示脚本 `Log`）。
+- **Clear**：清空运行时缓冲（最近一次编译输出会保留，直到下一次 `dotnet build`）。
+- **Script / Compile / Engine**：通道开关。默认 Script 与 Compile 打开；Engine 打开时只显示 Warning / Error。
+- **Engine Info / Trace**：显示引擎 Info / Trace（默认关）。
 - **Auto Scroll**：新日志时自动滚到底部。
-- 进入 **Play** 时自动清空，避免与上次运行混淆。
+- 进入 **Play** 时自动清空运行时日志，**不会**清掉编译结果。
+- 编译中 / 成功 / 失败显示在窗口顶部。点击带 `文件.cs(行,列): error` 的红色行，可在配置的 IDE 中打开对应脚本（见 [脚本工作流](ScriptWorkflow.md)）；warning 为黄色且不可跳转。
 
-### Script Console（Window → Script Console）
-
-**脚本编译**输出，显示 `dotnet build` 的结果。
-
-- 编译中 / 成功 / 失败状态提示。
-- 点击带 `文件.cs(行,列): error` 格式的**红色**行，可在配置的 IDE 中打开对应脚本（见 [脚本工作流](ScriptWorkflow.md)）；warning 为黄色且不可跳转。
-
-> **【配图占位】** `images/console-panels.png` — Console 与 Script Console 面板
+> **【配图占位】** `images/console-panels.png` — Console 面板
 
 ## 工具栏与运行模式
 
@@ -82,7 +77,7 @@ HimiiEditor 采用 DockSpace 停靠布局，提供场景编辑、资源管理与
 | **File** | Open C# Project | 用配置的 IDE 打开解决方案 |
 | **File** | Project Settings | 项目级脚本 IDE 覆盖（`.hproj`） |
 | **Edit** | Preferences | 全局默认脚本 IDE（`editor_settings.yaml`） |
-| **Window** | Console / Script Console | 见上文 |
+| **Window** | Console | 运行时日志与脚本编译输出 |
 | **Window** | Animation Editor | 编辑 `.anim` 逐帧动画资产 |
 | **Window** | TileMap / Particle 等 | 其他专项资源编辑器 |
 

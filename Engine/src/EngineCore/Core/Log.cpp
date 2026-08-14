@@ -91,7 +91,7 @@ namespace Himii
                            : s_ClientLogger;
         logger->log(ConvertLogLevel(level), fullMessage);
 
-        ConsoleLog::Push(level, fullMessage, "Engine");
+        ConsoleLog::Push(level, message, "Engine");
     }
 
     void Log::Assert(bool condition, const std::string &message, const char *file, const char *function, int line)

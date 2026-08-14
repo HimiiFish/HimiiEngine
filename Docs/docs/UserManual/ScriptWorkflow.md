@@ -25,12 +25,12 @@
 - 保存 `.cs` 或 `GameAssembly.csproj` 后，文件监视会触发异步编译（debounce）。编译进行中再次保存会**排队**，结束后再编一轮。
 - **Play / Simulate 中**不会自动编译，也不会强制 Stop；仅标记脚本为 dirty。再次点击 **Play**（或菜单 **Compile and Reload**）时才会编译。
 - 点击 **Play** 前若脚本有改动或正在编译，会先编译成功再进入 Play。
-- 编译日志在 **Window → Script Console**：
+- 编译日志在 **Window → Console**（打开 **Compile** 通道，默认已开）：
   - 成功 / 失败状态
   - **红色 error** 行可点击，在配置的 IDE 中打开对应位置（Visual Studio：打开项目 `.sln` 后再打开文件，不使用 `/edit`）
   - **黄色 warning** 仅高亮显示，不可点击跳转
 
-> **【配图占位】** `images/script-console-compile.png` — Script Console 编译输出
+> **【配图占位】** `images/script-console-compile.png` — Console 中的编译输出
 
 ## 运行与热重载策略
 
@@ -88,7 +88,7 @@ Play 模式下，单帧脚本与物理顺序为：
 
 | 现象 | 处理 |
 |------|------|
-| Play 后脚本不执行 | 检查类名是否与 `ScriptComponent` 中一致（含命名空间）；Script Console 是否编译成功 |
+| Play 后脚本不执行 | 检查类名是否与 `ScriptComponent` 中一致（含命名空间）；Console 中 Compile 是否成功 |
 | Inspector 无字段 | 字段须为 **public 实例** 或 **private + `[SerializeField]`**；脚本类名与组件一致；**重新编译 ScriptCore 并重启编辑器** 后重选实体 |
 | `[SerializeField]` 无智能提示 | 用 IDE 打开 **`.sln`**；`GameAssembly` 引用 **ScriptCore.dll**；脚本顶部 `using HimiiEngine;`；重载 C# 语言服务 |
 | Ctrl+S 弹出保存 Animation | 仅在 Animation Editor 内对**未 Save As 的新动画**点 Save 会弹窗；全局 Ctrl+S 已忽略未落盘动画 |

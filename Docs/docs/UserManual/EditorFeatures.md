@@ -122,10 +122,13 @@ Himii 使用 **`.anim` 资产** 组织 2D 逐帧动画：一个文件绑定一�
 
 ### 编译与日志
 
-| 面板 | 内容 |
-|------|------|
-| **Script Console** | `dotnet build` 输出 |
-| **Console** | 运行时 `Log.Info` / `Warning` / `Error` |
+**Window → Console** 同时显示：
+
+- 运行时 `Log.Info` / `Warning` / `Error`
+- `dotnet build` 输出（error 行可跳转 IDE）
+- 引擎 Warning / Error（Info / Trace 需勾选 **Engine Info / Trace**）
+
+Play 只清空运行时日志，保留最近一次编译结果。
 
 ### Inspector 字段
 
@@ -141,8 +144,7 @@ Himii 使用 **`.anim` 资产** 组织 2D 逐帧动画：一个文件绑定一�
 |------|------|
 | **Window → Animation Editor** | 编辑 `.anim` |
 | **Window → TileMap Editor** | 编辑瓦片地图与 TileSet |
-| **Window → Console** | 运行时日志 |
-| **Window → Script Console** | 编译输出 |
+| **Window → Console** | 运行时日志与脚本编译输出 |
 
 其他窗口以编辑器当前版本菜单为准。
 

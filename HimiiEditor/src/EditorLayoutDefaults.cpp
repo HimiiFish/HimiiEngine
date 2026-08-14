@@ -89,7 +89,6 @@ namespace Himii
             ImGui::DockBuilderDockWindow("ViewPort", dock_id_left);
             ImGui::DockBuilderDockWindow("Content Browser", dock_id_left_bottom);
             ImGui::DockBuilderDockWindow("Console", dock_id_console_area);
-            ImGui::DockBuilderDockWindow("Script Console", dock_id_console_area);
             ImGui::DockBuilderDockWindow("Stats", dock_id_console_area);
             ImGui::DockBuilderDockWindow("Scene Hierarchy", dock_id_right);
             ImGui::DockBuilderDockWindow("Properties", dock_id_right_bottom);

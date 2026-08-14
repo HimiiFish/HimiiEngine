@@ -47,7 +47,7 @@
 | [x] | **Input API** | C# `Input.IsKeyDown` 等接口 |
 | [x] | **Script Fields** | Inspector 公开字段读写与 YAML 序列化（含 Entity 引用） |
 | [x] | **Async Compile** | `dotnet build` 异步编译与文件监视 |
-| [x] | **Script Console** | 编译日志面板，错误行跳转 IDE |
+| [x] | **Script Console** | 已并入 Console：编译日志、错误行跳转 IDE |
 | [x] | **IDE Launcher** | 全局/项目 IDE 配置（VS / VS Code / Rider / Custom） |
 | [x] | **Script Log API** | C# `Log.Info` / `Warning` / `Error`，经 C++ `Log::PrintMessage` 输出 |
 

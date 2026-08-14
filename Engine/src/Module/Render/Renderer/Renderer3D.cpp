@@ -627,6 +627,113 @@ namespace Himii
         s_Data.ShadowFramebuffer->BindDepthAttachment(Renderer3DData::ShadowMapTextureSlot);
     }
 
+    void Renderer3D::SubmitMaterialGeometry(const Ref<VertexArray> &vertexArray, uint32_t indexCount,
+                                            const glm::mat4 &transform, AssetHandle materialHandle, int entityID)
+    {
+        if (!vertexArray || indexCount == 0)
+            return;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        const ResolvedMaterialSurface resolvedSurface =
+                ResolveMaterialSurface(assetManager.get(), materialHandle);
+
+        glm::vec4 albedoColor = resolvedSurface.AlbedoColor;
+        Ref<Texture2D> albedoTexture =
+                resolvedSurface.AlbedoTexture ? resolvedSurface.AlbedoTexture : s_Data.WhiteTexture;
+        int useAlbedoTexture = resolvedSurface.AlbedoTexture ? 1 : 0;
+        float metallic = resolvedSurface.Metallic;
+        float roughness = resolvedSurface.Roughness;
+        Ref<Texture2D> metallicTexture = resolvedSurface.MetallicTexture;
+        Ref<Texture2D> roughnessTexture = resolvedSurface.RoughnessTexture;
+        int useMetallicTexture = resolvedSurface.MetallicTexture ? 1 : 0;
+        int useRoughnessTexture = resolvedSurface.RoughnessTexture ? 1 : 0;
+        int sharedMetallicRoughnessTexture = resolvedSurface.SharedMetallicRoughnessTexture ? 1 : 0;
+        Ref<Texture2D> normalTexture = resolvedSurface.NormalTexture;
+        int useNormalTexture = resolvedSurface.NormalTexture ? 1 : 0;
+        int normalFlipGreen = resolvedSurface.NormalFlipGreen ? 1 : 0;
+        const bool useUnlit = !resolvedSurface.UsesLitPipeline;
+
+        if (useUnlit && s_Data.IsShadowPass)
+            return;
+
+        if (s_Data.IsShadowPass)
+        {
+            s_Data.MeshShadowDepthShader->Bind();
+            Renderer3DData::MeshLitData meshShadowData{};
+            meshShadowData.Transform = transform;
+            s_Data.MeshMaterialUniformBuffer->SetData(&meshShadowData, sizeof(Renderer3DData::MeshLitData));
+            s_Data.MeshMaterialUniformBuffer->Bind();
+            s_Data.CameraUniformBuffer->Bind();
+
+            vertexArray->Bind();
+            RenderCommand::DrawIndexed(vertexArray, indexCount);
+            s_Data.Stats.DrawCalls++;
+            s_Data.Stats.TotalIndexCount += indexCount;
+            return;
+        }
+
+        if (useUnlit)
+        {
+            Ref<Shader> activeShader =
+                    resolvedSurface.ShaderProgram ? resolvedSurface.ShaderProgram : s_Data.MeshUnlitShader;
+            activeShader->Bind();
+            Renderer3DData::MeshUnlitData meshUnlitData;
+            meshUnlitData.Transform = transform;
+            meshUnlitData.AlbedoColor = albedoColor;
+            meshUnlitData.UseAlbedoTexture = useAlbedoTexture;
+            meshUnlitData.EntityID = entityID;
+            s_Data.MeshMaterialUniformBuffer->SetData(&meshUnlitData, sizeof(Renderer3DData::MeshUnlitData));
+        }
+        else
+        {
+            Ref<Shader> activeShader =
+                    resolvedSurface.ShaderProgram ? resolvedSurface.ShaderProgram : s_Data.MeshLitShader;
+            activeShader->Bind();
+            Renderer3DData::MeshLitData meshLitData;
+            meshLitData.Transform = transform;
+            meshLitData.AlbedoColor = albedoColor;
+            meshLitData.Metallic = metallic;
+            meshLitData.Roughness = roughness;
+            meshLitData.UseAlbedoTexture = useAlbedoTexture;
+            meshLitData.UseMetallicTexture = useMetallicTexture;
+            meshLitData.UseRoughnessTexture = useRoughnessTexture;
+            meshLitData.SharedMetallicRoughnessTexture = sharedMetallicRoughnessTexture;
+            meshLitData.UseNormalTexture = useNormalTexture;
+            meshLitData.NormalFlipGreen = normalFlipGreen;
+            meshLitData.EntityID = entityID;
+            s_Data.MeshMaterialUniformBuffer->SetData(&meshLitData, sizeof(Renderer3DData::MeshLitData));
+        }
+        s_Data.MeshMaterialUniformBuffer->Bind();
+        s_Data.CameraUniformBuffer->Bind();
+        if (s_Data.SceneLightingUniformBuffer)
+            s_Data.SceneLightingUniformBuffer->Bind();
+
+        if (albedoTexture)
+            albedoTexture->Bind(0);
+        if (metallicTexture)
+            metallicTexture->Bind(1);
+        else
+            s_Data.WhiteTexture->Bind(1);
+        if (roughnessTexture)
+            roughnessTexture->Bind(2);
+        else
+            s_Data.WhiteTexture->Bind(2);
+        if (normalTexture)
+            normalTexture->Bind(3);
+        else
+            s_Data.WhiteTexture->Bind(3);
+        if (!useUnlit)
+        {
+            BindShadowMapIfAvailable();
+            BindImageBasedLightingTexturesIfAvailable();
+        }
+
+        vertexArray->Bind();
+        RenderCommand::DrawIndexed(vertexArray, indexCount);
+        s_Data.Stats.DrawCalls++;
+        s_Data.Stats.TotalIndexCount += indexCount;
+    }
+
     void Renderer3D::UploadCameraAndLighting()
     {
         s_Data.CameraUniformBuffer->SetData(&s_Data.CameraBuffer, sizeof(Renderer3DData::CameraData));
@@ -934,8 +1041,6 @@ namespace Himii
         Flush();
         UploadCameraAndLighting();
 
-        auto assetManager = ResourceSystem::GetAssetManager();
-
         for (const MeshSubmeshGpu &gpuSubmesh : gpuSubmeshes)
         {
             AssetHandle materialHandle = 0;
@@ -944,108 +1049,58 @@ namespace Himii
             else if (gpuSubmesh.MaterialSlotIndex < meshAsset->DefaultMaterialHandles.size())
                 materialHandle = meshAsset->DefaultMaterialHandles[gpuSubmesh.MaterialSlotIndex];
 
-            const ResolvedMaterialSurface resolvedSurface =
-                    ResolveMaterialSurface(assetManager.get(), materialHandle);
-
-            glm::vec4 albedoColor = resolvedSurface.AlbedoColor;
-            Ref<Texture2D> albedoTexture = resolvedSurface.AlbedoTexture
-                                                     ? resolvedSurface.AlbedoTexture
-                                                     : s_Data.WhiteTexture;
-            int useAlbedoTexture = resolvedSurface.AlbedoTexture ? 1 : 0;
-            float metallic = resolvedSurface.Metallic;
-            float roughness = resolvedSurface.Roughness;
-            Ref<Texture2D> metallicTexture = resolvedSurface.MetallicTexture;
-            Ref<Texture2D> roughnessTexture = resolvedSurface.RoughnessTexture;
-            int useMetallicTexture = resolvedSurface.MetallicTexture ? 1 : 0;
-            int useRoughnessTexture = resolvedSurface.RoughnessTexture ? 1 : 0;
-            int sharedMetallicRoughnessTexture = resolvedSurface.SharedMetallicRoughnessTexture ? 1 : 0;
-            Ref<Texture2D> normalTexture = resolvedSurface.NormalTexture;
-            int useNormalTexture = resolvedSurface.NormalTexture ? 1 : 0;
-            int normalFlipGreen = resolvedSurface.NormalFlipGreen ? 1 : 0;
-            const bool useUnlit = !resolvedSurface.UsesLitPipeline;
-
-            // Unlit 不参与投射/接收阴影。
-            if (useUnlit && s_Data.IsShadowPass)
-                continue;
-
-            if (s_Data.IsShadowPass)
-            {
-                s_Data.MeshShadowDepthShader->Bind();
-                Renderer3DData::MeshLitData meshShadowData{};
-                meshShadowData.Transform = transform;
-                s_Data.MeshMaterialUniformBuffer->SetData(&meshShadowData, sizeof(Renderer3DData::MeshLitData));
-                s_Data.MeshMaterialUniformBuffer->Bind();
-                s_Data.CameraUniformBuffer->Bind();
-
-                gpuSubmesh.VertexArray->Bind();
-                RenderCommand::DrawIndexed(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount);
-                s_Data.Stats.DrawCalls++;
-                s_Data.Stats.TotalIndexCount += gpuSubmesh.IndexCount;
-                continue;
-            }
-
-            if (useUnlit)
-            {
-                Ref<Shader> activeShader = resolvedSurface.ShaderProgram ? resolvedSurface.ShaderProgram
-                                                                         : s_Data.MeshUnlitShader;
-                activeShader->Bind();
-                Renderer3DData::MeshUnlitData meshUnlitData;
-                meshUnlitData.Transform = transform;
-                meshUnlitData.AlbedoColor = albedoColor;
-                meshUnlitData.UseAlbedoTexture = useAlbedoTexture;
-                meshUnlitData.EntityID = entityID;
-                s_Data.MeshMaterialUniformBuffer->SetData(&meshUnlitData, sizeof(Renderer3DData::MeshUnlitData));
-            }
-            else
-            {
-                Ref<Shader> activeShader =
-                        resolvedSurface.ShaderProgram ? resolvedSurface.ShaderProgram : s_Data.MeshLitShader;
-                activeShader->Bind();
-                Renderer3DData::MeshLitData meshLitData;
-                meshLitData.Transform = transform;
-                meshLitData.AlbedoColor = albedoColor;
-                meshLitData.Metallic = metallic;
-                meshLitData.Roughness = roughness;
-                meshLitData.UseAlbedoTexture = useAlbedoTexture;
-                meshLitData.UseMetallicTexture = useMetallicTexture;
-                meshLitData.UseRoughnessTexture = useRoughnessTexture;
-                meshLitData.SharedMetallicRoughnessTexture = sharedMetallicRoughnessTexture;
-                meshLitData.UseNormalTexture = useNormalTexture;
-                meshLitData.NormalFlipGreen = normalFlipGreen;
-                meshLitData.EntityID = entityID;
-                s_Data.MeshMaterialUniformBuffer->SetData(&meshLitData, sizeof(Renderer3DData::MeshLitData));
-            }
-            s_Data.MeshMaterialUniformBuffer->Bind();
-            s_Data.CameraUniformBuffer->Bind();
-            if (s_Data.SceneLightingUniformBuffer)
-                s_Data.SceneLightingUniformBuffer->Bind();
-
-            if (albedoTexture)
-                albedoTexture->Bind(0);
-            if (metallicTexture)
-                metallicTexture->Bind(1);
-            else
-                s_Data.WhiteTexture->Bind(1);
-            if (roughnessTexture)
-                roughnessTexture->Bind(2);
-            else
-                s_Data.WhiteTexture->Bind(2);
-            if (normalTexture)
-                normalTexture->Bind(3);
-            else
-                s_Data.WhiteTexture->Bind(3);
-            if (!useUnlit)
-            {
-                BindShadowMapIfAvailable();
-                BindImageBasedLightingTexturesIfAvailable();
-            }
-
-            gpuSubmesh.VertexArray->Bind();
-            RenderCommand::DrawIndexed(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount);
-            s_Data.Stats.DrawCalls++;
-            s_Data.Stats.TotalIndexCount += gpuSubmesh.IndexCount;
+            SubmitMaterialGeometry(gpuSubmesh.VertexArray, gpuSubmesh.IndexCount, transform, materialHandle,
+                                   entityID);
         }
 
+        StartBatch();
+    }
+
+    void Renderer3D::DrawBuiltinLitMesh(BuiltinLitPrimitive primitive, const glm::mat4 &transform,
+                                        AssetHandle materialHandle, int entityID)
+    {
+        if (s_Data.IsShadowPass)
+        {
+            if (!s_Data.MeshShadowDepthShader)
+                return;
+        }
+        else if (!s_Data.MeshLitShader || !s_Data.MeshUnlitShader)
+        {
+            return;
+        }
+
+        Ref<VertexArray> vertexArray;
+        uint32_t indexCount = 0;
+        switch (primitive)
+        {
+            case BuiltinLitPrimitive::Cube:
+                vertexArray = s_Data.CubeVAO;
+                indexCount = 36;
+                s_Data.Stats.CubeCount++;
+                s_Data.Stats.TotalVertexCount += 24;
+                break;
+            case BuiltinLitPrimitive::Plane:
+                vertexArray = s_Data.PlaneVAO;
+                indexCount = 6;
+                s_Data.Stats.QuadCount++;
+                s_Data.Stats.TotalVertexCount += 4;
+                break;
+            case BuiltinLitPrimitive::Sphere:
+                vertexArray = s_Data.SphereVAO;
+                indexCount = s_Data.SphereIndexCount;
+                s_Data.Stats.SphereCount++;
+                s_Data.Stats.TotalVertexCount += s_Data.SphereVertexCount;
+                break;
+            case BuiltinLitPrimitive::Capsule:
+                vertexArray = s_Data.CapsuleVAO;
+                indexCount = s_Data.CapsuleIndexCount;
+                s_Data.Stats.CapsuleCount++;
+                break;
+        }
+
+        Flush();
+        UploadCameraAndLighting();
+        SubmitMaterialGeometry(vertexArray, indexCount, transform, materialHandle, entityID);
         StartBatch();
     }
 

@@ -28,7 +28,7 @@ target_compile_definitions(HimiiEditor PRIVATE
 
 if(MSVC)
     target_compile_options(HimiiEditor PRIVATE $<$<CXX_COMPILER_ID:MSVC>:/utf-8> $<$<C_COMPILER_ID:MSVC>:/utf-8>)
-    # Release 等配置使用 GUI 子系统，不弹出 Win32 控制台；仍通过 mainCRTStartup 使用 main 入口
+    # Release 等配置使用 GUI 子系统，不弹出 Win32 控制台
     target_link_options(HimiiEditor PRIVATE
         "$<$<NOT:$<CONFIG:Debug>>:/SUBSYSTEM:WINDOWS>"
         "$<$<NOT:$<CONFIG:Debug>>:/ENTRY:mainCRTStartup>"

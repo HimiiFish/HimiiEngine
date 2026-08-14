@@ -34,13 +34,17 @@ namespace Himii
     static bool AssignEnvironmentMapFromContentBrowserPayload(const ImGuiPayload *payload,
                                                               AssetHandle &outHandle)
     {
-        if (!payload || !payload->Data || payload->DataSize <= 0)
+        if (!payload || !payload->Data)
             return false;
 
-        const std::string relativePath(static_cast<const char *>(payload->Data),
-                                       static_cast<size_t>(payload->DataSize));
-        std::filesystem::path path(relativePath);
-        std::string extension = path.extension().string();
+        const wchar_t *relativePathWide = static_cast<const wchar_t *>(payload->Data);
+        std::filesystem::path relativePath(relativePathWide);
+        std::filesystem::path environmentFilePath = Project::GetAssetDirectory() / relativePath;
+
+        if (!std::filesystem::exists(environmentFilePath))
+            return false;
+
+        std::string extension = environmentFilePath.extension().string();
         std::transform(extension.begin(), extension.end(), extension.begin(),
                        [](unsigned char character) { return static_cast<char>(std::tolower(character)); });
         if (extension != ".hdr")
@@ -50,18 +54,17 @@ namespace Himii
         if (!assetManager)
             return false;
 
-        AssetHandle handle = assetManager->FindAssetHandleByFilePath(path);
-        if (handle == 0)
-            handle = assetManager->ImportAsset(path);
-        if (handle == 0)
+        const AssetHandle importedHandle = assetManager->ImportAsset(relativePath);
+        if (importedHandle == 0)
             return false;
 
-        Ref<Asset> asset = assetManager->GetAsset(handle);
+        Ref<Asset> asset = assetManager->GetAsset(importedHandle);
         if (!asset || asset->GetType() != AssetType::EnvironmentMap)
             return false;
 
-        outHandle = handle;
-        EnvironmentLightingSystem::Invalidate(handle);
+        outHandle = importedHandle;
+        EnvironmentLightingSystem::Invalidate(importedHandle);
+        assetManager->SerializeAssetRegistry();
         return true;
     }
 
