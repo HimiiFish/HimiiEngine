@@ -68,7 +68,8 @@ namespace Himii
         static Ref<TextureCube> Create(const std::vector<std::string> &path);
         static Ref<TextureCube> Create(const TextureSpecification &specification);
 
-        /// faceIndex: 0=+X … 5=-Z；data 为按 Format 紧密打包的一面像素。
+        /// faceIndex 与 CubemapCoordinates.h 中 CubemapFace 一致（0=+X … 5=-Z）。
+        /// data 为引擎规范面图（左上原点），按 Format 紧密打包。
         virtual void SetFaceData(uint32_t faceIndex, uint32_t mipLevel, const void *data, uint32_t size) = 0;
         virtual uint32_t GetMipLevelCount() const = 0;
     };

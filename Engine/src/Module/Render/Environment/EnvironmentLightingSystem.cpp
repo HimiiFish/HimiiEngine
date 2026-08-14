@@ -1,12 +1,14 @@
 #include "Hepch.h"
 #include "Module/Render/Environment/EnvironmentLightingSystem.h"
 #include "Module/Render/Environment/EnvironmentMapAsset.h"
+#include "Module/Render/RenderCore/CubemapCoordinates.h"
 
 #include "EngineCore/Core/FileSystem.h"
 #include "EngineCore/Core/Log.h"
 #include "Project/Project.h"
 #include "Resource/ResourceSystem.h"
 
+#include <chrono>
 #include <cmath>
 #include <cstring>
 #include <fstream>
@@ -21,7 +23,8 @@ namespace Himii
     {
         constexpr float Pi = 3.14159265358979323846f;
         constexpr char BakeCacheMagic[8] = {'H', 'I', 'M', 'I', 'I', 'E', 'N', 'V'};
-        constexpr uint32_t BakeCacheVersion = 1;
+        constexpr uint32_t BakeCacheVersion = 3;
+        constexpr uint32_t PrefilterConvolutionSampleCount = 256;
 
         struct EquirectangularImage
         {
@@ -42,25 +45,6 @@ namespace Himii
         bool s_Initialized = false;
         Ref<Texture2D> s_SharedBrdfLookup;
         std::unordered_map<uint64_t, RuntimeBakeCacheEntry> s_RuntimeCache;
-
-        glm::vec3 FaceDirection(uint32_t faceIndex, float uniqueCoordinateX, float uniqueCoordinateY)
-        {
-            switch (faceIndex)
-            {
-                case 0:
-                    return glm::normalize(glm::vec3(1.0f, uniqueCoordinateY, -uniqueCoordinateX));
-                case 1:
-                    return glm::normalize(glm::vec3(-1.0f, uniqueCoordinateY, uniqueCoordinateX));
-                case 2:
-                    return glm::normalize(glm::vec3(uniqueCoordinateX, 1.0f, -uniqueCoordinateY));
-                case 3:
-                    return glm::normalize(glm::vec3(uniqueCoordinateX, -1.0f, uniqueCoordinateY));
-                case 4:
-                    return glm::normalize(glm::vec3(uniqueCoordinateX, uniqueCoordinateY, 1.0f));
-                default:
-                    return glm::normalize(glm::vec3(-uniqueCoordinateX, uniqueCoordinateY, -1.0f));
-            }
-        }
 
         glm::vec3 SampleEquirectangular(const EquirectangularImage &image, const glm::vec3 &direction)
         {
@@ -128,18 +112,15 @@ namespace Himii
         void ConvertEquirectangularToCubemap(const EquirectangularImage &image, uint32_t resolution,
                                              std::vector<float> &outFacesRgb)
         {
-            outFacesRgb.assign(static_cast<size_t>(6) * resolution * resolution * 3u, 0.0f);
-            for (uint32_t faceIndex = 0; faceIndex < 6; ++faceIndex)
+            outFacesRgb.assign(static_cast<size_t>(CubemapFaceCount) * resolution * resolution * 3u, 0.0f);
+            for (uint32_t faceIndex = 0; faceIndex < CubemapFaceCount; ++faceIndex)
             {
                 for (uint32_t y = 0; y < resolution; ++y)
                 {
                     for (uint32_t x = 0; x < resolution; ++x)
                     {
-                        const float uniqueCoordinateX =
-                                2.0f * ((static_cast<float>(x) + 0.5f) / static_cast<float>(resolution)) - 1.0f;
-                        const float uniqueCoordinateY =
-                                2.0f * ((static_cast<float>(y) + 0.5f) / static_cast<float>(resolution)) - 1.0f;
-                        const glm::vec3 direction = FaceDirection(faceIndex, uniqueCoordinateX, -uniqueCoordinateY);
+                        const glm::vec3 direction = DirectionFromFaceTexel(
+                                CubemapFaceFromIndex(faceIndex), x, y, resolution);
                         const glm::vec3 color = SampleEquirectangular(image, direction);
                         const size_t pixelIndex =
                                 (static_cast<size_t>(faceIndex) * resolution * resolution
@@ -156,68 +137,52 @@ namespace Himii
         glm::vec3 SampleCubemapCpu(const std::vector<float> &facesRgb, uint32_t resolution,
                                    const glm::vec3 &direction)
         {
-            const glm::vec3 absolute = glm::abs(direction);
-            uint32_t faceIndex = 0;
-            float maxAxis = absolute.x;
-            float uniqueCoordinateX = -direction.z;
-            float uniqueCoordinateY = direction.y;
-            if (absolute.y >= maxAxis)
-            {
-                maxAxis = absolute.y;
-                faceIndex = direction.y > 0.0f ? 2u : 3u;
-                uniqueCoordinateX = direction.x;
-                uniqueCoordinateY = direction.y > 0.0f ? -direction.z : direction.z;
-            }
-            if (absolute.z >= maxAxis)
-            {
-                faceIndex = direction.z > 0.0f ? 4u : 5u;
-                uniqueCoordinateX = direction.z > 0.0f ? direction.x : -direction.x;
-                uniqueCoordinateY = direction.y;
-                maxAxis = absolute.z;
-            }
-            else if (absolute.x >= absolute.y)
-            {
-                faceIndex = direction.x > 0.0f ? 0u : 1u;
-                uniqueCoordinateX = direction.x > 0.0f ? -direction.z : direction.z;
-                uniqueCoordinateY = direction.y;
-                maxAxis = absolute.x;
-            }
+            const CubemapFaceSample faceSample = FaceSampleFromDirection(direction);
+            const uint32_t faceIndex = CubemapFaceToIndex(faceSample.Face);
+            const int lastTexel = static_cast<int>(resolution - 1);
+            const float sampleX = faceSample.ImageU * static_cast<float>(lastTexel);
+            const float sampleY = faceSample.ImageV * static_cast<float>(lastTexel);
+            const int x0 = static_cast<int>(sampleX);
+            const int y0 = static_cast<int>(sampleY);
+            const int x1 = std::min(x0 + 1, lastTexel);
+            const int y1 = std::min(y0 + 1, lastTexel);
+            const float fractionX = sampleX - static_cast<float>(x0);
+            const float fractionY = sampleY - static_cast<float>(y0);
 
-            const float safeMax = std::max(maxAxis, 0.0001f);
-            const float normalizedX = 0.5f * (uniqueCoordinateX / safeMax + 1.0f);
-            const float normalizedY = 0.5f * (uniqueCoordinateY / safeMax + 1.0f);
-            const int x = glm::clamp(static_cast<int>(normalizedX * static_cast<float>(resolution - 1)), 0,
-                                     static_cast<int>(resolution - 1));
-            const int y = glm::clamp(static_cast<int>(normalizedY * static_cast<float>(resolution - 1)), 0,
-                                     static_cast<int>(resolution - 1));
-            const size_t pixelIndex =
-                    (static_cast<size_t>(faceIndex) * resolution * resolution
-                     + static_cast<size_t>(y) * resolution + static_cast<size_t>(x))
-                    * 3u;
-            return glm::vec3(facesRgb[pixelIndex], facesRgb[pixelIndex + 1], facesRgb[pixelIndex + 2]);
+            auto fetchTexel = [&](int texelX, int texelY) {
+                const size_t pixelIndex =
+                        (static_cast<size_t>(faceIndex) * resolution * resolution
+                         + static_cast<size_t>(texelY) * resolution + static_cast<size_t>(texelX))
+                        * 3u;
+                return glm::vec3(facesRgb[pixelIndex], facesRgb[pixelIndex + 1], facesRgb[pixelIndex + 2]);
+            };
+
+            const glm::vec3 color00 = fetchTexel(x0, y0);
+            const glm::vec3 color10 = fetchTexel(x1, y0);
+            const glm::vec3 color01 = fetchTexel(x0, y1);
+            const glm::vec3 color11 = fetchTexel(x1, y1);
+            const glm::vec3 color0 = glm::mix(color00, color10, fractionX);
+            const glm::vec3 color1 = glm::mix(color01, color11, fractionX);
+            return glm::mix(color0, color1, fractionY);
         }
 
         void ConvolveIrradiance(const std::vector<float> &environmentFaces, uint32_t environmentResolution,
                                 uint32_t irradianceResolution, std::vector<float> &outIrradianceFaces)
         {
-            outIrradianceFaces.assign(static_cast<size_t>(6) * irradianceResolution * irradianceResolution * 3u,
+            outIrradianceFaces.assign(static_cast<size_t>(CubemapFaceCount) * irradianceResolution
+                                              * irradianceResolution * 3u,
                                       0.0f);
             constexpr uint32_t sampleCountPhi = 32;
             constexpr uint32_t sampleCountTheta = 16;
 
-            for (uint32_t faceIndex = 0; faceIndex < 6; ++faceIndex)
+            for (uint32_t faceIndex = 0; faceIndex < CubemapFaceCount; ++faceIndex)
             {
                 for (uint32_t y = 0; y < irradianceResolution; ++y)
                 {
                     for (uint32_t x = 0; x < irradianceResolution; ++x)
                     {
-                        const float uniqueCoordinateX =
-                                2.0f * ((static_cast<float>(x) + 0.5f) / static_cast<float>(irradianceResolution))
-                                - 1.0f;
-                        const float uniqueCoordinateY =
-                                2.0f * ((static_cast<float>(y) + 0.5f) / static_cast<float>(irradianceResolution))
-                                - 1.0f;
-                        const glm::vec3 normal = FaceDirection(faceIndex, uniqueCoordinateX, -uniqueCoordinateY);
+                        const glm::vec3 normal = DirectionFromFaceTexel(
+                                CubemapFaceFromIndex(faceIndex), x, y, irradianceResolution);
                         glm::vec3 up = std::abs(normal.y) < 0.999f ? glm::vec3(0.0f, 1.0f, 0.0f)
                                                                    : glm::vec3(0.0f, 0.0f, 1.0f);
                         const glm::vec3 right = glm::normalize(glm::cross(up, normal));
@@ -293,7 +258,7 @@ namespace Himii
                                std::vector<std::vector<float>> &outMipFaces)
         {
             outMipFaces.resize(mipCount);
-            constexpr uint32_t sampleCount = 64;
+            constexpr uint32_t sampleCount = PrefilterConvolutionSampleCount;
 
             for (uint32_t mipLevel = 0; mipLevel < mipCount; ++mipLevel)
             {
@@ -301,20 +266,16 @@ namespace Himii
                 const float roughness =
                         mipCount <= 1 ? 0.0f
                                       : static_cast<float>(mipLevel) / static_cast<float>(mipCount - 1);
-                outMipFaces[mipLevel].assign(static_cast<size_t>(6) * mipSize * mipSize * 3u, 0.0f);
+                outMipFaces[mipLevel].assign(static_cast<size_t>(CubemapFaceCount) * mipSize * mipSize * 3u, 0.0f);
 
-                for (uint32_t faceIndex = 0; faceIndex < 6; ++faceIndex)
+                for (uint32_t faceIndex = 0; faceIndex < CubemapFaceCount; ++faceIndex)
                 {
                     for (uint32_t y = 0; y < mipSize; ++y)
                     {
                         for (uint32_t x = 0; x < mipSize; ++x)
                         {
-                            const float uniqueCoordinateX =
-                                    2.0f * ((static_cast<float>(x) + 0.5f) / static_cast<float>(mipSize)) - 1.0f;
-                            const float uniqueCoordinateY =
-                                    2.0f * ((static_cast<float>(y) + 0.5f) / static_cast<float>(mipSize)) - 1.0f;
                             const glm::vec3 normal =
-                                    FaceDirection(faceIndex, uniqueCoordinateX, -uniqueCoordinateY);
+                                    DirectionFromFaceTexel(CubemapFaceFromIndex(faceIndex), x, y, mipSize);
                             const glm::vec3 viewDirection = normal;
 
                             glm::vec3 prefilteredColor{0.0f};
@@ -671,7 +632,10 @@ namespace Himii
                                                       prefilterMips);
         if (!loadedFromDisk)
         {
-            HIMII_CORE_INFO("Baking environment IBL for {0} ...", sourcePath.string());
+            HIMII_CORE_INFO("Baking environment IBL for {0} ({1} cubemap, {2} prefilter, {3} samples)...",
+                            sourcePath.string(), settings.CubemapResolution, settings.PrefilterResolution,
+                            PrefilterConvolutionSampleCount);
+            const auto bakeStart = std::chrono::steady_clock::now();
             EquirectangularImage equirectangular;
             if (!LoadEquirectangularHdr(sourcePath, equirectangular))
                 return result;
@@ -681,6 +645,10 @@ namespace Himii
                                irradianceFaces);
             ConvolvePrefilter(environmentFaces, settings.CubemapResolution, settings.PrefilterResolution,
                               settings.PrefilterMipCount, prefilterMips);
+            const auto bakeElapsedMilliseconds =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now()
+                                                                          - bakeStart)
+                            .count();
             if (!WriteBakeCacheFile(cachePath, settings.CubemapResolution, environmentFaces,
                                     settings.IrradianceResolution, irradianceFaces, settings.PrefilterResolution,
                                     settings.PrefilterMipCount, prefilterMips))
@@ -689,7 +657,8 @@ namespace Himii
             }
             else
             {
-                HIMII_CORE_INFO("Environment bake cache written: {0}", cachePath.string());
+                HIMII_CORE_INFO("Environment bake cache written in {0} ms: {1}", bakeElapsedMilliseconds,
+                                cachePath.string());
             }
         }
 

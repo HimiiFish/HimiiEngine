@@ -10,9 +10,9 @@ namespace Himii
 {
     struct EnvironmentImportSettings
     {
-        uint32_t CubemapResolution = 128;
+        uint32_t CubemapResolution = 512;
         uint32_t IrradianceResolution = 32;
-        uint32_t PrefilterResolution = 128;
+        uint32_t PrefilterResolution = 256;
         uint32_t PrefilterMipCount = 5;
         uint32_t BrdfLookupSize = 256;
         std::string SourceContentHash;
