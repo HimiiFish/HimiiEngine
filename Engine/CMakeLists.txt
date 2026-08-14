@@ -15,7 +15,7 @@ find_package(glfw3 CONFIG REQUIRED)
 find_package(yaml-cpp CONFIG REQUIRED)
 find_package(Vulkan REQUIRED)
 find_package(unofficial-shaderc CONFIG REQUIRED)
-# SPIRV-Cross
+
 find_package(spirv_cross_core CONFIG REQUIRED)
 find_package(spirv_cross_glsl CONFIG REQUIRED)
 find_package(SPIRV-Tools CONFIG REQUIRED)

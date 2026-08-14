@@ -155,5 +155,5 @@ build/x64-debug/bin/HimiiRuntime/Debug/HimiiRuntime.exe
 
 * **找不到 ScriptCore.dll**：先完整构建 HimiiEditor，或单独 `dotnet build ScriptCore`。
 * **Build Project 找不到 Export Templates**：确认已构建 Release Editor（POST_BUILD 同步）或执行过 `cmake --install`；开发机也可依赖 `bin/HimiiRuntime/Release/` 回退路径。
-* **vcpkg 依赖失败**：确认仓库内 `vcpkg` 子模块存在，并确认已从 `CMakePresets.json.example` 复制出本地 `CMakePresets.json`，然后重跑 `cmake --preset x64-debug`。
+* **vcpkg 依赖失败**：确认仓库内 `vcpkg` 子模块存在，并确认已从 `CMakePresets.json.example` 复制出本地 `CMakePresets.json`，然后重跑 `cmake --preset x64-debug`。依赖版本由根目录 `vcpkg.json` 的 `builtin-baseline` 冻结，须与 `vcpkg` 子模块当前提交一致；不要使用 `git submodule update --remote`。清单见 [第三方依赖](ThirdParty.md)。
 * 更多平台说明见仓库 [README](https://github.com/HimiiFish/Himii-Engine/blob/main/README.md)（含 Linux 与 `build.py` 用法）。

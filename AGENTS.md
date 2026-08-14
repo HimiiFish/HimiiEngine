@@ -137,6 +137,16 @@
 
 ---
 
+## 第三方依赖
+
+- **混合模型**：要改源码 / fork、单文件嵌入、无可靠 vcpkg port、或与引擎强绑定并会打补丁 → `Engine/vender/`；其余走钉死的 vcpkg。
+- **冻结**：`vcpkg.json` 必须有 `builtin-baseline`，且与仓库内 `vcpkg` 子模块 SHA 一致。禁止日常 `git submodule update --remote`。升级 baseline、子模块 SHA 或拷源码必须是专门改动，并编过 HimiiEditor。
+- **`overrides`** 只给个别被 API 卡住、暂时不能跟随 baseline 的包。
+- **公共 API**：`glm` 视为引擎数学类型；`entt` / yaml-cpp / box2d / glfw 等不得出现在游戏或脚本会碰到的头文件里。
+- **清单**：版本、许可证、来源见 `Docs/docs/DevManual/ThirdParty.md`。新增或升级库时同步更新该表。
+
+---
+
 ## Git 与本机生成物
 
 | 路径 | 是否提交 |

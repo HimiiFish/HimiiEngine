@@ -1,7 +1,6 @@
 [submodule "vcpkg"]
 	path = vcpkg
 	url = https://github.com/microsoft/vcpkg.git
-	branch = master
 [submodule "Engine/vender/imgui"]
 	path = Engine/vender/imgui
 	url = https://github.com/HimiiFish/imgui.git

@@ -66,6 +66,7 @@ nav:
   - 开发手册:
       - 开发者手册总览: DevManual/README.md
       - 源码构建: DevManual/BuildingFromSource.md
+      - 第三方依赖: DevManual/ThirdParty.md
       - 架构概览: DevManual/Architecture.md
       - 编辑器运行时: DevManual/CoreSystems/EditorRuntime.md
       - 脚本系统（C++）: DevManual/CoreSystems/Scripting.md

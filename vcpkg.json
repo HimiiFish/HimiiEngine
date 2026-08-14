@@ -1,6 +1,7 @@
 {
   "name": "himiengine-project",
   "version-string": "0.1.0",
+  "builtin-baseline": "edffab1bcd2cb5b8c17d6ba34d5651ea0bf82979",
   "dependencies": [
     "glad",
     "glfw3",
