@@ -14,7 +14,7 @@
         <link rel="prev" href="../">
       
       
-        <link rel="next" href="../Architecture/">
+        <link rel="next" href="../ThirdParty/">
       
       
         
@@ -1356,6 +1356,34 @@
   
   
     <li class="md-nav__item">
+      <a href="../ThirdParty/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    第三方依赖
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../Architecture/" class="md-nav__link">
         
   
@@ -1930,7 +1958,7 @@
 <ul>
 <li><strong>找不到 ScriptCore.dll</strong>：先完整构建 HimiiEditor，或单独 <code>dotnet build ScriptCore</code>。</li>
 <li><strong>Build Project 找不到 Export Templates</strong>：确认已构建 Release Editor（POST_BUILD 同步）或执行过 <code>cmake --install</code>；开发机也可依赖 <code>bin/HimiiRuntime/Release/</code> 回退路径。</li>
-<li><strong>vcpkg 依赖失败</strong>：确认仓库内 <code>vcpkg</code> 子模块存在，并确认已从 <code>CMakePresets.json.example</code> 复制出本地 <code>CMakePresets.json</code>，然后重跑 <code>cmake --preset x64-debug</code>。</li>
+<li><strong>vcpkg 依赖失败</strong>：确认仓库内 <code>vcpkg</code> 子模块存在，并确认已从 <code>CMakePresets.json.example</code> 复制出本地 <code>CMakePresets.json</code>，然后重跑 <code>cmake --preset x64-debug</code>。依赖版本由根目录 <code>vcpkg.json</code> 的 <code>builtin-baseline</code> 冻结，须与 <code>vcpkg</code> 子模块当前提交一致；不要使用 <code>git submodule update --remote</code>。清单见 <a href="../ThirdParty/">第三方依赖</a>。</li>
 <li>更多平台说明见仓库 <a href="https://github.com/HimiiFish/Himii-Engine/blob/main/README.md">README</a>（含 Linux 与 <code>build.py</code> 用法）。</li>
 </ul>
 
