@@ -2158,7 +2158,7 @@
 <li><strong>Content Browser</strong> → <code>assets/scripts</code> → 右键 <strong>Create → C# Script</strong>。</li>
 <li>类继承 <strong><code>Entity</code></strong>，例如 <code>public class PlayerController : Entity</code>。</li>
 <li>在场景中选中实体 → <strong>Add Component → Script</strong> → <strong>Class Name</strong> 填写类名（与 <code>.cs</code> 中一致，区分大小写）。</li>
-<li><strong>File → Open C# Project</strong> 在外部 IDE 编辑；保存后 <strong>Script Console</strong> 显示编译结果。</li>
+<li><strong>File → Open C# Project</strong> 在外部 IDE 编辑；保存后 <strong>Window → Console</strong> 显示编译结果。</li>
 </ol>
 <hr />
 <h2 id="entity">Entity 生命周期</h2>
@@ -2218,8 +2218,8 @@
 <a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">Log</span><span class="p">.</span><span class="n">Error</span><span class="p">(</span><span class="s">&quot;Something went wrong.&quot;</span><span class="p">);</span>
 </code></pre></div>
 <ul>
-<li>显示在 <strong>Window → Console</strong>（进入 Play 时会清空缓冲）。</li>
-<li><strong>Script Console</strong> 仅显示编译输出，与 <code>Log</code> 无关。</li>
+<li>显示在 <strong>Window → Console</strong>（进入 Play 时会清空运行时缓冲，编译输出保留）。</li>
+<li>编译输出与 <code>Log</code> 在同一面板，用 <strong>Compile</strong> / <strong>Script</strong> 通道区分。</li>
 <li>请勿依赖 <code>Console.WriteLine</code> 作为游戏日志（不会进入编辑器 Console）。</li>
 </ul>
 <hr />

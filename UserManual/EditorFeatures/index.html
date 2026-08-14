@@ -2254,24 +2254,13 @@
 <li>实体挂载 <strong>Script</strong> 组件，填写 <strong>Class Name</strong>（与 C# 类名一致）。</li>
 </ul>
 <h3 id="_12">编译与日志</h3>
-<table>
-<thead>
-<tr>
-<th>面板</th>
-<th>内容</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Script Console</strong></td>
-<td><code>dotnet build</code> 输出</td>
-</tr>
-<tr>
-<td><strong>Console</strong></td>
-<td>运行时 <code>Log.Info</code> / <code>Warning</code> / <code>Error</code></td>
-</tr>
-</tbody>
-</table>
+<p><strong>Window → Console</strong> 同时显示：</p>
+<ul>
+<li>运行时 <code>Log.Info</code> / <code>Warning</code> / <code>Error</code></li>
+<li><code>dotnet build</code> 输出（error 行可跳转 IDE）</li>
+<li>引擎 Warning / Error（Info / Trace 需勾选 <strong>Engine Info / Trace</strong>）</li>
+</ul>
+<p>Play 只清空运行时日志，保留最近一次编译结果。</p>
 <h3 id="inspector">Inspector 字段</h3>
 <ul>
 <li><strong>public 实例字段</strong> 或 <strong><code>[SerializeField]</code> private 字段</strong>（<code>using HimiiEngine;</code>）可在属性面板编辑并写入场景。</li>
@@ -2297,11 +2286,7 @@
 </tr>
 <tr>
 <td><strong>Window → Console</strong></td>
-<td>运行时日志</td>
-</tr>
-<tr>
-<td><strong>Window → Script Console</strong></td>
-<td>编译输出</td>
+<td>运行时日志与脚本编译输出</td>
 </tr>
 </tbody>
 </table>

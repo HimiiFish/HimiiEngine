@@ -1850,13 +1850,13 @@
 <li>保存 <code>.cs</code> 或 <code>GameAssembly.csproj</code> 后，文件监视会触发异步编译（debounce）。编译进行中再次保存会<strong>排队</strong>，结束后再编一轮。</li>
 <li><strong>Play / Simulate 中</strong>不会自动编译，也不会强制 Stop；仅标记脚本为 dirty。再次点击 <strong>Play</strong>（或菜单 <strong>Compile and Reload</strong>）时才会编译。</li>
 <li>点击 <strong>Play</strong> 前若脚本有改动或正在编译，会先编译成功再进入 Play。</li>
-<li>编译日志在 <strong>Window → Script Console</strong>：</li>
+<li>编译日志在 <strong>Window → Console</strong>（打开 <strong>Compile</strong> 通道，默认已开）：</li>
 <li>成功 / 失败状态</li>
 <li><strong>红色 error</strong> 行可点击，在配置的 IDE 中打开对应位置（Visual Studio：打开项目 <code>.sln</code> 后再打开文件，不使用 <code>/edit</code>）</li>
 <li><strong>黄色 warning</strong> 仅高亮显示，不可点击跳转</li>
 </ul>
 <blockquote>
-<p><strong>【配图占位】</strong> <code>images/script-console-compile.png</code> — Script Console 编译输出</p>
+<p><strong>【配图占位】</strong> <code>images/script-console-compile.png</code> — Console 中的编译输出</p>
 </blockquote>
 <h2 id="_3">运行与热重载策略</h2>
 <ul>
@@ -1931,7 +1931,7 @@
 <tbody>
 <tr>
 <td>Play 后脚本不执行</td>
-<td>检查类名是否与 <code>ScriptComponent</code> 中一致（含命名空间）；Script Console 是否编译成功</td>
+<td>检查类名是否与 <code>ScriptComponent</code> 中一致（含命名空间）；Console 中 Compile 是否成功</td>
 </tr>
 <tr>
 <td>Inspector 无字段</td>
