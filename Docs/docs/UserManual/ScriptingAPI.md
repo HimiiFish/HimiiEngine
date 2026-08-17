@@ -244,7 +244,9 @@ if (tilemap != null && tilemap.HasBounds)
 | `Width` / `Height` | 地图尺寸（稀疏分块模型的外接范围） |
 | `HasBounds` | 是否存在有效格子 |
 | `GetBounds` | 已绘制格子的包围盒 |
-| `GetTile` / `SetTile` | 读写瓦片 ID |
+| `GetTile` / `SetTile` | 读写格子上的**逻辑 ID**（普通图块或 Rule Tile） |
+
+`GetTile` / `SetTile` 读写的是地图格子里的逻辑 ID，不是绘制时解析出的边角精灵。写入 Rule Tile 的 ID 后，画面会按邻居自动接边，脚本无需额外 Refresh。世界生成等后续流程同样调用 `SetTile(x, y, grassRuleId)` 即可。
 
 ---
 

@@ -48,14 +48,14 @@ HimiiEngine 内置 **Box2D v3** 作为 2D 物理引擎。
 用于由瓦片组成的地面/墙体，**不需要** Rigidbody2D。
 
 1. 实体上已有 **Tilemap** 组件并指定 `.tilemap` 资源。
-2. 在 **TileMap Setup → Collision** 中为**图块类型**（非场景里已画的格子）勾选 **Collidable**，并 **Save TileSet**。
+2. 在 **TileMap Setup → Collision** 中为**图块类型**（普通图块或 Rule Tile，非场景里已画的格子）勾选 **Collidable**，并 **Save TileSet**。
 3. 为同一实体添加 **Tilemap Collider 2D** 组件（Inspector 中可关闭 **Enabled**）。
 4. 进入 **Play** 或 **Simulate** 后，引擎会为所有 `Collidable` 且非空的格子创建静态 Box2D 碰撞形状。
 
 说明：
 
-- **Collidable** 是 TileSet 里每种图块类型的属性，不是单个场景格子的属性。
-- **Slice Grid** 会按图集坐标 `(列, 行)` 保留同位置图块的 Collidable 设置。
+- **Collidable** 是 TileSet 里每种图块类型的属性，不是单个场景格子的属性。格子若是 Rule Tile，碰撞用该 Rule Tile 的 Collidable，不随边角精灵变化。
+- **Slice Grid** 会按图集坐标 `(列, 行)` 保留同位置普通图块的 Collidable 设置，且不会清除 Rule Tile。
 - Inspector 中 **Tilemap Collider 2D** 显示诊断：已绘制格子数、将参与碰撞的格子数、未知图块 ID 数。
 - 可选 **Merge Adjacent Cells**：合并相邻可碰撞格为更少的大矩形（大地图性能更好，默认关闭）。
 - 未添加 **Tilemap Collider 2D** 的 Tilemap **不会**产生物理碰撞。

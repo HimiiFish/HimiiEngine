@@ -363,6 +363,86 @@ namespace Himii
             });
     }
 
+    void DrawRuleTileNeighborMatrixControl(const char* label,
+                                           RuleTileNeighborCondition neighborConditions[RuleTileNeighborCount],
+                                           const std::function<void()>& onEdited)
+    {
+        const int visualCellToNeighborIndex[9] = {
+                7, 0, 1,
+                6, -1, 2,
+                5, 4, 3};
+
+        DrawPropertyRow(
+                label,
+                [&]()
+                {
+                    const float cellSize = ImGui::GetFrameHeight() * 1.85f;
+                    if (!ImGui::BeginTable("##RuleTileNeighborMatrix", 3,
+                                           ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_NoPadOuterX))
+                        return;
+
+                    for (int visualCellIndex = 0; visualCellIndex < 9; ++visualCellIndex)
+                    {
+                        if (visualCellIndex % 3 == 0)
+                            ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+
+                        const int neighborIndex = visualCellToNeighborIndex[visualCellIndex];
+                        if (neighborIndex < 0)
+                        {
+                            ImGui::BeginDisabled();
+                            ImGui::Button("Tile", ImVec2(cellSize, cellSize));
+                            ImGui::EndDisabled();
+                            DrawInspectorTooltipIfHovered("Center: this Rule Tile");
+                            continue;
+                        }
+
+                        ImGui::PushID(neighborIndex);
+                        RuleTileNeighborCondition& condition = neighborConditions[neighborIndex];
+                        const char* buttonLabel = "·";
+                        const char* tooltipText = "Don't Care";
+                        ImVec4 buttonColor = ImVec4(0.28f, 0.28f, 0.28f, 1.0f);
+                        if (condition == RuleTileNeighborCondition::ThisRuleTile)
+                        {
+                            buttonLabel = "This";
+                            tooltipText = "This Rule Tile";
+                            buttonColor = ImVec4(0.18f, 0.52f, 0.28f, 1.0f);
+                        }
+                        else if (condition == RuleTileNeighborCondition::NotThisRuleTile)
+                        {
+                            buttonLabel = "Not";
+                            tooltipText = "Not This Rule Tile";
+                            buttonColor = ImVec4(0.62f, 0.22f, 0.22f, 1.0f);
+                        }
+
+                        ImGui::PushStyleColor(ImGuiCol_Button, buttonColor);
+                        ImGui::PushStyleColor(ImGuiCol_ButtonHovered,
+                                              ImVec4(buttonColor.x + 0.08f, buttonColor.y + 0.08f,
+                                                     buttonColor.z + 0.08f, 1.0f));
+                        ImGui::PushStyleColor(ImGuiCol_ButtonActive,
+                                              ImVec4(buttonColor.x - 0.05f, buttonColor.y - 0.05f,
+                                                     buttonColor.z - 0.05f, 1.0f));
+                        if (ImGui::Button(buttonLabel, ImVec2(cellSize, cellSize)))
+                        {
+                            if (condition == RuleTileNeighborCondition::Ignore)
+                                condition = RuleTileNeighborCondition::ThisRuleTile;
+                            else if (condition == RuleTileNeighborCondition::ThisRuleTile)
+                                condition = RuleTileNeighborCondition::NotThisRuleTile;
+                            else
+                                condition = RuleTileNeighborCondition::Ignore;
+
+                            if (onEdited)
+                                onEdited();
+                        }
+                        ImGui::PopStyleColor(3);
+                        DrawInspectorTooltipIfHovered(tooltipText);
+                        ImGui::PopID();
+                    }
+
+                    ImGui::EndTable();
+                });
+    }
+
     void DrawUInt32Control(const char* label, uint32_t& value, float speed, bool enableRowReset,
                            uint32_t resetValue)
     {

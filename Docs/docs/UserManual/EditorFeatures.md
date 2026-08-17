@@ -63,6 +63,39 @@ HimiiEditor 是基于停靠布局的集成开发环境，主要能力包括：
 
 ---
 
+## TileMap 与 Rule Tile
+
+在 **Window → TileMap Editor**（或 Inspector 中打开 **TileMap Setup**）编辑 `.tilemap` 与配套 `.tileset`。
+
+### 普通图块
+
+1. 将图集纹理拖入右侧预览，设置 **Tile Size** 后点 **Slice Grid**，生成普通图块。
+2. 在图集中点选单元格作为笔刷，再到 Scene 中绘制。格子里存的就是该图块的逻辑 ID。
+3. **Collision** 中按图块类型勾选 **Collidable**，再为实体添加 **Tilemap Collider 2D**。详见 [2D 物理](Physics2D.md)。
+
+**Slice Grid** 只重建普通图块定义，**不会删除 Rule Tile**；分配新图块 ID 时会跳过已被 Rule Tile 占用的编号。
+
+### Rule Tile（自动接边）
+
+Rule Tile 与普通图块共用同一套逻辑 ID 空间，写在 **TileSet** 里，不另存资源类型。
+
+1. 在左栏 **Rule Tiles** 点 **New Rule Tile**，填写显示名，勾选是否 **Collidable**。
+2. 勾选 **Atlas Click Assigns Output**，在右侧图集点选普通图块，加入 **Default Outputs**（至少一张才能当笔刷）。
+3. **Add Rule** 配置 3×3 邻居（Don't Care / This / Not This）与 **Transform**（Fixed / Rotated / Mirror）。规则列表**先匹配先生效**。
+4. 选中该 Rule Tile 后在 Scene 中刷地：格子存的是 Rule Tile 的逻辑 ID，画面按邻居现算边/角/中心，无需改写周围格子。
+
+混画语义：
+
+- 同一张地图可同时存在普通图块与 Rule Tile。
+- 邻居条件里的 **This** 只认**同一块** Rule Tile；空格、普通图块、其他 Rule Tile 都算 **Not This**。
+- 规则全未匹配时画默认输出图；多张默认/规则输出用格子坐标做稳定抽取，同一格不会闪。
+- Rotated / Mirror 只旋转或翻转精灵 UV，格子四边形仍轴对齐。
+- 碰撞跟 **Rule Tile 自身的 Collidable**，不跟边角精灵走。
+
+删除 Rule Tile 不会自动改地图上已刷的 ID；那些格子会变成未知 ID（不绘制）。请 **Save TileSet** 后保存工程。
+
+---
+
 ## 2D 逐帧动画
 
 Himii 使用 **`.anim` 资产** 组织 2D 逐帧动画：一个文件绑定一张图集，内含多条 **命名动画**（如 `Idle`、`Run`）。

@@ -66,6 +66,19 @@ namespace Himii
             {
                 report.paintedCellCount++;
 
+                const RuleTileDefinition* ruleTileDefinition =
+                        tileSet.GetRuleTileDefinition(tileIdentifier);
+                if (ruleTileDefinition)
+                {
+                    report.tileDefinitionFoundCount++;
+                    if (!ruleTileDefinition->Collidable)
+                        return;
+
+                    report.collidableCellCount++;
+                    outCollidableCells.push_back({tileX, tileY});
+                    return;
+                }
+
                 const TileDef* tileDefinition = tileSet.GetTileDef(tileIdentifier);
                 if (!tileDefinition)
                 {
@@ -200,6 +213,10 @@ namespace Himii
 
     bool TilemapColliderBuilder::ShouldCellCollide(uint16_t tileIdentifier, const TileSet& tileSet)
     {
+        const RuleTileDefinition* ruleTileDefinition = tileSet.GetRuleTileDefinition(tileIdentifier);
+        if (ruleTileDefinition)
+            return ruleTileDefinition->Collidable;
+
         const TileDef* tileDefinition = tileSet.GetTileDef(tileIdentifier);
         return tileDefinition && tileDefinition->Collidable;
     }

@@ -36,6 +36,7 @@
 #include "Module/Tilemap/TileSet.h"
 #include "Module/Tilemap/TileMapCoordinateUtility.h"
 #include "Module/Tilemap/TilemapColliderBuilder.h"
+#include "Module/Tilemap/RuleTileResolver.h"
 #include "EngineCore/ImGui/ImGuiLayer.h"
 #include "Module/Render/Renderer/Renderer.h"
 #include <algorithm>
@@ -3468,6 +3469,57 @@ namespace Himii
         Renderer2D::DrawLine(cornerTopLeft, cornerBottomLeft, borderColor);
     }
 
+    static const TileDef *ResolveEditorPaintPreviewTileDefinition(
+            const TileMapData &mapData,
+            const TileSet &tileSet,
+            int32_t tileX,
+            int32_t tileY,
+            uint16_t selectedTileIdentifier,
+            uint32_t &quarterTurnsClockwise,
+            bool &mirrorHorizontal,
+            bool &mirrorVertical)
+    {
+        quarterTurnsClockwise = 0;
+        mirrorHorizontal = false;
+        mirrorVertical = false;
+
+        const TileDef *tileDefinition = tileSet.GetTileDef(selectedTileIdentifier);
+        if (tileDefinition)
+            return tileDefinition;
+
+        if (!tileSet.GetRuleTileDefinition(selectedTileIdentifier))
+            return nullptr;
+
+        const RuleTileResolveResult resolved = RuleTileResolver::Resolve(
+                mapData, tileSet, tileX, tileY, selectedTileIdentifier);
+        if (!resolved.HasOutput)
+            return nullptr;
+
+        quarterTurnsClockwise = resolved.QuarterTurnsClockwise;
+        mirrorHorizontal = resolved.MirrorHorizontal;
+        mirrorVertical = resolved.MirrorVertical;
+        return tileSet.GetTileDef(resolved.OutputTileIdentifier);
+    }
+
+    static void ApplyPreviewTextureCoordinateTransform(std::array<glm::vec2, 4> &textureCoordinates,
+                                                      uint32_t quarterTurnsClockwise,
+                                                      bool mirrorHorizontal,
+                                                      bool mirrorVertical)
+    {
+        if (quarterTurnsClockwise == 0 && !mirrorHorizontal && !mirrorVertical)
+            return;
+
+        glm::vec2 mutableCoordinates[4] = {
+                textureCoordinates[0], textureCoordinates[1], textureCoordinates[2],
+                textureCoordinates[3]};
+        RuleTileResolver::ApplyTextureCoordinateTransform(
+                mutableCoordinates, quarterTurnsClockwise, mirrorHorizontal, mirrorVertical);
+        textureCoordinates[0] = mutableCoordinates[0];
+        textureCoordinates[1] = mutableCoordinates[1];
+        textureCoordinates[2] = mutableCoordinates[2];
+        textureCoordinates[3] = mutableCoordinates[3];
+    }
+
     void EditorLayer::DrawTilemapGhostPreviewInViewport()
     {
         if (m_SceneState != SceneState::Edit || !TileMapCoordinateUtility::IsValidTileCoordinate(m_TilemapHoveredTile)
@@ -3493,7 +3545,12 @@ namespace Himii
         if (!tileSet)
             return;
 
-        const TileDef *tileDefinition = tileSet->GetTileDef(selectedTileIdentifier);
+        uint32_t quarterTurnsClockwise = 0;
+        bool mirrorHorizontal = false;
+        bool mirrorVertical = false;
+        const TileDef *tileDefinition = ResolveEditorPaintPreviewTileDefinition(
+                *mapData, *tileSet, m_TilemapHoveredTile.x, m_TilemapHoveredTile.y,
+                selectedTileIdentifier, quarterTurnsClockwise, mirrorHorizontal, mirrorVertical);
         if (!tileDefinition || tileDefinition->SourceType != TileSourceType::Atlas)
             return;
 
@@ -3546,9 +3603,11 @@ namespace Himii
 
         const glm::ivec4 pixelRect = SpriteSheetUtility::AtlasGridCoordsToPixelRect(
                 tileDefinition->AtlasCoords, static_cast<uint32_t>(tilePixelSize));
-        const std::array<glm::vec2, 4> imguiQuadUVs =
+        std::array<glm::vec2, 4> imguiQuadUVs =
                 SpriteSheetUtility::PixelRectToImGuiQuadUVsForScreenCorners(
                         pixelRect, atlasTexture->GetWidth(), atlasTexture->GetHeight());
+        ApplyPreviewTextureCoordinateTransform(
+                imguiQuadUVs, quarterTurnsClockwise, mirrorHorizontal, mirrorVertical);
 
         ImDrawList *drawList = ImGui::GetWindowDrawList();
         drawList->AddImageQuad((ImTextureID)(uint64_t)atlasTexture->GetRendererID(),
@@ -3644,7 +3703,13 @@ namespace Himii
                 Ref<TileSet> tileSet = m_TileMapEditorPanel.GetTileSet();
                 if (tileSet)
                 {
-                    const TileDef *tileDefinition = tileSet->GetTileDef(selectedTileIdentifier);
+                    uint32_t quarterTurnsClockwise = 0;
+                    bool mirrorHorizontal = false;
+                    bool mirrorVertical = false;
+                    const TileDef *tileDefinition = ResolveEditorPaintPreviewTileDefinition(
+                            *mapData, *tileSet, m_TilemapHoveredTile.x, m_TilemapHoveredTile.y,
+                            selectedTileIdentifier, quarterTurnsClockwise, mirrorHorizontal,
+                            mirrorVertical);
                     if (tileDefinition && tileDefinition->SourceType == TileSourceType::Atlas)
                     {
                         const auto &atlasSources = tileSet->GetAtlasSources();
@@ -3659,10 +3724,13 @@ namespace Himii
                                         assetManager->GetAsset(atlasSource.TextureHandle));
                                 if (atlasTexture && atlasSource.TileSize > 0)
                                 {
-                                    const std::array<glm::vec2, 4> textureCoordinates =
+                                    std::array<glm::vec2, 4> textureCoordinates =
                                             SpriteSheetUtility::AtlasGridCoordsToWorldQuadUVs(
                                                     tileDefinition->AtlasCoords, atlasSource.TileSize,
                                                     atlasTexture->GetWidth(), atlasTexture->GetHeight());
+                                    ApplyPreviewTextureCoordinateTransform(
+                                            textureCoordinates, quarterTurnsClockwise, mirrorHorizontal,
+                                            mirrorVertical);
 
                                     glm::mat4 ghostTransform = entityTransform
                                             * glm::translate(glm::mat4(1.0f),

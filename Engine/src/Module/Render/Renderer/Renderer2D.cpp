@@ -3,6 +3,7 @@
 #include "Module/Render/Renderer/Renderer2D.h"
 #include "Resource/SpriteSheetUtility.h"
 #include "Module/Tilemap/TileMapCoordinateUtility.h"
+#include "Module/Tilemap/RuleTileResolver.h"
 #include "Module/Render/RHI/RenderCommand.h"
 #include "Module/Render/RenderCore/Shader.h"
 #include "Module/Render/RenderCore/UniformBuffer.h"
@@ -786,6 +787,28 @@ namespace Himii
             if (tileSet)
             {
                 const TileDef* tileDefinition = tileSet->GetTileDef(tileIdentifier);
+                uint32_t quarterTurnsClockwise = 0;
+                bool mirrorHorizontal = false;
+                bool mirrorVertical = false;
+
+                if (!tileDefinition)
+                {
+                    const RuleTileDefinition* ruleTileDefinition =
+                            tileSet->GetRuleTileDefinition(tileIdentifier);
+                    if (ruleTileDefinition)
+                    {
+                        const RuleTileResolveResult resolved = RuleTileResolver::Resolve(
+                                *mapData, *tileSet, tileX, tileY, tileIdentifier);
+                        if (resolved.HasOutput)
+                        {
+                            tileDefinition = tileSet->GetTileDef(resolved.OutputTileIdentifier);
+                            quarterTurnsClockwise = resolved.QuarterTurnsClockwise;
+                            mirrorHorizontal = resolved.MirrorHorizontal;
+                            mirrorVertical = resolved.MirrorVertical;
+                        }
+                    }
+                }
+
                 if (tileDefinition)
                 {
                     tint = tileDefinition->Tint;
@@ -820,6 +843,12 @@ namespace Himii
                         Ref<Texture2D> individualTexture = tileDefinition->CachedIndividualTexture;
                         if (individualTexture)
                             textureIndex = acquireTextureSlot(individualTexture);
+                    }
+
+                    if (quarterTurnsClockwise != 0 || mirrorHorizontal || mirrorVertical)
+                    {
+                        RuleTileResolver::ApplyTextureCoordinateTransform(
+                                texCoords, quarterTurnsClockwise, mirrorHorizontal, mirrorVertical);
                     }
                 }
             }

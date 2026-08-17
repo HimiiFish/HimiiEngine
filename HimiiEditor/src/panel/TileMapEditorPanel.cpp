@@ -16,8 +16,12 @@
 #include <algorithm>
 #include <cctype>
 #include <cfloat>
+#include <cstddef>
+#include <cstdint>
 #include <cstdio>
 #include <filesystem>
+#include <string>
+#include <vector>
 
 namespace Himii
 {
@@ -30,6 +34,8 @@ namespace Himii
         m_AtlasTextureHandle = 0;
         m_SelectedTileID = 0;
         m_BrushTileSelected = false;
+        m_AssignAtlasClickToRuleTileOutput = false;
+        m_SelectedRuleTileRuleIndex = -1;
         LoadAssets();
     }
 
@@ -37,6 +43,8 @@ namespace Himii
     {
         m_SelectedTileID = 0;
         m_BrushTileSelected = false;
+        m_AssignAtlasClickToRuleTileOutput = false;
+        m_SelectedRuleTileRuleIndex = -1;
         m_CurrentTool = Tool::Brush;
         m_MoveEntityModeEnabled = false;
         m_HoveredTileCoordinates = {TileMapCoordinateUtility::InvalidTileCoordinate,
@@ -49,6 +57,8 @@ namespace Himii
         {
             m_SelectedTileID = 0;
             m_BrushTileSelected = false;
+            m_AssignAtlasClickToRuleTileOutput = false;
+            m_SelectedRuleTileRuleIndex = -1;
             m_CurrentTool = Tool::Brush;
         }
         m_MoveEntityModeEnabled = enabled;
@@ -67,7 +77,13 @@ namespace Himii
         if (m_CurrentTool == Tool::Eraser || m_CurrentTool == Tool::BoxErase)
             return true;
 
-        return m_BrushTileSelected && m_SelectedTileID != 0;
+        if (!m_BrushTileSelected || m_SelectedTileID == 0 || !m_TileSet)
+            return false;
+
+        if (m_TileSet->GetRuleTileDefinition(m_SelectedTileID))
+            return m_TileSet->HasPaintableRuleTile(m_SelectedTileID);
+
+        return m_TileSet->GetTileDef(m_SelectedTileID) != nullptr;
     }
 
     void TileMapEditorPanel::LoadAssets()
@@ -103,6 +119,30 @@ namespace Himii
         if (!m_TileSet)
             return nullptr;
         return m_TileSet->GetTileDef(m_SelectedTileID);
+    }
+
+    RuleTileDefinition* TileMapEditorPanel::GetSelectedRuleTileDefinition()
+    {
+        if (!m_TileSet)
+            return nullptr;
+        return m_TileSet->GetRuleTileDefinition(m_SelectedTileID);
+    }
+
+    const RuleTileDefinition* TileMapEditorPanel::GetSelectedRuleTileDefinition() const
+    {
+        if (!m_TileSet)
+            return nullptr;
+        return m_TileSet->GetRuleTileDefinition(m_SelectedTileID);
+    }
+
+    void TileMapEditorPanel::SelectRuleTileAsBrush(uint16_t identifier)
+    {
+        m_SelectedTileID = identifier;
+        m_BrushTileSelected = identifier != 0;
+        m_AssignAtlasClickToRuleTileOutput = identifier != 0;
+        m_SelectedRuleTileRuleIndex = -1;
+        if (m_CurrentTool == Tool::Eraser || m_CurrentTool == Tool::BoxErase)
+            m_CurrentTool = Tool::Brush;
     }
 
     uint16_t TileMapEditorPanel::FindTileIDAtAtlasCell(int column, int row) const
@@ -187,6 +227,7 @@ namespace Himii
         UI_Collision();
         UI_AtlasSetup();
         UI_BrushTile();
+        UI_RuleTiles();
         UI_Properties();
     }
 
@@ -285,10 +326,16 @@ namespace Himii
         }
 
         uint32_t collidableDefinitionCount = 0;
-        const uint32_t totalDefinitionCount = static_cast<uint32_t>(m_TileSet->GetTileDefs().size());
+        uint32_t totalDefinitionCount = static_cast<uint32_t>(m_TileSet->GetTileDefs().size()
+                + m_TileSet->GetRuleTileDefinitions().size());
         for (const auto& [tileIdentifier, tileDefinition] : m_TileSet->GetTileDefs())
         {
             if (tileDefinition.Collidable)
+                collidableDefinitionCount++;
+        }
+        for (const auto& [ruleTileIdentifier, ruleTileDefinition] : m_TileSet->GetRuleTileDefinitions())
+        {
+            if (ruleTileDefinition.Collidable)
                 collidableDefinitionCount++;
         }
 
@@ -306,6 +353,8 @@ namespace Himii
             {
                 for (auto& [tileIdentifier, tileDefinition] : m_TileSet->GetTileDefs())
                     tileDefinition.Collidable = true;
+                for (auto& [ruleTileIdentifier, ruleTileDefinition] : m_TileSet->GetRuleTileDefinitions())
+                    ruleTileDefinition.Collidable = true;
                 SaveTileSet();
             }
         }, [&]()
@@ -314,6 +363,8 @@ namespace Himii
             {
                 for (auto& [tileIdentifier, tileDefinition] : m_TileSet->GetTileDefs())
                     tileDefinition.Collidable = false;
+                for (auto& [ruleTileIdentifier, ruleTileDefinition] : m_TileSet->GetRuleTileDefinitions())
+                    ruleTileDefinition.Collidable = false;
                 SaveTileSet();
             }
         });
@@ -330,6 +381,10 @@ namespace Himii
                 }, "仅影响当前在图集中选中的图块类型。");
                 if (ImGui::IsItemDeactivatedAfterEdit())
                     SaveTileSet();
+            }
+            else if (RuleTileDefinition* ruleTileDefinition = GetSelectedRuleTileDefinition())
+            {
+                DrawCheckboxControl("Selected Tile Collidable", ruleTileDefinition->Collidable, false);
             }
         }
     }
@@ -398,10 +453,42 @@ namespace Himii
     void TileMapEditorPanel::UI_BrushTile()
     {
         DrawInspectorSectionHeader("Brush",
-                                 "在右侧图集预览中点击单元格以选择笔刷图块。");
+                                 "在右侧图集预览中点击单元格以选择普通图块笔刷；Rule Tile 请在下方列表中选择。");
+
+        if (!m_TileSet)
+            return;
+
+        if (const RuleTileDefinition* ruleTileDefinition = GetSelectedRuleTileDefinition())
+        {
+            const char* displayName = ruleTileDefinition->DisplayName.empty()
+                    ? "Rule Tile"
+                    : ruleTileDefinition->DisplayName.c_str();
+            DrawReadOnlyTextControl("Selected Rule Tile", displayName,
+                                    "格子将写入该 Rule Tile 的逻辑 ID，绘制时按邻居解析外观。");
+            if (!m_TileSet->HasPaintableRuleTile(m_SelectedTileID))
+            {
+                ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+                                   "Add at least one default output tile before painting.");
+            }
+            else
+            {
+                for (uint16_t outputTileIdentifier : ruleTileDefinition->DefaultOutputTileIdentifiers)
+                {
+                    if (m_TileSet->GetTileDef(outputTileIdentifier))
+                    {
+                        DrawPropertyRow("Default Preview", [&]()
+                        {
+                            DrawTileDefinitionThumbnail(outputTileIdentifier, 72.0f);
+                        }, "默认输出图块预览（规则全未匹配时使用）。");
+                        break;
+                    }
+                }
+            }
+            return;
+        }
 
         const TileDef* selectedTileDefinition = GetSelectedTileDefinition();
-        if (!selectedTileDefinition || !m_TileSet)
+        if (!selectedTileDefinition)
             return;
 
         DrawSelectedTileThumbnail();
@@ -439,7 +526,9 @@ namespace Himii
     {
         DrawInspectorSectionHeader(
                 "Atlas Preview",
-                "点击单元格选择笔刷；可拖入 PNG/JPG 纹理。未 Slice 时显示提示叠加。");
+                m_AssignAtlasClickToRuleTileOutput
+                        ? "点击单元格，将普通图块追加到当前 Rule Tile 的输出列表。"
+                        : "点击单元格选择笔刷；可拖入 PNG/JPG 纹理。未 Slice 时显示提示叠加。");
 
         if (!m_TileSet)
             return;
@@ -569,10 +658,36 @@ namespace Himii
                     const uint16_t pickedTileIdentifier = FindTileIDAtAtlasCell(column, row);
                     if (pickedTileIdentifier != 0)
                     {
-                        m_SelectedTileID = pickedTileIdentifier;
-                        m_BrushTileSelected = true;
-                        if (m_CurrentTool == Tool::Eraser || m_CurrentTool == Tool::BoxErase)
-                            m_CurrentTool = Tool::Brush;
+                        RuleTileDefinition* ruleTileDefinition = GetSelectedRuleTileDefinition();
+                        if (m_AssignAtlasClickToRuleTileOutput && ruleTileDefinition)
+                        {
+                            std::vector<uint16_t>* outputTileIdentifiers =
+                                    &ruleTileDefinition->DefaultOutputTileIdentifiers;
+                            if (m_SelectedRuleTileRuleIndex >= 0
+                                && m_SelectedRuleTileRuleIndex
+                                        < static_cast<int32_t>(ruleTileDefinition->Rules.size()))
+                            {
+                                outputTileIdentifiers = &ruleTileDefinition->Rules
+                                        [static_cast<size_t>(m_SelectedRuleTileRuleIndex)]
+                                                .OutputTileIdentifiers;
+                            }
+
+                            if (std::find(outputTileIdentifiers->begin(), outputTileIdentifiers->end(),
+                                          pickedTileIdentifier)
+                                == outputTileIdentifiers->end())
+                            {
+                                outputTileIdentifiers->push_back(pickedTileIdentifier);
+                            }
+                        }
+                        else
+                        {
+                            m_SelectedTileID = pickedTileIdentifier;
+                            m_BrushTileSelected = true;
+                            m_AssignAtlasClickToRuleTileOutput = false;
+                            m_SelectedRuleTileRuleIndex = -1;
+                            if (m_CurrentTool == Tool::Eraser || m_CurrentTool == Tool::BoxErase)
+                                m_CurrentTool = Tool::Brush;
+                        }
                     }
                 }
             }
@@ -621,8 +736,225 @@ namespace Himii
 
         m_SelectedTileID = 0;
         m_BrushTileSelected = false;
+        m_AssignAtlasClickToRuleTileOutput = false;
+        m_SelectedRuleTileRuleIndex = -1;
 
         HIMII_CORE_INFO("TileSet sliced: {0}x{1} tiles", columnCount, rowCount);
+    }
+
+    void TileMapEditorPanel::DrawTileDefinitionThumbnail(uint16_t tileIdentifier, float thumbnailSize) const
+    {
+        if (!m_TileSet)
+            return;
+
+        const TileDef* tileDefinition = m_TileSet->GetTileDef(tileIdentifier);
+        if (!tileDefinition || tileDefinition->SourceType != TileSourceType::Atlas)
+            return;
+
+        auto assetManager = ResourceSystem::GetAssetManager();
+        if (!assetManager || m_AtlasTextureHandle == 0)
+            return;
+
+        Ref<Texture2D> atlasTexture =
+                std::static_pointer_cast<Texture2D>(assetManager->GetAsset(m_AtlasTextureHandle));
+        if (!atlasTexture)
+            return;
+
+        const uint32_t tilePixelSize = m_AtlasTileSize > 0 ? m_AtlasTileSize : 16;
+        const glm::ivec4 pixelRect = SpriteSheetUtility::AtlasGridCoordsToPixelRect(
+                tileDefinition->AtlasCoords, tilePixelSize);
+        DrawEditorTextureImageSubRect(
+                atlasTexture->GetRendererID(), ImVec2(thumbnailSize, thumbnailSize), pixelRect,
+                atlasTexture->GetWidth(), atlasTexture->GetHeight());
+    }
+
+    void TileMapEditorPanel::DrawRuleTileOutputIdentifierList(
+            const char* label,
+            std::vector<uint16_t>& outputTileIdentifiers,
+            bool isAssignmentTarget)
+    {
+        DrawPropertyRow(
+                label,
+                [&]()
+                {
+                    if (outputTileIdentifiers.empty())
+                    {
+                        ImGui::TextDisabled(isAssignmentTarget ? "Click atlas to add" : "None");
+                        return;
+                    }
+
+                    const float thumbnailSize = 36.0f;
+                    for (size_t outputIndex = 0; outputIndex < outputTileIdentifiers.size(); ++outputIndex)
+                    {
+                        ImGui::PushID(static_cast<int>(outputIndex));
+                        DrawTileDefinitionThumbnail(outputTileIdentifiers[outputIndex], thumbnailSize);
+                        ImGui::SameLine();
+                        if (ImGui::SmallButton("Remove"))
+                        {
+                            outputTileIdentifiers.erase(outputTileIdentifiers.begin()
+                                    + static_cast<std::ptrdiff_t>(outputIndex));
+                            ImGui::PopID();
+                            break;
+                        }
+                        ImGui::PopID();
+                    }
+                },
+                isAssignmentTarget ? "当前正在接收图集点选。输出必须是普通图块。"
+                                   : "从图集点选追加输出图块。");
+    }
+
+    void TileMapEditorPanel::UI_RuleTiles()
+    {
+        DrawInspectorSectionHeader(
+                "Rule Tiles",
+                "Rule Tile 把逻辑 ID 写进地图；外观按 3×3 邻居在绘制时解析。Slice Grid 不会删除这些规则。");
+
+        if (!m_TileSet)
+        {
+            ImGui::TextDisabled("Assign a TileSet to configure Rule Tiles.");
+            return;
+        }
+
+        DrawHorizontalButtonPair(
+                "RuleTileListActions",
+                [&]()
+                {
+                    if (DrawTableFillButton("New Rule Tile", "分配新的逻辑 ID 并加入 TileSet。"))
+                    {
+                        const uint16_t identifier = m_TileSet->GetNextTileIdentifier();
+                        if (identifier != 0)
+                        {
+                            RuleTileDefinition definition;
+                            definition.Identifier = identifier;
+                            definition.DisplayName = "Rule Tile";
+                            m_TileSet->AddRuleTileDefinition(definition);
+                            SelectRuleTileAsBrush(identifier);
+                        }
+                    }
+                },
+                [&]()
+                {
+                    if (DrawTableFillButton("Delete Rule Tile",
+                                            "从 TileSet 删除选中的 Rule Tile，不改写地图上已刷的格子。"))
+                    {
+                        if (GetSelectedRuleTileDefinition())
+                        {
+                            m_TileSet->RemoveRuleTileDefinition(m_SelectedTileID);
+                            SelectRuleTileAsBrush(0);
+                            m_BrushTileSelected = false;
+                            m_AssignAtlasClickToRuleTileOutput = false;
+                        }
+                    }
+                });
+
+        std::vector<uint16_t> ruleTileIdentifiers;
+        ruleTileIdentifiers.reserve(m_TileSet->GetRuleTileDefinitions().size());
+        for (const auto& [identifier, definition] : m_TileSet->GetRuleTileDefinitions())
+            ruleTileIdentifiers.push_back(identifier);
+        std::sort(ruleTileIdentifiers.begin(), ruleTileIdentifiers.end());
+
+        if (ruleTileIdentifiers.empty())
+            ImGui::TextDisabled("No Rule Tiles yet.");
+
+        for (uint16_t identifier : ruleTileIdentifiers)
+        {
+            const RuleTileDefinition* definition = m_TileSet->GetRuleTileDefinition(identifier);
+            if (!definition)
+                continue;
+
+            ImGui::PushID(static_cast<int>(identifier));
+            const bool isSelected = m_BrushTileSelected && m_SelectedTileID == identifier;
+            char ruleTileLabel[160] = {};
+            if (definition->DisplayName.empty())
+                std::snprintf(ruleTileLabel, sizeof(ruleTileLabel), "Rule Tile %u", identifier);
+            else
+                std::snprintf(ruleTileLabel, sizeof(ruleTileLabel), "%s", definition->DisplayName.c_str());
+
+            if (DrawEditorToggleButton(ruleTileLabel, isSelected, ImVec2(-FLT_MIN, 0.0f),
+                                       "选中后作为 Scene 笔刷，并编辑其规则。"))
+            {
+                SelectRuleTileAsBrush(identifier);
+            }
+            ImGui::PopID();
+        }
+
+        RuleTileDefinition* selectedRuleTileDefinition = GetSelectedRuleTileDefinition();
+        if (!selectedRuleTileDefinition)
+            return;
+
+        DrawStdStringControl("Display Name", selectedRuleTileDefinition->DisplayName);
+        DrawCheckboxControl("Collidable", selectedRuleTileDefinition->Collidable, false);
+        DrawCheckboxControl("Atlas Click Assigns Output", m_AssignAtlasClickToRuleTileOutput, false);
+
+        if (ImGui::Button("Assign Defaults", ImVec2(-FLT_MIN, 0.0f)))
+            m_SelectedRuleTileRuleIndex = -1;
+        DrawInspectorTooltipIfHovered("之后点选图集，将图块加入默认输出列表。");
+
+        DrawRuleTileOutputIdentifierList("Default Outputs",
+                                         selectedRuleTileDefinition->DefaultOutputTileIdentifiers,
+                                         m_SelectedRuleTileRuleIndex < 0);
+
+        if (!m_TileSet->HasPaintableRuleTile(selectedRuleTileDefinition->Identifier))
+        {
+            ImGui::TextColored(ImVec4(1.0f, 0.7f, 0.2f, 1.0f),
+                               "Cannot paint until a default output tile is assigned.");
+        }
+
+        DrawActionButtonRow("Rules", [&]()
+        {
+            if (DrawTableFillButton("Add Rule", "添加一条 3×3 匹配规则；列表中先匹配的先生效。"))
+            {
+                selectedRuleTileDefinition->Rules.emplace_back();
+                m_SelectedRuleTileRuleIndex =
+                        static_cast<int32_t>(selectedRuleTileDefinition->Rules.size()) - 1;
+                m_AssignAtlasClickToRuleTileOutput = true;
+            }
+        });
+
+        static const char* matchTransformLabels[] = {
+                "Fixed", "Rotated", "Mirror Horizontal", "Mirror Vertical", "Mirror Both"};
+
+        for (int32_t ruleIndex = 0;
+             ruleIndex < static_cast<int32_t>(selectedRuleTileDefinition->Rules.size()); ++ruleIndex)
+        {
+            RuleTileRule& rule = selectedRuleTileDefinition->Rules[static_cast<size_t>(ruleIndex)];
+            ImGui::PushID(ruleIndex);
+
+            char ruleHeader[48] = {};
+            std::snprintf(ruleHeader, sizeof(ruleHeader), "Rule %d", ruleIndex + 1);
+            const bool isAssignmentTarget = m_SelectedRuleTileRuleIndex == ruleIndex;
+            if (DrawEditorToggleButton(ruleHeader, isAssignmentTarget, ImVec2(-FLT_MIN, 0.0f),
+                                       "选中后，图集点选会写入这条规则的输出。"))
+            {
+                m_SelectedRuleTileRuleIndex = ruleIndex;
+                m_AssignAtlasClickToRuleTileOutput = true;
+            }
+
+            int matchTransformIndex = static_cast<int>(rule.MatchTransform);
+            DrawEnumComboControl(
+                    "Transform", matchTransformIndex, matchTransformLabels, 5,
+                    [&](int newIndex)
+                    {
+                        rule.MatchTransform = static_cast<RuleTileMatchTransform>(newIndex);
+                    });
+
+            DrawRuleTileNeighborMatrixControl("Neighbors", rule.NeighborConditions);
+            DrawRuleTileOutputIdentifierList("Outputs", rule.OutputTileIdentifiers, isAssignmentTarget);
+
+            if (DrawTableFillButton("Delete Rule", "删除这条匹配规则。"))
+            {
+                selectedRuleTileDefinition->Rules.erase(selectedRuleTileDefinition->Rules.begin()
+                        + static_cast<std::ptrdiff_t>(ruleIndex));
+                if (m_SelectedRuleTileRuleIndex == ruleIndex)
+                    m_SelectedRuleTileRuleIndex = -1;
+                else if (m_SelectedRuleTileRuleIndex > ruleIndex)
+                    m_SelectedRuleTileRuleIndex--;
+                ImGui::PopID();
+                break;
+            }
+
+            ImGui::PopID();
+        }
     }
 
     void TileMapEditorPanel::UI_Properties()
@@ -667,7 +999,7 @@ namespace Himii
                 SaveTileMap();
         }, [&]()
         {
-            if (DrawTableFillButton("Save TileSet", "将图集与图块定义（含 Collidable）写入 .tileset 文件。"))
+            if (DrawTableFillButton("Save TileSet", "将图集、图块定义、Rule Tile 与 Collidable 写入 .tileset 文件。"))
                 SaveTileSet();
         });
     }

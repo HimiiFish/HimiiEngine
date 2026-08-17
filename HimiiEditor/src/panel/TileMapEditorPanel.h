@@ -67,10 +67,18 @@ namespace Himii
         void UI_Collision();
         void UI_AtlasSetup();
         void UI_BrushTile();
+        void UI_RuleTiles();
         void UI_Properties();
 
         uint16_t FindTileIDAtAtlasCell(int column, int row) const;
         const TileDef* GetSelectedTileDefinition() const;
+        RuleTileDefinition* GetSelectedRuleTileDefinition();
+        const RuleTileDefinition* GetSelectedRuleTileDefinition() const;
+        void SelectRuleTileAsBrush(uint16_t identifier);
+        void DrawTileDefinitionThumbnail(uint16_t tileIdentifier, float thumbnailSize) const;
+        void DrawRuleTileOutputIdentifierList(const char* label,
+                                              std::vector<uint16_t>& outputTileIdentifiers,
+                                              bool isAssignmentTarget);
 
         AssetHandle m_TileMapHandle = 0;
         Ref<TileMapData> m_MapData;
@@ -79,6 +87,8 @@ namespace Himii
         Tool m_CurrentTool = Tool::Brush;
         uint16_t m_SelectedTileID = 0;
         bool m_BrushTileSelected = false;
+        bool m_AssignAtlasClickToRuleTileOutput = false;
+        int32_t m_SelectedRuleTileRuleIndex = -1;
 
         glm::ivec2 m_HoveredTileCoordinates{TileMapCoordinateUtility::InvalidTileCoordinate,
                                             TileMapCoordinateUtility::InvalidTileCoordinate};

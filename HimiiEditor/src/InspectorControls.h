@@ -3,6 +3,7 @@
 #include "Resource/Asset.h"
 #include "EngineCore/Core/Core.h"
 #include "Module/Render/RenderCore/Texture.h"
+#include "Module/Tilemap/TileSet.h"
 
 #include <glm/glm.hpp>
 #include <cstdint>
@@ -67,6 +68,11 @@ namespace Himii
     void DrawEnumComboControl(const char* label, int& currentIndex, const char* const* labels,
                               int labelCount, const std::function<void(int newIndex)>& onSelectionChanged,
                               bool enableRowReset = false, int resetIndex = 0);
+
+    void DrawRuleTileNeighborMatrixControl(
+            const char* label,
+            RuleTileNeighborCondition neighborConditions[RuleTileNeighborCount],
+            const std::function<void()>& onEdited = nullptr);
 
     void DrawUInt32Control(const char* label, uint32_t& value, float speed = 1.0f,
                            bool enableRowReset = true, uint32_t resetValue = 0);

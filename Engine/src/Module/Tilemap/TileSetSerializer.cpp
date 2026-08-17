@@ -1,6 +1,7 @@
 ﻿#include "Hepch.h"
 #include "Module/Tilemap/TileSetSerializer.h"
 #include "EngineCore/Core/Log.h"
+#include <algorithm>
 #include <fstream>
 #include <sstream>
 #include <yaml-cpp/yaml.h>
@@ -48,6 +49,42 @@ namespace Himii
             out << YAML::Key << "Tint" << YAML::Value << YAML::Flow << YAML::BeginSeq
                 << def.Tint.r << def.Tint.g << def.Tint.b << def.Tint.a << YAML::EndSeq;
             out << YAML::Key << "Collidable" << YAML::Value << def.Collidable;
+            out << YAML::EndMap;
+        }
+        out << YAML::EndSeq;
+
+        out << YAML::Key << "RuleTiles" << YAML::Value << YAML::BeginSeq;
+        for (const auto &[ruleTileIdentifier, ruleTileDefinition] : tileSet->GetRuleTileDefinitions())
+        {
+            out << YAML::BeginMap;
+            out << YAML::Key << "ID" << YAML::Value << (int)ruleTileDefinition.Identifier;
+            out << YAML::Key << "DisplayName" << YAML::Value << ruleTileDefinition.DisplayName;
+            out << YAML::Key << "Collidable" << YAML::Value << ruleTileDefinition.Collidable;
+
+            out << YAML::Key << "DefaultOutputTileIdentifiers" << YAML::Value << YAML::Flow
+                << YAML::BeginSeq;
+            for (uint16_t outputTileIdentifier : ruleTileDefinition.DefaultOutputTileIdentifiers)
+                out << (int)outputTileIdentifier;
+            out << YAML::EndSeq;
+
+            out << YAML::Key << "Rules" << YAML::Value << YAML::BeginSeq;
+            for (const RuleTileRule &rule : ruleTileDefinition.Rules)
+            {
+                out << YAML::BeginMap;
+                out << YAML::Key << "MatchTransform" << YAML::Value << (int)rule.MatchTransform;
+                out << YAML::Key << "NeighborConditions" << YAML::Value << YAML::Flow << YAML::BeginSeq;
+                for (uint32_t neighborIndex = 0; neighborIndex < RuleTileNeighborCount; ++neighborIndex)
+                    out << (int)rule.NeighborConditions[neighborIndex];
+                out << YAML::EndSeq;
+
+                out << YAML::Key << "OutputTileIdentifiers" << YAML::Value << YAML::Flow
+                    << YAML::BeginSeq;
+                for (uint16_t outputTileIdentifier : rule.OutputTileIdentifiers)
+                    out << (int)outputTileIdentifier;
+                out << YAML::EndSeq;
+                out << YAML::EndMap;
+            }
+            out << YAML::EndSeq;
             out << YAML::EndMap;
         }
         out << YAML::EndSeq;
@@ -129,6 +166,72 @@ namespace Himii
                         def.Collidable = defNode["Collidable"].as<bool>();
 
                     tileSet->AddTileDef(def);
+                }
+            }
+
+            if (data["RuleTiles"])
+            {
+                for (auto ruleTileNode : data["RuleTiles"])
+                {
+                    RuleTileDefinition ruleTileDefinition;
+                    if (ruleTileNode["ID"])
+                        ruleTileDefinition.Identifier = (uint16_t)ruleTileNode["ID"].as<int>();
+                    if (ruleTileNode["DisplayName"])
+                        ruleTileDefinition.DisplayName = ruleTileNode["DisplayName"].as<std::string>();
+                    if (ruleTileNode["Collidable"])
+                        ruleTileDefinition.Collidable = ruleTileNode["Collidable"].as<bool>();
+
+                    if (ruleTileNode["DefaultOutputTileIdentifiers"]
+                        && ruleTileNode["DefaultOutputTileIdentifiers"].IsSequence())
+                    {
+                        for (auto outputNode : ruleTileNode["DefaultOutputTileIdentifiers"])
+                            ruleTileDefinition.DefaultOutputTileIdentifiers.push_back(
+                                    (uint16_t)outputNode.as<int>());
+                    }
+
+                    if (ruleTileNode["Rules"] && ruleTileNode["Rules"].IsSequence())
+                    {
+                        for (auto ruleNode : ruleTileNode["Rules"])
+                        {
+                            RuleTileRule rule;
+                            if (ruleNode["MatchTransform"])
+                            {
+                                const int matchTransformValue = ruleNode["MatchTransform"].as<int>();
+                                if (matchTransformValue >= 0 && matchTransformValue <= 4)
+                                    rule.MatchTransform =
+                                            static_cast<RuleTileMatchTransform>(matchTransformValue);
+                            }
+
+                            if (ruleNode["NeighborConditions"] && ruleNode["NeighborConditions"].IsSequence())
+                            {
+                                const uint32_t conditionCount = std::min(
+                                        RuleTileNeighborCount,
+                                        static_cast<uint32_t>(ruleNode["NeighborConditions"].size()));
+                                for (uint32_t neighborIndex = 0; neighborIndex < conditionCount;
+                                     ++neighborIndex)
+                                {
+                                    const int conditionValue =
+                                            ruleNode["NeighborConditions"][neighborIndex].as<int>();
+                                    if (conditionValue >= 0 && conditionValue <= 2)
+                                    {
+                                        rule.NeighborConditions[neighborIndex] =
+                                                static_cast<RuleTileNeighborCondition>(conditionValue);
+                                    }
+                                }
+                            }
+
+                            if (ruleNode["OutputTileIdentifiers"]
+                                && ruleNode["OutputTileIdentifiers"].IsSequence())
+                            {
+                                for (auto outputNode : ruleNode["OutputTileIdentifiers"])
+                                    rule.OutputTileIdentifiers.push_back((uint16_t)outputNode.as<int>());
+                            }
+
+                            ruleTileDefinition.Rules.push_back(std::move(rule));
+                        }
+                    }
+
+                    tileSet->AddRuleTileDefinition(ruleTileDefinition);
                 }
             }
 
