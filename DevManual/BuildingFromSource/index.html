@@ -1828,10 +1828,10 @@
 <div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>cp<span class="w"> </span>CMakePresets.json.example<span class="w"> </span>CMakePresets.json
 </code></pre></div>
 <p>若本机 CMake 默认生成器不符合预期，可在本地 <code>CMakePresets.json</code> 的 <code>windows-base</code>（或对应 preset）中自行添加，例如：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">&quot;generator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Visual Studio 17 2022&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">"generator"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Visual Studio 17 2022"</span>
 </code></pre></div>
 <p>或：</p>
-<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">&quot;generator&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ninja&quot;</span>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">"generator"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Ninja"</span>
 </code></pre></div>
 <p>Linux 开发者通常复制后无需修改，直接使用 <code>linux-debug</code> / <code>linux-release</code> 即可。</p>
 <h2 id="_1">构建步骤（推荐）</h2>
