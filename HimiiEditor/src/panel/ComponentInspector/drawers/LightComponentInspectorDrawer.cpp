@@ -46,8 +46,6 @@ namespace Himii
                     else
                     {
                         DrawCheckboxControl("Cast Shadows", component.CastShadows, true);
-                        DrawFloatControl("Shadow Size", component.ShadowSize, 0.5f, 0.1f, 0.0f, nullptr, nullptr, true,
-                                         40.0f);
                         DrawFloatControl("Shadow Distance", component.ShadowDistance, 0.5f, 0.1f, 0.0f, nullptr, nullptr,
                                          true, 80.0f);
 
@@ -69,7 +67,7 @@ namespace Himii
 
                         DrawReadOnlyTextControl(
                                 "Selection Rule", "First enabled Directional wins",
-                                "Lit uses the first enabled Directional light. Shadows run only when that light also has Cast Shadows enabled. Direction comes from Transform forward (-Z).");
+                                "Lit uses the first enabled Directional light. Shadows run when that light also has Cast Shadows enabled, covering the view out to Shadow Distance. Shadow Map Resolution is the atlas edge length. Direction comes from Transform forward (-Z).");
                     }
                 },
                 [&]() { drawContext.entity.RemoveComponent<LightComponent>(); });

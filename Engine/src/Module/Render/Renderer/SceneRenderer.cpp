@@ -8,6 +8,8 @@
 #include "Project/Project.h"
 #include "Module/Render/Renderer/Renderer2D.h"
 #include "Module/Render/Renderer/Renderer3D.h"
+#include "Module/Render/Renderer/EditorCamera.h"
+#include "World/Scene/SceneCamera.h"
 #include "Module/Render/RHI/RenderCommand.h"
 #include "Module/Render/Renderer/SpriteRendererUtility.h"
 #include "Module/Tilemap/TileSet.h"
@@ -32,22 +34,37 @@ namespace Himii
             SpriteRendererComponent *Sprite = nullptr;
         };
 
+        constexpr uint32_t DirectionalCascadedShadowAtlasPaddingPixels = 2u;
+        constexpr float DirectionalCascadedShadowSplitBlend = 0.85f;
+        constexpr float DirectionalCascadedShadowOverlapRatio = 0.10f;
+        constexpr float DirectionalCascadedShadowSphereEpsilon = 0.05f;
+        constexpr float DefaultShadowBias = 0.0015f;
+
         struct DirectionalShadowParameters
         {
             bool Enabled = false;
-            glm::mat4 LightViewProjection{1.0f};
             uint32_t ShadowMapResolutionPixels = 2048;
-            float ShadowTexelWorldSize = 0.0f;
+            glm::mat4 LightViewProjection[DirectionalCascadedShadowCascadeCount]{
+                    glm::mat4(1.0f), glm::mat4(1.0f), glm::mat4(1.0f), glm::mat4(1.0f)};
+            glm::vec4 CascadeSplitDistances{0.0f};
+            glm::vec4 ShadowTexelWorldSize{0.0f};
+            glm::vec3 ViewerForwardDirection{0.0f, 0.0f, -1.0f};
+            float CascadeNearDistance = 0.05f;
         };
 
-        /// 观察者（Editor 相机或 Runtime 主相机）位置与朝向；阴影盒中心由它决定。
-        struct ShadowViewerAnchor
+        struct ShadowViewerFrustum
         {
             glm::vec3 Position{0.0f};
             glm::vec3 ForwardDirection{0.0f, 0.0f, -1.0f};
+            glm::vec3 RightDirection{1.0f, 0.0f, 0.0f};
+            glm::vec3 UpDirection{0.0f, 1.0f, 0.0f};
+            bool IsOrthographic = false;
+            float NearClip = 0.1f;
+            float FarClip = 1000.0f;
+            float VerticalFieldOfViewRadians = glm::radians(45.0f);
+            float OrthographicSize = 10.0f;
+            float AspectRatio = 1.0f;
         };
-
-        constexpr float DefaultShadowBias = 0.0015f;
 
         glm::vec3 GetTransformForwardDirection(const glm::mat4 &worldTransform)
         {
@@ -58,6 +75,24 @@ namespace Himii
             return glm::normalize(forwardAxis);
         }
 
+        glm::vec3 GetTransformRightDirection(const glm::mat4 &worldTransform)
+        {
+            const glm::vec3 rightAxis = glm::vec3(worldTransform[0]);
+            const float lengthSquared = glm::dot(rightAxis, rightAxis);
+            if (lengthSquared < 1e-8f)
+                return glm::vec3(1.0f, 0.0f, 0.0f);
+            return glm::normalize(rightAxis);
+        }
+
+        glm::vec3 GetTransformUpDirection(const glm::mat4 &worldTransform)
+        {
+            const glm::vec3 upAxis = glm::vec3(worldTransform[1]);
+            const float lengthSquared = glm::dot(upAxis, upAxis);
+            if (lengthSquared < 1e-8f)
+                return glm::vec3(0.0f, 1.0f, 0.0f);
+            return glm::normalize(upAxis);
+        }
+
         glm::vec3 GetLightSpaceUpAxis(const glm::vec3 &lightTravelDirection)
         {
             glm::vec3 upAxis(0.0f, 1.0f, 0.0f);
@@ -66,22 +101,71 @@ namespace Himii
             return upAxis;
         }
 
-        /// 正交阴影体积中心跟随观察点：沿视线前移半个 ShadowSize，让视野中心落在阴影覆盖区内。
-        /// 方向光实体的位置不参与，只有其朝向生效。
-        glm::vec3 ComputeShadowVolumeCenter(const ShadowViewerAnchor &viewerAnchor, float shadowSize)
+        float ExtractProjectionAspectRatio(const glm::mat4 &projection)
         {
-            return viewerAnchor.Position + viewerAnchor.ForwardDirection * (shadowSize * 0.5f);
+            if (std::abs(projection[0][0]) < 1e-8f)
+                return 1.0f;
+            return projection[1][1] / projection[0][0];
         }
 
-        /// 把阴影盒中心对齐到光空间的贴图 texel 网格，避免相机移动时阴影边缘逐帧抖动。
+        ShadowViewerFrustum BuildShadowViewerFrustumFromSceneCamera(const SceneCamera &sceneCamera,
+                                                                    const glm::mat4 &worldTransform)
+        {
+            ShadowViewerFrustum frustum;
+            frustum.Position = glm::vec3(worldTransform[3]);
+            frustum.ForwardDirection = GetTransformForwardDirection(worldTransform);
+            frustum.RightDirection = GetTransformRightDirection(worldTransform);
+            frustum.UpDirection = GetTransformUpDirection(worldTransform);
+            frustum.IsOrthographic =
+                    sceneCamera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic;
+            if (frustum.IsOrthographic)
+            {
+                frustum.NearClip = sceneCamera.GetOrthographicNearClip();
+                frustum.FarClip = sceneCamera.GetOrthographicFarClip();
+                frustum.OrthographicSize = std::max(sceneCamera.GetOrthographicSize(), 0.1f);
+            }
+            else
+            {
+                frustum.NearClip = sceneCamera.GetPerspectiveNearClip();
+                frustum.FarClip = sceneCamera.GetPerspectiveFarClip();
+                frustum.VerticalFieldOfViewRadians = sceneCamera.GetPerspectiveVerticalFOV();
+            }
+            frustum.AspectRatio = ExtractProjectionAspectRatio(sceneCamera.GetProjection());
+            return frustum;
+        }
+
+        ShadowViewerFrustum BuildShadowViewerFrustumFromEditorCamera(const EditorCamera &camera)
+        {
+            ShadowViewerFrustum frustum;
+            frustum.Position = camera.GetPosition();
+            frustum.ForwardDirection = camera.GetForwardDirection();
+            frustum.RightDirection = camera.GetRightDirection();
+            frustum.UpDirection = camera.GetUpDirection();
+            frustum.IsOrthographic = camera.IsOrthographicProjection();
+            frustum.NearClip = camera.GetNearClip();
+            frustum.FarClip = camera.GetFarClip();
+            if (frustum.IsOrthographic)
+            {
+                frustum.OrthographicSize = std::max(camera.GetDistance() * 2.0f, 0.1f);
+            }
+            else
+            {
+                const float projectionYy = camera.GetProjection()[1][1];
+                frustum.VerticalFieldOfViewRadians =
+                        2.0f * std::atan(1.0f / std::max(projectionYy, 1.0e-5f));
+            }
+            frustum.AspectRatio = ExtractProjectionAspectRatio(camera.GetProjection());
+            return frustum;
+        }
+
         glm::vec3 SnapShadowVolumeCenterToTexelGrid(const glm::vec3 &volumeCenter,
                                                     const glm::vec3 &lightTravelDirection,
-                                                    float shadowSize, uint32_t shadowMapResolutionPixels)
+                                                    float worldExtent, uint32_t tileResolutionPixels)
         {
-            if (shadowMapResolutionPixels == 0)
+            if (tileResolutionPixels == 0)
                 return volumeCenter;
 
-            const float texelWorldSize = shadowSize / static_cast<float>(shadowMapResolutionPixels);
+            const float texelWorldSize = worldExtent / static_cast<float>(tileResolutionPixels);
             if (texelWorldSize <= 0.0f)
                 return volumeCenter;
 
@@ -93,22 +177,52 @@ namespace Himii
             return glm::vec3(glm::inverse(lightRotationView) * glm::vec4(centerInLightSpace, 1.0f));
         }
 
-        /// ShadowSize 为正交宽/高，ShadowDistance 为沿光方向近远跨度。
-        glm::mat4 BuildDirectionalLightViewProjection(const glm::vec3 &volumeCenter,
-                                                      const glm::vec3 &lightTravelDirection,
-                                                      float shadowSize, float shadowDistance)
+        void ComputeFrustumSliceCorners(const ShadowViewerFrustum &frustum, float sliceNear, float sliceFar,
+                                        glm::vec3 corners[8])
         {
-            const float safeShadowSize = std::max(shadowSize, 0.1f);
-            const float safeShadowDistance = std::max(shadowDistance, 0.1f);
-            const float halfExtent = safeShadowSize * 0.5f;
+            const auto writePlaneCorners = [&](float depth, glm::vec3 *destination)
+            {
+                const glm::vec3 planeCenter = frustum.Position + frustum.ForwardDirection * depth;
+                float halfHeight = 0.0f;
+                if (frustum.IsOrthographic)
+                    halfHeight = frustum.OrthographicSize * 0.5f;
+                else
+                    halfHeight = std::tan(frustum.VerticalFieldOfViewRadians * 0.5f) * std::max(depth, 0.01f);
+                const float halfWidth = halfHeight * frustum.AspectRatio;
+                destination[0] = planeCenter - frustum.RightDirection * halfWidth - frustum.UpDirection * halfHeight;
+                destination[1] = planeCenter + frustum.RightDirection * halfWidth - frustum.UpDirection * halfHeight;
+                destination[2] = planeCenter + frustum.RightDirection * halfWidth + frustum.UpDirection * halfHeight;
+                destination[3] = planeCenter - frustum.RightDirection * halfWidth + frustum.UpDirection * halfHeight;
+            };
 
-            const glm::vec3 eyePosition =
-                    volumeCenter - lightTravelDirection * (safeShadowDistance * 0.5f);
+            writePlaneCorners(sliceNear, corners);
+            writePlaneCorners(sliceFar, corners + 4);
+        }
 
+        float ComputePracticalSplitDistance(float nearDistance, float farDistance, uint32_t splitIndex,
+                                            uint32_t cascadeCount)
+        {
+            const float splitRatio = static_cast<float>(splitIndex) / static_cast<float>(cascadeCount);
+            const float uniformSplit = nearDistance + (farDistance - nearDistance) * splitRatio;
+            const float safeNearDistance = std::max(nearDistance, 0.01f);
+            const float logarithmicSplit =
+                    safeNearDistance * std::pow(farDistance / safeNearDistance, splitRatio);
+            return glm::mix(uniformSplit, logarithmicSplit, DirectionalCascadedShadowSplitBlend);
+        }
+
+        glm::mat4 BuildDirectionalLightViewProjectionFromSphere(const glm::vec3 &sphereCenter, float sphereRadius,
+                                                                const glm::vec3 &lightTravelDirection,
+                                                                float casterExtrusionDistance)
+        {
+            const float safeRadius = std::max(sphereRadius, 0.05f);
+            const float halfExtent = safeRadius + DirectionalCascadedShadowSphereEpsilon;
+            const float extrusionDistance = std::max(casterExtrusionDistance, halfExtent + 1.0f);
+            const glm::vec3 eyePosition = sphereCenter - lightTravelDirection * extrusionDistance;
             const glm::mat4 lightView =
-                    glm::lookAt(eyePosition, volumeCenter, GetLightSpaceUpAxis(lightTravelDirection));
-            const glm::mat4 lightProjection = glm::ortho(
-                    -halfExtent, halfExtent, -halfExtent, halfExtent, 0.01f, safeShadowDistance);
+                    glm::lookAt(eyePosition, sphereCenter, GetLightSpaceUpAxis(lightTravelDirection));
+            const float farDistance = extrusionDistance + halfExtent;
+            const glm::mat4 lightProjection =
+                    glm::ortho(-halfExtent, halfExtent, -halfExtent, halfExtent, 0.01f, farDistance);
             return lightProjection * lightView;
         }
 
@@ -230,7 +344,7 @@ namespace Himii
         }
 
         DirectionalShadowParameters GatherDirectionalShadowParameters(Scene &scene,
-                                                                     const ShadowViewerAnchor &viewerAnchor)
+                                                                     const ShadowViewerFrustum &viewerFrustum)
         {
             DirectionalShadowParameters parameters{};
             auto lightView = scene.Registry().view<TransformComponent, LightComponent>();
@@ -246,19 +360,65 @@ namespace Himii
                 const glm::mat4 worldTransform =
                         scene.GetEntityWorldTransformMatrix({entityHandle, &scene});
                 const glm::vec3 lightTravelDirection = GetTransformForwardDirection(worldTransform);
-                const float safeShadowSize = std::max(light.ShadowSize, 0.1f);
-                const uint32_t resolutionPixels =
+                const uint32_t atlasResolutionPixels =
                         GetShadowMapResolutionPixelCount(light.ShadowMapResolution);
+                const uint32_t tileResolutionPixels = atlasResolutionPixels / 2u;
+                const float maxShadowDistance = std::max(light.ShadowDistance, 0.1f);
+                const float cascadeNearDistance = std::max(viewerFrustum.NearClip, 0.05f);
+                const float cascadeFarDistance = std::min(viewerFrustum.FarClip, maxShadowDistance);
+                // Shadow Distance 不超过相机近平面时，视锥级联没有正向覆盖范围。
+                if (cascadeFarDistance <= cascadeNearDistance + 0.01f)
+                    return parameters;
 
-                const glm::vec3 volumeCenter = SnapShadowVolumeCenterToTexelGrid(
-                        ComputeShadowVolumeCenter(viewerAnchor, safeShadowSize), lightTravelDirection,
-                        safeShadowSize, resolutionPixels);
+                float splitDistances[DirectionalCascadedShadowCascadeCount]{};
+                for (uint32_t splitIndex = 1; splitIndex <= DirectionalCascadedShadowCascadeCount; ++splitIndex)
+                {
+                    splitDistances[splitIndex - 1] = ComputePracticalSplitDistance(
+                            cascadeNearDistance, cascadeFarDistance, splitIndex,
+                            DirectionalCascadedShadowCascadeCount);
+                }
+                splitDistances[DirectionalCascadedShadowCascadeCount - 1] = cascadeFarDistance;
 
                 parameters.Enabled = true;
-                parameters.LightViewProjection = BuildDirectionalLightViewProjection(
-                        volumeCenter, lightTravelDirection, safeShadowSize, light.ShadowDistance);
-                parameters.ShadowMapResolutionPixels = resolutionPixels;
-                parameters.ShadowTexelWorldSize = safeShadowSize / static_cast<float>(resolutionPixels);
+                parameters.ShadowMapResolutionPixels = atlasResolutionPixels;
+                parameters.ViewerForwardDirection = viewerFrustum.ForwardDirection;
+                parameters.CascadeNearDistance = cascadeNearDistance;
+                parameters.CascadeSplitDistances = glm::vec4(splitDistances[0], splitDistances[1],
+                                                             splitDistances[2], cascadeFarDistance);
+
+                for (uint32_t cascadeIndex = 0; cascadeIndex < DirectionalCascadedShadowCascadeCount;
+                     ++cascadeIndex)
+                {
+                    const float sliceNear =
+                            cascadeIndex == 0 ? cascadeNearDistance : splitDistances[cascadeIndex - 1];
+                    const float sliceFar = splitDistances[cascadeIndex];
+                    const float sliceRange = std::max(sliceFar - sliceNear, 0.01f);
+                    const float overlapExtend =
+                            cascadeIndex + 1 < DirectionalCascadedShadowCascadeCount
+                                    ? sliceRange * DirectionalCascadedShadowOverlapRatio
+                                    : 0.0f;
+                    const float renderFar = sliceFar + overlapExtend;
+
+                    glm::vec3 corners[8]{};
+                    ComputeFrustumSliceCorners(viewerFrustum, sliceNear, renderFar, corners);
+                    glm::vec3 sphereCenter(0.0f);
+                    for (uint32_t cornerIndex = 0; cornerIndex < 8; ++cornerIndex)
+                        sphereCenter += corners[cornerIndex];
+                    sphereCenter /= 8.0f;
+
+                    float sphereRadius = 0.0f;
+                    for (uint32_t cornerIndex = 0; cornerIndex < 8; ++cornerIndex)
+                        sphereRadius = std::max(sphereRadius, glm::length(corners[cornerIndex] - sphereCenter));
+
+                    const float worldExtent = (sphereRadius + DirectionalCascadedShadowSphereEpsilon) * 2.0f;
+                    sphereCenter = SnapShadowVolumeCenterToTexelGrid(
+                            sphereCenter, lightTravelDirection, worldExtent, tileResolutionPixels);
+
+                    parameters.LightViewProjection[cascadeIndex] = BuildDirectionalLightViewProjectionFromSphere(
+                            sphereCenter, sphereRadius, lightTravelDirection, maxShadowDistance);
+                    parameters.ShadowTexelWorldSize[static_cast<int>(cascadeIndex)] =
+                            worldExtent / static_cast<float>(std::max(tileResolutionPixels, 1u));
+                }
                 return parameters;
             }
             return parameters;
@@ -340,10 +500,10 @@ namespace Himii
         }
 
         void RenderDirectionalShadowPass(Scene &scene, SceneLightingParameters &lightingParameters,
-                                         const ShadowViewerAnchor &viewerAnchor)
+                                         const ShadowViewerFrustum &viewerFrustum)
         {
             const DirectionalShadowParameters shadowParameters =
-                    GatherDirectionalShadowParameters(scene, viewerAnchor);
+                    GatherDirectionalShadowParameters(scene, viewerFrustum);
             if (!shadowParameters.Enabled || !lightingParameters.HasDirectionalLight)
             {
                 lightingParameters.HasShadowMap = false;
@@ -351,14 +511,34 @@ namespace Himii
             }
 
             Renderer3D::EnsureShadowMap(shadowParameters.ShadowMapResolutionPixels);
-            Renderer3D::BeginShadowPass(shadowParameters.LightViewProjection);
-            DrawMeshComponents(scene);
+            Renderer3D::BeginShadowPass();
+            const uint32_t atlasResolution = shadowParameters.ShadowMapResolutionPixels;
+            const uint32_t tileResolution = atlasResolution / 2u;
+            const uint32_t padding = DirectionalCascadedShadowAtlasPaddingPixels;
+            for (uint32_t cascadeIndex = 0; cascadeIndex < DirectionalCascadedShadowCascadeCount; ++cascadeIndex)
+            {
+                const uint32_t viewportX = (cascadeIndex % 2u) * tileResolution + padding;
+                const uint32_t viewportY = (cascadeIndex / 2u) * tileResolution + padding;
+                const uint32_t viewportSize = tileResolution - padding * 2u;
+                Renderer3D::SetShadowCascadeViewProjection(
+                        shadowParameters.LightViewProjection[cascadeIndex], viewportX, viewportY,
+                        viewportSize, viewportSize);
+                DrawMeshComponents(scene);
+            }
             Renderer3D::EndShadowPass();
 
             lightingParameters.HasShadowMap = true;
-            lightingParameters.LightViewProjection = shadowParameters.LightViewProjection;
+            for (uint32_t cascadeIndex = 0; cascadeIndex < DirectionalCascadedShadowCascadeCount; ++cascadeIndex)
+                lightingParameters.LightViewProjection[cascadeIndex] =
+                        shadowParameters.LightViewProjection[cascadeIndex];
             lightingParameters.ShadowBias = DefaultShadowBias;
+            lightingParameters.CascadeSplitDistances = shadowParameters.CascadeSplitDistances;
             lightingParameters.ShadowTexelWorldSize = shadowParameters.ShadowTexelWorldSize;
+            lightingParameters.ShadowViewerForwardDirection = shadowParameters.ViewerForwardDirection;
+            lightingParameters.ShadowCascadeOverlapRatio = DirectionalCascadedShadowOverlapRatio;
+            lightingParameters.ShadowCascadeNearDistance = shadowParameters.CascadeNearDistance;
+            lightingParameters.ShadowAtlasTexelUvSize =
+                    1.0f / static_cast<float>(std::max(atlasResolution, 1u));
         }
     }
 
@@ -377,10 +557,8 @@ namespace Himii
 
         SceneLightingParameters lightingParameters = GatherSceneLighting(scene);
         ApplyEnvironmentImageBasedLighting(scene, lightingParameters);
-        ShadowViewerAnchor viewerAnchor;
-        viewerAnchor.Position = glm::vec3(cameraTransform[3]);
-        viewerAnchor.ForwardDirection = GetTransformForwardDirection(cameraTransform);
-        RenderDirectionalShadowPass(scene, lightingParameters, viewerAnchor);
+        RenderDirectionalShadowPass(scene, lightingParameters,
+                                    BuildShadowViewerFrustumFromSceneCamera(cameraComponent.Camera, cameraTransform));
 
         RenderCommand::SetDepthTest(true);
         Renderer3D::SetSceneLighting(lightingParameters);
@@ -526,10 +704,8 @@ namespace Himii
         {
             SceneLightingParameters lightingParameters = GatherSceneLighting(scene);
             ApplyEnvironmentImageBasedLighting(scene, lightingParameters);
-            ShadowViewerAnchor viewerAnchor;
-            viewerAnchor.Position = camera.GetPosition();
-            viewerAnchor.ForwardDirection = camera.GetForwardDirection();
-            RenderDirectionalShadowPass(scene, lightingParameters, viewerAnchor);
+            RenderDirectionalShadowPass(scene, lightingParameters,
+                                        BuildShadowViewerFrustumFromEditorCamera(camera));
             Renderer3D::SetSceneLighting(lightingParameters);
             Renderer3D::BeginScene(camera);
 

@@ -163,9 +163,15 @@ namespace Himii
             glm::vec4 DirectionalLightDirectionHasLight{0.0f, -1.0f, 0.0f, 0.0f};
             glm::vec4 DirectionalLightColorIntensity{1.0f, 1.0f, 1.0f, 1.0f};
             glm::vec4 AmbientColorIntensity{0.0f, 0.0f, 0.0f, 0.0f};
-            glm::mat4 LightViewProjection{1.0f};
-            /// x = HasShadowMap (1/0), y = ShadowBias, z = ShadowTexelWorldSize
-            glm::vec4 ShadowParameters{0.0f, 0.0015f, 0.0f, 0.0f};
+            glm::mat4 LightViewProjection[DirectionalCascadedShadowCascadeCount]{
+                    glm::mat4(1.0f), glm::mat4(1.0f), glm::mat4(1.0f), glm::mat4(1.0f)};
+            /// x = HasShadowMap (1/0), y = depthBias, z = atlas texel UV size (1/atlasResolution),
+            /// w = cascade near distance along viewer forward
+            glm::vec4 ShadowParameters{0.0f, 0.0015f, 0.0f, 0.05f};
+            glm::vec4 CascadeSplitDistances{0.0f};
+            glm::vec4 ShadowTexelWorldSize{0.0f};
+            /// xyz = viewer forward, w = cascade overlap ratio
+            glm::vec4 ShadowViewerForwardAndOverlap{0.0f, 0.0f, -1.0f, 0.10f};
             /// x = PointLightCount
             glm::vec4 PointLightCount{0.0f, 0.0f, 0.0f, 0.0f};
             glm::vec4 PointLightPositionRange[ScenePointLightCapacity]{};
@@ -474,10 +480,15 @@ namespace Himii
             s_Data.LightingBuffer.AmbientColorIntensity = glm::vec4(0.0f);
         }
 
-        s_Data.LightingBuffer.LightViewProjection = parameters.LightViewProjection;
+        for (uint32_t cascadeIndex = 0; cascadeIndex < DirectionalCascadedShadowCascadeCount; ++cascadeIndex)
+            s_Data.LightingBuffer.LightViewProjection[cascadeIndex] = parameters.LightViewProjection[cascadeIndex];
         s_Data.LightingBuffer.ShadowParameters =
                 glm::vec4(parameters.HasShadowMap ? 1.0f : 0.0f, parameters.ShadowBias,
-                          parameters.ShadowTexelWorldSize, 0.0f);
+                          parameters.ShadowAtlasTexelUvSize, parameters.ShadowCascadeNearDistance);
+        s_Data.LightingBuffer.CascadeSplitDistances = parameters.CascadeSplitDistances;
+        s_Data.LightingBuffer.ShadowTexelWorldSize = parameters.ShadowTexelWorldSize;
+        s_Data.LightingBuffer.ShadowViewerForwardAndOverlap =
+                glm::vec4(parameters.ShadowViewerForwardDirection, parameters.ShadowCascadeOverlapRatio);
         s_Data.LightingBuffer.ImageBasedLightingParameters =
                 glm::vec4(parameters.HasImageBasedLighting ? 1.0f : 0.0f, parameters.EnvironmentIntensity,
                           parameters.PrefilterMipCount, 0.0f);
@@ -591,7 +602,7 @@ namespace Himii
         s_Data.ShadowMapResolutionPixels = resolutionPixels;
     }
 
-    void Renderer3D::BeginShadowPass(const glm::mat4 &lightViewProjection)
+    void Renderer3D::BeginShadowPass()
     {
         HIMII_CORE_ASSERT(s_Data.ShadowFramebuffer, "EnsureShadowMap must be called before BeginShadowPass");
 
@@ -604,7 +615,16 @@ namespace Himii
         // (planes, imported meshes with flipped winding) would otherwise drop out of the map.
         RenderCommand::SetCullMode(RHI::CullMode::None);
         RenderCommand::ClearDepth();
+        StartBatch();
+    }
 
+    void Renderer3D::SetShadowCascadeViewProjection(const glm::mat4 &lightViewProjection, uint32_t viewportX,
+                                                    uint32_t viewportY, uint32_t viewportWidth,
+                                                    uint32_t viewportHeight)
+    {
+        HIMII_CORE_ASSERT(s_Data.IsShadowPass, "SetShadowCascadeViewProjection requires an active shadow pass");
+        Flush();
+        RenderCommand::SetViewport(viewportX, viewportY, viewportWidth, viewportHeight);
         s_Data.CameraBuffer.ViewProjection = lightViewProjection;
         s_Data.CameraBuffer.CameraPosition = glm::vec4(0.0f);
         UploadCameraAndLighting();

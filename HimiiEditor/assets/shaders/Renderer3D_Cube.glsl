@@ -75,11 +75,15 @@ layout(std140, binding = 4) uniform SceneLighting
 	vec4 u_DirectionalLightDirectionIntensity; // xyz = travel direction, w = hasLight (1/0)
 	vec4 u_DirectionalLightColor;              // rgb = color, a = intensity
 	vec4 u_AmbientColorIntensity;              // rgb = color, a = intensity
-	mat4 u_LightViewProjection;
-	vec4 u_ShadowParameters;                   // x = hasShadowMap, y = depthBias, z = shadowTexelWorldSize
+	mat4 u_LightViewProjection[4];
+	vec4 u_ShadowParameters;                   // x = hasShadowMap, y = depthBias, z = atlas texel UV size, w = cascade near
+	vec4 u_CascadeSplitDistances;              // xyz = interior splits, w = shadow far
+	vec4 u_ShadowTexelWorldSize;               // per-cascade world texel size
+	vec4 u_ShadowViewerForwardAndOverlap;      // xyz = viewer forward, w = overlap ratio
 	vec4 u_PointLightCount;                    // x = count
 	vec4 u_PointLightPositionRange[8];         // xyz = position, w = range
 	vec4 u_PointLightColorIntensity[8];        // rgb = color, a = intensity
+	vec4 u_ImageBasedLightingParameters;       // x = hasIBL, y = intensity, z = prefilterMipCount
 };
 
 layout(binding = 0) uniform sampler2D u_Textures[31];
@@ -95,22 +99,55 @@ vec3 ApproximateLinearToSrgb(vec3 color)
 	return pow(color, vec3(1.0 / 2.2));
 }
 
-float SampleHardShadow(vec3 worldPosition, vec3 normal, vec3 lightDirectionTowardSurface)
+vec2 ComputeCascadeAtlasCoordinates(vec2 projectedCoordinates, int cascadeIndex)
 {
-	if (u_ShadowParameters.x < 0.5)
-		return 1.0;
+	float paddingUv = u_ShadowParameters.z * 2.0;
+	float innerSize = 0.5 - 2.0 * paddingUv;
+	vec2 tileOrigin = vec2(float(cascadeIndex % 2), float(cascadeIndex / 2)) * 0.5;
+	return tileOrigin + vec2(paddingUv) + projectedCoordinates * innerSize;
+}
 
-	vec3 surfaceNormal = normalize(normal);
-	float surfaceSlope = clamp(1.0 - max(dot(surfaceNormal, lightDirectionTowardSurface), 0.0), 0.0, 1.0);
+int SelectDirectionalShadowCascade(float viewDistance)
+{
+	if (viewDistance < u_CascadeSplitDistances.x)
+		return 0;
+	if (viewDistance < u_CascadeSplitDistances.y)
+		return 1;
+	if (viewDistance < u_CascadeSplitDistances.z)
+		return 2;
+	return 3;
+}
 
-	// Normal-offset bias: move the lookup along the surface normal by ~one shadow texel instead of
-	// leaning on a large depth bias, which is what detaches contact shadows (peter-panning).
-	float normalOffsetWorld = u_ShadowParameters.z * 1.5 * (1.0 + surfaceSlope * 2.0);
+float SampleDirectionalShadowCascade(vec3 worldPosition, vec3 surfaceNormal, float surfaceSlope, int cascadeIndex)
+{
+	float texelWorldSize = 0.0;
+	mat4 lightViewProjection = u_LightViewProjection[0];
+	if (cascadeIndex == 0)
+	{
+		texelWorldSize = u_ShadowTexelWorldSize.x;
+		lightViewProjection = u_LightViewProjection[0];
+	}
+	else if (cascadeIndex == 1)
+	{
+		texelWorldSize = u_ShadowTexelWorldSize.y;
+		lightViewProjection = u_LightViewProjection[1];
+	}
+	else if (cascadeIndex == 2)
+	{
+		texelWorldSize = u_ShadowTexelWorldSize.z;
+		lightViewProjection = u_LightViewProjection[2];
+	}
+	else
+	{
+		texelWorldSize = u_ShadowTexelWorldSize.w;
+		lightViewProjection = u_LightViewProjection[3];
+	}
+
+	float normalOffsetWorld = texelWorldSize * 1.5 * (1.0 + surfaceSlope * 2.0);
 	vec4 lightSpacePosition =
-		u_LightViewProjection * vec4(worldPosition + surfaceNormal * normalOffsetWorld, 1.0);
+		lightViewProjection * vec4(worldPosition + surfaceNormal * normalOffsetWorld, 1.0);
 	vec3 projectedCoordinates = lightSpacePosition.xyz / lightSpacePosition.w;
 	projectedCoordinates = projectedCoordinates * 0.5 + 0.5;
-
 	if (projectedCoordinates.z > 1.0
 		|| projectedCoordinates.x < 0.0 || projectedCoordinates.x > 1.0
 		|| projectedCoordinates.y < 0.0 || projectedCoordinates.y > 1.0)
@@ -118,8 +155,49 @@ float SampleHardShadow(vec3 worldPosition, vec3 normal, vec3 lightDirectionTowar
 		return 1.0;
 	}
 
+	vec2 atlasCoordinates = ComputeCascadeAtlasCoordinates(projectedCoordinates.xy, cascadeIndex);
 	float depthBias = u_ShadowParameters.y * (1.0 + surfaceSlope * 2.0);
-	return texture(u_ShadowMap, vec3(projectedCoordinates.xy, projectedCoordinates.z - depthBias));
+	return texture(u_ShadowMap, vec3(atlasCoordinates, projectedCoordinates.z - depthBias));
+}
+
+float SampleDirectionalShadow(vec3 worldPosition, vec3 normal, vec3 lightDirectionTowardSurface)
+{
+	if (u_ShadowParameters.x < 0.5)
+		return 1.0;
+
+	vec3 surfaceNormal = normalize(normal);
+	float surfaceSlope = clamp(1.0 - max(dot(surfaceNormal, lightDirectionTowardSurface), 0.0), 0.0, 1.0);
+	vec3 viewerForward = normalize(u_ShadowViewerForwardAndOverlap.xyz);
+	float viewDistance = dot(worldPosition - u_CameraPosition.xyz, viewerForward);
+	if (viewDistance > u_CascadeSplitDistances.w)
+		return 1.0;
+
+	int cascadeIndex = SelectDirectionalShadowCascade(viewDistance);
+	float currentSample = SampleDirectionalShadowCascade(worldPosition, surfaceNormal, surfaceSlope, cascadeIndex);
+	if (cascadeIndex >= 3)
+		return currentSample;
+
+	float cascadeNear = u_ShadowParameters.w;
+	float cascadeFar = u_CascadeSplitDistances.x;
+	if (cascadeIndex == 1)
+	{
+		cascadeNear = u_CascadeSplitDistances.x;
+		cascadeFar = u_CascadeSplitDistances.y;
+	}
+	else if (cascadeIndex == 2)
+	{
+		cascadeNear = u_CascadeSplitDistances.y;
+		cascadeFar = u_CascadeSplitDistances.z;
+	}
+
+	float overlapRatio = u_ShadowViewerForwardAndOverlap.w;
+	float blendWidth = max((cascadeFar - cascadeNear) * overlapRatio, 0.0001);
+	float blendFactor = clamp((cascadeFar - viewDistance) / blendWidth, 0.0, 1.0);
+	if (blendFactor >= 1.0)
+		return currentSample;
+
+	float nextSample = SampleDirectionalShadowCascade(worldPosition, surfaceNormal, surfaceSlope, cascadeIndex + 1);
+	return mix(nextSample, currentSample, blendFactor);
 }
 
 float EvaluatePointLightAttenuation(float distanceToLight, float range)
@@ -179,7 +257,7 @@ void main()
 			specular = EvaluateSpecular(normal, lightDirectionTowardSurface, viewDirection,
 				v_Output.Specular, v_Output.Shininess);
 
-		float shadowFactor = SampleHardShadow(v_Output.WorldPosition, normal, lightDirectionTowardSurface);
+		float shadowFactor = SampleDirectionalShadow(v_Output.WorldPosition, normal, lightDirectionTowardSurface);
 		accumulatedLight += ambient + shadowFactor * lightColor * (diffuseFactor + specular);
 	}
 

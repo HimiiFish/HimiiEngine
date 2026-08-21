@@ -130,7 +130,7 @@
 ### 渲染增强 / 粒子
 | 状态 | 最小执行单元 (Minimum Execution Unit) | 预期内容 |
 | :--- | :--- | :--- |
-| [ ] | **Directional Shadow** | 级联阴影贴图 (CSM) |
+| [x] | **Directional Shadow** | 视锥级联阴影贴图（4 层 atlas，方向光） |
 | [ ] | **Point Shadow** | 全向阴影 (CubeMap) |
 | [ ] | **Bloom** | 泛光后处理特效 |
 | [ ] | **Post-Processing Stack** | ToneMapping、Gamma Correction 等 |

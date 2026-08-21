@@ -196,9 +196,7 @@ namespace Himii
         float Range = 10.0f;
         /// 是否投射方向光阴影；对 Point 无效。Bias 为引擎内部常量，不进 Inspector。
         bool CastShadows = true;
-        /// 正交阴影盒在世界空间中的边长（宽=高）；盒中心跟随相机观察点。
-        float ShadowSize = 25.0f;
-        /// 沿光传播方向的近远平面跨度（世界单位）。
+        /// 相机前方最大阴影距离（世界单位）；与相机远平面取较小值后作为级联覆盖范围。
         float ShadowDistance = 80.0f;
         /// 成员名与枚举类型同名时，默认值须用命名空间限定类型。
         Himii::ShadowMapResolution ShadowMapResolution = Himii::ShadowMapResolution::Pixels2048;

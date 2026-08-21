@@ -12,6 +12,7 @@ namespace Himii {
     class VertexArray;
 
     inline constexpr uint32_t ScenePointLightCapacity = 8u;
+    inline constexpr uint32_t DirectionalCascadedShadowCascadeCount = 4u;
 
     struct PointLightParameters
     {
@@ -35,11 +36,20 @@ namespace Himii {
         PointLightParameters PointLights[ScenePointLightCapacity]{};
 
         bool HasShadowMap = false;
-        glm::mat4 LightViewProjection{1.0f};
+        glm::mat4 LightViewProjection[DirectionalCascadedShadowCascadeCount]{glm::mat4(1.0f), glm::mat4(1.0f),
+                                                                            glm::mat4(1.0f), glm::mat4(1.0f)};
         /// 引擎默认常量 Bias；不进 Inspector。
         float ShadowBias = 0.0015f;
-        /// 单个阴影贴图像素在世界空间中的边长，供 shader 做 normal-offset 偏移。
-        float ShadowTexelWorldSize = 0.0f;
+        /// xyz = 级联内部分割距离（沿观察前向的正距离），w = 最大阴影距离。
+        glm::vec4 CascadeSplitDistances{0.0f};
+        /// 四个级联各自的世界空间纹素边长，供 shader 做 normal-offset。
+        glm::vec4 ShadowTexelWorldSize{0.0f};
+        glm::vec3 ShadowViewerForwardDirection{0.0f, 0.0f, -1.0f};
+        float ShadowCascadeOverlapRatio = 0.10f;
+        /// 级联覆盖起点（沿观察前向的正距离，通常为相机近平面）。
+        float ShadowCascadeNearDistance = 0.05f;
+        /// 1 / atlas 边长，供 shader 把 clip UV 映射到带 padding 的 atlas 分块。
+        float ShadowAtlasTexelUvSize = 0.0f;
 
         bool HasImageBasedLighting = false;
         float EnvironmentIntensity = 1.0f;
@@ -62,10 +72,14 @@ namespace Himii {
                                           float prefilterMipCount);
         static void ClearImageBasedLighting();
 
-        /// 按分辨率创建或重建单张深度 Shadow Map。
+        /// 按分辨率创建或重建单张深度 Shadow Atlas。
         static void EnsureShadowMap(uint32_t resolutionPixels);
-        /// 绑定 Shadow Map、写入光空间 VP，随后 Draw* 仅输出深度。
-        static void BeginShadowPass(const glm::mat4 &lightViewProjection);
+        /// 绑定 Shadow Atlas、清深度、双面投射；随后按级联调用 SetShadowCascadeViewProjection。
+        static void BeginShadowPass();
+        /// 设置当前级联的光空间 VP 与 atlas 分块 viewport，并开启新的深度批次。
+        static void SetShadowCascadeViewProjection(const glm::mat4 &lightViewProjection, uint32_t viewportX,
+                                                   uint32_t viewportY, uint32_t viewportWidth,
+                                                   uint32_t viewportHeight);
         static void EndShadowPass();
 
         static void BeginScene(const EditorCamera& camera);

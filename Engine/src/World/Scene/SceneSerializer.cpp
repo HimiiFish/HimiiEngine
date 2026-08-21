@@ -371,7 +371,6 @@ namespace Himii
             out << YAML::Key << "Enabled" << YAML::Value << light.Enabled;
             out << YAML::Key << "Range" << YAML::Value << light.Range;
             out << YAML::Key << "CastShadows" << YAML::Value << light.CastShadows;
-            out << YAML::Key << "ShadowSize" << YAML::Value << light.ShadowSize;
             out << YAML::Key << "ShadowDistance" << YAML::Value << light.ShadowDistance;
             out << YAML::Key << "ShadowMapResolution"
                 << YAML::Value << static_cast<int>(light.ShadowMapResolution);
@@ -818,8 +817,6 @@ namespace Himii
                 light.Range = lightComponent["Range"].as<float>();
             if (lightComponent["CastShadows"])
                 light.CastShadows = lightComponent["CastShadows"].as<bool>();
-            if (lightComponent["ShadowSize"])
-                light.ShadowSize = lightComponent["ShadowSize"].as<float>();
             if (lightComponent["ShadowDistance"])
                 light.ShadowDistance = lightComponent["ShadowDistance"].as<float>();
             if (lightComponent["ShadowMapResolution"])
