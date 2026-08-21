@@ -39,6 +39,8 @@
 #include "Module/Tilemap/RuleTileResolver.h"
 #include "EngineCore/ImGui/ImGuiLayer.h"
 #include "Module/Render/Renderer/Renderer.h"
+#include "Module/Render/Renderer/SceneColorResolvePass.h"
+#include "Module/Render/RHI/RenderCommand.h"
 #include <algorithm>
 #include <array>
 #include <filesystem>
@@ -178,15 +180,24 @@ namespace Himii
                 m_World->SetActiveScene(m_ActiveScene);
 
                 FramebufferSpecification framebuffer_specification{1280, 720};
-                framebuffer_specification.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::RED_INTEGER,
+                framebuffer_specification.Attachments = {FramebufferFormat::RGBA16F, FramebufferFormat::RED_INTEGER,
                                                          FramebufferFormat::Depth};
                 m_Framebuffer = Framebuffer::Create(framebuffer_specification);
+
+                FramebufferSpecification sceneDisplaySpecification{1280, 720};
+                sceneDisplaySpecification.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::Depth};
+                m_SceneDisplayFramebuffer = Framebuffer::Create(sceneDisplaySpecification);
 
                 FramebufferSpecification gameFramebufferSpecification{
                         m_GameTargetResolution.x, m_GameTargetResolution.y};
                 gameFramebufferSpecification.Attachments = {
-                        FramebufferFormat::RGBA8, FramebufferFormat::Depth};
+                        FramebufferFormat::RGBA16F, FramebufferFormat::Depth};
                 m_GameFramebuffer = Framebuffer::Create(gameFramebufferSpecification);
+
+                FramebufferSpecification gameDisplaySpecification{
+                        m_GameTargetResolution.x, m_GameTargetResolution.y};
+                gameDisplaySpecification.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::Depth};
+                m_GameDisplayFramebuffer = Framebuffer::Create(gameDisplaySpecification);
 
                 m_EditorCamera = EditorCamera(45.0f, 1.778f, 0.1f, 1000.0f);
                 m_StartupProgress = 0.60f;
@@ -346,6 +357,12 @@ namespace Himii
         // 从 EditorLayer 获取 Scene 面板的期望尺寸并驱动 FBO 调整
         Renderer2D::ResetStats();
 
+        const uint32_t sceneViewportWidth =
+                std::max(1u, static_cast<uint32_t>(m_ViewportSize.x));
+        const uint32_t sceneViewportHeight =
+                std::max(1u, static_cast<uint32_t>(m_ViewportSize.y));
+        EnsureSceneDisplayFramebuffer(sceneViewportWidth, sceneViewportHeight);
+
         m_Framebuffer->Bind();
 
         glm::vec4 clearColor = {0.18f, 0.28f, 0.46f, 1.0f};
@@ -370,7 +387,7 @@ namespace Himii
                 m_EditorCamera.SetOrthographicProjection(is2D);
                 m_EditorCamera.OnUpdate(ts, m_ViewportHovered, is2D);
                 
-                m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, m_ShowSceneUserInterface);
+                m_ActiveScene->OnUpdateEditor(ts, m_EditorCamera, false);
                 break;
             }
             case SceneState::Play:
@@ -382,7 +399,7 @@ namespace Himii
                 m_EditorCamera.OnUpdate(
                         ts, m_ViewportHovered, isTwoDimensional);
                 m_ActiveScene->RenderEditorView(
-                        m_EditorCamera, m_ShowSceneUserInterface);
+                        m_EditorCamera, false);
                 break;
             }
             case SceneState::Simulate:
@@ -423,9 +440,15 @@ namespace Himii
             }
         }
 
-        OnOverlayRender();
-
         m_Framebuffer->Unbind();
+
+        m_SceneDisplayFramebuffer->Bind();
+        SceneColorResolvePass::Resolve(m_Framebuffer, ResolvePrimaryCameraExposure());
+        RenderCommand::ClearDepth();
+        // 相机/画布调试边界始终在 LDR 上绘制；屏幕 UI 元素由开关控制。
+        m_ActiveScene->RenderUIInEditor(m_EditorCamera, m_ShowSceneUserInterface);
+        OnOverlayRender();
+        m_SceneDisplayFramebuffer->Unbind();
 
         const FramebufferSpecification gameFramebufferSpecification =
                 m_GameFramebuffer->GetSpecification();
@@ -435,6 +458,7 @@ namespace Himii
             m_GameFramebuffer->Resize(
                     m_GameTargetResolution.x, m_GameTargetResolution.y);
         }
+        EnsureGameDisplayFramebuffer(m_GameTargetResolution.x, m_GameTargetResolution.y);
 
         m_GameFramebuffer->Bind();
         Entity primaryCameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
@@ -449,6 +473,7 @@ namespace Himii
         RenderCommand::Clear();
 
         Scene::UserInterfacePointerFrameInput userInterfacePointerInput{};
+        const float gameExposure = ResolvePrimaryCameraExposure();
         if (m_SceneState == SceneState::Play)
         {
             const bool primaryButtonHeld = Input::IsMouseButtonPressed(Mouse::ButtonLeft);
@@ -482,7 +507,7 @@ namespace Himii
                     !primaryButtonHeld && m_GameUserInterfacePrimaryButtonWasHeld;
             m_GameUserInterfacePrimaryButtonWasHeld = primaryButtonHeld;
             m_ActiveScene->SetUserInterfacePointerInput(userInterfacePointerInput);
-            m_World->OnUpdateRuntime(ts, m_ShowGameUserInterface);
+            m_World->OnUpdateRuntime(ts, false);
         }
         else if (m_GameViewHasValidPrimaryCamera)
         {
@@ -490,9 +515,19 @@ namespace Himii
             m_ActiveScene->SetUserInterfacePointerInput({});
             m_ActiveScene->RenderGameView(
                     m_GameTargetResolution.x, m_GameTargetResolution.y,
-                    m_ShowGameUserInterface);
+                    false);
         }
         m_GameFramebuffer->Unbind();
+
+        m_GameDisplayFramebuffer->Bind();
+        SceneColorResolvePass::Resolve(m_GameFramebuffer, gameExposure);
+        RenderCommand::ClearDepth();
+        if (m_ShowGameUserInterface && m_GameViewHasValidPrimaryCamera)
+        {
+            m_ActiveScene->RenderGameUserInterface(
+                    m_GameTargetResolution.x, m_GameTargetResolution.y);
+        }
+        m_GameDisplayFramebuffer->Unbind();
     }
     void EditorLayer::OnImGuiRender()
     {
@@ -684,7 +719,7 @@ namespace Himii
                 m_ViewportSize = {viewportPanelSize.x, viewportPanelSize.y};
             }
 
-            uint64_t textureID = m_Framebuffer->GetColorAttachmentRendererID();
+            uint64_t textureID = m_SceneDisplayFramebuffer->GetColorAttachmentRendererID();
             const ImVec2 viewportImageMin = ImGui::GetCursorScreenPos();
             ImGui::Image(reinterpret_cast<void *>(textureID), ImVec2(m_ViewportSize.x, m_ViewportSize.y), ImVec2(0, 1),
                          ImVec2(1, 0));
@@ -1094,7 +1129,7 @@ namespace Himii
         ImGui::Image(
                 reinterpret_cast<void*>(
                         static_cast<uint64_t>(
-                                m_GameFramebuffer->GetColorAttachmentRendererID())),
+                                m_GameDisplayFramebuffer->GetColorAttachmentRendererID())),
                 ImVec2(gameImageSize.x, gameImageSize.y),
                 ImVec2(0, 1), ImVec2(1, 0));
         m_GameViewportBounds[0] = {gameImageMinimum.x, gameImageMinimum.y};
@@ -1324,6 +1359,49 @@ namespace Himii
         m_TilemapHoveredTile =
                 TilemapEditorUtility::LocalPositionToTileCoordinates(glm::vec2(localPosition), *mapData);
         m_TileMapEditorPanel.SetHoveredTileCoordinates(m_TilemapHoveredTile);
+    }
+
+    float EditorLayer::ResolvePrimaryCameraExposure()
+    {
+        if (!m_ActiveScene)
+            return SceneColorResolvePass::DefaultExposure;
+
+        Entity primaryCameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
+        if (!primaryCameraEntity || !primaryCameraEntity.HasComponent<CameraComponent>())
+            return SceneColorResolvePass::DefaultExposure;
+
+        return SceneColorResolvePass::ClampExposure(
+                primaryCameraEntity.GetComponent<CameraComponent>().Exposure);
+    }
+
+    void EditorLayer::EnsureSceneDisplayFramebuffer(uint32_t width, uint32_t height)
+    {
+        if (!m_SceneDisplayFramebuffer)
+        {
+            FramebufferSpecification specification{width, height};
+            specification.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::Depth};
+            m_SceneDisplayFramebuffer = Framebuffer::Create(specification);
+            return;
+        }
+
+        const FramebufferSpecification &specification = m_SceneDisplayFramebuffer->GetSpecification();
+        if (specification.Width != width || specification.Height != height)
+            m_SceneDisplayFramebuffer->Resize(width, height);
+    }
+
+    void EditorLayer::EnsureGameDisplayFramebuffer(uint32_t width, uint32_t height)
+    {
+        if (!m_GameDisplayFramebuffer)
+        {
+            FramebufferSpecification specification{width, height};
+            specification.Attachments = {FramebufferFormat::RGBA8, FramebufferFormat::Depth};
+            m_GameDisplayFramebuffer = Framebuffer::Create(specification);
+            return;
+        }
+
+        const FramebufferSpecification &specification = m_GameDisplayFramebuffer->GetSpecification();
+        if (specification.Width != width || specification.Height != height)
+            m_GameDisplayFramebuffer->Resize(width, height);
     }
 
     void EditorLayer::OnOverlayRender()

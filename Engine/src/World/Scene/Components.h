@@ -81,6 +81,8 @@ namespace Himii
         SceneCamera Camera;
         bool Primary = true;
         bool FixedAspectRatio = false;
+        /// 线性曝光乘子；显示前在 HDR resolve 中应用。
+        float Exposure = 1.0f;
 
         CameraComponent() = default;
         CameraComponent(const CameraComponent &) = default;

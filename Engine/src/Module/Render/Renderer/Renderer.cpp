@@ -2,6 +2,7 @@
 #include "Renderer.h"
 #include "Module/Render/Renderer/Renderer2D.h"
 #include "Module/Render/Renderer/Renderer3D.h"
+#include "Module/Render/Renderer/SceneColorResolvePass.h"
 
 namespace Himii
 {
@@ -14,6 +15,7 @@ namespace Himii
         RenderCommand::Init();
         Renderer2D::Init();
         Renderer3D::Init();
+        SceneColorResolvePass::Init();
     }
 
     void Renderer::OnWindowResize(uint32_t width, uint32_t height)

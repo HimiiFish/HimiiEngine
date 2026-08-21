@@ -25,6 +25,7 @@ layout(std140, binding = 3) uniform MeshLitUniforms
 	int u_UseNormalTexture;
 	int u_NormalFlipGreen;
 	int u_EntityID;
+	int u_ApplyDisplayEncoding;
 };
 
 layout (location = 0) out vec2 v_TextureCoordinate;
@@ -80,6 +81,7 @@ layout(std140, binding = 3) uniform MeshLitUniforms
 	int u_UseNormalTexture;
 	int u_NormalFlipGreen;
 	int u_EntityID;
+	int u_ApplyDisplayEncoding;
 };
 
 layout(std140, binding = 4) uniform SceneLighting
@@ -429,7 +431,15 @@ void main()
 	}
 
 	accumulatedLight += EvaluateImageBasedLighting(albedoLinear, metallic, roughness, normal, viewDirection);
-	accumulatedLight = ApplyCheapToneMap(accumulatedLight);
-	o_Color = vec4(ApproximateLinearToSrgb(accumulatedLight), albedo.a);
+
+	if (u_ApplyDisplayEncoding != 0)
+	{
+		accumulatedLight = ApplyCheapToneMap(accumulatedLight);
+		o_Color = vec4(ApproximateLinearToSrgb(accumulatedLight), albedo.a);
+	}
+	else
+	{
+		o_Color = vec4(accumulatedLight, albedo.a);
+	}
 	o_EntityID = u_EntityID;
 }

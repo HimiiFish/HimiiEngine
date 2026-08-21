@@ -177,6 +177,8 @@ namespace Himii
         void DrawPrimaryCameraBounds(const glm::vec4& color) const;
         void DrawCanvasDesignBounds(const glm::vec4& color) const;
         void RenderUIInEditor(EditorCamera& editorCamera, bool drawUserInterfaceContent = true);
+        /// Game / Runtime：在 LDR 目标上绘制屏幕空间 UI（须在 HDR resolve 之后调用）。
+        void RenderGameUserInterface(uint32_t targetWidth, uint32_t targetHeight);
         bool IsWorldPositionInsideDesignFrame(const glm::vec2& worldPosition) const;
 
         /// 将 Transform 写入物理刚体（Play/Simulate 期间脚本改 Position/Rotation 时调用）。

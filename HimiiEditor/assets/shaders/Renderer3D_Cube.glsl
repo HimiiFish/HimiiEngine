@@ -94,11 +94,6 @@ vec3 ApproximateSrgbToLinear(vec3 color)
 	return pow(color, vec3(2.2));
 }
 
-vec3 ApproximateLinearToSrgb(vec3 color)
-{
-	return pow(color, vec3(1.0 / 2.2));
-}
-
 vec2 ComputeCascadeAtlasCoordinates(vec2 projectedCoordinates, int cascadeIndex)
 {
 	float paddingUv = u_ShadowParameters.z * 2.0;
@@ -288,6 +283,6 @@ void main()
 	}
 
 	vec3 litLinear = accumulatedLight * albedo.rgb;
-	o_Color = vec4(ApproximateLinearToSrgb(litLinear), albedo.a);
+	o_Color = vec4(litLinear, albedo.a);
 	o_EntityID = v_EntityID;
 }

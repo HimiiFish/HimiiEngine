@@ -133,7 +133,7 @@
 | [x] | **Directional Shadow** | 视锥级联阴影贴图（4 层 atlas，方向光） |
 | [ ] | **Point Shadow** | 全向阴影 (CubeMap) |
 | [ ] | **Bloom** | 泛光后处理特效 |
-| [ ] | **Post-Processing Stack** | ToneMapping、Gamma Correction 等 |
+| [~] | **Post-Processing Stack** | 已具备 HDR 场景色（RGBA16F）+ Camera Exposure + 固定 ACES resolve 底座；Bloom / 完整后处理栈未完成 |
 | [ ] | **Particle System** | GPU/CPU 粒子可用化（编辑器已有基础） |
 
 ### 物理 3D

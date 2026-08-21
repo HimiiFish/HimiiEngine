@@ -72,6 +72,10 @@ namespace Himii {
                                           float prefilterMipCount);
         static void ClearImageBasedLighting();
 
+        /// 材质缩略图等 LDR 工作室路径：在 MeshLit 末尾保留旧 Reinhard+sRGB 显示编码。
+        static void SetApplyDisplayEncoding(bool enabled);
+        static bool GetApplyDisplayEncoding();
+
         /// 按分辨率创建或重建单张深度 Shadow Atlas。
         static void EnsureShadowMap(uint32_t resolutionPixels);
         /// 绑定 Shadow Atlas、清深度、双面投射；随后按级联调用 SetShadowCascadeViewProjection。

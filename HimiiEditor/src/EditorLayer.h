@@ -37,6 +37,9 @@ namespace Himii
         bool OnMouseButtonPressed(MouseButtonPressedEvent &e);
 
         void OnOverlayRender();
+        float ResolvePrimaryCameraExposure();
+        void EnsureSceneDisplayFramebuffer(uint32_t width, uint32_t height);
+        void EnsureGameDisplayFramebuffer(uint32_t width, uint32_t height);
         /// 选中态视口 Gizmo：Light 图标 + 方向箭头、Camera 图标 + 视锥线框。
         void DrawSelectionGizmos(Entity selectedEntity);
         void DrawLightGizmo(Entity lightEntity);
@@ -159,9 +162,11 @@ namespace Himii
         bool m_RequestGameViewportFocus = false;
         bool m_RestoreSceneViewportAfterPlay = true;
 
-        // Scene 视口用的离屏帧缓冲
+        // Scene 视口：HDR 世界色 + 实体 ID；ImGui 显示 LDR resolve 结果
         Ref<Framebuffer> m_Framebuffer;
+        Ref<Framebuffer> m_SceneDisplayFramebuffer;
         Ref<Framebuffer> m_GameFramebuffer;
+        Ref<Framebuffer> m_GameDisplayFramebuffer;
 
         glm::vec2 m_ViewportSize = {0.0f, 0.0f};
         glm::vec2 m_ViewportBounds[2];

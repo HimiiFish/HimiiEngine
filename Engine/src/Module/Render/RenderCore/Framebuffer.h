@@ -11,6 +11,8 @@ namespace Himii
 
         //Color
         RGBA8,
+        /// 线性 HDR 场景色（浮点）。
+        RGBA16F,
         RED_INTEGER,
         
         DEPTH24STENCIL8,
@@ -74,6 +76,7 @@ namespace Himii
 
         virtual uint32_t GetColorAttachmentRendererID(uint32_t index=0) const = 0;
         virtual uint32_t GetDepthAttachmentRendererID() const = 0;
+        virtual void BindColorAttachment(uint32_t attachmentIndex, uint32_t slot) const = 0;
         virtual void BindDepthAttachment(uint32_t slot) const = 0;
 
         virtual const FramebufferSpecification &GetSpecification() const = 0;

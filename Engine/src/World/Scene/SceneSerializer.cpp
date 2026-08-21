@@ -269,6 +269,7 @@ namespace Himii
 
             out << YAML::Key << "Primary" << YAML::Value << cameraComp.Primary;
             out << YAML::Key << "FixedAspectRatio" << YAML::Value << cameraComp.FixedAspectRatio;
+            out << YAML::Key << "Exposure" << YAML::Value << cameraComp.Exposure;
 
             out << YAML::EndMap;
 			
@@ -676,6 +677,8 @@ namespace Himii
 
             cc.Primary = cameraComponent["Primary"].as<bool>();
             cc.FixedAspectRatio = cameraComponent["FixedAspectRatio"].as<bool>();
+            if (cameraComponent["Exposure"])
+                cc.Exposure = cameraComponent["Exposure"].as<float>();
         }
 
         auto scriptComponent = entity["ScriptComponent"];

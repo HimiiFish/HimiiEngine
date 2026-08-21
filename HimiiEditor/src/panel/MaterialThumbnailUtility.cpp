@@ -152,7 +152,9 @@ namespace Himii
             assetManager->GetAsset(materialHandle);
 
             const SceneLightingParameters previousLighting = Renderer3D::GetSceneLighting();
+            const bool previousApplyDisplayEncoding = Renderer3D::GetApplyDisplayEncoding();
             Renderer3D::SetSceneLighting(BuildStudioLighting());
+            Renderer3D::SetApplyDisplayEncoding(true);
 
             s_MaterialThumbnailFramebuffer->BindCapturingPrevious();
             RenderCommand::SetClearColor({MaterialThumbnailBackgroundRed, MaterialThumbnailBackgroundGreen,
@@ -172,6 +174,7 @@ namespace Himii
             std::vector<uint8_t> rgbaBytes;
             s_MaterialThumbnailFramebuffer->ReadColorPixels(0, rgbaBytes);
             s_MaterialThumbnailFramebuffer->UnbindRestoringPrevious();
+            Renderer3D::SetApplyDisplayEncoding(previousApplyDisplayEncoding);
             Renderer3D::SetSceneLighting(previousLighting);
 
             if (rgbaBytes.size()

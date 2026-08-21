@@ -215,6 +215,11 @@ namespace Himii
         RenderCommand::SetDepthTest(true);
     }
 
+    void Scene::RenderGameUserInterface(uint32_t targetWidth, uint32_t targetHeight)
+    {
+        RenderUI(static_cast<float>(targetWidth), static_cast<float>(targetHeight));
+    }
+
     void Scene::PrepareUserInterfaceFonts()
     {
         struct FontTextCollection

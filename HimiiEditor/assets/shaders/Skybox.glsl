@@ -27,19 +27,8 @@ layout(location = 0) in vec3 v_TexCoords;
 
 layout(binding = 0) uniform samplerCube u_Skybox;
 
-vec3 ApproximateLinearToSrgb(vec3 color)
-{
-	return pow(color, vec3(1.0 / 2.2));
-}
-
-vec3 ApplyCheapToneMap(vec3 color)
-{
-	return color / (color + vec3(1.0));
-}
-
 void main()
 {
 	vec3 environmentColor = texture(u_Skybox, v_TexCoords).rgb;
-	environmentColor = ApplyCheapToneMap(environmentColor);
-	o_Color = vec4(ApproximateLinearToSrgb(environmentColor), 1.0);
+	o_Color = vec4(environmentColor, 1.0);
 }

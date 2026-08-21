@@ -73,6 +73,8 @@ namespace Himii
 
                     DrawCheckboxControl("Fixed Aspect Ratio", component.FixedAspectRatio);
                 }
+
+                DrawFloatControl("Exposure", component.Exposure, 0.01f, 0.0f, 0.0f, nullptr, nullptr, true, 1.0f);
             },
             [&]() { drawContext.entity.RemoveComponent<CameraComponent>(); });
     }

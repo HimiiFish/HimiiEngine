@@ -33,6 +33,7 @@ namespace Himii
             return m_DepthAttachment;
         }
 
+        virtual void BindColorAttachment(uint32_t attachmentIndex, uint32_t slot) const override;
         virtual void BindDepthAttachment(uint32_t slot) const override;
 
         virtual const FramebufferSpecification &GetSpecification() const override

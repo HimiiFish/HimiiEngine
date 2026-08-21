@@ -23,8 +23,8 @@ namespace Himii
             glBindTexture(TextureTarget(multisampled), id);
         }
 
-        static void AttachColorTexture(uint32_t id, int samples, GLenum internalFormat, GLenum format, uint32_t width,
-                                       uint32_t height, int index)
+        static void AttachColorTexture(uint32_t id, int samples, GLenum internalFormat, GLenum format,
+                                       GLenum dataType, uint32_t width, uint32_t height, int index)
         {
             bool multisampled = samples > 1;
             if (multisampled)
@@ -33,7 +33,7 @@ namespace Himii
             }
             else
             {
-                glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, nullptr);
+                glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, dataType, nullptr);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -104,6 +104,8 @@ namespace Himii
             {
                 case FramebufferFormat::RGBA8:
                     return GL_RGBA8;
+                case FramebufferFormat::RGBA16F:
+                    return GL_RGBA;
                 case FramebufferFormat::RED_INTEGER:
                     return GL_RED_INTEGER;
                 case FramebufferFormat::DEPTH24STENCIL8:
@@ -169,11 +171,16 @@ namespace Himii
                 {
                     case FramebufferFormat::RGBA8:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA8, GL_RGBA,
-                                                  m_Specification.Width, m_Specification.Height, (int)i);
+                                                  GL_UNSIGNED_BYTE, m_Specification.Width, m_Specification.Height,
+                                                  (int)i);
+                        break;
+                    case FramebufferFormat::RGBA16F:
+                        Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_RGBA16F, GL_RGBA,
+                                                  GL_FLOAT, m_Specification.Width, m_Specification.Height, (int)i);
                         break;
                     case FramebufferFormat::RED_INTEGER:
                         Utils::AttachColorTexture(m_ColorAttachments[i], m_Specification.Samples, GL_R32I, GL_RED_INTEGER,
-                                                  m_Specification.Width, m_Specification.Height, (int)i);
+                                                  GL_INT, m_Specification.Width, m_Specification.Height, (int)i);
                         break;
                     default:
                         HIMII_CORE_ASSERT(false, "Unknown FramebufferFormat!");
@@ -289,6 +296,12 @@ namespace Himii
         glReadPixels(0, 0, static_cast<GLsizei>(m_Specification.Width),
                      static_cast<GLsizei>(m_Specification.Height), GL_RGBA, GL_UNSIGNED_BYTE,
                      outRgbaBytes.data());
+    }
+
+    void OpenGLFramebuffer::BindColorAttachment(uint32_t attachmentIndex, uint32_t slot) const
+    {
+        HIMII_CORE_ASSERT(attachmentIndex < m_ColorAttachments.size());
+        glBindTextureUnit(slot, m_ColorAttachments[attachmentIndex]);
     }
 
     void OpenGLFramebuffer::BindDepthAttachment(uint32_t slot) const

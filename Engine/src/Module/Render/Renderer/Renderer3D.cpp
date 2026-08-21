@@ -90,6 +90,7 @@ namespace Himii
         Ref<Shader> ShadowDepthShader;
         Ref<Shader> MeshShadowDepthShader;
         Ref<Texture2D> WhiteTexture;
+        bool ApplyDisplayEncoding = false;
 
         Ref<Framebuffer> ShadowFramebuffer;
         uint32_t ShadowMapResolutionPixels = 0;
@@ -114,7 +115,7 @@ namespace Himii
             int UseNormalTexture = 0;
             int NormalFlipGreen = 0;
             int EntityID = -1;
-            int Padding0 = 0;
+            int ApplyDisplayEncoding = 0;
         };
         struct MeshUnlitData
         {
@@ -569,6 +570,16 @@ namespace Himii
         }
     }
 
+    void Renderer3D::SetApplyDisplayEncoding(bool enabled)
+    {
+        s_Data.ApplyDisplayEncoding = enabled;
+    }
+
+    bool Renderer3D::GetApplyDisplayEncoding()
+    {
+        return s_Data.ApplyDisplayEncoding;
+    }
+
     static void BindImageBasedLightingTexturesIfAvailable()
     {
         if (!s_Data.HasImageBasedLightingTextures)
@@ -721,6 +732,7 @@ namespace Himii
             meshLitData.UseNormalTexture = useNormalTexture;
             meshLitData.NormalFlipGreen = normalFlipGreen;
             meshLitData.EntityID = entityID;
+            meshLitData.ApplyDisplayEncoding = s_Data.ApplyDisplayEncoding ? 1 : 0;
             s_Data.MeshMaterialUniformBuffer->SetData(&meshLitData, sizeof(Renderer3DData::MeshLitData));
         }
         s_Data.MeshMaterialUniformBuffer->Bind();

@@ -3,7 +3,11 @@
 #include "EngineCore/Core/Input.h"
 #include "Project/Project.h"
 #include "Module/Script/ScriptEngine.h"
+#include "Module/Render/RenderCore/Framebuffer.h"
+#include "Module/Render/Renderer/SceneColorResolvePass.h"
+#include "Module/Render/RHI/RenderCommand.h"
 #include "World/World.h"
+#include "World/Scene/Components.h"
 
 namespace Himii
 {
@@ -71,6 +75,8 @@ namespace Himii
                     auto &window = Application::Get().GetWindow();
                     m_ActiveScene->OnViewportResize(
                             window.GetFramebufferWidth(), window.GetFramebufferHeight());
+                    EnsureHdrFramebuffer(
+                            window.GetFramebufferWidth(), window.GetFramebufferHeight());
                 }
             }
             else
@@ -88,6 +94,9 @@ namespace Himii
             const uint32_t framebufferWidth = window.GetFramebufferWidth();
             const uint32_t framebufferHeight = window.GetFramebufferHeight();
             m_ActiveScene->OnViewportResize(framebufferWidth, framebufferHeight);
+            EnsureHdrFramebuffer(framebufferWidth, framebufferHeight);
+            if (!m_HdrFramebuffer)
+                return;
 
             Scene::UserInterfacePointerFrameInput userInterfacePointerInput{};
             userInterfacePointerInput.Enabled = true;
@@ -111,18 +120,50 @@ namespace Himii
             m_ActiveScene->SetUserInterfacePointerInput(userInterfacePointerInput);
 
             glm::vec4 clearColor{0.0f, 0.0f, 0.0f, 1.0f};
+            float exposure = SceneColorResolvePass::DefaultExposure;
             Entity primaryCameraEntity = m_ActiveScene->GetPrimaryCameraEntity();
-            if (primaryCameraEntity)
-                clearColor =
-                        primaryCameraEntity.GetComponent<CameraComponent>().Camera.GetBackgroundColor();
+            if (primaryCameraEntity && primaryCameraEntity.HasComponent<CameraComponent>())
+            {
+                const CameraComponent &cameraComponent =
+                        primaryCameraEntity.GetComponent<CameraComponent>();
+                clearColor = cameraComponent.Camera.GetBackgroundColor();
+                exposure = SceneColorResolvePass::ClampExposure(cameraComponent.Exposure);
+            }
+
+            m_HdrFramebuffer->Bind();
             RenderCommand::SetClearColor(clearColor);
             RenderCommand::Clear();
-            m_World->OnUpdateRuntime(ts);
+            m_World->OnUpdateRuntime(ts, false);
+            m_HdrFramebuffer->Unbind();
+
+            RenderCommand::SetViewport(0, 0, framebufferWidth, framebufferHeight);
+            SceneColorResolvePass::Resolve(m_HdrFramebuffer, exposure);
+            RenderCommand::ClearDepth();
+            m_ActiveScene->RenderGameUserInterface(framebufferWidth, framebufferHeight);
         }
 
         private:
+        void EnsureHdrFramebuffer(uint32_t width, uint32_t height)
+        {
+            if (width == 0 || height == 0)
+                return;
+
+            if (!m_HdrFramebuffer)
+            {
+                FramebufferSpecification specification{width, height};
+                specification.Attachments = {FramebufferFormat::RGBA16F, FramebufferFormat::Depth};
+                m_HdrFramebuffer = Framebuffer::Create(specification);
+                return;
+            }
+
+            const FramebufferSpecification &specification = m_HdrFramebuffer->GetSpecification();
+            if (specification.Width != width || specification.Height != height)
+                m_HdrFramebuffer->Resize(width, height);
+        }
+
         Ref<World> m_World;
         Ref<Scene> m_ActiveScene;
+        Ref<Framebuffer> m_HdrFramebuffer;
         bool m_PrimaryButtonWasHeld = false;
     };
 

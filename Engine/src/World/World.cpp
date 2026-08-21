@@ -132,10 +132,11 @@ namespace Himii
         switch (m_PendingSceneRenderKind)
         {
         case PendingSceneRenderKind::RuntimeGameView:
+            // 屏幕 UI 必须在 HDR resolve 之后绘制到 LDR；此处只画世界内容。
             m_ActiveScene->RenderGameView(
                     m_ActiveScene->GetViewportWidth(),
                     m_ActiveScene->GetViewportHeight(),
-                    m_PendingDrawUserInterfaceContent);
+                    false);
             break;
         case PendingSceneRenderKind::SimulationEditorView:
             if (m_PendingEditorCamera)

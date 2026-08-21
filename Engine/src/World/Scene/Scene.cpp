@@ -247,7 +247,7 @@ namespace Himii
         if (!SceneRenderer::RenderGameWorld(*this, targetWidth, targetHeight))
             return false;
         if (drawUserInterfaceContent)
-            RenderUI(static_cast<float>(targetWidth), static_cast<float>(targetHeight));
+            RenderGameUserInterface(targetWidth, targetHeight);
         return true;
     }
 
